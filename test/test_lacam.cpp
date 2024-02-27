@@ -2,8 +2,8 @@
 // Created by yaozhuo on 2023/12/27.
 //
 #include "lacam/include/lacam.hpp"
-#include "dependencies/test_data.h"
-#include "dependencies/memory_analysis.h"
+#include "../test/test_data.h"
+#include "../freeNav-base/dependencies/memory_analysis.h"
 #include "gtest/gtest.h"
 
 
@@ -17,7 +17,7 @@
 // MAPFTestConfig_den520d
 // MAPFTestConfig_empty_32_32
 
-auto map_test_config = freeNav::RimJump::MAPFTestConfig_Paris_1_256;
+auto map_test_config = freeNav::LayeredMAPF::MAPFTestConfig_Paris_1_256;
 
 
 using namespace LaCAM;

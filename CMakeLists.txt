@@ -57,8 +57,7 @@ add_subdirectory(third_party/grid-pathfinding/graph ./graph)
 
 add_subdirectory(freeNav-base)
 include_directories(third_party)
-aux_source_directory(algorithm alg_src)
-add_library(alg_lib ${alg_src})
+
 
 aux_source_directory(third_party/EECBS/src                  EECBS_src)
 aux_source_directory(third_party/CBSH2-RTC/src              CBSH2-RTC_src)
@@ -77,10 +76,22 @@ aux_source_directory(test/visualization vis_src)
 add_library(vis_lib ${vis_src})
 target_link_libraries(vis_lib ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} ${Pangolin_LIBRARIES})
 
+aux_source_directory(algorithm alg_src)
+add_library(alg_lib ${alg_src})
+target_link_libraries(alg_lib EECBS_lib vis_lib lib-graph)
 #add_library(external_lib ${third1_src} ${third2_src} ${third3_src})
 
 add_executable(test_2d_mapf_viewer test/test_2d_mapf_viewer.cpp)
-target_link_libraries(test_2d_mapf_viewer freeNav-base alg_lib EECBS_lib vis_lib lib-graph)
-#
-#add_executable(test_massive_comparison test/test_massive_comparison_2d.cpp)
-#target_link_libraries(test_massive_comparison freeNav-base alg_lib vis_lib external_lib)
+target_link_libraries(test_2d_mapf_viewer freeNav-base alg_lib)
+
+add_executable(test_lacam test/test_lacam.cpp)
+target_link_libraries(test_lacam freeNav-base alg_lib)
+
+add_executable(test_memory_check test/test_memory_check.cpp)
+target_link_libraries(test_memory_check freeNav-base alg_lib)
+
+add_executable(test_massive_layered_mapf test/test_massive_layered_mapf.cpp)
+target_link_libraries(test_massive_layered_mapf freeNav-base alg_lib)
+
+add_executable(test_create_random_map_fr_mapf test/test_create_random_map_fr_mapf.cpp)
+target_link_libraries(test_create_random_map_fr_mapf freeNav-base alg_lib)

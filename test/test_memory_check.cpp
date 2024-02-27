@@ -2,28 +2,27 @@
 // Created by yaozhuo on 2024/1/26.
 //
 
-#include "dependencies/test_data.h"
+#include "../test/test_data.h"
 //#include "multi-agent-path-finding/general_mapf_scene.h"
 
-#include <2d_grid/text_map_loader.h>
+#include "../freeNav-base/dependencies/2d_grid/text_map_loader.h"
+#include "../freeNav-base/dependencies/memory_analysis.h"
+
 #include "EECBS/inc/driver.h"
 #include "PBS/inc/driver.h"
 #include "CBSH2-RTC/inc/driver.h"
 #include "MAPF-LNS2/inc/driver.h"
-#include "my_eecbs/driver_my.h"
-#include "my_cbs/space_time_astar.h"
-#include "second_EECBS/driver_second.h"
-#include "layered_mapf/layered_mapf.h"
 #include "lacam/include/planner.hpp"
-#include "dependencies/memory_analysis.h"
 #include "lacam2/include/lacam2.hpp"
 #include "pibt2/include/driver.h"
+
+#include "../algorithm/layered_mapf.h"
+
 
 //ThreadPool viewer_thread(1);
 
 using namespace freeNav;
-using namespace freeNav::RimJump;
-using namespace freeNav::CBS;
+using namespace freeNav::LayeredMAPF;
 
 struct timezone tz;
 struct timeval tv_pre;
@@ -41,7 +40,7 @@ bool plan_finish = false;
 // MAPFTestConfig_den520d 237.842 ms / layered faster， after 150 agent
 // MAPFTestConfig_empty_32_32 2872.3 ms / layered faster
 
-auto map_test_config = freeNav::RimJump::MAPFTestConfig_Berlin_1_256;
+auto map_test_config = freeNav::LayeredMAPF::MAPFTestConfig_Berlin_1_256;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -122,7 +121,7 @@ int main() {
     memory_recorder.clear();
     base_usage = memory_recorder.getCurrentMemoryUsage();
     gettimeofday(&tv_pre, &tz);
-    multiple_paths = freeNav::TCBS::layeredMAPF<2>(ists, dim, is_occupied, mapf_func, CBS_Li::eecbs_MAPF, false, 60);
+    multiple_paths = freeNav::LayeredMAPF::layeredMAPF<2>(ists, dim, is_occupied, mapf_func, CBS_Li::eecbs_MAPF, false, 60);
     gettimeofday(&tv_after, &tz);
     double layered_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
     std::cout << multiple_paths.size() << " paths " << " / agents " << ists.size() << std::endl;
@@ -175,8 +174,8 @@ bool decompositionOfSingleInstance(const freeNav::Instances<N>& ists, DimensionL
     struct timeval tv_pre;
     struct timeval tv_after;
     gettimeofday(&tv_pre, &tz);
-    freeNav::TCBS::MAPFInstanceDecompositionPtr<N> instance_decompose
-            = std::make_shared<freeNav::TCBS::MAPFInstanceDecomposition<N> >(ists, dim, isoc);
+    freeNav::LayeredMAPF::MAPFInstanceDecompositionPtr<N> instance_decompose
+            = std::make_shared<freeNav::LayeredMAPF::MAPFInstanceDecomposition<N> >(ists, dim, isoc);
     gettimeofday(&tv_after, &tz);
     double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
     bool is_legal = instance_decompose->decompositionValidCheck(instance_decompose->all_clusters_);
@@ -220,7 +219,7 @@ bool SingleMapDecompositionTest(const SingleMapTestConfig <2> &map_test_config,
     int count_of_experiments = sl.GetNumExperiments();
 
     // 1, get all test instances
-    const auto& insts_ids = freeNav::TCBS::pickCasesFromScene<2>(count_of_experiments, agent_in_instances, count_of_instance);
+    const auto& insts_ids = freeNav::LayeredMAPF::pickCasesFromScene<2>(count_of_experiments, agent_in_instances, count_of_instance);
 
     InstancesS<2> istss;
     for(const auto& ids : insts_ids) {

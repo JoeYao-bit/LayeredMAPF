@@ -6,13 +6,19 @@
 // Created by yaozhuo on 2023/6/7.
 //
 
-#include "3d_viewer/3d_viewer.h"
-#include "dependencies/test_data.h"
-#include "multi-agent-path-finding/general_mapf_scene.h"
-#include "dependencies/color_table.h"
-#include <2d_grid/text_map_loader.h>
+
+#include "../freeNav-base/dependencies/color_table.h"
+#include "../freeNav-base/dependencies/2d_grid/text_map_loader.h"
+#include "../freeNav-base/basic_elements/surface_process.h"
+
+#include "../algorithm/general_mapf_scene.h"
+
+#include "../test/visualization/3d_viewer.h"
+#include "../test/test_data.h"
 #include "EECBS/inc/Instance.h"
-#include "dependencies/test_data.h"
+#include "../test/test_data.h"
+
+using namespace freeNav::LayeredMAPF;
 
 Viewer3D* viewer_3d;
 ThreadPool viewer_thread(1);
@@ -25,7 +31,7 @@ ThreadPool viewer_thread(1);
 // MapTestConfig_A1
 // MapTestConfig_FA2
 // MapTestConfig_A5
-auto map_test_config = freeNav::RimJump::MAPFTestConfig_random_32_32_20;
+auto map_test_config = freeNav::LayeredMAPF::MAPFTestConfig_random_32_32_20;
 
 // generate random grid maps and agents
 CBS_Li::Instance instance(map_test_config.at("map_path"),
@@ -34,14 +40,13 @@ CBS_Li::Instance instance(map_test_config.at("map_path"),
                   5, 5, 2, 0
 );
 
-using namespace freeNav::RimJump;
+using namespace freeNav::LayeredMAPF;
 using namespace freeNav;
 
 struct timezone tz;
 struct timeval tv_pre;
 struct timeval tv_after;
 
-std::shared_ptr<RoadMapGraphBuilder<3> > tgb = nullptr;
 
 bool plan_finish = false;
 
