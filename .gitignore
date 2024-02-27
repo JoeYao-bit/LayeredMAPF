@@ -1,0 +1,17 @@
+cmake-build-debug/
+cmake-build-debug-coverage/
+cmake-build-default/
+cmake-build-release/
+CMakeLists.txt.user
+.idea/
+.asv
+.json
+.vscode/
+ENLSVG-Pathfinding/
+*.tree
+*.csv
+*.ct.txt
+*.ui.autosave
+CMakeFiles/
+build/
+venv/

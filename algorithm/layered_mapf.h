@@ -1,0 +1,301 @@
+//
+// Created by yaozhuo on 2023/12/6.
+//
+
+#ifndef FREENAV_LAYERED_MAPF_LAYERED_MAPF_H
+#define FREENAV_LAYERED_MAPF_LAYERED_MAPF_H
+
+#include "basic.h"
+#include "instance_decomposition.h"
+#include "../third_party/EECBS/inc/ConstraintTable.h"
+//#include "EECBS/inc/driver.h"
+
+// EECBS: run success and transferred
+// PBS: run success (not complete to find all path)
+// Rolling-Horizon Collision Resolution (RHCR): run success
+
+// IDCBS Disjoint/non-disjoint (E)CBSH and ID(E)CBS: integrated with LPA* and other incremental techniques
+
+// considering a general interfaces for multi-agent path finding, ought to be complete to find path
+
+// download Push-and-Rotate--CBS--PrioritizedPlanning from GitHub, look like EECBS
+// download LaCAM from GitHub, and run successful, seems faster than EECBS,
+
+// The increasing cost tree search for optimal multi-agent pathfinding, ICTS, rocketman1243/IncreasingCostTreeSearch
+
+
+// LaCAM and LaCAM-2 come from https://github.com/Kei18/lacam
+
+// MAPF-LNS2, from https://github.com/Jiaoyang-Li/MAPF-LNS2, MAPF-LNS2: Fast Repairing for Multi-Agent Path Finding
+//via Large Neighborhood Search
+
+// PIBT_2: https://github.com/Kei18/pibt2/
+
+// layered method list:
+// EECBS,     PBS,         CBSH2-RTC,   LaCAM,
+// MAPF-LNS2, LaCAM2,      PIBT,        PIBT_2,
+// HCA,       PushAndSwap, AnytimeBCBS, AnytimeEECBS
+
+namespace freeNav::LayeredMAPF {
+
+    // return the path have been modified to avoid conflict with lasted_occupied_time_table
+    // synchronous is easy but too long, current way
+    // asynchronous is not easy to implement, but too
+    template <Dimension N>
+    Paths<N> SingleLayerCompress(DimensionLength* dim, std::vector<int>& lasted_occupied_time_table, const Paths<N>& paths) {
+        int t=0;
+        std::vector<bool> reach_states(paths.size(), false);
+        Paths<N> modified_paths(paths);
+        while(1) {
+            // check whether current proceed
+            bool proceed = true, all_finished = true;
+            for(auto& path : modified_paths) {
+                // check whether finished
+                if(t > path.size() - 1) { continue; }
+                else { all_finished = false; }
+                // if not finish, check whether proceed
+                Id temp_id = PointiToId(path[t], dim);
+                if(lasted_occupied_time_table[temp_id] >= t) {
+                    proceed = false;
+                    break;
+                }
+            }
+            if(all_finished) { break; }
+            if(proceed) {
+                // if proceed, update lasted_occupied_time_table
+                for(auto& path : modified_paths) {
+                    // check whether finished
+                    if(t > path.size() - 1) { continue; }
+                    // if not finish, check whether proceed
+                    Id temp_id = PointiToId(path[t], dim);
+                    lasted_occupied_time_table[temp_id] = t;
+                }
+            } else {
+//                if(t == 0) {
+//                    std::cout << "ERROR: illegal start " << std::endl;
+//                }
+                // traversal all path, wait at previous frame
+                for(auto& path : modified_paths) {
+                    if(t > path.size()-1) { continue; }
+                    path.insert(path.begin() + t-1, path[t-1]);
+                    Id temp_id = PointiToId(path[t-1], dim);
+                    lasted_occupied_time_table[temp_id] = t;
+                }
+            }
+            t++;
+        }
+        return modified_paths;
+    }
+
+    template <Dimension N>
+    Paths<N> multiLayerCompress(DimensionLength* dim, const std::vector<Paths<N> >& pathss) {
+        if(pathss.size() == 1) { return pathss[0]; }
+        else if(pathss.empty()) { return {}; }
+        Id total_index = getTotalIndexOfSpace<N>(dim);
+        // store the last occupied time index, update dynamically
+
+        std::vector<int> lasted_occupied_time_table(total_index, -1);
+        // initialize the lasted_occupied_time_table
+        for(const auto& path : pathss[0]) {
+            for(int i=0; i<path.size(); i++) {
+                Id temp_id = PointiToId(path[i], dim);
+                lasted_occupied_time_table[temp_id] = std::max(lasted_occupied_time_table[temp_id], i);
+            }
+        }
+        // delay other path to avoid conflict with previous
+        Paths<N> mergedPaths = pathss[0];
+        for(int i=1; i<pathss.size(); i++) {
+            Paths<N> delayed_paths = SingleLayerCompress(dim, lasted_occupied_time_table, pathss[i]);
+            mergedPaths.insert(mergedPaths.end(), delayed_paths.begin(), delayed_paths.end());
+        }
+        return mergedPaths;
+    }
+
+
+    // input: static occupancy map / current solving problem / previous path as constraints
+    // output: what path was found, or empty is failed
+    template<Dimension N>
+    using MAPF_FUNC = std::function<Paths<N>(DimensionLength*, const IS_OCCUPIED_FUNC<N> &, const Instances<N> &, CBS_Li::ConstraintTable*, int)>;
+
+    template<Dimension N>
+    std::vector<std::set<int> > layeredMAPFDecomposition(const Instances<N> & instances,
+                                  DimensionLength* dim,
+                                  const IS_OCCUPIED_FUNC<N> & isoc) {
+
+//        struct timezone tz;
+//        struct timeval  tv_pre;
+//        struct timeval  tv_after;
+//        gettimeofday(&tv_pre, &tz);
+
+        MAPFInstanceDecompositionPtr<N> instance_decompose = std::make_shared<MAPFInstanceDecomposition<N> >(instances, dim, isoc);
+
+//        gettimeofday(&tv_after, &tz);
+//        double decomposition_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
+//        std::cout << "-- decomposition take " << decomposition_cost << " ms to get "
+//                  << instance_decompose->all_clusters_.size() << " clusters " << std::endl;
+        return instance_decompose->all_clusters_;
+    }
+
+    template<Dimension N>
+    Paths<N> layeredMAPF(const Instances<N> & instances,
+                         DimensionLength* dim,
+                         const IS_OCCUPIED_FUNC<N> & isoc,
+                         const MAPF_FUNC<N> & mapf_func,
+                         const MAPF_FUNC<N> & mapf_func_verified,
+                         bool use_path_constraint = true,
+                         int cutoff_time = 60,
+                         bool completeness_verified = false,
+                         bool new_path_legal_check = false) {
+
+        struct timezone tz;
+        struct timeval  tv_pre;
+        struct timeval  tv_after;
+        gettimeofday(&tv_pre, &tz);
+
+        MAPFInstanceDecompositionPtr<N> instance_decompose = std::make_shared<MAPFInstanceDecomposition<N> >(instances, dim, isoc);
+
+        gettimeofday(&tv_after, &tz);
+        double decomposition_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
+        std::cout << "-- decomposition take " << decomposition_cost << " ms to get "
+                  << instance_decompose->all_clusters_.size() << " clusters " << std::endl;
+
+        assert(instance_decompose->all_clusters_.size() >= 1);
+        CBS_Li::ConstraintTable *layered_ct = nullptr;
+
+        Paths<N> retv;// = paths;
+        std::vector<Paths<N> > pathss;
+        //retv.insert(retv.end(), paths.begin(), paths.end());
+        for(int i=0; i<instance_decompose->all_clusters_.size(); i++) {
+            // instance_decompose->all_clusters_[i] to instances
+            std::set<int> current_id_set = instance_decompose->all_clusters_[i];
+            Instances<2> ists;
+            for(const int& id : current_id_set) {
+                ists.push_back({instances[id].first, instances[id].second});
+            }
+            // construct temp constraint table
+            if(layered_ct != nullptr) {
+                delete layered_ct;
+                layered_ct = nullptr;
+            }
+            layered_ct = new CBS_Li::ConstraintTable(dim[0], dim[0]*dim[1]);
+            // insert previous path as static constraint
+            if (use_path_constraint && !retv.empty()) {
+                for (const auto &previous_path : retv) {
+                    CBS_Li::MAPFPath path_eecbs;
+                    for (int i = 0; i < previous_path.size(); i++) {
+                        path_eecbs.push_back(
+                                CBS_Li::PathEntry(dim[0] * previous_path[i][1] + previous_path[i][0]));
+                    }
+                    layered_ct->insert2CT(path_eecbs);
+                }
+            }
+            // insert future agents' start as static constraint
+            for(int j = (use_path_constraint ? i+1 : 0); j<instance_decompose->all_clusters_.size(); j++)
+            {
+                if(j == i) continue;
+                const auto& current_cluster = instance_decompose->all_clusters_[j];
+                for(const int& agent_id : current_cluster) {
+                    if(j < i) {
+                        layered_ct->insert2CT(dim[0] * instances[agent_id].second[1] + instances[agent_id].second[0], 0, MAX_TIMESTEP);
+                        CBS_Li::MAPFPath path_eecbs;
+                        path_eecbs.push_back(CBS_Li::PathEntry(dim[0] * instances[agent_id].second[1] + instances[agent_id].second[0]));
+                        layered_ct->insert2CT(path_eecbs);
+                    } else {
+                        layered_ct->insert2CT(dim[0] * instances[agent_id].first[1] + instances[agent_id].first[0], 0, MAX_TIMESTEP);
+                        CBS_Li::MAPFPath path_eecbs;
+                        path_eecbs.push_back(CBS_Li::PathEntry(dim[0] * instances[agent_id].first[1] + instances[agent_id].first[0]));
+                        layered_ct->insert2CT(path_eecbs);
+                    }
+                }
+            }
+            double remaining_time = cutoff_time - (tv_after.tv_sec - tv_pre.tv_sec) + (tv_after.tv_usec - tv_pre.tv_usec)/1e6;
+            if(remaining_time < 0) {
+                delete layered_ct;
+                layered_ct = nullptr;
+                return {};
+            }
+            //std::cout << " current ists size " << ists.size() << std::endl;
+
+            // check whether current problem is solvable
+            if(completeness_verified) {
+                Paths<N> EECBS_paths = mapf_func_verified(dim, isoc, ists, layered_ct, cutoff_time);
+                if(EECBS_paths.empty()) {
+                    std::cout << " layered MAPF verify failed, " << i << " th cluster: " << current_id_set << std::endl;
+                    delete layered_ct;
+                    layered_ct = nullptr;
+                    return {};
+                } else {
+                    //std::cout << " layered EECBS MAPF varify success, " << i << " th cluster: " << current_id_set << std::endl;
+                }
+            }
+            gettimeofday(&tv_after, &tz);
+            Paths<N> next_paths = mapf_func(dim, isoc, ists, layered_ct, remaining_time);
+            if(next_paths.empty()) {
+                std::cout << " layered MAPF failed " << i << " th cluster: " << current_id_set << std::endl;
+                delete layered_ct;
+                layered_ct = nullptr;
+                return {};
+            }
+            // check whether new path meet static constraints
+            if(new_path_legal_check) {
+                for(int new_path_id=0; new_path_id < next_paths.size(); new_path_id++) {
+                    const auto& current_path = next_paths[new_path_id];
+                    for(int t=1; t<current_path.size(); t++) {
+                        int next_location = dim[0] * current_path[t][1] + current_path[t][0],
+                                curr_location = dim[0] * current_path[t-1][1] + current_path[t-1][0];
+                        int next_timestep = t;
+                        if (layered_ct->constrained(next_location, next_timestep)) {
+                            std::cout << "new path Agent " << i << " have vertex conflict at " << next_location << " " << freeNav::IdToPointi<2>(next_location, dim) << " at timestep " << next_timestep << std::endl;
+                            delete layered_ct;
+                            layered_ct = nullptr;
+                            return {};
+                        }
+                        if(layered_ct->constrained(curr_location, next_location, next_timestep)) {
+                            std::cout << "new path Agent " << i << " have edge conflict from " << freeNav::IdToPointi<2>(curr_location, dim)  << " to " << freeNav::IdToPointi<2>(next_location, dim)  << " at timestep " << next_timestep << std::endl;
+                            delete layered_ct;
+                            layered_ct = nullptr;
+                            return {};
+                        }
+                    }
+                }
+            }
+            delete layered_ct;
+            layered_ct = nullptr;
+
+            //std::cout << " layered MAPF success " << i << " th cluster " << std::endl;
+            retv.insert(retv.end(), next_paths.begin(), next_paths.end());
+            pathss.push_back(next_paths);
+
+        }
+        assert(instances.size() == retv.size());
+        if(!use_path_constraint) { retv = multiLayerCompress(dim, pathss); }
+        std::cout << " layered mapf success " << !retv.empty() << std::endl;
+        return retv;
+    }
+
+    template<Dimension N>
+    std::vector<std::set<int> > pickCasesFromScene(int test_count,
+                                                   const std::vector<int>& required_counts,
+                                                   int instance_count) {
+        std::vector<std::set<int> > retv;
+        for(int i=0; i<instance_count; i++) {
+            for(const int& required_count : required_counts) {
+                std::set<int> instance;
+                while(1) {
+                    int current_pick = rand() % test_count;
+                    if(instance.find(current_pick) == instance.end()) {
+                        instance.insert(current_pick);
+                        if(instance.size() == required_count) {
+                            retv.push_back(instance);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return retv;
+    }
+
+}
+
+#endif //FREENAV_LAYERED_MAPF_H
