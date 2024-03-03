@@ -40,7 +40,7 @@ bool plan_finish = false;
 // MAPFTestConfig_den520d 237.842 ms / layered faster， after 150 agent
 // MAPFTestConfig_empty_32_32 2872.3 ms / layered faster
 
-auto map_test_config = freeNav::LayeredMAPF::MAPFTestConfig_Berlin_1_256;
+auto map_test_config = freeNav::LayeredMAPF::MAPFTestConfig_empty_32_32;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -80,45 +80,25 @@ int main() {
     }
     std::cout << "get " << ists.size() << " instances" << std::endl << std::endl;
 
-    //freeNav::TCBS::layeredMAPFDecomposition<2>(ists, dim, is_occupied, LaCAM2::lacam2_MAPF);
-
-    //multiple_paths = CBS_Li::eecbs_MAPF(dim, is_occupied_func, ists, nullptr, 60);
-
-    //multiple_paths = LaCAM::lacam_MAPF(dim, is_occupied_func, ists, nullptr, 60);
-
-    //multiple_paths = LaCAM2::lacam2_MAPF(dim, is_occupied_func, ists, nullptr, 60);
-
-    //multiple_paths = PBS_Li::pbs_MAPF(dim, is_occupied_func, ists, nullptr, 60);
-
-    //multiple_paths = CBSH2_RTC::CBSH2_RTC_MAPF(dim, is_occupied_func, ists, nullptr, 60);
-
-    //multiple_paths = MAPF_LNS::LNS_MAPF(dim, is_occupied_func, ists, nullptr, 60);
-    //multiple_paths = MAPF_LNS::AnytimeBCBS_MAPF(dim, is_occupied_func, ists, nullptr, 60);
-    //multiple_paths = MAPF_LNS::AnytimeEECBS_MAPF(dim, is_occupied_func, ists, nullptr, 60);
-
-    //multiple_paths = PIBT_2::pibt_MAPF(dim, is_occupied_func, ists, nullptr, 60);
-    //multiple_paths = PIBT_2::pibt2_MAPF(dim, is_occupied_func, ists, nullptr, 60);
-    //multiple_paths = PIBT_2::hca_MAPF(dim, is_occupied_func, ists, nullptr, 60);
-    //multiple_paths = PIBT_2::push_and_swap_MAPF(dim, is_occupied_func, ists, nullptr, 60);
-
-    // CBS_Li::eecbs_MAPF
-    // PBS_Li::pbs_MAPF
-    // LaCAM::lacam_MAPF
-    // LaCAM2::lacam2_MAPF
-    // MAPF_LNS::LNS_MAPF
-    // MAPF_LNS::AnytimeBCBS_MAPF
-    // MAPF_LNS::AnytimeEECBS_MAPF
-    // CBSH2_RTC::CBSH2_RTC_MAPF
-    // PIBT_2::pibt_MAPF
-    // PIBT_2::pibt2_MAPF
-    // PIBT_2::hca_MAPF
-    // PIBT_2::push_and_swap_MAPF
-    auto mapf_func = CBS_Li::eecbs_MAPF;
+    // CBS_Li::eecbs_MAPF // no leak
+    // PBS_Li::pbs_MAPF   // no leak
+    // LaCAM::lacam_MAPF  // no leak
+    // LaCAM2::lacam2_MAPF // no leak
+    // MAPF_LNS::LNS_MAPF // no leak
+    // MAPF_LNS::AnytimeBCBS_MAPF // no leak
+    // MAPF_LNS::AnytimeEECBS_MAPF // no leak
+    // CBSH2_RTC::CBSH2_RTC_MAPF // no leak
+    // PIBT_2::pibt_MAPF // no leak
+    // PIBT_2::pibt2_MAPF // no leak
+    // PIBT_2::hca_MAPF // no leak
+    // PIBT_2::push_and_swap_MAPF // no leak
+    auto mapf_func = PIBT_2::hca_MAPF;
 
     Paths<2> multiple_paths;
     MemoryRecorder memory_recorder(50);
     float base_usage = 0, maximal_usage = 0;
     memory_recorder.clear();
+    sleep(1);
     base_usage = memory_recorder.getCurrentMemoryUsage();
     gettimeofday(&tv_pre, &tz);
     multiple_paths = freeNav::LayeredMAPF::layeredMAPF<2>(ists, dim, is_occupied, mapf_func, CBS_Li::eecbs_MAPF, false, 60);
@@ -139,29 +119,29 @@ int main() {
     maximal_usage = memory_recorder.getMaximalMemoryUsage();
     std::cout << "-- layered mapf maximal usage = " << maximal_usage - base_usage << " MB" << std::endl << std::endl;
 
-//    memory_recorder.clear();
-//    sleep(2);
-//    base_usage = memory_recorder.getCurrentMemoryUsage();
-//    gettimeofday(&tv_pre, &tz);
-//    multiple_paths = mapf_func(dim, is_occupied_func, ists, nullptr, 60);
-//    gettimeofday(&tv_after, &tz);
-//
-//    total_cost = 0;
-//    maximum_single_cost = 0;
-//    for(const auto& path : multiple_paths) {
-//        //std::cout << path << std::endl;
-//        total_cost += path.size();
-//        maximum_single_cost = std::max(maximum_single_cost, (int)path.size());
-//    }
-//    double build_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
-//    std::cout << multiple_paths.size() << " paths " << " / agents " << ists.size() << std::endl;
-//    std::cout << "-- raw is solution valid ? " << validateSolution<2>(multiple_paths) << std::endl;
-//    std::cout << "-- raw mapf end in " << build_cost << "ms" << std::endl;
-//    std::cout << "-- raw sum of cost = " << total_cost << std::endl;
-//    std::cout << "-- raw makespan    = " << maximum_single_cost << std::endl;
-//    sleep(2);
-//    maximal_usage = memory_recorder.getMaximalMemoryUsage();
-//    std::cout << "-- raw mapf maximal usage = " << maximal_usage - base_usage << " MB" << std::endl;
+    memory_recorder.clear();
+    sleep(2);
+    base_usage = memory_recorder.getCurrentMemoryUsage();
+    gettimeofday(&tv_pre, &tz);
+    multiple_paths = mapf_func(dim, is_occupied_func, ists, nullptr, 60);
+    gettimeofday(&tv_after, &tz);
+
+    total_cost = 0;
+    maximum_single_cost = 0;
+    for(const auto& path : multiple_paths) {
+        //std::cout << path << std::endl;
+        total_cost += path.size();
+        maximum_single_cost = std::max(maximum_single_cost, (int)path.size());
+    }
+    double build_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
+    std::cout << multiple_paths.size() << " paths " << " / agents " << ists.size() << std::endl;
+    std::cout << "-- raw is solution valid ? " << validateSolution<2>(multiple_paths) << std::endl;
+    std::cout << "-- raw mapf end in " << build_cost << "ms" << std::endl;
+    std::cout << "-- raw sum of cost = " << total_cost << std::endl;
+    std::cout << "-- raw makespan    = " << maximum_single_cost << std::endl;
+    sleep(2);
+    maximal_usage = memory_recorder.getMaximalMemoryUsage();
+    std::cout << "-- raw mapf maximal usage = " << maximal_usage - base_usage << " MB" << std::endl;
     return 0;
 
 }
@@ -262,7 +242,7 @@ bool SingleMapDecompositionTest(const SingleMapTestConfig <2> &map_test_config,
 // do decomposition test
 int main1() {
     int count_of_instances = 100;
-    //SingleMapDecompositionTest(MAPFTestConfig_empty_32_32, {10, 40, 80, 120}, count_of_instances); // layered better
+    SingleMapDecompositionTest(MAPFTestConfig_empty_32_32, {120, 140, 160}, count_of_instances); // layered better
 
     //SingleMapDecompositionTest(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400}, count_of_instances); // good range
     //SingleMapDecompositionTest(MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240, 240}, count_of_instances);  // good range
@@ -272,7 +252,7 @@ int main1() {
     //SingleMapDecompositionTest(MAPFTestConfig_den312d, {100, 200, 300, 400, 500, 600, 700, 800}, count_of_instances); //  good range
     //SingleMapDecompositionTest(MAPFTestConfig_Berlin_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900}, count_of_instances); // layered better
 
-    SingleMapDecompositionTest(MAPFTestConfig_Paris_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, count_of_instances); // layered better
+    //SingleMapDecompositionTest(MAPFTestConfig_Paris_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, count_of_instances); // layered better
 
     //SingleMapDecompositionTest(MAPFTestConfig_den520d, {100, 200, 300, 400, 500, 600, 700, 800, 900}, count_of_instances); // layered better
     return 0;

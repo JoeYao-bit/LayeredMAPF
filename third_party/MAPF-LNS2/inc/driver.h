@@ -82,7 +82,7 @@ namespace MAPF_LNS {
         po::notify(vm);
 
         srand((int)time(0));
-
+        delete[] fake_argv;
 //        Instance instance(vm["map"].as<string>(), vm["agents"].as<string>(),
 //                          vm["agentNum"].as<int>());
         Instance instance(dim, isoc, instance_sat);
@@ -187,7 +187,7 @@ namespace MAPF_LNS {
         po::notify(vm);
 
         srand((int)time(0));
-
+        delete fake_argv;
 //        Instance instance(vm["map"].as<string>(), vm["agents"].as<string>(),
 //                          vm["agentNum"].as<int>());
         Instance instance(dim, isoc, instance_sat);
@@ -195,8 +195,10 @@ namespace MAPF_LNS {
         double time_limit = vm["cutoffTime"].as<double>();
         int screen = vm["screen"].as<int>();
         srand(vm["seed"].as<int>());
+        bool new_ct=false;
         if(ct == nullptr) {
             ct = new CBS_Li::ConstraintTable(instance.num_of_cols, instance.map_size);
+            new_ct = true;
         }
         AnytimeBCBS bcbs(instance, time_limit, screen, ct);
         bcbs.run();
@@ -208,6 +210,7 @@ namespace MAPF_LNS {
 
         bcbs.savePaths();
         // lns.writePathsToFile("path.txt");
+        if(new_ct) { delete ct; }
         return bcbs.getfreeNavPath();
     }
 
@@ -277,7 +280,7 @@ namespace MAPF_LNS {
         po::notify(vm);
 
         srand((int)time(0));
-
+        delete fake_argv;
 //        Instance instance(vm["map"].as<string>(), vm["agents"].as<string>(),
 //                          vm["agentNum"].as<int>());
         CBS_Li::Instance instance(dim, isoc, instance_sat);
@@ -285,8 +288,10 @@ namespace MAPF_LNS {
         double time_limit = vm["cutoffTime"].as<double>();
         int screen = vm["screen"].as<int>();
         srand(vm["seed"].as<int>());
+        bool new_ct=false;
         if(ct == nullptr) {
             ct = new CBS_Li::ConstraintTable(instance.num_of_cols, instance.map_size);
+            new_ct = true;
         }
         AnytimeEECBS eecbs(instance, time_limit, screen, ct);
         eecbs.run();
@@ -296,8 +301,8 @@ namespace MAPF_LNS {
         if (vm.count("stats"))
             eecbs.writeIterStatsToFile(vm["stats"].as<string>());
 
-        eecbs.savePaths();
         // lns.writePathsToFile("path.txt");
+        if(new_ct) { delete ct; }
         return eecbs.getfreeNavPath();
     }
 

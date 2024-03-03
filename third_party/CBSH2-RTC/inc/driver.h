@@ -68,7 +68,7 @@ namespace CBSH2_RTC {
             std::cout << desc << std::endl;
             return {};
         }
-
+        delete[] fake_argv;
         po::notify(vm);
         /////////////////////////////////////////////////////////////////////////
         /// check the correctness and consistence of params
@@ -184,8 +184,8 @@ namespace CBSH2_RTC {
         }
         if (cbs.solution_found && vm.count("outputPaths"))
             cbs.savePaths(vm["outputPaths"].as<std::string>());
+        if (cbs.solution_found) { cbs.savePaths(); }
         cbs.clearSearchEngines();
-        cbs.savePaths();
         return cbs.getfreeNavPath();
     }
 

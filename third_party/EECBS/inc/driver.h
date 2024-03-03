@@ -381,8 +381,10 @@ namespace CBS_Li {
 //            ct = new ConstraintTable(instance.num_of_cols, instance.map_size);
 //        }
         //std::cout << " finish instance " << std::endl;
+        bool new_ct = false;
         if(ct == nullptr) {
             ct = new ConstraintTable(instance.num_of_cols, instance.map_size);
+            new_ct = true;
         }
         srand(0);
         int runs = 1;// + vm["restart"].as<int>();
@@ -426,7 +428,7 @@ namespace CBS_Li {
             cbs.saveCT(output_name); // for debug*/
 //        if (vm["stats"].as<bool>())
 //            ecbs.saveStats(vm["output"].as<string>(), vm["agents"].as<string>());
-            ecbs.savePaths();
+            if(ecbs.solution_found) { ecbs.savePaths(); }
             ecbs.clearSearchEngines();
             if (ecbs.solution_found) {
                 for (const auto &previous_path : ecbs.getfreeNavPath()) {
@@ -439,8 +441,10 @@ namespace CBS_Li {
                 }
             }
             delete [] fake_argv;
+            if(new_ct) { delete ct; }
 //            if(ct != nullptr) {
 //                delete ct;
+//                ct = nullptr;
 //            }
             return ecbs.solution_found ? ecbs.getfreeNavPath() : freeNav::Paths<2>();
         } else {
@@ -478,7 +482,7 @@ namespace CBS_Li {
                 cbs.savePaths(vm["outputPaths"].as<string>());
             if (vm["stats"].as<bool>())
                 cbs.saveStats(vm["output"].as<string>(), vm["agents"].as<string>());
-            cbs.savePaths();
+            if(cbs.solution_found) { cbs.savePaths(); }
             cbs.clearSearchEngines();
             if (cbs.solution_found) {
                 for (const auto &previous_path : cbs.getfreeNavPath()) {
@@ -491,8 +495,10 @@ namespace CBS_Li {
                 }
             }
             delete [] fake_argv;
+            if(new_ct) { delete ct; }
 //            if(ct != nullptr) {
 //                delete ct;
+//                ct = nullptr;
 //            }
             return cbs.solution_found ? cbs.getfreeNavPath() : freeNav::Paths<2>();
         }

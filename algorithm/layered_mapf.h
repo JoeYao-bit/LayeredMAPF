@@ -173,11 +173,7 @@ namespace freeNav::LayeredMAPF {
                 ists.push_back({instances[id].first, instances[id].second});
             }
             // construct temp constraint table
-            if(layered_ct != nullptr) {
-                delete layered_ct;
-                layered_ct = nullptr;
-            }
-            layered_ct = new CBS_Li::ConstraintTable(dim[0], dim[0]*dim[1]);
+            CBS_Li::ConstraintTable *layered_ct = new CBS_Li::ConstraintTable(dim[0], dim[0]*dim[1]);
             // insert previous path as static constraint
             if (use_path_constraint && !retv.empty()) {
                 for (const auto &previous_path : retv) {
@@ -210,8 +206,10 @@ namespace freeNav::LayeredMAPF {
             }
             double remaining_time = cutoff_time - (tv_after.tv_sec - tv_pre.tv_sec) + (tv_after.tv_usec - tv_pre.tv_usec)/1e6;
             if(remaining_time < 0) {
-                delete layered_ct;
-                layered_ct = nullptr;
+                if(layered_ct != nullptr) {
+                    delete layered_ct;
+                    layered_ct = nullptr;
+                }
                 return {};
             }
             //std::cout << " current ists size " << ists.size() << std::endl;
@@ -221,8 +219,10 @@ namespace freeNav::LayeredMAPF {
                 Paths<N> EECBS_paths = mapf_func_verified(dim, isoc, ists, layered_ct, cutoff_time);
                 if(EECBS_paths.empty()) {
                     std::cout << " layered MAPF verify failed, " << i << " th cluster: " << current_id_set << std::endl;
-                    delete layered_ct;
-                    layered_ct = nullptr;
+                    if(layered_ct != nullptr) {
+                        delete layered_ct;
+                        layered_ct = nullptr;
+                    }
                     return {};
                 } else {
                     //std::cout << " layered EECBS MAPF varify success, " << i << " th cluster: " << current_id_set << std::endl;
@@ -232,8 +232,10 @@ namespace freeNav::LayeredMAPF {
             Paths<N> next_paths = mapf_func(dim, isoc, ists, layered_ct, remaining_time);
             if(next_paths.empty()) {
                 std::cout << " layered MAPF failed " << i << " th cluster: " << current_id_set << std::endl;
-                delete layered_ct;
-                layered_ct = nullptr;
+                if(layered_ct != nullptr) {
+                    delete layered_ct;
+                    layered_ct = nullptr;
+                }
                 return {};
             }
             // check whether new path meet static constraints
@@ -246,22 +248,27 @@ namespace freeNav::LayeredMAPF {
                         int next_timestep = t;
                         if (layered_ct->constrained(next_location, next_timestep)) {
                             std::cout << "new path Agent " << i << " have vertex conflict at " << next_location << " " << freeNav::IdToPointi<2>(next_location, dim) << " at timestep " << next_timestep << std::endl;
-                            delete layered_ct;
-                            layered_ct = nullptr;
+                            if(layered_ct != nullptr) {
+                                delete layered_ct;
+                                layered_ct = nullptr;
+                            }
                             return {};
                         }
                         if(layered_ct->constrained(curr_location, next_location, next_timestep)) {
                             std::cout << "new path Agent " << i << " have edge conflict from " << freeNav::IdToPointi<2>(curr_location, dim)  << " to " << freeNav::IdToPointi<2>(next_location, dim)  << " at timestep " << next_timestep << std::endl;
-                            delete layered_ct;
-                            layered_ct = nullptr;
+                            if(layered_ct != nullptr) {
+                                delete layered_ct;
+                                layered_ct = nullptr;
+                            }
                             return {};
                         }
                     }
                 }
             }
-            delete layered_ct;
-            layered_ct = nullptr;
-
+            if(layered_ct != nullptr) {
+                delete layered_ct;
+                layered_ct = nullptr;
+            }
             //std::cout << " layered MAPF success " << i << " th cluster " << std::endl;
             retv.insert(retv.end(), next_paths.begin(), next_paths.end());
             pathss.push_back(next_paths);

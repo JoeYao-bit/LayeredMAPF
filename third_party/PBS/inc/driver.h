@@ -53,14 +53,17 @@ namespace PBS_Li {
 
         srand((int) time(0));
 
+        delete[] fake_argv;
         ///////////////////////////////////////////////////////////////////////////
         // load the instance
         //Instance instance(vm["map"].as<string>(), vm["agents"].as<string>(),
         //                  vm["agentNum"].as<int>());
 
         CBS_Li::Instance instance(dim, isoc, instance_sat);
+        bool new_ct = false;
         if(ct == nullptr) {
             ct = new CBS_Li::ConstraintTable(instance.num_of_cols, instance.map_size);
+            new_ct = true;
         }
         srand(0);
         PBS pbs(instance, *ct, vm["sipp"].as<bool>(), vm["screen"].as<int>());
@@ -74,8 +77,9 @@ namespace PBS_Li {
         /*size_t pos = vm["output"].as<string>().rfind('.');      // position of the file extension
         string output_name = vm["output"].as<string>().substr(0, pos);     // get the name without extension
         cbs.saveCT(output_name); // for debug*/
+        if(pbs.solution_found) { pbs.savePaths(); }
         pbs.clearSearchEngines();
-        pbs.savePaths();
+        if(new_ct) { delete ct; }
         return pbs.solution_found ? pbs.getfreeNavPath() : freeNav::Paths<2>();
     }
 

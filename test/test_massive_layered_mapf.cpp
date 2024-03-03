@@ -10,10 +10,14 @@
 #include "../algorithm/layered_mapf.h"
 
 #include "../test/test_data.h"
-
 #include "../third_party/EECBS/inc/driver.h"
+#include "../third_party/PBS/inc/driver.h"
+#include "../third_party/CBSH2-RTC/inc/driver.h"
+#include "../third_party/MAPF-LNS2/inc/driver.h"
+#include "../third_party/lacam/include/planner.hpp"
+#include "../third_party/lacam2/include/lacam2.hpp"
+#include "../third_party/pibt2/include/driver.h"
 
-#include "lacam/include/planner.hpp"
 
 using namespace freeNav;
 using namespace freeNav::LayeredMAPF;
@@ -39,7 +43,7 @@ struct timezone tz;
 struct timeval tv_pre, tv_cur;
 struct timeval tv_after;
 
-MemoryRecorder memory_recorder(1000);
+MemoryRecorder memory_recorder(100);
 
 // test_count: the total count of start and target pair in the scenario file
 // required_count: required
@@ -68,8 +72,8 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
 #define getMassiveTextMAPFFunc(name, mapf_func, dim, cutoff_time_cost)  \
        [&](DimensionLength*, const IS_OCCUPIED_FUNC<2> & isoc, const Instances<2> & ists, \
                      Paths<2>& paths, Statistic& statistic, OutputStream& outputStream) { \
-        sleep(1);                                                                \
         memory_recorder.clear(); \
+        sleep(1);                                                                \
         float base_usage = memory_recorder.getCurrentMemoryUsage(); \
         statistic.clear(); \
         outputStream.clear(); \
@@ -88,10 +92,38 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
         outputStream = ss.str(); \
         float maximal_usage = memory_recorder.getMaximalMemoryUsage(); \
         { \
-            std::cout << name << " maximal usage = " << maximal_usage - base_usage << " MB" << std::endl; \
+            std::cout << name << " maximal usage = " << maximal_usage - base_usage << " MB" << " with data " << memory_recorder.getAllUsedMemory().size() << std::endl; \
         }                                                               \
     } \
 
+
+#define getLayeredMassiveTextMAPFFuncDebug(name, mapf_func, dim, cutoff_time_cost, use_path_constraint)  \
+       [&](DimensionLength*, const IS_OCCUPIED_FUNC<2> & isoc, const Instances<2> & ists, \
+                     Paths<2>& paths, Statistic& statistic, OutputStream& outputStream) { \
+        memory_recorder.clear(); \
+        sleep(1);                                                                \
+        float base_usage = memory_recorder.getCurrentMemoryUsage(); \
+        statistic.clear(); \
+        outputStream.clear(); \
+        gettimeofday(&tv_pre, &tz); \
+        paths = mapf_func(dim, isoc, ists, nullptr, cutoff_time_cost);                             \
+        paths = layeredMAPF<2>(ists, dim, isoc, mapf_func, CBS_Li::eecbs_MAPF, use_path_constraint, cutoff_time_cost, false, true);                                                                                           \
+        gettimeofday(&tv_after, &tz); \
+        int total_cost = 0, maximum_single_cost = 0; \
+        for(const auto& path : paths) { \
+            total_cost += path.size(); \
+            maximum_single_cost = std::max(maximum_single_cost, (int)path.size()); \
+        } \
+        double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3; \
+        std::stringstream ss; \
+        ss << name << " " << ists.size() << " " << time_cost << " " \
+           << total_cost << " " << maximum_single_cost << " " << !paths.empty() << " "; \
+        outputStream = ss.str(); \
+        float maximal_usage = memory_recorder.getMaximalMemoryUsage(); \
+        { \
+            std::cout << name << " maximal usage = " << maximal_usage - base_usage << " MB" << " with data " << memory_recorder.getAllUsedMemory().size() << std::endl; \
+        }                                                               \
+    } \
 //
 ////        std::cout << "-- " << name << ": " << std::endl;
 ////        std::cout << "agents = " << ists.size() << std::endl;
@@ -103,8 +135,8 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
                                      [&](DimensionLength*, const IS_OCCUPIED_FUNC<2> & isoc, \
                                      const Instances<2> & instances, \
                                      Paths<2>& paths, Statistic& statistic, OutputStream& outputStream) { \
-        sleep(1); \
-        memory_recorder.clear(); \
+        memory_recorder.clear();                                                                   \
+        sleep(1);                                                                                           \
         float base_usage = memory_recorder.getCurrentMemoryUsage(); \
         statistic.clear(); \
         outputStream.clear(); \
@@ -112,7 +144,6 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
         MAPFInstanceDecompositionPtr<2> \
                 instance_decompose = std::make_shared<MAPFInstanceDecomposition<2> >(instances, dim, isoc); \
         assert(instance_decompose->all_clusters_.size() >= 1);                \
-        CBS_Li::ConstraintTable *layered_ct = nullptr; \
         Paths<2> retv; \
         std::vector<Paths<2> > pathss; \
         for(int i=0; i<instance_decompose->all_clusters_.size(); i++) { \
@@ -120,12 +151,8 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
             Instances<2> ists; \
             for(const int& id : current_id_set) { \
                 ists.push_back({instances[id].first, instances[id].second}); \
-            } \
-            if(layered_ct != nullptr) { \
-                delete layered_ct; \
-                layered_ct = nullptr; \
-            } \
-            layered_ct = new CBS_Li::ConstraintTable(dim[0], dim[0]*dim[1]); \
+            }                                                                                      \
+            CBS_Li::ConstraintTable* layered_ct = new CBS_Li::ConstraintTable(dim[0], dim[0]*dim[1]); \
             if (use_path_constraint && !retv.empty()) { \
                 for (const auto &previous_path : retv) { \
                     CBS_Li::MAPFPath path_eecbs; \
@@ -155,9 +182,11 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
                 } \
             } \
             double remaining_time = cutoff_time_cost - (tv_after.tv_sec - tv_pre.tv_sec) + (tv_after.tv_usec - tv_pre.tv_usec)/1e6; \
-            if(remaining_time < 0) { \
-                delete layered_ct; \
-                layered_ct = nullptr;                                                              \
+            if(remaining_time < 0) {                                                               \
+                if(layered_ct != nullptr) {                                                                                   \
+                    delete layered_ct; \
+                    layered_ct = nullptr;                                                              \
+                }                                                        \
                 retv.clear();                                                                    \
                 break; \
             } \
@@ -165,13 +194,17 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
             Paths<2> next_paths = mapf_func(dim, isoc, ists, layered_ct, remaining_time); \
             if(next_paths.empty()) { \
                 std::cout << " layered MAPF failed " << i << " th cluster: " << current_id_set << std::endl; \
-                delete layered_ct; \
-                layered_ct = nullptr; \
+                if(layered_ct != nullptr) {                                                                                   \
+                    delete layered_ct; \
+                    layered_ct = nullptr;                                                              \
+                }                                                        \
                 retv.clear();      \
                 break; \
             } \
-            delete layered_ct; \
-            layered_ct = nullptr; \
+            if(layered_ct != nullptr) {                                                                                   \
+                delete layered_ct; \
+                layered_ct = nullptr;                                                              \
+            }                                                        \
             retv.insert(retv.end(), next_paths.begin(), next_paths.end()); \
             pathss.push_back(next_paths); \
         }                                                                                          \
@@ -200,7 +233,7 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
         outputStream = ss.str(); \
         float maximal_usage = memory_recorder.getMaximalMemoryUsage(); \
         { \
-            std::cout << name << " maximal usage = " << maximal_usage - base_usage << " MB" << std::endl; \
+            std::cout << name << " maximal usage = " << maximal_usage - base_usage << " MB" << " with data " << memory_recorder.getAllUsedMemory().size()<< std::endl; \
         } \
     } \
 //
@@ -285,15 +318,56 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 
     // load algorithms
 
-    auto EECBS = getMassiveTextMAPFFunc("RAW_EECBS", CBS_Li::eecbs_MAPF, dim, cutoff_time_cost);
+#define RAW_TEST_TYPE getMassiveTextMAPFFunc
+#define LAYERED_TEST_TYPE getLayeredMassiveTextMAPFFuncDebug
 
+    auto EECBS = RAW_TEST_TYPE("RAW_EECBS", CBS_Li::eecbs_MAPF, dim, cutoff_time_cost);
     // all layered mapf must start with "LAYERED_"
-    auto EECBS_LAYERED = getLayeredMassiveTextMAPFFunc("LAYERED_EECBS", CBS_Li::eecbs_MAPF, dim, cutoff_time_cost, true);
+    auto EECBS_LAYERED = LAYERED_TEST_TYPE("LAYERED_EECBS", CBS_Li::eecbs_MAPF, dim, cutoff_time_cost, true);
 
-    //auto LaCAM = getMassiveTextMAPFFunc("RAW_LaCAM", LaCAM::lacam_MAPF, dim, cutoff_time_cost);
-
+    auto LaCAM = RAW_TEST_TYPE("RAW_LaCAM", LaCAM::lacam_MAPF, dim, cutoff_time_cost);
     // all layered mapf must start with "LAYERED_"
-    //auto LaCAM_LAYERED = getLayeredMassiveTextMAPFFunc("LAYERED_LaCAM", LaCAM::lacam_MAPF, dim, cutoff_time_cost, false);
+    auto LaCAM_LAYERED = LAYERED_TEST_TYPE("LAYERED_LaCAM", LaCAM::lacam_MAPF, dim, cutoff_time_cost, false);
+
+    auto PBS = RAW_TEST_TYPE("RAW_PBS", PBS_Li::pbs_MAPF, dim, cutoff_time_cost);
+    // all layered mapf must start with "LAYERED_"
+    auto PBS_LAYERED = LAYERED_TEST_TYPE("LAYERED_PBS", PBS_Li::pbs_MAPF, dim, cutoff_time_cost, false);
+
+    auto LaCAM2 = RAW_TEST_TYPE("RAW_LaCAM2", LaCAM2::lacam2_MAPF, dim, cutoff_time_cost);
+    // all layered mapf must start with "LAYERED_"
+    auto LaCAM2_LAYERED = LAYERED_TEST_TYPE("LAYERED_LaCAM2", LaCAM2::lacam2_MAPF, dim, cutoff_time_cost, false);
+
+    auto LNS = RAW_TEST_TYPE("RAW_LNS", MAPF_LNS::LNS_MAPF, dim, cutoff_time_cost);
+    // all layered mapf must start with "LAYERED_"
+    auto LNS_LAYERED = LAYERED_TEST_TYPE("LAYERED_LNS", MAPF_LNS::LNS_MAPF, dim, cutoff_time_cost, true);
+
+    auto AnytimeBCBS = RAW_TEST_TYPE("RAW_AnytimeBCBS", MAPF_LNS::AnytimeBCBS_MAPF, dim, cutoff_time_cost);
+    // all layered mapf must start with "LAYERED_"
+    auto AnytimeBCBS_LAYERED = LAYERED_TEST_TYPE("LAYERED_AnytimeBCBS", MAPF_LNS::AnytimeBCBS_MAPF, dim, cutoff_time_cost, true);
+
+    auto AnytimeEECBS = RAW_TEST_TYPE("RAW_AnytimeEECBS", MAPF_LNS::AnytimeEECBS_MAPF, dim, cutoff_time_cost);
+    // all layered mapf must start with "LAYERED_"
+    auto AnytimeEECBS_LAYERED = LAYERED_TEST_TYPE("LAYERED_AnytimeEECBS", MAPF_LNS::AnytimeEECBS_MAPF, dim, cutoff_time_cost, true);
+
+    auto CBSH2_RTC = RAW_TEST_TYPE("RAW_CBSH2_RTC", CBSH2_RTC::CBSH2_RTC_MAPF, dim, cutoff_time_cost);
+    // all layered mapf must start with "LAYERED_"
+    auto CBSH2_RTC_LAYERED = LAYERED_TEST_TYPE("LAYERED_CBSH2_RTC", CBSH2_RTC::CBSH2_RTC_MAPF, dim, cutoff_time_cost, true);
+
+    auto PIBT = RAW_TEST_TYPE("RAW_PIBT", PIBT_2::pibt_MAPF, dim, cutoff_time_cost);
+    // all layered mapf must start with "LAYERED_"
+    auto PIBT_LAYERED = LAYERED_TEST_TYPE("LAYERED_PIBT", PIBT_2::pibt_MAPF, dim, cutoff_time_cost, false);
+
+    auto PIBT2 = RAW_TEST_TYPE("RAW_PIBT2", PIBT_2::pibt2_MAPF, dim, cutoff_time_cost);
+    // all layered mapf must start with "LAYERED_"
+    auto PIBT2_LAYERED = LAYERED_TEST_TYPE("LAYERED_PIBT2", PIBT_2::pibt2_MAPF, dim, cutoff_time_cost, false);
+
+    auto HCA = RAW_TEST_TYPE("RAW_HCA", PIBT_2::hca_MAPF, dim, cutoff_time_cost);
+    // all layered mapf must start with "LAYERED_"
+    auto HCA_LAYERED = LAYERED_TEST_TYPE("LAYERED_HCA", PIBT_2::hca_MAPF, dim, cutoff_time_cost, false);
+
+    auto PushAndSwap = RAW_TEST_TYPE("RAW_PushAndSwap", PIBT_2::push_and_swap_MAPF, dim, cutoff_time_cost);
+    // all layered mapf must start with "LAYERED_"
+    auto PushAndSwap_LAYERED = LAYERED_TEST_TYPE("LAYERED_PushAndSwap", PIBT_2::push_and_swap_MAPF, dim, cutoff_time_cost, false);
 
 
     StatisticSS statisticss;
@@ -303,8 +377,29 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
                                                          {
                                                           EECBS,
                                                           EECBS_LAYERED,
-                                                          //LaCAM,
-                                                          //LaCAM_LAYERED
+                                                          LaCAM,
+                                                          LaCAM_LAYERED,
+                                                          PBS,
+                                                          PBS_LAYERED,
+                                                          LaCAM2,
+                                                          LaCAM2_LAYERED,
+                                                          LNS,
+                                                          LNS_LAYERED,
+                                                          AnytimeBCBS,
+                                                          AnytimeBCBS_LAYERED,
+                                                          AnytimeEECBS,
+                                                          AnytimeEECBS_LAYERED,
+                                                          CBSH2_RTC,
+                                                          CBSH2_RTC_LAYERED,
+
+                                                          PIBT,
+                                                          PIBT_LAYERED,
+                                                          PIBT2,
+                                                          PIBT2_LAYERED,
+                                                          HCA,
+                                                          HCA_LAYERED,
+                                                          PushAndSwap,
+                                                          PushAndSwap_LAYERED
                                                           },
                                                           statisticss,
                                                           output_streamss);
@@ -346,8 +441,9 @@ int main(void) {
 ////    configs = {
 ////            MAPFTestConfig_empty_32_32
 ////    };
-//
-    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {200, 240, 280, 320, 360}, 5, 60); // layered better
+    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {10, 20}, 2, 60); // layered better
+
+//    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {200, 240, 280, 320, 360}, 1, 60); // layered better
 //    SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {80, 100, 130, 150, 180}, 5, 10); // layered better
 //    //SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_1, {300, 350, 400, 450, 500}, 10, 60); //  layered worse
 //    //SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {30, 40, 50, 60, 70}, 10, 60); // layered better
