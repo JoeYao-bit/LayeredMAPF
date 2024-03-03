@@ -319,7 +319,7 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
     // load algorithms
 
 #define RAW_TEST_TYPE getMassiveTextMAPFFunc
-#define LAYERED_TEST_TYPE getLayeredMassiveTextMAPFFuncDebug
+#define LAYERED_TEST_TYPE getLayeredMassiveTextMAPFFunc
 
     auto EECBS = RAW_TEST_TYPE("RAW_EECBS", CBS_Li::eecbs_MAPF, dim, cutoff_time_cost);
     // all layered mapf must start with "LAYERED_"

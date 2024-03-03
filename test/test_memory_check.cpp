@@ -58,7 +58,7 @@ IS_OCCUPIED_FUNC<2> is_occupied_func = is_occupied;
 SET_OCCUPIED_FUNC<2> set_occupied_func = set_occupied;
 
 
-int main() {
+int main1() {
 
     std::cout << " map name " << map_test_config.at("map_path") << std::endl;
     // load mapf scene
@@ -240,7 +240,7 @@ bool SingleMapDecompositionTest(const SingleMapTestConfig <2> &map_test_config,
 
 
 // do decomposition test
-int main1() {
+int main() {
     int count_of_instances = 100;
     SingleMapDecompositionTest(MAPFTestConfig_empty_32_32, {120, 140, 160}, count_of_instances); // layered better
 
