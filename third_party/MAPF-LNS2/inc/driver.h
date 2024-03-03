@@ -302,6 +302,7 @@ namespace MAPF_LNS {
             eecbs.writeIterStatsToFile(vm["stats"].as<string>());
 
         // lns.writePathsToFile("path.txt");
+        if(!eecbs.solution.empty()) eecbs.savePaths();
         if(new_ct) { delete ct; }
         return eecbs.getfreeNavPath();
     }

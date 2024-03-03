@@ -86,14 +86,14 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
             maximum_single_cost = std::max(maximum_single_cost, (int)path.size()); \
         } \
         double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3; \
-        std::stringstream ss; \
-        ss << name << " " << ists.size() << " " << time_cost << " " \
-           << total_cost << " " << maximum_single_cost << " " << !paths.empty() << " "; \
-        outputStream = ss.str(); \
         float maximal_usage = memory_recorder.getMaximalMemoryUsage(); \
         { \
             std::cout << name << " maximal usage = " << maximal_usage - base_usage << " MB" << " with data " << memory_recorder.getAllUsedMemory().size() << std::endl; \
         }                                                               \
+        std::stringstream ss; \
+        ss << name << " " << ists.size() << " " << time_cost << " " \
+           << total_cost << " " << maximum_single_cost << " " << !paths.empty() << " " << maximal_usage; \
+        outputStream = ss.str(); \
     } \
 
 
@@ -115,14 +115,14 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
             maximum_single_cost = std::max(maximum_single_cost, (int)path.size()); \
         } \
         double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3; \
-        std::stringstream ss; \
-        ss << name << " " << ists.size() << " " << time_cost << " " \
-           << total_cost << " " << maximum_single_cost << " " << !paths.empty() << " "; \
-        outputStream = ss.str(); \
         float maximal_usage = memory_recorder.getMaximalMemoryUsage(); \
         { \
             std::cout << name << " maximal usage = " << maximal_usage - base_usage << " MB" << " with data " << memory_recorder.getAllUsedMemory().size() << std::endl; \
-        }                                                               \
+        }                                                                                                \
+        std::stringstream ss; \
+        ss << name << " " << ists.size() << " " << time_cost << " " \
+           << total_cost << " " << maximum_single_cost << " " << !paths.empty() << " " << maximal_usage << " "; \
+        outputStream = ss.str(); \
     } \
 //
 ////        std::cout << "-- " << name << ": " << std::endl;
@@ -225,16 +225,16 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
             total_cost += path.size(); \
             maximum_single_cost = std::max(maximum_single_cost, (int)path.size()); \
         } \
+        float maximal_usage = memory_recorder.getMaximalMemoryUsage(); \
+        { \
+            std::cout << name << " maximal usage = " << maximal_usage - base_usage << " MB" << " with data " << memory_recorder.getAllUsedMemory().size()<< std::endl; \
+        }                                                                                          \
         std::stringstream ss; \
         ss << name << " " << instances.size() << " " << time_cost << " " \
            << total_cost << " " << maximum_single_cost << " " << !paths.empty() << " " \
            << instance_decompose->cluster_decomposition_time_cost_ << " " \
-           << instance_decompose->sort_level_time_cost_ << " "; \
-        outputStream = ss.str(); \
-        float maximal_usage = memory_recorder.getMaximalMemoryUsage(); \
-        { \
-            std::cout << name << " maximal usage = " << maximal_usage - base_usage << " MB" << " with data " << memory_recorder.getAllUsedMemory().size()<< std::endl; \
-        } \
+           << instance_decompose->sort_level_time_cost_ << " " << maximal_usage << " "; \
+        outputStream = ss.str();                                                                                                \
     } \
 //
 //
