@@ -441,10 +441,12 @@ int main(void) {
 ////    configs = {
 ////            MAPFTestConfig_empty_32_32
 ////    };
-    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {10, 20}, 2, 60); // layered better
-
+//    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {10, 20}, 2, 60); // layered better
 //    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {200, 240, 280, 320, 360}, 1, 60); // layered better
+
 //    SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {80, 100, 130, 150, 180}, 5, 10); // layered better
+    SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {20, 40, 60, 80, 100}, 5, 10); // layered better
+
 //    //SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_1, {300, 350, 400, 450, 500}, 10, 60); //  layered worse
 //    //SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {30, 40, 50, 60, 70}, 10, 60); // layered better
 //    //SingleMapMAPFTest(MAPFTestConfig_maze_32_32_4, {40, 50, 60, 70, 80, 90}, 10, 60); // layered better

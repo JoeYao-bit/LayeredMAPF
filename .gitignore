@@ -16,3 +16,4 @@ CMakeFiles/
 build/
 venv/
 pic/
+*.txt

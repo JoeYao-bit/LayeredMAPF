@@ -91,14 +91,14 @@ def drawMethodMap(single_map_data, is_percentage):
     
 data_path_dir = '../test/test_data/'
 all_map_name = ["empty-32-32",
-                # "random-32-32-20-random-1",
-                # "warehouse-10-20-10-2-1",
-                # "maze-32-32-2-random-1",
-                # "maze-32-32-4-random-1",
-                # "den312d-random-1",
-                # "Berlin_1_256-random-1",
-                # "Paris_1_256-random-1",
-                # "den520d-random-1"
+                "random-32-32-20-random-1",
+                "warehouse-10-20-10-2-1",
+                "maze-32-32-2-random-1",
+                "maze-32-32-4-random-1",
+                "den312d-random-1",
+                "Berlin_1_256-random-1",
+                "Paris_1_256-random-1",
+                "den520d-random-1"
                 ]
 
 all_single_data = list()
@@ -117,4 +117,4 @@ for single_map_data in all_single_data:
 for single_map_data in all_single_data:
     drawMethodMap(single_map_data, True)    
     
-plt.show()    
+#plt.show()    
