@@ -92,7 +92,7 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
         }                                                               \
         std::stringstream ss; \
         ss << name << " " << ists.size() << " " << time_cost << " " \
-           << total_cost << " " << maximum_single_cost << " " << !paths.empty() << " " << maximal_usage; \
+           << total_cost << " " << maximum_single_cost << " " << !paths.empty() << " " << maximal_usage - base_usage << " "; \
         outputStream = ss.str(); \
     } \
 
@@ -231,9 +231,9 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
         }                                                                                          \
         std::stringstream ss; \
         ss << name << " " << instances.size() << " " << time_cost << " " \
-           << total_cost << " " << maximum_single_cost << " " << !paths.empty() << " " \
+           << total_cost << " " << maximum_single_cost << " " << !paths.empty() << " " << maximal_usage - base_usage << " " \
            << instance_decompose->cluster_decomposition_time_cost_ << " " \
-           << instance_decompose->sort_level_time_cost_ << " " << maximal_usage << " "; \
+           << instance_decompose->sort_level_time_cost_ << " "; \
         outputStream = ss.str();                                                                                                \
     } \
 //
@@ -375,22 +375,22 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 
     bool all_success = SingleMapMAPFPathPlanningsTest<2>(dim, is_occupied_func, istss,
                                                          {
-                                                          EECBS,
-                                                          EECBS_LAYERED,
-                                                          LaCAM,
-                                                          LaCAM_LAYERED,
-                                                          PBS,
-                                                          PBS_LAYERED,
-                                                          LaCAM2,
-                                                          LaCAM2_LAYERED,
-                                                          LNS,
-                                                          LNS_LAYERED,
-                                                          AnytimeBCBS,
-                                                          AnytimeBCBS_LAYERED,
-                                                          AnytimeEECBS,
-                                                          AnytimeEECBS_LAYERED,
-                                                          CBSH2_RTC,
-                                                          CBSH2_RTC_LAYERED,
+//                                                          EECBS,
+//                                                          EECBS_LAYERED,
+//                                                          LaCAM,
+//                                                          LaCAM_LAYERED,
+//                                                          PBS,
+//                                                          PBS_LAYERED,
+//                                                          LaCAM2,
+//                                                          LaCAM2_LAYERED,
+//                                                          LNS,
+//                                                          LNS_LAYERED,
+//                                                          AnytimeBCBS,
+//                                                          AnytimeBCBS_LAYERED,
+//                                                          AnytimeEECBS,
+//                                                          AnytimeEECBS_LAYERED,
+//                                                          CBSH2_RTC,
+//                                                          CBSH2_RTC_LAYERED,
 
                                                           PIBT,
                                                           PIBT_LAYERED,
@@ -441,11 +441,11 @@ int main(void) {
 ////    configs = {
 ////            MAPFTestConfig_empty_32_32
 ////    };
-//    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {10, 20}, 2, 60); // layered better
+    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {10, 20, 30}, 2, 60); // layered better
 //    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {200, 240, 280, 320, 360}, 1, 60); // layered better
 
 //    SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {80, 100, 130, 150, 180}, 5, 10); // layered better
-    SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {20, 40, 60, 80, 100}, 5, 10); // layered better
+//    SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {20, 40, 60, 80, 100}, 5, 10); // layered better
 
 //    //SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_1, {300, 350, 400, 450, 500}, 10, 60); //  layered worse
 //    //SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {30, 40, 50, 60, 70}, 10, 60); // layered better

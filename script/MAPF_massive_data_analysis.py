@@ -22,10 +22,11 @@ def loadDataFromfile(file_path):
             new_data.total_cost = float(splited_line[3])
             new_data.max_single_cost = float(splited_line[4])
             new_data.success = int(splited_line[5])
+            new_data.max_memory_usage = float(splited_line[6])
 
             if head_split[0] == 'LAYERED':
-                new_data.cluster_decomposition_time_cost = float(splited_line[6])
-                new_data.sort_level_time_cost = float(splited_line[7])
+                new_data.cluster_decomposition_time_cost = float(splited_line[7])
+                new_data.sort_level_time_cost = float(splited_line[8])
             
             data_list.append(new_data)
             #print(new_data.method, ' ', new_data.path_count, ' ', new_data.real_path_count, ' ', new_data.time_cost)
@@ -38,6 +39,7 @@ class LineData:
     total_cost = 0 
     max_single_cost = 0.
     success = 0
+    max_memory_usage = 0.
     # specific time component for layered MAPF
     cluster_decomposition_time_cost = 0.
     sort_level_time_cost = 0.
@@ -122,6 +124,7 @@ for single_data in all_single_data:
     all_method_total_cost_map = dict()
     all_method_max_single_cost_map = dict()
     all_method_success_rate_map = dict()
+    all_method_memory_usage_map = dict()
     all_method_cluster_cost_map = dict()
     all_method_level_sort_map = dict()
 
@@ -131,6 +134,7 @@ for single_data in all_single_data:
             all_method_time_cost_map[line_data.method] = dict()
             all_method_total_cost_map[line_data.method] = dict()
             all_method_max_single_cost_map[line_data.method] = dict()
+            all_method_memory_usage_map[line_data.method] = dict()
             all_method_success_rate_map[line_data.method] = dict()
             all_method_cluster_cost_map[line_data.method] = dict()
             all_method_level_sort_map[line_data.method] = dict()
@@ -139,6 +143,7 @@ for single_data in all_single_data:
             all_method_time_cost_map[line_data.method][line_data.agent_count] = list()
             all_method_total_cost_map[line_data.method][line_data.agent_count] = list()
             all_method_max_single_cost_map[line_data.method][line_data.agent_count] = list()    
+            all_method_memory_usage_map[line_data.method][line_data.agent_count] = list()    
             all_method_success_rate_map[line_data.method][line_data.agent_count] = list() 
             all_method_cluster_cost_map[line_data.method][line_data.agent_count] = list()    
             all_method_level_sort_map[line_data.method][line_data.agent_count] = list()
@@ -146,12 +151,14 @@ for single_data in all_single_data:
         all_method_time_cost_map[line_data.method][line_data.agent_count].append(line_data.time_cost)
         all_method_total_cost_map[line_data.method][line_data.agent_count].append(line_data.total_cost)
         all_method_max_single_cost_map[line_data.method][line_data.agent_count].append(line_data.max_single_cost)
+        all_method_memory_usage_map[line_data.method][line_data.agent_count].append(line_data.max_memory_usage)
         all_method_success_rate_map[line_data.method][line_data.agent_count].append(line_data.success)
         all_method_cluster_cost_map[line_data.method][line_data.agent_count].append(line_data.cluster_decomposition_time_cost)
         all_method_level_sort_map[line_data.method][line_data.agent_count].append(line_data.sort_level_time_cost)
         
-    drawMethodMap(all_method_time_cost_map, "Number of agents", "Time cost(ms)", single_data.map_name + "-time_cost.png")        
-    drawMethodMap(all_method_success_rate_map, "Number of agents", "Success rate", single_data.map_name + "-success_rate.png", True)        
+    #drawMethodMap(all_method_time_cost_map, "Number of agents", "Time cost(ms)", single_data.map_name + "-time_cost.png")        
+    #drawMethodMap(all_method_success_rate_map, "Number of agents", "Success rate", single_data.map_name + "-success_rate.png", True)        
+    drawMethodMap(all_method_memory_usage_map, "Number of agents", "Memory Usage(MB)", single_data.map_name + "-memory_usage.png")        
 
     #break
 
