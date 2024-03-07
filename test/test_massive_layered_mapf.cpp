@@ -87,13 +87,14 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
         } \
         double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3; \
         float maximal_usage = memory_recorder.getMaximalMemoryUsage(); \
-        { \
+        if(0){ \
             std::cout << name << " maximal usage = " << maximal_usage - base_usage << " MB" << " with data " << memory_recorder.getAllUsedMemory().size() << std::endl; \
         }                                                               \
         std::stringstream ss; \
         ss << name << " " << ists.size() << " " << time_cost << " " \
            << total_cost << " " << maximum_single_cost << " " << !paths.empty() << " " << maximal_usage - base_usage << " "; \
-        outputStream = ss.str(); \
+        outputStream = ss.str();                                        \
+        std::cout << name << " finish" << std::endl; \
     } \
 
 
@@ -122,7 +123,8 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
         std::stringstream ss; \
         ss << name << " " << ists.size() << " " << time_cost << " " \
            << total_cost << " " << maximum_single_cost << " " << !paths.empty() << " " << maximal_usage << " "; \
-        outputStream = ss.str(); \
+        outputStream = ss.str();                                                                         \
+        std::cout << name << " finish" << std::endl;        \
     } \
 //
 ////        std::cout << "-- " << name << ": " << std::endl;
@@ -226,7 +228,7 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
             maximum_single_cost = std::max(maximum_single_cost, (int)path.size()); \
         } \
         float maximal_usage = memory_recorder.getMaximalMemoryUsage(); \
-        { \
+        if(0){ \
             std::cout << name << " maximal usage = " << maximal_usage - base_usage << " MB" << " with data " << memory_recorder.getAllUsedMemory().size()<< std::endl; \
         }                                                                                          \
         std::stringstream ss; \
@@ -234,7 +236,8 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
            << total_cost << " " << maximum_single_cost << " " << !paths.empty() << " " << maximal_usage - base_usage << " " \
            << instance_decompose->cluster_decomposition_time_cost_ << " " \
            << instance_decompose->sort_level_time_cost_ << " "; \
-        outputStream = ss.str();                                                                                                \
+        outputStream = ss.str();                                                                   \
+        std::cout << name << " finish" << std::endl;\
     } \
 //
 //
@@ -375,22 +378,24 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 
     bool all_success = SingleMapMAPFPathPlanningsTest<2>(dim, is_occupied_func, istss,
                                                          {
-//                                                          EECBS,
-//                                                          EECBS_LAYERED,
+                                                          EECBS,
+                                                          EECBS_LAYERED,
+                                                          PBS,
+                                                          PBS_LAYERED,
+
+                                                          LNS,
+                                                          LNS_LAYERED,
+                                                          AnytimeBCBS,
+                                                          AnytimeBCBS_LAYERED,
+                                                          AnytimeEECBS,
+                                                          AnytimeEECBS_LAYERED,
+                                                          CBSH2_RTC,
+                                                          CBSH2_RTC_LAYERED,
+
 //                                                          LaCAM,
 //                                                          LaCAM_LAYERED,
-//                                                          PBS,
-//                                                          PBS_LAYERED,
 //                                                          LaCAM2,
 //                                                          LaCAM2_LAYERED,
-//                                                          LNS,
-//                                                          LNS_LAYERED,
-//                                                          AnytimeBCBS,
-//                                                          AnytimeBCBS_LAYERED,
-//                                                          AnytimeEECBS,
-//                                                          AnytimeEECBS_LAYERED,
-//                                                          CBSH2_RTC,
-//                                                          CBSH2_RTC_LAYERED,
 
                                                           PIBT,
                                                           PIBT_LAYERED,
@@ -441,19 +446,17 @@ int main(void) {
 ////    configs = {
 ////            MAPFTestConfig_empty_32_32
 ////    };
-    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {10, 20, 30}, 2, 60); // layered better
-//    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {200, 240, 280, 320, 360}, 1, 60); // layered better
+//    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {10, 20, 30}, 2, 60); // layered better
+    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {200, 240, 280, 320, 360}, 10, 60); // layered better
 
-//    SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {80, 100, 130, 150, 180}, 5, 10); // layered better
-//    SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {20, 40, 60, 80, 100}, 5, 10); // layered better
-
-//    //SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_1, {300, 350, 400, 450, 500}, 10, 60); //  layered worse
-//    //SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {30, 40, 50, 60, 70}, 10, 60); // layered better
-//    //SingleMapMAPFTest(MAPFTestConfig_maze_32_32_4, {40, 50, 60, 70, 80, 90}, 10, 60); // layered better
-//    //SingleMapMAPFTest(MAPFTestConfig_den312d, {200, 220, 240, 260, 280}, 10, 60); // layered better
-//    //SingleMapMAPFTest(MAPFTestConfig_Berlin_1_256, {500, 600, 700, 800, 900}, 10, 60); // layered better
-//    //SingleMapMAPFTest(MAPFTestConfig_Paris_1_256, {600, 700, 800, 900, 1000}, 10, 60); // layered better
-//    //SingleMapMAPFTest(MAPFTestConfig_den520d, {400, 500, 600, 700, 800, 900}, 1, 60); // layered better
+    SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {80, 100, 130, 150, 180}, 10, 10); // layered better
+    SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_1, {300, 350, 400, 450, 500}, 10, 60); //  layered worse
+    SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {30, 40, 50, 60, 70}, 10, 60); // layered better
+    SingleMapMAPFTest(MAPFTestConfig_maze_32_32_4, {40, 50, 60, 70, 80, 90}, 10, 60); // layered better
+    SingleMapMAPFTest(MAPFTestConfig_den312d, {200, 220, 240, 260, 280}, 10, 60); // layered better
+    SingleMapMAPFTest(MAPFTestConfig_Berlin_1_256, {500, 600, 700, 800, 900}, 10, 60); // layered better
+    SingleMapMAPFTest(MAPFTestConfig_Paris_1_256, {600, 700, 800, 900, 1000}, 10, 60); // layered better
+    SingleMapMAPFTest(MAPFTestConfig_den520d, {400, 500, 600, 700, 800, 900}, 10, 60); // layered better
 //
     return 0;
 }
