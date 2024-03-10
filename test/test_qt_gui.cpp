@@ -122,6 +122,8 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
+    MemoryRecorder memory_recorder(50);
+
     // start conflict based search
     std::cout << "start Conflict Based Search" << std::endl;
     const auto& dim = loader.getDimensionInfo();
@@ -143,6 +145,10 @@ int main(int argc, char *argv[])
     //std::cout << "get " << ists.size() << " instances" << std::endl;
     //std::cout << " agent 428 " << ists[428].first << ", " << ists[428].second << std::endl;
     freeNav::Paths<2> multiple_paths;
+    memory_recorder.clear();
+    sleep(1);
+    float base_usage = memory_recorder.getCurrentMemoryUsage();
+
     gettimeofday(&tv_pre, &tz);
     // comparing to the raw version, the layered vision will add more static constraint
     // so avoid the copy of static constraint table, will increase the performance of layered mapf
@@ -162,7 +168,11 @@ int main(int argc, char *argv[])
 
     std::set<int> visited_grid_during_lacam = PIBT_2::visited_grid_;
     std::cout << " visited_grid_during_lacam size " << visited_grid_during_lacam.size() << std::endl;
-
+    sleep(1);
+    float maximal_usage = memory_recorder.getMaximalMemoryUsage();
+    {
+        std::cout << "layered mapf maximal usage = " << maximal_usage - base_usage << " MB" << std::endl;
+    }
 
     // start GUI for visualization
     Q_INIT_RESOURCE(images);
@@ -173,7 +183,6 @@ int main(int argc, char *argv[])
     window.show();
 
     return app.exec();
-    //return 0;
 }
 
 
