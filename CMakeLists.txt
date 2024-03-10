@@ -59,6 +59,38 @@ add_subdirectory(freeNav-base)
 include_directories(third_party)
 
 
+# 开启QT用于预处理的组件
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+
+# 查找QT的模块
+find_package(Qt5Core REQUIRED)
+find_package(Qt5Gui REQUIRED)
+find_package(Qt5Widgets REQUIRED)
+find_package(Qt5OpenGL REQUIRED)
+find_package(Qt5PrintSupport REQUIRED)
+find_package(Qt5Charts REQUIRED)
+
+set(QT_LIBS
+        Qt5::Core
+        Qt5::Gui
+        Qt5::Widgets
+        Qt5::OpenGL
+        Qt5::PrintSupport
+        Qt5::Charts
+        )
+
+
+INCLUDE_DIRECTORIES(${Qt5Core_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${Qt5Gui_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${Qt5Widgets_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${Qt5OpenGL_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${Qt5PrintSupport_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${Qt5Charts_INCLUDE_DIRS})
+
+aux_source_directory(test/visualization/qt_gui qt_src)
+
 aux_source_directory(third_party/EECBS/src                  EECBS_src)
 aux_source_directory(third_party/CBSH2-RTC/src              CBSH2-RTC_src)
 aux_source_directory(third_party/PBS/src                    PBS_src)
@@ -73,8 +105,8 @@ add_library(EECBS_lib  ${EECBS_src} ${PBS_src} ${lacam_src} ${CBSH2-RTC_src} ${l
         ${MAPF_LNS2_src} ${MAPF_LNS2_CBS_src} ${MAPF_LNS2_PIBT_src} ${PIBT2_src})
 
 aux_source_directory(test/visualization vis_src)
-add_library(vis_lib ${vis_src})
-target_link_libraries(vis_lib ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} ${Pangolin_LIBRARIES})
+add_library(vis_lib ${vis_src} ${qt_src})
+target_link_libraries(vis_lib ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} ${Pangolin_LIBRARIES} ${QT_LIBS})
 
 aux_source_directory(algorithm alg_src)
 add_library(alg_lib ${alg_src})
@@ -95,3 +127,6 @@ target_link_libraries(test_massive_layered_mapf freeNav-base alg_lib)
 
 add_executable(test_create_random_map_fr_mapf test/test_create_random_map_fr_mapf.cpp)
 target_link_libraries(test_create_random_map_fr_mapf freeNav-base alg_lib)
+
+add_executable(test_qt_gui test/test_qt_gui.cpp test/visualization/qt_gui/resources/images.qrc)
+target_link_libraries(test_qt_gui freeNav-base alg_lib)

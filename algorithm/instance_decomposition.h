@@ -365,6 +365,7 @@ namespace freeNav::LayeredMAPF {
                 bool unavoid_independent = isClusterIndependent(cluster_pair.first, specific_set_unavoidable),
                      remaining_independent = isClusterIndependent(cluster_pair.second);
                 count_of_phase ++;
+                // if both remaining set and unavoid set is independent, we find a legal bi-partition
                 if(unavoid_independent && remaining_independent) {
 //                    std::cout << "-- is unavoid/remainning independent ? " << unavoid_independent
 //                              << " / " << remaining_independent << std::endl;
@@ -407,6 +408,7 @@ namespace freeNav::LayeredMAPF {
                     int count = 0;
 //                    all_clusters_.clear();
                     buffer_agents = top_cluster.second;
+                    // bi-partition until can not bi-partition
                     while (buffer_agents.size() > 1) {
                         //std::cout << "-- the " << count << " ";
                         auto agents_pair = biPartitionCluster(buffer_agents);

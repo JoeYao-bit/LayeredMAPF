@@ -81,14 +81,14 @@ def drawMethodMap(all_data_map, xlabel, ylable, title, is_percentage=False):
     
 data_path_dir = '../test/test_data/'
 all_map_name = ["empty-32-32",
-                #"random-32-32-20-random-1",
-                #"warehouse-10-20-10-2-1",
-                #"maze-32-32-2-random-1",
-                #"maze-32-32-4-random-1",
-                #"den312d-random-1",
-                #"Berlin_1_256-random-1",
-                #"Paris_1_256-random-1",
-                #"den520d-random-1"
+                "random-32-32-20-random-1",
+                "warehouse-10-20-10-2-1",
+                "maze-32-32-2-random-1",
+                "maze-32-32-4-random-1",
+                "den312d-random-1",
+                "Berlin_1_256-random-1",
+                "Paris_1_256-random-1",
+                "den520d-random-1"
                 ]
 all_single_data = list()
 
@@ -156,9 +156,9 @@ for single_data in all_single_data:
         all_method_cluster_cost_map[line_data.method][line_data.agent_count].append(line_data.cluster_decomposition_time_cost)
         all_method_level_sort_map[line_data.method][line_data.agent_count].append(line_data.sort_level_time_cost)
         
-    #drawMethodMap(all_method_time_cost_map, "Number of agents", "Time cost(ms)", single_data.map_name + "-time_cost.png")        
+    drawMethodMap(all_method_time_cost_map, "Number of agents", "Time cost(ms)", single_data.map_name + "-time_cost.png")        
     #drawMethodMap(all_method_success_rate_map, "Number of agents", "Success rate", single_data.map_name + "-success_rate.png", True)        
-    drawMethodMap(all_method_memory_usage_map, "Number of agents", "Memory Usage(MB)", single_data.map_name + "-memory_usage.png")        
+    #drawMethodMap(all_method_memory_usage_map, "Number of agents", "Memory Usage(MB)", single_data.map_name + "-memory_usage.png")        
 
     #break
 
