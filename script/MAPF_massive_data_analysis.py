@@ -52,6 +52,7 @@ class SingleTestData:
     
 def drawMethodMap(all_data_map, xlabel, ylable, title, is_percentage=False):
     fig=plt.figure(figsize=(5,3.5)) #添加绘图框
+    is_time_cost = title == "Time cost(ms)"
     for map_key, map_value in all_data_map.items():
         method_name = map_key
         x = list()
@@ -66,6 +67,23 @@ def drawMethodMap(all_data_map, xlabel, ylable, title, is_percentage=False):
             std_var.append(np.std(all_data_map[method_name][agent_size_key]))
         
         plt.errorbar(x, y, fmt=map_and_marker[method_name], label=map_key, elinewidth=2, capsize=4)
+        
+    # for map_key, map_value in all_data_map.items():
+    #     method_name = map_key
+    #     if method_name != "DECOMPOSITION":
+    #         continue
+    #     x = list()
+    #     y = list()
+    #     std_var = list()
+        
+    #     sorted_keys = sorted(all_data_map[method_name].keys())
+        
+    #     for agent_size_key in sorted_keys:
+    #         x.append(agent_size_key)
+    #         y.append(np.mean(all_data_map[method_name][agent_size_key]))
+    #         std_var.append(np.std(all_data_map[method_name][agent_size_key]))
+        
+    #     plt.errorbar(x, y, fmt=map_and_marker[method_name], label=map_key, elinewidth=2, capsize=4)    
         
     plt.title(title)
     plt.xlabel(xlabel)
@@ -107,6 +125,7 @@ map_and_marker = {"RAW_EECBS":'D-',       "LAYERED_EECBS":'o-',
                   "RAW_PIBT2":'D-',       "LAYERED_PIBT2":'o-',
                   "RAW_HCA":'D-',         "LAYERED_HCA":'o-',
                   "RAW_PushAndSwap":'D-', "LAYERED_PushAndSwap":'o-',
+                  "DECOMPOSITION":"D-"
                   }
 
 # 1, load all data
@@ -121,6 +140,7 @@ for map_name in all_map_name:
 for single_data in all_single_data:
     
     all_method_time_cost_map = dict()
+    all_method_time_cost_map["DECOMPOSITION"] = dict()
     all_method_total_cost_map = dict()
     all_method_max_single_cost_map = dict()
     all_method_success_rate_map = dict()
@@ -141,6 +161,7 @@ for single_data in all_single_data:
             
         if all_method_time_cost_map[line_data.method].get(line_data.agent_count) == None:
             all_method_time_cost_map[line_data.method][line_data.agent_count] = list()
+            all_method_time_cost_map["DECOMPOSITION"][line_data.agent_count] = list()
             all_method_total_cost_map[line_data.method][line_data.agent_count] = list()
             all_method_max_single_cost_map[line_data.method][line_data.agent_count] = list()    
             all_method_memory_usage_map[line_data.method][line_data.agent_count] = list()    
@@ -149,6 +170,7 @@ for single_data in all_single_data:
             all_method_level_sort_map[line_data.method][line_data.agent_count] = list()
         
         all_method_time_cost_map[line_data.method][line_data.agent_count].append(line_data.time_cost)
+        all_method_time_cost_map["DECOMPOSITION"][line_data.agent_count].append(line_data.cluster_decomposition_time_cost + line_data.sort_level_time_cost)
         all_method_total_cost_map[line_data.method][line_data.agent_count].append(line_data.total_cost)
         all_method_max_single_cost_map[line_data.method][line_data.agent_count].append(line_data.max_single_cost)
         all_method_memory_usage_map[line_data.method][line_data.agent_count].append(line_data.max_memory_usage)
