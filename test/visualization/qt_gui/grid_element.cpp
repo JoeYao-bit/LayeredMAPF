@@ -86,10 +86,27 @@ void Grid::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWid
 //                          -GRID_WIDTH/2-GRID_INTERVAL + 15*(index++),
 //                          QString("y=%1").arg(this->y()));
 
+        QTextCharFormat text_format;
+        text_format.setTextOutline (QPen (Qt::red, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin)); // Color and width of outline
+
         for(const auto& str : strs_) {
+            QPainterPath text_path;
+            text_path.addText(-GRID_WIDTH/2-GRID_INTERVAL + 3,
+                              -GRID_WIDTH/2-GRID_INTERVAL + 3 + font.pointSize()*1.25*index,
+                              font,
+                              QString(str.c_str()));
+            QPen black_pen;
+            black_pen.setColor(Qt::black);
+            black_pen.setWidth(5);
+            painter->setPen(black_pen);
+            painter->strokePath(text_path, black_pen);
+            painter->drawPath(text_path);
+
+            painter->setPen(QPen(Qt::white, width));
             painter->drawText(-GRID_WIDTH/2-GRID_INTERVAL + 3,
-                              -GRID_WIDTH/2-GRID_INTERVAL + 3 + font.pointSize()*1.25*(index++),
+                              -GRID_WIDTH/2-GRID_INTERVAL + 3 + font.pointSize()*1.25*index,
                               QString(str.c_str()));//
+            index++;
         }
         painter->restore(); //恢复上面保存的状态
     }

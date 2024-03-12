@@ -148,7 +148,7 @@ View::View(const QString &name, QWidget *parent)
     drawCurrentInstance_second = new QToolButton;
     drawCurrentInstance_second->setText(QString("Whether draw current agent"));
     drawCurrentInstance_second->setCheckable(true);
-    drawCurrentInstance_second->setChecked(true);
+    drawCurrentInstance_second->setChecked(false);
 
     colorValueMenu       = new QMenu(QStringLiteral("SetColorType: Default"), this);
     QAction *pOpenAction = new QAction(QStringLiteral("Green"), this);
@@ -530,8 +530,9 @@ void View::setHyperGraphGridMap() {
     resetGridMapToEmpty();
     drawInstancesOfMAPFColor();
     drawFreeGridGroupColor();
+    drawFreeGridGroupText();
     drawInstancesOfMAPFText();
-    drawNearbyHyperNodes();
+    //drawNearbyHyperNodes();
 }
 
 void View::setEmptyGridMap() {
@@ -573,6 +574,7 @@ void View::setHeuristicTable() {
     drawInstancesOfMAPFColor();
     drawInstancesOfMAPFText();
     drawFreeGridGroupColor();
+    drawFreeGridGroupText();
     drawHeuristicTable();
     std::cout << " draw heuristic table of agent " << current_shown_agent_ << std::endl;
 }
@@ -600,10 +602,12 @@ void View::initGridMap() {
         agent_start_->setColorRGB(0, 255, 0);
         agent_start_->setPos(instance_[current_shown_agent_].first[0]*block_total_width,
                              instance_[current_shown_agent_].first[1]*block_total_width);
+        agent_start_->setVisible(false);
         agent_target_ = new CircleOfGrid(15);
         agent_target_->setColorRGB(255, 0,0);
         agent_target_->setPos(instance_[current_shown_agent_].second[0]*block_total_width,
                               instance_[current_shown_agent_].second[1]*block_total_width);
+        agent_target_->setVisible(false);
     }
 }
 
@@ -700,12 +704,12 @@ void View::drawAllCluster() {
             all_grid_[target_id]->setColorRGB(fill_color[0], fill_color[1], fill_color[2]);
 
             int mean_color = fill_color[0] + fill_color[1] + fill_color[2];
-            if (mean_color > 450) {
-                all_grid_[start_id]->text_color_ = Qt::black;
-                all_grid_[target_id]->text_color_ = Qt::black;
+            if (mean_color > TEXT_COLOR_THREAD) {
+                all_grid_[start_id]->text_color_ = QColor(255-fill_color[0], 255-fill_color[1], 255-fill_color[2]);
+                all_grid_[target_id]->text_color_ = QColor(255-fill_color[0], 255-fill_color[1], 255-fill_color[2]);
             } else {
-                all_grid_[start_id]->text_color_ = Qt::white;
-                all_grid_[target_id]->text_color_ = Qt::white;
+                all_grid_[start_id]->text_color_ = QColor(255-fill_color[0], 255-fill_color[1], 255-fill_color[2]);
+                all_grid_[target_id]->text_color_ = QColor(255-fill_color[0], 255-fill_color[1], 255-fill_color[2]);
             }
 
             std::stringstream ss_start;
@@ -725,68 +729,64 @@ void View::drawAllCluster() {
 }
 
 void View::drawInstancesOfMAPFColor() {
-//    for(int i=0; i<instance_.size(); i++) {
-//        const auto& ist = instance_[i];
-//        freeNav::Pointi<2> start = ist.first, target = ist.second;
-//        freeNav::Id start_id = PointiToId(start, dim_), target_id = PointiToId(target, dim_);
-//        if(is_occupied_(start) || is_occupied_(target)) {
-//            std::cout << " start or target is occupied " << std::endl;
-//        }
-//
-//        auto fill_color = COLOR_TABLE[i % 30]; // cv::Vec3b(200, 200, 200);
-//        all_grid_[start_id]->text_color_ = Qt::white;
-//        all_grid_[start_id]->setColorRGB(fill_color[0], fill_color[1], fill_color[2]);
-//
-//        all_grid_[target_id]->text_color_ = Qt::white;
-//        all_grid_[target_id]->setColorRGB(fill_color[0], fill_color[1], fill_color[2]);
-//        int mean_color = fill_color[0] + fill_color[1] + fill_color[2];
-//        if(mean_color > 450) {
-//            all_grid_[start_id]->text_color_ = Qt::black;
-//            all_grid_[target_id]->text_color_ = Qt::black;
-//        } else {
-//            all_grid_[start_id]->text_color_ = Qt::white;
-//            all_grid_[target_id]->text_color_ = Qt::white;
-//        }
-//    }
+    for(int i=0; i<instance_.size(); i++) {
+        const auto& ist = instance_[i];
+        freeNav::Pointi<2> start = ist.first, target = ist.second;
+        freeNav::Id start_id = PointiToId(start, dim_), target_id = PointiToId(target, dim_);
+        if(is_occupied_(start) || is_occupied_(target)) {
+            std::cout << " start or target is occupied " << std::endl;
+        }
+
+        auto fill_color = COLOR_TABLE[i % 30]; // cv::Vec3b(200, 200, 200);
+        all_grid_[start_id]->text_color_ = Qt::white;
+        all_grid_[start_id]->setColorRGB(fill_color[0], fill_color[1], fill_color[2]);
+
+        all_grid_[target_id]->text_color_ = Qt::white;
+        all_grid_[target_id]->setColorRGB(fill_color[0], fill_color[1], fill_color[2]);
+        auto text_color = (fill_color[0]+fill_color[1]+fill_color[2]) > 375 ? Qt::black : Qt::white;
+        all_grid_[start_id]->text_color_ = text_color;
+        all_grid_[target_id]->text_color_ = text_color;
+
+    }
 
     // draw low level search traveled grid
-    int failed_instance_id = 10;
-    for(const int& id : ids_to_draw_) {
-        all_grid_[id]->setColorRGB(0, 0, 0);
-        all_grid_[id]->text_color_ = Qt::white;
-    }
-    std::cout << " cluster failed_instance_id agent id = "  << *layered_mapf->all_clusters_[failed_instance_id].begin() << std::endl;
-    for(int i=0; i<layered_mapf->all_clusters_.size(); i++) {
-        const auto& current_agents = layered_mapf->all_clusters_[i];
-        if(i==failed_instance_id) {
-            freeNav::Pointi<2> start = instance_[*current_agents.begin()].first, target = instance_[*current_agents.begin()].second;
-            freeNav::Id start_id = PointiToId(start, dim_), target_id = PointiToId(target, dim_);
-            std::cout << " ids_to_draw_ contain failed_instance_id start/target: " << (ids_to_draw_.find(start_id) != ids_to_draw_.end()) << " / "
-                    << (ids_to_draw_.find(target_id) != ids_to_draw_.end()) << std::endl;
-            continue;
-        }
-        for(const int& agent_id : current_agents) {
-            const auto& ist = instance_[agent_id];
-            freeNav::Pointi<2> start = ist.first, target = ist.second;
-            freeNav::Id start_id = PointiToId(start, dim_), target_id = PointiToId(target, dim_);
-            auto fill_color = COLOR_TABLE[i % 30]; // cv::Vec3b(200, 200, 200);
-            if (i < failed_instance_id) {
-                all_grid_[target_id]->text_color_ = Qt::white;
-                all_grid_[target_id]->setColorRGB(fill_color[0], fill_color[1], fill_color[2]);
-            } else {
-                all_grid_[start_id]->text_color_ = Qt::white;
-                all_grid_[start_id]->setColorRGB(fill_color[0], fill_color[1], fill_color[2]);
-            }
-            int mean_color = fill_color[0] + fill_color[1] + fill_color[2];
-            if(mean_color > 450) {
-                all_grid_[start_id]->text_color_ = Qt::black;
-                all_grid_[target_id]->text_color_ = Qt::black;
-            } else {
-                all_grid_[start_id]->text_color_ = Qt::white;
-                all_grid_[target_id]->text_color_ = Qt::white;
-            }
-        }
-    }
+//    int failed_instance_id = 10;
+//    for(const int& id : ids_to_draw_) {
+//        all_grid_[id]->setColorRGB(0, 0, 0);
+//        all_grid_[id]->text_color_ = Qt::white;
+//    }
+//    std::cout << " cluster failed_instance_id agent id = "  << *layered_mapf->all_clusters_[failed_instance_id].begin() << std::endl;
+//    for(int i=0; i<layered_mapf->all_clusters_.size(); i++) {
+//        const auto& current_agents = layered_mapf->all_clusters_[i];
+//        if(i==failed_instance_id) {
+//            freeNav::Pointi<2> start = instance_[*current_agents.begin()].first, target = instance_[*current_agents.begin()].second;
+//            freeNav::Id start_id = PointiToId(start, dim_), target_id = PointiToId(target, dim_);
+//            std::cout << " ids_to_draw_ contain failed_instance_id start/target: " << (ids_to_draw_.find(start_id) != ids_to_draw_.end()) << " / "
+//                    << (ids_to_draw_.find(target_id) != ids_to_draw_.end()) << std::endl;
+//            continue;
+//        }
+//        for(const int& agent_id : current_agents) {
+//            const auto& ist = instance_[agent_id];
+//            freeNav::Pointi<2> start = ist.first, target = ist.second;
+//            freeNav::Id start_id = PointiToId(start, dim_), target_id = PointiToId(target, dim_);
+//            auto fill_color = COLOR_TABLE[i % 30]; // cv::Vec3b(200, 200, 200);
+//            if (i < failed_instance_id) {
+//                all_grid_[target_id]->text_color_ = Qt::white;
+//                all_grid_[target_id]->setColorRGB(fill_color[0], fill_color[1], fill_color[2]);
+//            } else {
+//                all_grid_[start_id]->text_color_ = Qt::white;
+//                all_grid_[start_id]->setColorRGB(fill_color[0], fill_color[1], fill_color[2]);
+//            }
+//            int mean_color = fill_color[0] + fill_color[1] + fill_color[2];
+//            if(mean_color > TEXT_COLOR_THREAD) {
+//                all_grid_[start_id]->text_color_ = Qt::black;
+//                all_grid_[target_id]->text_color_ = Qt::black;
+//            } else {
+//                all_grid_[start_id]->text_color_ = Qt::white;
+//                all_grid_[target_id]->text_color_ = Qt::white;
+//            }
+//        }
+//    }
 }
 
 void View::drawInstancesOfMAPFText() {
@@ -825,7 +825,7 @@ void View::drawFreeGridGroupText() {
         if(hyper_nodes[i]->free_grid_group_.free_grids_.empty()) { continue; }
         for(const auto& grid : hyper_nodes[i]->free_grid_group_.free_grids_) {
             std::stringstream ss;
-            ss << i << "g";
+            ss << i-2*instance_.size() << "f";
             all_grid_[grid->id_]->strs_.push_back(ss.str());
         }
     }

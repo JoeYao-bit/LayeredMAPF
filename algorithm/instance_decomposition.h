@@ -121,7 +121,7 @@ namespace freeNav::LayeredMAPF {
 #endif
                 if(cluster.size() > 1) {
                     auto current_levels = clusterDecomposition(cluster);
-                    //std::cout << " current_levels size " << current_levels.size() << std::endl;
+                    std::cout << " current_levels size " << current_levels.size() << std::endl;
                     all_levels_.insert(all_levels_.end(), current_levels.begin(), current_levels.end());
                     //break;
                 } else {
@@ -425,11 +425,12 @@ namespace freeNav::LayeredMAPF {
             //std::cout << "get " << all_clusters.size() << " cluster after " << decomposition_cost << " ms" << std::endl;
             for(int i=0; i<all_clusters.size(); i++) {
                 // do not print cluster that have only one agent
-                if(all_clusters[i].size() != 1) {
-                    //std::cout << "-- cluster " << i << " size " << all_clusters[i].size() << " (>1) : " << all_clusters[i] << std::endl;
-                } else {
-//                    std::cout << "-- cluster " << i << " size " << all_clusters[i].size() << " : "
-//                              << all_clusters[i] << " ";
+//                if(all_clusters[i].size() != 1) {
+//                    std::cout << "-- cluster " << i << " size " << all_clusters[i].size() << " (>1) : " << all_clusters[i] << std::endl;
+//                } else
+                    {
+                    std::cout << "-- cluster " << i << " size " << all_clusters[i].size() << " : "
+                              << all_clusters[i] << " ";
                 }
             }
             //std::cout << std::endl;

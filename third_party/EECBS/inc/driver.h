@@ -250,10 +250,10 @@ namespace CBS_Li {
                 //("agents,a", po::value<string>()->default_value(map_test_config.at("scene_path")), "input file for agents")
 
                 ("output,o",
-                 po::value<string>()->default_value("/home/yaozhuo/code/free-nav/third_party/EECBS/test.csv"),
+                 po::value<string>()->default_value("../third_party/EECBS/test.csv"),
                  "output file for statistics")
                 ("outputPaths",
-                 po::value<string>()->default_value("/home/yaozhuo/code/free-nav/third_party/EECBS/paths.txt"),
+                 po::value<string>()->default_value("../third_party/EECBS/paths.txt"),
                  "output file for paths")
 
                 ("agentNum,k", po::value<int>()->default_value(instance_sat.size()), "number of agents")

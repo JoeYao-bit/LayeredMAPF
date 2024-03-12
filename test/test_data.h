@@ -140,5 +140,21 @@ namespace freeNav::LayeredMAPF{
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"} // in second
             };
+
+    // empty-32-32
+    SingleMapTestConfig<2> MAPFTestConfig_simple =
+
+            {
+                    {"map_name",     "simple"},
+                    {"map_path",     "../test/test_data/simple.map"},
+                    {"scene_path",   "../test/test_data/simple.scen"},
+                    {"ct_path",   "../test/test_data/simple.ct"},
+                    {"output_path", "../test/test_data/simple.txt"},
+                    {"decomposition_output_path", "../test/test_data/simple.txt"},
+                    {"agent_num",    "3"}, // 330
+                    {"cut_off_time", "200"},
+                    {"max_run_time", "60"} // in second
+            };
+
 }
 #endif //FREENAV_TEST_DATA_H

@@ -30,7 +30,8 @@ using namespace freeNav::LayeredMAPF;
 // MAPFTestConfig_warehouse_10_20_10_2_1  5726.96 ms / layered faster， after 500 agent
 // MAPFTestConfig_den520d 237.842 ms / layered faster， after 150 agent
 // MAPFTestConfig_empty_32_32 2872.3 ms / layered faster
-auto map_test_config = MAPFTestConfig_Berlin_1_256;
+// MAPFTestConfig_simple
+auto map_test_config = MAPFTestConfig_simple;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') { return false; }
@@ -153,13 +154,13 @@ int main(int argc, char *argv[])
     // comparing to the raw version, the layered vision will add more static constraint
     // so avoid the copy of static constraint table, will increase the performance of layered mapf
     //if(CBS_Li::ct != nullptr) { delete CBS_Li::ct; }
-    //multiple_paths = freeNav::TCBS::layeredMAPF<2>(ists, dim, is_occupied, CBS_Li::eecbs_MAPF, CBS_Li::eecbs_MAPF);
-    //multiple_paths = freeNav::TCBS::layeredMAPF<2>(ists, dim, is_occupied, LaCAM::lacam_MAPF, CBS_Li::eecbs_MAPF, false, 60);
-    //multiple_paths = freeNav::TCBS::layeredMAPF<2>(ists, dim, is_occupied, PBS_Li::pbs_MAPF, CBS_Li::eecbs_MAPF, true, 60);
-    //multiple_paths = freeNav::TCBS::layeredMAPF<2>(ists, dim, is_occupied, CBSH2_RTC::CBSH2_RTC_MAPF, CBS_Li::eecbs_MAPF, true, 60);
-    //multiple_paths = freeNav::TCBS::layeredMAPF<2>(ists, dim, is_occupied, MAPF_LNS::MAPF_LNS_MAPF, CBS_Li::eecbs_MAPF, true, 60);
-    //multiple_paths = freeNav::TCBS::layeredMAPF<2>(ists, dim, is_occupied, LaCAM2::lacam2_MAPF, CBS_Li::eecbs_MAPF, false, 60);
-    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, PIBT_2::pibt_MAPF, CBS_Li::eecbs_MAPF, false, 60);
+    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, CBS_Li::eecbs_MAPF, CBS_Li::eecbs_MAPF);
+    //multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, LaCAM::lacam_MAPF, CBS_Li::eecbs_MAPF, false, 60);
+    //multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, PBS_Li::pbs_MAPF, CBS_Li::eecbs_MAPF, true, 60);
+    //multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, CBSH2_RTC::CBSH2_RTC_MAPF, CBS_Li::eecbs_MAPF, true, 60);
+    //multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_LNS::MAPF_LNS_MAPF, CBS_Li::eecbs_MAPF, true, 60);
+    //multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, LaCAM2::lacam2_MAPF, CBS_Li::eecbs_MAPF, false, 60);
+    //multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, PIBT_2::pibt_MAPF, CBS_Li::eecbs_MAPF, false, 60);
     gettimeofday(&tv_after, &tz);
     double layered_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
     std::cout << multiple_paths.size() << " agents " << std::endl;

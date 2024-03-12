@@ -26,7 +26,9 @@ const int GRID_WIDTH = 50;
 
 const int GRID_INTERVAL = 1;
 
-const int GRID_FONT_SIZE = 12;
+const int GRID_FONT_SIZE = 20;
+
+const int TEXT_COLOR_THREAD = 400;
 
 typedef enum {
     G_VAL = 0,
