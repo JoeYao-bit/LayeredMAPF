@@ -69,8 +69,9 @@ namespace freeNav::LayeredMAPF {
 
     };
 
-    std::ostream & operator<<(std::ostream& os, std::set<int> agent_ids);
+    std::ostream & operator<<(std::ostream& os, const std::set<int>& agent_ids);
 
+    std::string toString(const std::set<int>& agent_ids);
 
     //
     //       1，define a general interfaces for multiple MAPF problem
@@ -121,7 +122,7 @@ namespace freeNav::LayeredMAPF {
 #endif
                 if(cluster.size() > 1) {
                     auto current_levels = clusterDecomposition(cluster);
-                    std::cout << " current_levels size " << current_levels.size() << std::endl;
+                    //std::cout << " current_levels size " << current_levels.size() << std::endl;
                     all_levels_.insert(all_levels_.end(), current_levels.begin(), current_levels.end());
                     //break;
                 } else {
@@ -139,7 +140,7 @@ namespace freeNav::LayeredMAPF {
                 //std::cout << "-- clusters " << i << " size " << all_clusters_[i].size() << ": " << all_clusters_[i] << std::endl;
             }
             assert(total_count == instance.size());
-            //std::cout << " Decomposition completeness ? " << decompositionValidCheck(all_clusters_) << std::endl;
+            std::cout << " Decomposition completeness ? " << decompositionValidCheck(all_clusters_) << std::endl;
             //std::cout << " max/total size " << max_cluster_size << " / " << instance.size() << std::endl;
             gettimeofday(&tv_after, &tz);
             sort_level_time_cost_ = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
@@ -159,8 +160,8 @@ namespace freeNav::LayeredMAPF {
                 for(const int& agent : all_levels[i]) {
                     auto passing_agents = searchAgent(agent, avoid_sats, {}, true);
                     if(passing_agents.empty()) {
-                        std::cout << " avoid_sats " << avoid_sats << std::endl;
-                        std::cout << " cluster " << i << ", agent " << agent << " is im-complete" << std::endl;
+                        //std::cout << " avoid_sats " << toString(avoid_sats) << std::endl;
+                        std::cout << "ERROR: cluster " << i << ", agent " << agent << " is im-complete" << std::endl;
                         return false;
                     }
                 }
@@ -224,7 +225,7 @@ namespace freeNav::LayeredMAPF {
             return true;
         }
 
-        // check whether current set
+        // check whether current set is self-relevant, the first is self-relevant, the second is which agent depend external agent
         std::pair<std::set<int>, std::set<int>> clusterIndependentCheck(const std::set<int>& instance_id_set, const std::set<int>& specific_agents = {}) {
             std::set<int> success_in_set, failed_in_set;
             auto set_need_check = specific_agents.empty() ? instance_id_set : specific_agents;
@@ -251,11 +252,13 @@ namespace freeNav::LayeredMAPF {
                 const int& agent_id = id_agent_pair.first;
                 const std::set<int>& agent_path = id_agent_pair.second;
                 for(const int& other_agent : agent_path) {
-                    std::set<int> avoid_list = (distinguish_sat ? std::set<int>({ other_agent }) : std::set<int>({ other_agent*2, other_agent*2 + 1 }));
+
                     if(all_unavoidable_agent.find(agent_id) == all_unavoidable_agent.end()) {
                         all_unavoidable_agent.insert(std::pair<int, std::set<int> >(agent_id, {}));
                     }
+
                     std::set<int> within_set = distinguish_sat ? instance_id_set : AgentIdsToSATID(instance_id_set);
+                    std::set<int> avoid_list = (distinguish_sat ? std::set<int>({ other_agent }) : std::set<int>({ other_agent*2, other_agent*2 + 1 }));
                     if((searchAgent(agent_id, avoid_list, within_set)).empty()) {
                         all_unavoidable_agent.at(agent_id).insert(other_agent);
                     }
@@ -281,21 +284,26 @@ namespace freeNav::LayeredMAPF {
                 //std::cout << "agent " << agent_id << " 's pass agents: " << passing_agents << std::endl;
             }
 
-            std::map<int, std::set<int> > all_related_agent = updateRelatedGraphFromPassingGraph(all_agents_path);
-            std::map<int, std::set<int> > cluster_of_agents = clusterAgents(all_related_agent);
+//            std::map<int, std::set<int> > all_related_agent = updateRelatedGraphFromPassingGraph(all_agents_path);
+//            std::map<int, std::set<int> > cluster_of_agents = clusterAgents(all_related_agent);
 
-            auto cluster_pair_upper = splitPartitionCluster(cluster_of_agents);
+//            auto cluster_pair_upper = splitPartitionCluster(cluster_of_agents);
 
             //std::cout << "upper bound of cluster size " << cluster_pair_upper.first.size() << std::endl;
             //std::cout << "---------------------------------------------------------------------" << std::endl;
 
+            // determine agent's unavoidable agent
             std::map<int, std::set<int> > all_unavoidable_agent = searchUnAvoidAgentForEachAgent(all_agents_path, agents);
 //            all_unavoidable_agent_ = all_unavoidable_agent;
 
             // lower bound of cluster size
+            // determine each agent's related agent (unavoidable)
             std::map<int, std::set<int> > all_unavoidable_related_agent = updateRelatedGraphFromPassingGraph(all_unavoidable_agent);
+            //
             std::map<int, std::set<int> > cluster_of_unavoidable_agents = clusterAgents(all_unavoidable_related_agent);
 
+            // get the largest cluster and merge the remaining into a secondary set
+            //std::cout << "cluster_of_unavoidable_agents.size() = " << cluster_of_unavoidable_agents.size()<< std::endl;
             auto cluster_pair = splitPartitionCluster(cluster_of_unavoidable_agents);
 
             int count_of_phase = 0;
@@ -395,7 +403,9 @@ namespace freeNav::LayeredMAPF {
                 //std::cout << "agent " << agent_id << " 's pass agents: " << passing_agents << std::endl;
             }
             all_passing_agent_ = all_agents_path;
+            // get each agent's dependence agents
             std::map<int, std::set<int> > all_related_agent = updateRelatedGraphFromPassingGraph(all_agents_path);
+            //
             std::map<int, std::set<int> > cluster_of_agents = clusterAgents(all_related_agent);
             int count_top_cluster = 0;
             for(const auto& top_cluster : cluster_of_agents) {
@@ -423,16 +433,16 @@ namespace freeNav::LayeredMAPF {
             }
             all_clusters_ = all_clusters;
             //std::cout << "get " << all_clusters.size() << " cluster after " << decomposition_cost << " ms" << std::endl;
-            for(int i=0; i<all_clusters.size(); i++) {
-                // do not print cluster that have only one agent
-//                if(all_clusters[i].size() != 1) {
-//                    std::cout << "-- cluster " << i << " size " << all_clusters[i].size() << " (>1) : " << all_clusters[i] << std::endl;
-//                } else
-                    {
-                    std::cout << "-- cluster " << i << " size " << all_clusters[i].size() << " : "
-                              << all_clusters[i] << " ";
-                }
-            }
+//            for(int i=0; i<all_clusters.size(); i++) {
+//                // do not print cluster that have only one agent
+////                if(all_clusters[i].size() != 1) {
+////                    std::cout << "-- cluster " << i << " size " << all_clusters[i].size() << " (>1) : " << all_clusters[i] << std::endl;
+////                } else
+//                    {
+//                    std::cout << "-- cluster " << i << " size " << all_clusters[i].size() << " : "
+//                              << all_clusters[i] << " ";
+//                }
+//            }
             //std::cout << std::endl;
         }
 
@@ -676,8 +686,8 @@ namespace freeNav::LayeredMAPF {
                     if(agent_and_level.find(agent_id) == agent_and_level.end()) { continue; }
                     if(agent_and_level.find(later_agent) == agent_and_level.end()) { continue; }
                     if(agent_and_level[agent_id] > agent_and_level[later_agent]) {
-                        std::cout << agent_id << " should > " << later_agents << std::endl;
-                        std::cout << "but wrong sorted level " << agent_id << "(" << agent_and_level[agent_id] << ") < "
+                        //std::cout << agent_id << " should > " << toString(later_agents) << std::endl;
+                        std::cout << "ERROR: but wrong sorted level " << agent_id << "(" << agent_and_level[agent_id] << ") < "
                         << later_agent << "(" << agent_and_level[later_agent] << ")" << std::endl;
                     }
                 }
@@ -760,14 +770,19 @@ namespace freeNav::LayeredMAPF {
         // # graph partitioning try to split a graph into multiple same size sub-graph, meets the requirement of efficient MAPF
         // find multiple sub-graph that connect only by one edge and try to break it
 
+        // get each agent's related agents
         std::map<int, std::set<int> > updateRelatedGraphFromPassingGraph(const std::map<int, std::set<int> >& ref) const {
             std::map<int, std::set<int> > red_related;
             red_related = ref;
             for(const auto& agent : ref) {
                 for(const auto& other_agent : ref) {
+                    if(agent.first == other_agent.first) {
+                        continue;
+                    }
                     // if agent j cross agent i
                     if(ref.at(other_agent.first).find(agent.first) != ref.at(other_agent.first).end()) {
-                        red_related.at(agent.first).insert(ref.at(other_agent.first).begin(), ref.at(other_agent.first).end());
+//                        red_related.at(agent.first).insert(ref.at(other_agent.first).begin(), ref.at(other_agent.first).end());
+                        red_related.at(agent.first).insert(other_agent.first);
                     }
                 }
                 //std::cout << "agent " << i << " 's related agents: " << all_related_agent_[i] << std::endl;
