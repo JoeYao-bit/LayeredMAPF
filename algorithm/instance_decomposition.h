@@ -82,13 +82,16 @@ namespace freeNav::LayeredMAPF {
     template<Dimension N>
     class MAPFInstanceDecomposition {
     public:
-
-        MAPFInstanceDecomposition(const Instances<N>& instance, DimensionLength* dim, const IS_OCCUPIED_FUNC<N>& is_occupied) {
+        // decompose_level = 0: no decomposition
+        //                 = 1: decompose instance to initial cluster
+        //                 = 2: decompose initial cluster to smaller cluster
+        //                 = 3: decompose cluster into smaller sort level
+        MAPFInstanceDecomposition(const Instances<N>& instance, DimensionLength* dim, const IS_OCCUPIED_FUNC<N>& is_occupied, int decompose_level=3) {
             //std::cout << "start " << __FUNCTION__ << std::endl;
+            assert(decompose_level >= 0 && decompose_level <= 3);
             struct timezone tz;
             struct timeval  tv_pre;
             struct timeval  tv_after;
-            gettimeofday(&tv_pre, &tz);
 
             dimen_ = dim;
             instance_ = instance;
@@ -96,40 +99,42 @@ namespace freeNav::LayeredMAPF {
                 instance_id_set_.insert(i);
             }
             isoc_ = is_occupied;
-            // initialize grid map
-            initializeGridMap();
-            detectFreeGroup();
-            // establish connection between hyper nodes (between free group and agent instance (start and target), and between agent instance)
-            establishConnectionOfHyperNode();
-            establishHeuristicTable();
-            // decompose the whole instance to multiple unrelated cluster
-            instanceDecomposition();
+            all_clusters_= { instance_id_set_ }; // initialize of cluster (equal to the raw cluster)
 
-            gettimeofday(&tv_after, &tz);
-            cluster_decomposition_time_cost_ = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
+            if(decompose_level >= 1) {
 
-            gettimeofday(&tv_pre, &tz);
-            // decompose each cluster into multiple time indexed sequence
-            establishHeuristicTable(true);
-            // cluster decomposition into level
-            std::vector<std::set<int> > all_levels_;
-#define USE_CLUSTER_DECOMPOSITION 1
-#if USE_CLUSTER_DECOMPOSITION
-            for(const auto& cluster : all_clusters_) {
-#else
-            {
-                const auto& cluster = instance_id_set_;
-#endif
-                if(cluster.size() > 1) {
-                    auto current_levels = clusterDecomposition(cluster);
-                    //std::cout << " current_levels size " << current_levels.size() << std::endl;
-                    all_levels_.insert(all_levels_.end(), current_levels.begin(), current_levels.end());
-                    //break;
-                } else {
-                    all_levels_.push_back(cluster);
-                }
+                // initialize grid map
+                initializeGridMap();
+                detectFreeGroup();
+                // establish connection between hyper nodes (between free group and agent instance (start and target), and between agent instance)
+                establishConnectionOfHyperNode();
+                establishHeuristicTable();
+
+                gettimeofday(&tv_pre, &tz);
+                instanceDecomposition();
+                gettimeofday(&tv_after, &tz);
+                instance_decomposition_time_cost_ =
+                        (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
             }
-            all_clusters_ = all_levels_;
+
+            if(decompose_level >= 2) {
+                gettimeofday(&tv_pre, &tz);
+                clusterDecomposition();
+                gettimeofday(&tv_after, &tz);
+                cluster_decomposition_time_cost_ =
+                        (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
+            }
+
+            establishHeuristicTable(true);
+            if(decompose_level >= 3) {
+                gettimeofday(&tv_pre, &tz);
+                levelSorting();
+                gettimeofday(&tv_after, &tz);
+                sort_level_time_cost_ =
+                        (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
+            }
+
+            /* print details of decomposition */
             int total_count = 0;
             //std::cout << "get " << all_clusters_.size() << " levels(>1): " << std::endl;
             int max_cluster_size = 0;
@@ -140,10 +145,9 @@ namespace freeNav::LayeredMAPF {
                 //std::cout << "-- clusters " << i << " size " << all_clusters_[i].size() << ": " << all_clusters_[i] << std::endl;
             }
             assert(total_count == instance.size());
-            std::cout << " Decomposition completeness ? " << decompositionValidCheck(all_clusters_) << std::endl;
-            //std::cout << " max/total size " << max_cluster_size << " / " << instance.size() << std::endl;
-            gettimeofday(&tv_after, &tz);
-            sort_level_time_cost_ = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
+            std::cout << "-- Decomposition completeness ? " << decompositionValidCheck(all_clusters_) << std::endl;
+            std::cout << " max/total size " << max_cluster_size << " / " << instance.size() << std::endl;
+
         }
 
         bool decompositionValidCheck(const std::vector<std::set<int> >& all_levels) const {
@@ -182,7 +186,9 @@ namespace freeNav::LayeredMAPF {
         // NOTICE: the goal of the method is to partition this matrix into lots of small block, thus MAPF is more efficient
         std::map<int, std::set<int> > all_passing_agent_;
 
-        double cluster_decomposition_time_cost_ = 0, sort_level_time_cost_ = 0;
+        double instance_decomposition_time_cost_ = 0.,
+               cluster_decomposition_time_cost_ = 0.,
+               sort_level_time_cost_ = 0.;
 
         ~ MAPFInstanceDecomposition() {
             releaseData();
@@ -392,6 +398,8 @@ namespace freeNav::LayeredMAPF {
         // an instance is split into multiple un-realted cluster
         void instanceDecomposition() {
 
+            // decompose the whole instance to multiple unrelated cluster
+
             std::set<int> buffer_agents = instance_id_set_;
             std::vector<std::set<int> > all_clusters;
 
@@ -407,17 +415,39 @@ namespace freeNav::LayeredMAPF {
             std::map<int, std::set<int> > all_related_agent = updateRelatedGraphFromPassingGraph(all_agents_path);
             //
             std::map<int, std::set<int> > cluster_of_agents = clusterAgents(all_related_agent);
+            all_clusters_.clear();
+            for(const auto& iter : cluster_of_agents) {
+                all_clusters_.push_back(iter.second);
+            }
+            //std::cout << __FUNCTION__ << "get " << all_clusters_.size() << " cluster " << std::endl;
+//            for(int i=0; i<all_clusters.size(); i++) {
+//                // do not print cluster that have only one agent
+////                if(all_clusters[i].size() != 1) {
+////                    std::cout << "-- cluster " << i << " size " << all_clusters[i].size() << " (>1) : " << all_clusters[i] << std::endl;
+////                } else
+//                    {
+//                    std::cout << "-- cluster " << i << " size " << all_clusters[i].size() << " : "
+//                              << all_clusters[i] << " ";
+//                }
+//            }
+            //std::cout << std::endl;
+        }
+
+        void clusterDecomposition() {
+            std::vector<std::set<int> > all_clusters;
+            auto cluster_of_agents = all_clusters_;
             int count_top_cluster = 0;
+            std::set<int> buffer_agents;
             for(const auto& top_cluster : cluster_of_agents) {
-                if(top_cluster.second.size() < 2) {
+                if(top_cluster.size() < 2) {
                     // add small clusters at this stage to all_clusters, no need to join further bi-partition
-                    all_clusters.push_back(top_cluster.second);
+                    all_clusters.push_back(top_cluster);
                 } else {
                     //std::cout << "** bi-partition the " << count_top_cluster << " top clusters " << std::endl;
                     count_top_cluster ++;
                     int count = 0;
 //                    all_clusters_.clear();
-                    buffer_agents = top_cluster.second;
+                    buffer_agents = top_cluster;
                     // bi-partition until can not bi-partition
                     while (buffer_agents.size() > 1) {
                         //std::cout << "-- the " << count << " ";
@@ -432,21 +462,26 @@ namespace freeNav::LayeredMAPF {
                 }
             }
             all_clusters_ = all_clusters;
-            //std::cout << "get " << all_clusters.size() << " cluster after " << decomposition_cost << " ms" << std::endl;
-//            for(int i=0; i<all_clusters.size(); i++) {
-//                // do not print cluster that have only one agent
-////                if(all_clusters[i].size() != 1) {
-////                    std::cout << "-- cluster " << i << " size " << all_clusters[i].size() << " (>1) : " << all_clusters[i] << std::endl;
-////                } else
-//                    {
-//                    std::cout << "-- cluster " << i << " size " << all_clusters[i].size() << " : "
-//                              << all_clusters[i] << " ";
-//                }
-//            }
-            //std::cout << std::endl;
+            //std::cout << __FUNCTION__ << "get " << all_clusters_.size() << " cluster " << std::endl;
         }
 
-
+        void levelSorting() {
+            // decompose each cluster into multiple time indexed sequence
+            // cluster decomposition into level
+            std::vector<std::set<int> > all_levels_;
+            for(const auto& cluster : all_clusters_) {
+                if(cluster.size() > 1) {
+                    auto current_levels = clusterDecomposeToLevel(cluster);
+                    //std::cout << " current_levels size " << current_levels.size() << std::endl;
+                    all_levels_.insert(all_levels_.end(), current_levels.begin(), current_levels.end());
+                    //break;
+                } else {
+                    all_levels_.push_back(cluster);
+                }
+            }
+            all_clusters_ = all_levels_;
+            //std::cout << __FUNCTION__ << "get " << all_clusters_.size() << " level " << std::endl;
+        }
 
         std::set<int> getCurrentAgentLoopInPaths(const std::map<int, std::set<int> >& all_agents_path, const int& agent_id) const {
             auto ahead_and_later_sequence = getAheadAndLaterSequence(all_agents_path);
@@ -474,7 +509,7 @@ namespace freeNav::LayeredMAPF {
 
         // a cluster is split into multiple time indexed level
         // each level may have one or multiple agent
-        std::vector<std::set<int> >  clusterDecomposition(const std::set<int>& cluster) const {
+        std::vector<std::set<int> >  clusterDecomposeToLevel(const std::set<int>& cluster) const {
             // 1, get each agent's sat path
             std::map<int, std::set<int> > all_agents_path;
             //std::cout << "-- agents " << agents << std::endl;
