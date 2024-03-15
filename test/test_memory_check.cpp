@@ -148,14 +148,14 @@ int main1() {
 
 template<Dimension N>
 bool decompositionOfSingleInstance(const freeNav::Instances<N>& ists, DimensionLength* dim,
-                                   const IS_OCCUPIED_FUNC<N>& isoc, OutputStream& outputStream) {
+                                   const IS_OCCUPIED_FUNC<N>& isoc, OutputStream& outputStream, int level=3) {
 
     struct timezone tz;
     struct timeval tv_pre;
     struct timeval tv_after;
     gettimeofday(&tv_pre, &tz);
     freeNav::LayeredMAPF::MAPFInstanceDecompositionPtr<N> instance_decompose
-            = std::make_shared<freeNav::LayeredMAPF::MAPFInstanceDecomposition<N> >(ists, dim, isoc);
+            = std::make_shared<freeNav::LayeredMAPF::MAPFInstanceDecomposition<N> >(ists, dim, isoc, level);
     gettimeofday(&tv_after, &tz);
     double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
     bool is_legal = instance_decompose->decompositionValidCheck(instance_decompose->all_clusters_);
@@ -172,7 +172,7 @@ bool decompositionOfSingleInstance(const freeNav::Instances<N>& ists, DimensionL
     assert(total_count == ists.size());
     outputStream.clear();
     std::stringstream ss;
-    ss << time_cost << " " << max_cluster_size << " " << ists.size() << " " << is_legal;
+    ss << " " << time_cost << " " << max_cluster_size << " " << ists.size() << " " << is_legal << " " << level;
     outputStream = ss.str();
     return is_legal;
 }
@@ -220,7 +220,19 @@ bool SingleMapDecompositionTest(const SingleMapTestConfig <2> &map_test_config,
     for(const auto& ists : istss) {
         OutputStream ostream;
         //std::cout << " start decomposition " << std::endl;
-        if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream)) {
+        if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream, 1)) {
+            std::cout << " decomposition failed " << std::endl;
+            return false;
+        }
+        std::cout << ostream << std::endl;
+        output_streamss.push_back(ostream);
+        if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream, 2)) {
+            std::cout << " decomposition failed " << std::endl;
+            return false;
+        }
+        std::cout << ostream << std::endl;
+        output_streamss.push_back(ostream);
+        if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream, 3)) {
             std::cout << " decomposition failed " << std::endl;
             return false;
         }
@@ -241,18 +253,18 @@ bool SingleMapDecompositionTest(const SingleMapTestConfig <2> &map_test_config,
 
 // do decomposition test
 int main() {
-    int count_of_instances = 10;
-//    SingleMapDecompositionTest(MAPFTestConfig_den312d, {500}, count_of_instances); //  good range
+    int count_of_instances = 100;
+    SingleMapDecompositionTest(MAPFTestConfig_den312d, {200, 240, 280, 320, 360, 400}, count_of_instances); //  good range
 
-    SingleMapDecompositionTest(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400}, count_of_instances); // good range
-    SingleMapDecompositionTest(MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240, 240}, count_of_instances);  // good range
-    SingleMapDecompositionTest(MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800}, count_of_instances); // good range
-    SingleMapDecompositionTest(MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120}, count_of_instances); // good range
-    SingleMapDecompositionTest(MAPFTestConfig_maze_32_32_4, {60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260}, count_of_instances); // good range
-    SingleMapDecompositionTest(MAPFTestConfig_den312d, {100, 200, 300, 400, 500, 600, 700, 800}, count_of_instances); //  good range
-    SingleMapDecompositionTest(MAPFTestConfig_Berlin_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900}, count_of_instances); // layered better
-    SingleMapDecompositionTest(MAPFTestConfig_Paris_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, count_of_instances); // layered better
-    SingleMapDecompositionTest(MAPFTestConfig_den520d, {100, 200, 300, 400, 500, 600, 700, 800, 900}, count_of_instances); // layered better
+//    SingleMapDecompositionTest(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400}, count_of_instances); // good range
+//    SingleMapDecompositionTest(MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240, 240}, count_of_instances);  // good range
+//    SingleMapDecompositionTest(MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800}, count_of_instances); // good range
+//    SingleMapDecompositionTest(MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120}, count_of_instances); // good range
+//    SingleMapDecompositionTest(MAPFTestConfig_maze_32_32_4, {60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260}, count_of_instances); // good range
+//    SingleMapDecompositionTest(MAPFTestConfig_den312d, {100, 200, 300, 400, 500, 600, 700, 800}, count_of_instances); //  good range
+//    SingleMapDecompositionTest(MAPFTestConfig_Berlin_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900}, count_of_instances); // layered better
+//    SingleMapDecompositionTest(MAPFTestConfig_Paris_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, count_of_instances); // layered better
+//    SingleMapDecompositionTest(MAPFTestConfig_den520d, {100, 200, 300, 400, 500, 600, 700, 800, 900}, count_of_instances); // layered better
     return 0;
 }
 

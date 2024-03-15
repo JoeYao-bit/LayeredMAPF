@@ -19,7 +19,8 @@ def loadDataFromfile(file_path):
             new_data.max_cluster = float(splited_line[1])
             new_data.total_size  = float(splited_line[2])
             new_data.success     = float(splited_line[3])
-
+            new_data.level       = int(splited_line[4])
+            
             data_list.append(new_data)
     return data_list
 
@@ -28,6 +29,7 @@ class LineData:
     max_cluster = 0.
     total_size  = 0.
     success     = 1.
+    level       = 0
         
 
 # all data in a txt file
@@ -39,36 +41,46 @@ class SingleTestData:
 def drawMethodMap(single_map_data, is_percentage):
     fig=plt.figure(figsize=(5,3.5)) #添加绘图框
     map_name = single_map_data.map_name
-    all_compress_rate_data = dict()
-    all_time_cost_data = dict()
+    all_compress_rate_data = [dict(), dict(), dict()]
+
+    all_time_cost_data = [dict(), dict(), dict()]
+
     for data in single_map_data.data_list:
         total_size = data.total_size
         time_cost = data.time_cost
         success = data.success
         max_cluster = data.max_cluster
         
-        if all_compress_rate_data.get(total_size) == None:
-            all_compress_rate_data[total_size] = list()
-            all_time_cost_data[total_size] = list()
-            
-        all_compress_rate_data[total_size].append(max_cluster / total_size)    
-        all_time_cost_data[total_size].append(time_cost)    
+        if all_compress_rate_data[0].get(total_size) == None:
+            all_compress_rate_data[0][total_size] = list()
+            all_compress_rate_data[1][total_size] = list()
+            all_compress_rate_data[2][total_size] = list()            
+            all_time_cost_data[0][total_size] = list()
+            all_time_cost_data[1][total_size] = list()
+            all_time_cost_data[2][total_size] = list()
         
-    x = list()
-    y = list()    
-    std_val = list()
-    if is_percentage:
-        for data_key, data_val in all_compress_rate_data.items():
-            x.append(data_key)        
-            y.append(np.mean(data_val))
-            std_val.append(np.std(data_val))
-    else:
-        for data_key, data_val in all_time_cost_data.items():
-            x.append(data_key)        
-            y.append(np.mean(data_val))
-            std_val.append(np.std(data_val))
-            
-    plt.errorbar(x, y, yerr=std_val, elinewidth=2, capsize=4)
+        assert(data.level>= 1 and data.level <= 3)
+        
+        all_compress_rate_data[data.level-1][total_size].append(max_cluster / total_size)    
+        all_time_cost_data[data.level-1][total_size].append(time_cost)    
+
+    for i in range(0,3):    
+        x = list()
+        y = list()    
+        std_val = list()
+        if is_percentage:
+            for data_key, data_val in all_compress_rate_data[i].items():
+                x.append(data_key)        
+                y.append(np.mean(data_val))
+                std_val.append(np.std(data_val))
+        else:
+            for data_key, data_val in all_time_cost_data[i].items():
+                x.append(data_key)        
+                y.append(np.mean(data_val))
+                std_val.append(np.std(data_val))  
+        plt.errorbar(x, y, yerr=std_val, label="level_"+str(i), elinewidth=2, capsize=4)
+        
+    plt.legend(loc='best')    
     if is_percentage:
         plt.title(map_name+"-decomposition_rate")
         plt.ylabel("rate of decomposition")
@@ -90,15 +102,15 @@ def drawMethodMap(single_map_data, is_percentage):
     #break     
     
 data_path_dir = '../test/test_data/'
-all_map_name = ["empty-32-32",
-                "random-32-32-20-random-1",
-                "warehouse-10-20-10-2-1",
-                "maze-32-32-2-random-1",
-                "maze-32-32-4-random-1",
+all_map_name = [#"empty-32-32",
+                # "random-32-32-20-random-1",
+                # "warehouse-10-20-10-2-1",
+                # "maze-32-32-2-random-1",
+                # "maze-32-32-4-random-1",
                 "den312d-random-1",
-                "Berlin_1_256-random-1",
-                "Paris_1_256-random-1",
-                "den520d-random-1"
+                # "Berlin_1_256-random-1",
+                # "Paris_1_256-random-1",
+                # "den520d-random-1"
                 ]
 
 all_single_data = list()
@@ -117,4 +129,4 @@ for single_map_data in all_single_data:
 for single_map_data in all_single_data:
     drawMethodMap(single_map_data, True)    
     
-#plt.show()    
+plt.show()    

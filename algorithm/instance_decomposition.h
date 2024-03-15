@@ -509,6 +509,7 @@ namespace freeNav::LayeredMAPF {
 
         // a cluster is split into multiple time indexed level
         // each level may have one or multiple agent
+        // by update sat path of agents
         std::vector<std::set<int> >  clusterDecomposeToLevel(const std::set<int>& cluster) const {
             // 1, get each agent's sat path
             std::map<int, std::set<int> > all_agents_path;
@@ -540,12 +541,15 @@ namespace freeNav::LayeredMAPF {
                 auto passing_sats = searchAgent(agent_id, {}, AgentIdsToSATID(cluster), true); // pass test
                 assert(!passing_sats.empty());
                 //std::cout << agent_id << " agent passing_sats " << passing_sats << std::endl;
+
+                // add agent's sat path in an incremental way
                 all_agents_path.insert({agent_id, passing_sats});
 
                 // if current agent is in loop, try to find alternative path that can avoid loop
 #define TRY_AVOID_LOOP 1
 #if TRY_AVOID_LOOP
                 std::set<int> avoid_sats;
+                //int count=0;
                 while(1) {
                     std::set<int> current_loop = getCurrentAgentLoopInPaths(all_agents_path, agent_id);
 //                    std::cout << " current loop " << current_loop << std::endl;
@@ -562,10 +566,12 @@ namespace freeNav::LayeredMAPF {
                     }
                     //break;
                     auto alternative_passing_sats = searchAgent(agent_id, avoid_sats, AgentIdsToSATID(cluster), true); // pass test
-                    // if find no legal path, exit
+                    // if find no legal path, exit, mean this agent will form a new loop
                     if(alternative_passing_sats.empty()) { break; }
                     all_agents_path[agent_id] = alternative_passing_sats;
+                    //count ++;
                 }
+                //if(count >= 1) { std::cout << " loop count " << count << std::endl; } // count may > 1
 #endif
             }
 
@@ -647,23 +653,27 @@ namespace freeNav::LayeredMAPF {
                 }
             }
             // pick the root sub-graph from all sub-graph, which is not later than any external sub-graph
+
             std::vector<bool> sub_graph_root_check(all_strong_components.size(), true);
             for(int i=0; i<all_strong_components.size(); i++) {
                 for(const int& agent : all_strong_components[i]) {
-                    // if all agent that earlier than agent is within the same sub-graph, the sub-graph is a root
+                    // if a level have a agent that not later than any other agent, it is a root level
                     for(const int& later_agent : later_sequence.at(agent)) {
                         if(all_strong_components[i].find(later_agent) == all_strong_components[i].end()) {
                             sub_graph_root_check[i] = false;
                             break;
                         }
                     }
+                    // if have proof current level is a root level, no need to check further
                     if(sub_graph_root_check[i] == false) { break; }
                 }
             }
+            // set all root level as seeds, to traversal all level in a BFS mode
             std::set<int> root_sub_graphs;
             for(int i=0; i<sub_graph_root_check.size(); i++) {
                 if(sub_graph_root_check[i]) { root_sub_graphs.insert(i); }
             }
+            // storage each level's index
             std::vector<int> sub_graphs_level(all_strong_components.size(), 0);
             // start from root sub graph, get the order to traversal all sub-graph
             std::set<int> buffer_sub_graphs = root_sub_graphs;
@@ -699,12 +709,19 @@ namespace freeNav::LayeredMAPF {
                 } else { break; }
             }
 
-            std::vector<std::set<int> > sorted_sub_graphs(max_level + 1);
+            std::vector<std::vector<std::set<int> > > sorted_sub_graphs(max_level + 1);
             for(int i=0; i<sub_graphs_level.size(); i++) {
-                sorted_sub_graphs[ sub_graphs_level[i] ].insert(all_strong_components[i].begin(), all_strong_components[i].end());
+                sorted_sub_graphs[ sub_graphs_level[i] ].push_back(all_strong_components[i]);
             }
-
-            const std::vector<std::set<int> >& sorted_levels = sorted_sub_graphs;//(sorted_sub_graphs.size());
+            std::vector<std::set<int> > sorted_levels;
+            sorted_levels.reserve(all_strong_components.size());
+            for(const auto& levels : sorted_sub_graphs) {
+                for(const auto& level : levels) {
+                    sorted_levels.push_back(level);
+                }
+            }
+            assert(all_strong_components.size() == sorted_levels.size());
+            //const std::vector<std::set<int> >& sorted_levels = sorted_levels;//(sorted_sub_graphs.size());
 
             // debug check
             //std::cout << " debug check " << std::endl;
