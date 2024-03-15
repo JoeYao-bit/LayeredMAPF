@@ -146,6 +146,9 @@ int main1() {
 
 }
 
+MemoryRecorder memory_recorder(100);
+
+
 template<Dimension N>
 bool decompositionOfSingleInstance(const freeNav::Instances<N>& ists, DimensionLength* dim,
                                    const IS_OCCUPIED_FUNC<N>& isoc, OutputStream& outputStream, int level=3) {
@@ -153,10 +156,17 @@ bool decompositionOfSingleInstance(const freeNav::Instances<N>& ists, DimensionL
     struct timezone tz;
     struct timeval tv_pre;
     struct timeval tv_after;
+
+    memory_recorder.clear();
+    sleep(1);
+    float basic_usage = memory_recorder.getMaximalMemoryUsage();
     gettimeofday(&tv_pre, &tz);
     freeNav::LayeredMAPF::MAPFInstanceDecompositionPtr<N> instance_decompose
             = std::make_shared<freeNav::LayeredMAPF::MAPFInstanceDecomposition<N> >(ists, dim, isoc, level);
     gettimeofday(&tv_after, &tz);
+    sleep(1);
+    float peak_usage = memory_recorder.getMaximalMemoryUsage();
+    float memory_usage = peak_usage - basic_usage;
     double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
     bool is_legal = instance_decompose->decompositionValidCheck(instance_decompose->all_clusters_);
 
@@ -172,7 +182,7 @@ bool decompositionOfSingleInstance(const freeNav::Instances<N>& ists, DimensionL
     assert(total_count == ists.size());
     outputStream.clear();
     std::stringstream ss;
-    ss << " " << time_cost << " " << max_cluster_size << " " << ists.size() << " " << is_legal << " " << level;
+    ss << " " << time_cost << " " << max_cluster_size << " " << ists.size() << " " << is_legal << " " << level << " " << memory_usage;
     outputStream = ss.str();
     return is_legal;
 }
@@ -253,7 +263,7 @@ bool SingleMapDecompositionTest(const SingleMapTestConfig <2> &map_test_config,
 
 // do decomposition test
 int main() {
-    int count_of_instances = 100;
+    int count_of_instances = 10;
     SingleMapDecompositionTest(MAPFTestConfig_den312d, {200, 240, 280, 320, 360, 400}, count_of_instances); //  good range
 
 //    SingleMapDecompositionTest(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400}, count_of_instances); // good range

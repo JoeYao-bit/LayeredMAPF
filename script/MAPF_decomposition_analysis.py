@@ -15,21 +15,23 @@ def loadDataFromfile(file_path):
             
             new_data = LineData()
             
-            new_data.time_cost   = float(splited_line[0])
-            new_data.max_cluster = float(splited_line[1])
-            new_data.total_size  = float(splited_line[2])
-            new_data.success     = float(splited_line[3])
-            new_data.level       = int(splited_line[4])
-            
+            new_data.time_cost    = float(splited_line[0])
+            new_data.max_cluster  = float(splited_line[1])
+            new_data.total_size   = float(splited_line[2])
+            new_data.success      = float(splited_line[3])
+            new_data.level        = int(splited_line[4])
+            new_data.memory_usage = float(splited_line[5])
+
             data_list.append(new_data)
     return data_list
 
 class LineData:
-    time_cost   = 0.
-    max_cluster = 0.
-    total_size  = 0.
-    success     = 1.
-    level       = 0
+    time_cost    = 0.
+    max_cluster  = 0.
+    total_size   = 0.
+    success      = 1.
+    level        = 0
+    memory_usage = 0.
         
 
 # all data in a txt file
@@ -38,68 +40,70 @@ class SingleTestData:
     map_name = ''
     
     
-def drawMethodMap(single_map_data, is_percentage):
+def drawMethodMap(single_map_data, value_type):
     fig=plt.figure(figsize=(5,3.5)) #添加绘图框
     map_name = single_map_data.map_name
-    all_compress_rate_data = [dict(), dict(), dict()]
+    
+    all_raw_data = [dict(), dict(), dict()]
 
-    all_time_cost_data = [dict(), dict(), dict()]
 
     for data in single_map_data.data_list:
-        total_size = data.total_size
-        time_cost = data.time_cost
-        success = data.success
-        max_cluster = data.max_cluster
+        total_size   = data.total_size
+        time_cost    = data.time_cost
+        success      = data.success
+        max_cluster  = data.max_cluster
+        memory_usage = data.memory_usage
         
-        if all_compress_rate_data[0].get(total_size) == None:
-            all_compress_rate_data[0][total_size] = list()
-            all_compress_rate_data[1][total_size] = list()
-            all_compress_rate_data[2][total_size] = list()            
-            all_time_cost_data[0][total_size] = list()
-            all_time_cost_data[1][total_size] = list()
-            all_time_cost_data[2][total_size] = list()
+        if all_raw_data[0].get(total_size) == None:
+            all_raw_data[0][total_size] = list()
+            all_raw_data[1][total_size] = list()
+            all_raw_data[2][total_size] = list()            
         
         assert(data.level>= 1 and data.level <= 3)
         
-        all_compress_rate_data[data.level-1][total_size].append(max_cluster / total_size)    
-        all_time_cost_data[data.level-1][total_size].append(time_cost)    
+        if value_type == "decomposition_rate":
+            all_raw_data[data.level-1][total_size].append(max_cluster / total_size)    
+        elif value_type == "time_cost":
+            all_raw_data[data.level-1][total_size].append(time_cost)    
+        elif value_type == "memory_usage":
+            all_raw_data[data.level-1][total_size].append(memory_usage)        
 
     for i in range(0,3):    
         x = list()
         y = list()    
         std_val = list()
-        if is_percentage:
-            for data_key, data_val in all_compress_rate_data[i].items():
+        if value_type == "decomposition_rate":
+            for data_key, data_val in all_raw_data[i].items():
                 x.append(data_key)        
                 y.append(np.mean(data_val))
                 std_val.append(np.std(data_val))
         else:
-            for data_key, data_val in all_time_cost_data[i].items():
+            for data_key, data_val in all_raw_data[i].items():
                 x.append(data_key)        
                 y.append(np.mean(data_val))
                 std_val.append(np.std(data_val))  
         plt.errorbar(x, y, yerr=std_val, label="level_"+str(i), elinewidth=2, capsize=4)
         
     plt.legend(loc='best')    
-    if is_percentage:
+    if value_type == "decomposition_rate":
         plt.title(map_name+"-decomposition_rate")
         plt.ylabel("rate of decomposition")
-    else:
+    elif value_type == "time_cost":
         plt.title(map_name+"-time_cost")
         plt.ylabel("time cost (ms)")
+    elif value_type == "memory_usage":
+        plt.title(map_name+"-memory_usage")
+        plt.ylabel("memory usage (MB)")
+            
     plt.xlabel("count of agents")
-    if is_percentage:
+    if value_type == "decomposition_rate":
         plt.ylim(0, 1)
 
     plt.legend(loc='best', fontsize = 8, ncol=2)
     #plt.grid()
     plt.tight_layout()
-    
-    if is_percentage:
-        plt.savefig('../test/pic/'+map_name+"-decomposition_rate", dpi = 400, bbox_inches='tight')   
-    else:
-        plt.savefig('../test/pic/'+map_name+"-time_cost", dpi = 400, bbox_inches='tight')   
-    #break     
+
+    plt.savefig('../test/pic/'+map_name+"-"+value_type, dpi = 400, bbox_inches='tight')   
     
 data_path_dir = '../test/test_data/'
 all_map_name = [#"empty-32-32",
@@ -124,9 +128,12 @@ for map_name in all_map_name:
     all_single_data.append(single)
     
 for single_map_data in all_single_data:
-    drawMethodMap(single_map_data, False)
+    drawMethodMap(single_map_data, "time_cost")
     
 for single_map_data in all_single_data:
-    drawMethodMap(single_map_data, True)    
+    drawMethodMap(single_map_data, "decomposition_rate")    
+    
+for single_map_data in all_single_data:
+    drawMethodMap(single_map_data, "memory_usage")    
     
 plt.show()    
