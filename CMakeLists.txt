@@ -40,8 +40,9 @@ aux_source_directory(third_party/MAPF-LNS2/src/PIBT         MAPF_LNS2_PIBT_src)
 aux_source_directory(third_party/pibt2/src                  PIBT2_src)
 
 add_library(EECBS_lib  ${EECBS_src} ${PBS_src} ${lacam_src} ${CBSH2-RTC_src} ${lacam2_src}
-        ${MAPF_LNS2_src} ${MAPF_LNS2_CBS_src} ${MAPF_LNS2_PIBT_src} ${PIBT2_src})
+        ${MAPF_LNS2_src} ${MAPF_LNS2_CBS_src} ${MAPF_LNS2_PIBT_src} ${PIBT2_src} )
 
+target_link_libraries(EECBS_lib freeNav-base)
 
 aux_source_directory(algorithm alg_src)
 add_library(alg_lib ${alg_src})
@@ -49,12 +50,12 @@ target_link_libraries(alg_lib EECBS_lib lib-graph)
 #add_library(external_lib ${third1_src} ${third2_src} ${third3_src})
 
 add_executable(test_lacam test/test_lacam.cpp)
-target_link_libraries(test_lacam freeNav-base alg_lib)
+target_link_libraries(test_lacam alg_lib)
 
 add_executable(test_memory_check test/test_memory_check.cpp)
-target_link_libraries(test_memory_check freeNav-base alg_lib)
+target_link_libraries(test_memory_check alg_lib)
 
 add_executable(test_massive_layered_mapf test/test_massive_layered_mapf.cpp)
-target_link_libraries(test_massive_layered_mapf freeNav-base alg_lib)
+target_link_libraries(test_massive_layered_mapf alg_lib)
 
 

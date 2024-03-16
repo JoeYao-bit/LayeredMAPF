@@ -2,7 +2,6 @@
 // Created by yaozhuo on 2023/12/19.
 //
 
-#include "../freeNav-base/dependencies/color_table.h"
 #include "../freeNav-base/dependencies/2d_grid/text_map_loader.h"
 #include "../freeNav-base/dependencies/memory_analysis.h"
 
