@@ -32,7 +32,7 @@ using namespace freeNav::LayeredMAPF;
 // MAPFTestConfig_warehouse_10_20_10_2_1  5726.96 ms / layered faster， after 500 agent
 // MAPFTestConfig_den520d 237.842 ms / layered faster， after 150 agent
 // MAPFTestConfig_empty_32_32 2872.3 ms / layered faster
-auto map_test_config = MAPFTestConfig_maze_32_32_2;
+auto map_test_config = MAPFTestConfig_random_32_32_20;
 
 auto is_char_occupied = [](const char& value) -> bool {
     if (value == '.') return false;

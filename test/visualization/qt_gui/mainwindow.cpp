@@ -21,7 +21,7 @@ MainWindow::MainWindow(freeNav::IS_OCCUPIED_FUNC<2> is_occupied,
     view->dim_ = dim;
     view->instance_ = instances;
     view->ids_to_draw_ = ids_to_draw;
-    view->layered_mapf = std::make_shared<freeNav::LayeredMAPF::MAPFInstanceDecomposition<2> >(instances, dim, is_occupied, 3);
+    view->layered_mapf = std::make_shared<freeNav::LayeredMAPF::MAPFInstanceDecomposition<2> >(instances, dim, is_occupied, 2);
     view->initGridMap();
     view->initAgentRelations();
     view->initAgentNameText();

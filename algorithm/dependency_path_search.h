@@ -29,19 +29,28 @@ namespace freeNav::LayeredMAPF {
     struct HyperGraphNodeData : public TreeNode<N, HyperGraphNodeDataPtr<N> > {
 
         // distinguish_sat = false means count the start and target as one, if both occurred
-        explicit HyperGraphNodeData(const HyperGraphNodePtr<N>& current_node_ptr, const HyperGraphNodeDataPtr<N>& parent, bool distinguish_sat = false) :
+        explicit HyperGraphNodeData(const HyperGraphNodePtr<N>& current_node_ptr, const HyperGraphNodeDataPtr<N>& parent, bool distinguish_sat = false, bool ignore_cost = false) :
                 current_node_ptr_(current_node_ptr), TreeNode<N, HyperGraphNodeDataPtr<N>>(parent) {
-            if(parent != nullptr) { passed_agents_ = parent->passed_agents_; }
+            if(parent != nullptr) {
+                passed_agents_ = parent->passed_agents_;
+                g_val_ = parent->g_val_;
+            } else {
+                g_val_ = 0; // the agent itself is not considered as "passed"
+            }
             // if is a agent node, rather than a free group node
             if(current_node_ptr->agent_grid_ptr_ != nullptr) {
                 int raw_agent_id = current_node_ptr->agent_grid_ptr_->agent_id_;
+                int previous_size = passed_agents_.size();
                 if(distinguish_sat) {
                     passed_agents_.insert(raw_agent_id);
                 } else {
                     passed_agents_.insert(raw_agent_id / 2);
                 }
+                // if add new agent nodes, g_val ++
+                if(!ignore_cost && passed_agents_.size() > previous_size) {
+                    g_val_ ++;
+                }
             }
-            g_val_ = passed_agents_.size();// - distinguish_sat 2 : 1; // the agent itself is not considered as "passed"
         }
 
         void copy(const HyperGraphNodeData<N>& other_node) {
@@ -184,9 +193,10 @@ namespace freeNav::LayeredMAPF {
         /* determine the path for a agent in the hyper graph, considering avoidance for other agents */
         // search in a Best-First way or Breadth-First-way ? I prefer Best-First way
         // how to set heuristic value ? only considering the last agent node rather than free group node
+        // agent in ignore_cost_set is not considered in cost accumulation
         // assume all start node is id of agent, as well as id in avoid_agents
         // return all agent involve in the path, if return empty set, considering as find no result
-        std::set<int> search(bool distinguish_sat = false) {
+        std::set<int> search(bool distinguish_sat = false, const std::set<int>& ignore_cost_set = {}) {
             const auto &start_node_ptr = all_hyper_nodes_[hyper_node_id_];
             assert(start_node_ptr->agent_grid_ptr_ != nullptr);
 
@@ -234,7 +244,11 @@ namespace freeNav::LayeredMAPF {
                         // check whether passing specific agents, if passing_agents_ == empty, ignore this constraint
                         if(!passing_agents_.empty() && passing_agents_.find(neighbor_node_ptr->agent_grid_ptr_->agent_id_) == passing_agents_.end()) { continue; }
                     }
-                    auto next_node = new HyperGraphNodeData<N>(neighbor_node_ptr, curr_node, distinguish_sat);
+                    bool ignore_cost = false;
+                    if(!ignore_cost_set.empty() && neighbor_node_ptr->agent_grid_ptr_ != nullptr) {
+                        ignore_cost = ignore_cost_set.find(neighbor_node_ptr->agent_grid_ptr_->agent_id_) != ignore_cost_set.end();
+                    }
+                    auto next_node = new HyperGraphNodeData<N>(neighbor_node_ptr, curr_node, distinguish_sat, ignore_cost);
                     next_node->h_val_ = heuristic_table_[neighbor_node_id];
                     bool is_new_node = true;
                     // try to retrieve it from the hash table

@@ -363,8 +363,10 @@ namespace freeNav::LayeredMAPF {
                         }
                     }
                     // add all related agent of the shortest (containing fewer agents) path into unavoidable set
-                    // TODO: there are multiple solution path, pick one with least modification to unavoid set
-                    for (const int &new_agent_to_unavoid : all_agents_path.at(failed_shortest_agent_id)) {
+                    // there are multiple solution path, pick one with least modification to unavoid set, i.e., involve less new agent
+                    const auto& alternative_path = searchAgent(failed_shortest_agent_id, {}, AgentIdsToSATID(agents), false, AgentIdsToSATID(cluster_pair.first));
+                    //const auto& alternative_path = all_agents_path.at(failed_shortest_agent_id);
+                    for (const int &new_agent_to_unavoid : alternative_path) {
                         if(cluster_pair.first.find(new_agent_to_unavoid) == cluster_pair.first.end()) {
                             cluster_pair.first.insert(new_agent_to_unavoid);
                             cluster_pair.second.erase(new_agent_to_unavoid);
@@ -373,8 +375,8 @@ namespace freeNav::LayeredMAPF {
                     }
                 }
 
-//                std::cout << "unavoid: " << cluster_pair.first.size() << " : " << cluster_pair.first << std::endl;
-//                std::cout << "remaining: " << cluster_pair.second.size() << " : " << cluster_pair.second << std::endl;
+                //std::cout << "unavoid: " << cluster_pair.first.size() << " : " << cluster_pair.first << std::endl;
+                //std::cout << "remaining: " << cluster_pair.second.size() << " : " << cluster_pair.second << std::endl;
 
                 bool unavoid_independent = isClusterIndependent(cluster_pair.first, specific_set_unavoidable),
                      remaining_independent = isClusterIndependent(cluster_pair.second);
@@ -911,18 +913,19 @@ namespace freeNav::LayeredMAPF {
         }
 
         // return path that consists of agents
-        std::set<int> searchAgent(int agent_id, const std::set<int>& avoid_agents, const std::set<int>& passing_agents, bool distinguish_sat = false) const {
+        // distinguish_sat whether consider start and target as one in calculate cost
+        std::set<int> searchAgent(int agent_id, const std::set<int>& avoid_agents, const std::set<int>& passing_agents, bool distinguish_sat = false, const std::set<int>& ignore_cost_set = {}) const {
             // test search pass agent search
             Pointi<N> start_pt = instance_[agent_id].first;
             int start_hyper_node = grid_map_[PointiToId(start_pt, dimen_)]->hyper_node_id_;
             if(distinguish_sat) {
                 assert(!all_heuristic_table_sat_.empty());
                 HyperGraphNodePathSearch<N> search_machine(start_hyper_node, all_hyper_nodes_, avoid_agents, passing_agents, all_heuristic_table_sat_[agent_id]);
-                return search_machine.search(true);
+                return search_machine.search(true, ignore_cost_set);
             } else {
                 assert(!all_heuristic_table_agent_.empty());
                 HyperGraphNodePathSearch<N> search_machine(start_hyper_node, all_hyper_nodes_, avoid_agents, passing_agents, all_heuristic_table_agent_[agent_id]);
-                return search_machine.search(false);
+                return search_machine.search(false, ignore_cost_set);
             }
         }
 
