@@ -592,6 +592,8 @@ namespace freeNav::LayeredMAPF {
             return sorted_level;
         }
 
+        // ahead_sequence store agent > another agent
+        // later_sequence agent < another agent
         std::pair<std::map<int, std::set<int> >, std::map<int, std::set<int> > >
                 getAheadAndLaterSequence(const std::map<int, std::set<int> >& all_agents_path) const {
             // 1, construct the graph about the early and later relationship between agents
