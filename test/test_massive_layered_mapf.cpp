@@ -147,16 +147,16 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
                 instance_decompose = std::make_shared<MAPFInstanceDecomposition<2> >(instances, dim, isoc); \
         assert(instance_decompose->all_clusters_.size() >= 1);                \
         Paths<2> retv; \
-        std::vector<Paths<2> > pathss; \
+        std::vector<Paths<2> > pathss;                                                             \
+        CBS_Li::ConstraintTable* layered_ct = new CBS_Li::ConstraintTable(dim[0], dim[0]*dim[1]);  \
         for(int i=0; i<instance_decompose->all_clusters_.size(); i++) { \
             std::set<int> current_id_set = instance_decompose->all_clusters_[i]; \
             Instances<2> ists; \
             for(const int& id : current_id_set) { \
                 ists.push_back({instances[id].first, instances[id].second}); \
             }                                                                                      \
-            CBS_Li::ConstraintTable* layered_ct = new CBS_Li::ConstraintTable(dim[0], dim[0]*dim[1]); \
-            if (use_path_constraint && !retv.empty()) { \
-                for (const auto &previous_path : retv) { \
+            if (use_path_constraint && !pathss.empty()) { \
+                for (const auto &previous_path : pathss.back()) { \
                     CBS_Li::MAPFPath path_eecbs; \
                     for (int i = 0; i < previous_path.size(); i++) { \
                         path_eecbs.push_back( \
@@ -165,24 +165,20 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
                     layered_ct->insert2CT(path_eecbs); \
                 } \
             } \
+            std::vector<std::vector<bool> > avoid_locs(dim[1], std::vector<bool>(dim[0], false));        \
             for(int j = (use_path_constraint ? i+1 : 0); j<instance_decompose->all_clusters_.size(); j++) \
             { \
                 if(j == i) continue; \
                 const auto& current_cluster = instance_decompose->all_clusters_[j]; \
                 for(const int& agent_id : current_cluster) { \
                     if(j < i) { \
-                        layered_ct->insert2CT(dim[0] * instances[agent_id].second[1] + instances[agent_id].second[0], 0, MAX_TIMESTEP); \
-                        CBS_Li::MAPFPath path_eecbs; \
-                        path_eecbs.push_back(CBS_Li::PathEntry(dim[0] * instances[agent_id].second[1] + instances[agent_id].second[0])); \
-                        layered_ct->insert2CT(path_eecbs); \
+                        avoid_locs[instances[agent_id].second[1]][instances[agent_id].second[0]] = true; \
                     } else { \
-                        layered_ct->insert2CT(dim[0] * instances[agent_id].first[1] + instances[agent_id].first[0], 0, MAX_TIMESTEP); \
-                        CBS_Li::MAPFPath path_eecbs; \
-                        path_eecbs.push_back(CBS_Li::PathEntry(dim[0] * instances[agent_id].first[1] + instances[agent_id].first[0])); \
-                        layered_ct->insert2CT(path_eecbs); \
+                        avoid_locs[instances[agent_id].first[1]][instances[agent_id].first[0]] = true; \
                     } \
                 } \
             } \
+            auto new_isoc = [&](const Pointi<2> & pt) -> bool { return isoc(pt) || avoid_locs[pt[1]][pt[0]]; };   \
             double remaining_time = cutoff_time_cost - (tv_after.tv_sec - tv_pre.tv_sec) + (tv_after.tv_usec - tv_pre.tv_usec)/1e6; \
             if(remaining_time < 0) {                                                               \
                 if(layered_ct != nullptr) {                                                                                   \
@@ -193,7 +189,7 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
                 break; \
             } \
             gettimeofday(&tv_after, &tz); \
-            Paths<2> next_paths = mapf_func(dim, isoc, ists, layered_ct, remaining_time); \
+            Paths<2> next_paths = mapf_func(dim, new_isoc, ists, layered_ct, remaining_time); \
             if(next_paths.empty()) { \
                 std::cout << " layered MAPF failed " << i << " th cluster: " << current_id_set << std::endl; \
                 if(layered_ct != nullptr) {                                                                                   \
@@ -203,13 +199,13 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
                 retv.clear();      \
                 break; \
             } \
-            if(layered_ct != nullptr) {                                                                                   \
-                delete layered_ct; \
-                layered_ct = nullptr;                                                              \
-            }                                                        \
             retv.insert(retv.end(), next_paths.begin(), next_paths.end()); \
             pathss.push_back(next_paths); \
         }                                                                                          \
+        if(layered_ct != nullptr) {                                                                                   \
+            delete layered_ct; \
+            layered_ct = nullptr;                                                              \
+        }          \
         if(pathss.empty())  {                                                                                         \
                                                                                                    \
                               }                                                                     \
@@ -448,16 +444,16 @@ int main(void) {
 ////            MAPFTestConfig_empty_32_32
 ////    };
 //    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {10, 20, 30}, 2, 60); // layered better
-    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {200, 240, 280, 320, 360}, 10, 60); // layered better
+    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {200, 240, 280, 320, 360}, 1, 60); // layered better
 
-    SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {80, 100, 130, 150, 180}, 10, 10); // layered better
-    SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_1, {300, 350, 400, 450, 500}, 10, 60); //  layered worse
-    SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {30, 40, 50, 60, 70}, 10, 60); // layered better
-    SingleMapMAPFTest(MAPFTestConfig_maze_32_32_4, {40, 50, 60, 70, 80, 90}, 10, 60); // layered better
-    SingleMapMAPFTest(MAPFTestConfig_den312d, {200, 220, 240, 260, 280}, 10, 60); // layered better
-    SingleMapMAPFTest(MAPFTestConfig_Berlin_1_256, {500, 600, 700, 800, 900}, 10, 60); // layered better
-    SingleMapMAPFTest(MAPFTestConfig_Paris_1_256, {600, 700, 800, 900, 1000}, 10, 60); // layered better
-    SingleMapMAPFTest(MAPFTestConfig_den520d, {400, 500, 600, 700, 800, 900}, 10, 60); // layered better
+//    SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {80, 100, 130, 150, 180}, 10, 10); // layered better
+//    SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_1, {300, 350, 400, 450, 500}, 10, 60); //  layered worse
+//    SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {30, 40, 50, 60, 70}, 10, 60); // layered better
+//    SingleMapMAPFTest(MAPFTestConfig_maze_32_32_4, {40, 50, 60, 70, 80, 90}, 10, 60); // layered better
+//    SingleMapMAPFTest(MAPFTestConfig_den312d, {200, 220, 240, 260, 280}, 10, 60); // layered better
+//    SingleMapMAPFTest(MAPFTestConfig_Berlin_1_256, {500, 600, 700, 800, 900}, 10, 60); // layered better
+//    SingleMapMAPFTest(MAPFTestConfig_Paris_1_256, {600, 700, 800, 900, 1000}, 10, 60); // layered better
+//    SingleMapMAPFTest(MAPFTestConfig_den520d, {400, 500, 600, 700, 800, 900}, 10, 60); // layered better
 //
     return 0;
 }

@@ -160,11 +160,10 @@ namespace freeNav::LayeredMAPF {
                   << instance_decompose->all_clusters_.size() << " clusters " << std::endl;
 
         assert(instance_decompose->all_clusters_.size() >= 1);
-        CBS_Li::ConstraintTable *layered_ct = nullptr;
+        CBS_Li::ConstraintTable *layered_ct = new CBS_Li::ConstraintTable(dim[0], dim[0]*dim[1]);
 
         Paths<N> retv;// = paths;
         std::vector<Paths<N> > pathss;
-        //retv.insert(retv.end(), paths.begin(), paths.end());
         for(int i=0; i<instance_decompose->all_clusters_.size(); i++) {
             // instance_decompose->all_clusters_[i] to instances
             std::set<int> current_id_set = instance_decompose->all_clusters_[i];
@@ -172,11 +171,9 @@ namespace freeNav::LayeredMAPF {
             for(const int& id : current_id_set) {
                 ists.push_back({instances[id].first, instances[id].second});
             }
-            // construct temp constraint table
-            CBS_Li::ConstraintTable *layered_ct = new CBS_Li::ConstraintTable(dim[0], dim[0]*dim[1]);
             // insert previous path as static constraint
-            if (use_path_constraint && !retv.empty()) {
-                for (const auto &previous_path : retv) {
+            if (use_path_constraint && !pathss.empty()) {
+                for (const auto &previous_path : pathss.back()) {
                     CBS_Li::MAPFPath path_eecbs;
                     for (int i = 0; i < previous_path.size(); i++) {
                         path_eecbs.push_back(
@@ -186,21 +183,25 @@ namespace freeNav::LayeredMAPF {
                 }
             }
             // insert future agents' start as static constraint
+            std::vector<std::vector<bool> > avoid_locs(dim[1], std::vector<bool>(dim[0], false));
+
             for(int j = (use_path_constraint ? i+1 : 0); j<instance_decompose->all_clusters_.size(); j++)
             {
                 if(j == i) continue;
                 const auto& current_cluster = instance_decompose->all_clusters_[j];
                 for(const int& agent_id : current_cluster) {
                     if(j < i) {
-                        layered_ct->insert2CT(dim[0] * instances[agent_id].second[1] + instances[agent_id].second[0], 0, MAX_TIMESTEP);
-                        CBS_Li::MAPFPath path_eecbs;
-                        path_eecbs.push_back(CBS_Li::PathEntry(dim[0] * instances[agent_id].second[1] + instances[agent_id].second[0]));
-                        layered_ct->insert2CT(path_eecbs);
+//                        layered_ct->insert2CT(dim[0] * instances[agent_id].second[1] + instances[agent_id].second[0], 0, MAX_TIMESTEP);
+//                        CBS_Li::MAPFPath path_eecbs;
+//                        path_eecbs.push_back(CBS_Li::PathEntry(dim[0] * instances[agent_id].second[1] + instances[agent_id].second[0]));
+//                        layered_ct->insert2CT(path_eecbs);
+                        avoid_locs[instances[agent_id].second[1]][instances[agent_id].second[0]] = true;
                     } else {
-                        layered_ct->insert2CT(dim[0] * instances[agent_id].first[1] + instances[agent_id].first[0], 0, MAX_TIMESTEP);
-                        CBS_Li::MAPFPath path_eecbs;
-                        path_eecbs.push_back(CBS_Li::PathEntry(dim[0] * instances[agent_id].first[1] + instances[agent_id].first[0]));
-                        layered_ct->insert2CT(path_eecbs);
+//                        layered_ct->insert2CT(dim[0] * instances[agent_id].first[1] + instances[agent_id].first[0], 0, MAX_TIMESTEP);
+//                        CBS_Li::MAPFPath path_eecbs;
+//                        path_eecbs.push_back(CBS_Li::PathEntry(dim[0] * instances[agent_id].first[1] + instances[agent_id].first[0]));
+//                        layered_ct->insert2CT(path_eecbs);
+                        avoid_locs[instances[agent_id].first[1]][instances[agent_id].first[0]] = true;
                     }
                 }
             }
@@ -214,9 +215,11 @@ namespace freeNav::LayeredMAPF {
             }
             //std::cout << " current ists size " << ists.size() << std::endl;
 
+            auto new_isoc = [&](const Pointi<2> & pt) -> bool { return isoc(pt) || avoid_locs[pt[1]][pt[0]]; };
+
             // check whether current problem is solvable
             if(completeness_verified) {
-                Paths<N> EECBS_paths = mapf_func_verified(dim, isoc, ists, layered_ct, cutoff_time);
+                Paths<N> EECBS_paths = mapf_func_verified(dim, new_isoc, ists, layered_ct, cutoff_time);
                 if(EECBS_paths.empty()) {
                     std::cout << " layered MAPF verify failed, " << i << " th cluster: " << current_id_set << std::endl;
                     if(layered_ct != nullptr) {
@@ -265,10 +268,6 @@ namespace freeNav::LayeredMAPF {
                     }
                 }
             }
-            if(layered_ct != nullptr) {
-                delete layered_ct;
-                layered_ct = nullptr;
-            }
             //std::cout << " layered MAPF success " << i << " th cluster " << std::endl;
             retv.insert(retv.end(), next_paths.begin(), next_paths.end());
             pathss.push_back(next_paths);
@@ -277,6 +276,10 @@ namespace freeNav::LayeredMAPF {
         assert(instances.size() == retv.size());
         if(!use_path_constraint) { retv = multiLayerCompress(dim, pathss); }
         std::cout << " layered mapf success " << !retv.empty() << std::endl;
+        if(layered_ct != nullptr) {
+            delete layered_ct;
+            layered_ct = nullptr;
+        }
         return retv;
     }
 

@@ -48,7 +48,7 @@ GridPtr<3> sg1 = std::make_shared<Grid<3>>(),
 // MAPFTestConfig_warehouse_10_20_10_2_1  5726.96 ms / layered faster， after 500 agent
 // MAPFTestConfig_den520d 237.842 ms / layered faster， after 150 agent
 // MAPFTestConfig_empty_32_32 2872.3 ms / layered faster
-auto map_test_config = MAPFTestConfig_empty_32_32;
+auto map_test_config = MAPFTestConfig_Paris_1_256;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -109,7 +109,7 @@ int main(int argc, char** argv) {
 
 //    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_LNS::LNS_MAPF, CBS_Li::eecbs_MAPF, true, agent_num);
 //    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_LNS::AnytimeBCBS_MAPF, CBS_Li::eecbs_MAPF, true, agent_num);
-    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_LNS::AnytimeEECBS_MAPF, CBS_Li::eecbs_MAPF, true, agent_num);
+//    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_LNS::AnytimeEECBS_MAPF, CBS_Li::eecbs_MAPF, true, agent_num);
 
 //    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, PIBT_2::pibt_MAPF, CBS_Li::eecbs_MAPF, false, agent_num);
 //    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, PIBT_2::pibt2_MAPF, CBS_Li::eecbs_MAPF, false, agent_num);
@@ -145,7 +145,7 @@ int main(int argc, char** argv) {
     //auto multiple_paths = my_eecbs::eecbs_demo(argc, argv, map_test_config); // time cost increasing sharply as number of agents increasing
     //auto multiple_paths = second_eecbs::eecbs_demo(argc, argv, map_test_config); // time cost increasing sharply as number of agents increasing
 
-    //multiple_paths = CBS_Li::eecbs_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
+    multiple_paths = CBS_Li::eecbs_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
 
     //multiple_paths = LaCAM::lacam_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
 
@@ -157,7 +157,7 @@ int main(int argc, char** argv) {
 
     //multiple_paths = MAPF_LNS::LNS_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
     //multiple_paths = MAPF_LNS::AnytimeBCBS_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
-    multiple_paths = MAPF_LNS::AnytimeEECBS_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
+    //multiple_paths = MAPF_LNS::AnytimeEECBS_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
 
     //multiple_paths = PIBT_2::pibt_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
     //multiple_paths = PIBT_2::pibt2_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);

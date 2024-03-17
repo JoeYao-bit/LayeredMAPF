@@ -21,7 +21,7 @@ namespace freeNav::LayeredMAPF{
                     {"ct_path",   "../test/test_data/random-32-32-20-random-1.ct"},
                     {"output_path", "../test/test_data/random-32-32-20-random-1.txt"},
                     {"decomposition_output_path", "../test/test_data/random-32-32-20-random-1_de.txt"},
-                    {"agent_num",    "160"},
+                    {"agent_num",    "140"},
                     {"cut_off_time", "200"},
                     {"max_run_time", "200"} // in second
 
@@ -121,7 +121,7 @@ namespace freeNav::LayeredMAPF{
                     {"ct_path",   "../test/test_data/warehouse-10-20-10-2-1.ct"},
                     {"output_path", "../test/test_data/warehouse-10-20-10-2-1.txt"},
                     {"decomposition_output_path", "../test/test_data/warehouse-10-20-10-2-1_de.txt"},
-                    {"agent_num",    "800"},
+                    {"agent_num",    "500"},
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"} // in second
             };
