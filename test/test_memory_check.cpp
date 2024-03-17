@@ -263,7 +263,7 @@ bool SingleMapDecompositionTest(const SingleMapTestConfig <2> &map_test_config,
 
 // do decomposition test
 int main() {
-    int count_of_instances = 1;
+    int count_of_instances = 100;
 //    SingleMapDecompositionTest(MAPFTestConfig_den312d, {200, 240, 280, 320, 360, 400}, count_of_instances); //  good range
 
     SingleMapDecompositionTest(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400}, count_of_instances); // good range
