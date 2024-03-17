@@ -379,32 +379,32 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
                                                          {
                                                           EECBS,
                                                           EECBS_LAYERED,
-//                                                          PBS,
-//                                                          PBS_LAYERED,
+                                                         PBS,
+                                                         PBS_LAYERED,
 
-//                                                          LNS,
-//                                                          LNS_LAYERED,
-//                                                          AnytimeBCBS,
-//                                                          AnytimeBCBS_LAYERED,
-//                                                          AnytimeEECBS,
-//                                                          AnytimeEECBS_LAYERED,
-//                                                          CBSH2_RTC,
-//                                                          CBSH2_RTC_LAYERED,
+                                                         LNS,
+                                                         LNS_LAYERED,
+                                                         AnytimeBCBS,
+                                                         AnytimeBCBS_LAYERED,
+                                                         AnytimeEECBS,
+                                                         AnytimeEECBS_LAYERED,
+                                                         CBSH2_RTC,
+                                                         CBSH2_RTC_LAYERED,
 
-//                                                          LaCAM,
-//                                                          LaCAM_LAYERED,
-//                                                          LaCAM2,
-//                                                          LaCAM2_LAYERED,
+                                                         LaCAM,
+                                                         LaCAM_LAYERED,
+                                                         LaCAM2,
+                                                         LaCAM2_LAYERED,
 
-//                                                          PIBT,
-//                                                          PIBT_LAYERED,
-//                                                          PIBT2,
-//                                                          PIBT2_LAYERED,
+                                                         PIBT,
+                                                         PIBT_LAYERED,
+                                                         PIBT2,
+                                                         PIBT2_LAYERED,
 
-//                                                          HCA,
-//                                                          HCA_LAYERED,
-//                                                          PushAndSwap,
-//                                                          PushAndSwap_LAYERED
+                                                         HCA,
+                                                         HCA_LAYERED,
+                                                         PushAndSwap,
+                                                         PushAndSwap_LAYERED
                                                           },
                                                           statisticss,
                                                           output_streamss);
@@ -440,7 +440,7 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 //     MAPFTestConfig_warehouse_10_20_10_2_1, //  5726.96 ms / layered faster， after 500 agent
 //     MAPFTestConfig_den520d, // 237.842 ms / layered faster， after 150 agent
 //     MAPFTestConfig_empty_32_32 // 2872.3 ms / layered faster
-//};
+//};    
 //
 int main(void) {
 ////    configs = {

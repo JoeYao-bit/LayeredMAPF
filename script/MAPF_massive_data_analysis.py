@@ -76,11 +76,11 @@ def drawMethodMap(all_data_map, xlabel, ylable, title, is_percentage=False):
     plt.legend(loc='best', fontsize = 8, ncol=2)
     #plt.grid()
     plt.tight_layout()
-    plt.savefig('../test/pic/'+method_name+"-"+title, dpi = 400, bbox_inches='tight')   
+    plt.savefig('/home/nizai2a/下载/PigchaClient_deb/LayeredMAPF/test/pic/'+method_name+"-"+title, dpi = 400, bbox_inches='tight')   
     #break    
      
     
-data_path_dir = '../test/test_data/'
+data_path_dir = '/home/nizai2a/下载/PigchaClient_deb/LayeredMAPF/test/test_data/'
 all_map_name = ["empty-32-32",
                 "random-32-32-20-random-1",
                 "warehouse-10-20-10-2-1",
@@ -165,9 +165,9 @@ for single_data in all_single_data:
         all_method_level_sort_map[line_data.method][line_data.agent_count].append(line_data.sort_level_time_cost)
         
     drawMethodMap(all_method_time_cost_map, "Number of agents", "Time cost(ms)", single_data.map_name + "-time_cost.png")        
-    #drawMethodMap(all_method_success_rate_map, "Number of agents", "Success rate", single_data.map_name + "-success_rate.png", True)        
-    #drawMethodMap(all_method_memory_usage_map, "Number of agents", "Memory Usage(MB)", single_data.map_name + "-memory_usage.png")        
+    drawMethodMap(all_method_success_rate_map, "Number of agents", "Success rate", single_data.map_name + "-success_rate.png", True)        
+    drawMethodMap(all_method_memory_usage_map, "Number of agents", "Memory Usage(MB)", single_data.map_name + "-memory_usage.png")        
 
     #break
 
-plt.show()
+#plt.show()
