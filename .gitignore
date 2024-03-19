@@ -15,5 +15,4 @@ ENLSVG-Pathfinding/
 CMakeFiles/
 build/
 venv/
-pic/
 *.zip

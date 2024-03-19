@@ -443,16 +443,16 @@ int main(void) {
 ////            MAPFTestConfig_empty_32_32
 ////    };
 //    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {10, 20, 30}, 2, 60); // layered better
-    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {200, 240, 280, 320, 360}, 1, 60); // layered better
 
-//    SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {80, 100, 130, 150, 180}, 10, 10); // layered better
-//    SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_1, {300, 350, 400, 450, 500}, 10, 60); //  layered worse
-//    SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {30, 40, 50, 60, 70}, 10, 60); // layered better
-//    SingleMapMAPFTest(MAPFTestConfig_maze_32_32_4, {40, 50, 60, 70, 80, 90}, 10, 60); // layered better
-//    SingleMapMAPFTest(MAPFTestConfig_den312d, {200, 220, 240, 260, 280}, 10, 60); // layered better
-//    SingleMapMAPFTest(MAPFTestConfig_Berlin_1_256, {500, 600, 700, 800, 900}, 10, 60); // layered better
-//    SingleMapMAPFTest(MAPFTestConfig_Paris_1_256, {600, 700, 800, 900, 1000}, 10, 60); // layered better
-//    SingleMapMAPFTest(MAPFTestConfig_den520d, {400, 500, 600, 700, 800, 900}, 10, 60); // layered better
+    // SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {200, 240, 280, 320, 360}, 10, 60); // layered better
+    // SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {80, 100, 130, 150, 180}, 10, 60); // layered better
+    // SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_1, {300, 350, 400, 450, 500}, 10, 60); //  layered worse
+    // SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {30, 40, 50, 60, 70}, 10, 60); // layered better
+    // SingleMapMAPFTest(MAPFTestConfig_maze_32_32_4, {40, 50, 60, 70, 80, 90}, 10, 60); // layered better
+    // SingleMapMAPFTest(MAPFTestConfig_den312d, {200, 220, 240, 260, 280}, 10, 60); // layered better
+     SingleMapMAPFTest(MAPFTestConfig_Berlin_1_256, {500, 600, 700, 800, 900}, 10, 60); // layered better
+     SingleMapMAPFTest(MAPFTestConfig_Paris_1_256, {600, 700, 800, 900, 1000}, 10, 60); // layered better
+     SingleMapMAPFTest(MAPFTestConfig_den520d, {400, 500, 600, 700, 800, 900}, 10, 60); // layered better
 //
     return 0;
 }
