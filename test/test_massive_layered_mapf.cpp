@@ -252,11 +252,21 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
 //// 2, and the number of combination is required too
 //// 3, whether choose those agent randomly
 //// cutoff_time_cost is in seconds
+
+void appendToFile(const std::string& file_name, const std::string& content) {
+    // 3, save result to file
+    std::ofstream os(file_name, std::ios_base::app);
+    //os << "TYPE START TARGET TIME_COST MAKE_SPAN TOTAL_LENGTH " << std::endl;
+    os << content << std::endl;
+    os.close();
+}
+
 bool
 SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
                   const std::vector<int>& agent_in_instances,
                   int count_of_instance,
-                  int cutoff_time_cost = 60) {
+                  int cutoff_time_cost = 60,
+                  bool append=false) {
 
 
     TextMapLoader tl(map_test_config.at("map_path"), is_char_occupied);
@@ -368,52 +378,50 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
     // all layered mapf must start with "LAYERED_"
     auto PushAndSwap_LAYERED = LAYERED_TEST_TYPE("LAYERED_PushAndSwap", PIBT_2::push_and_swap_MAPF, dim, cutoff_time_cost, false);
 
-
-    StatisticSS statisticss;
-    OutputStreamSS output_streamss;
-
     bool all_success = SingleMapMAPFPathPlanningsTest<2>(dim, is_occupied_func, istss,
                                                          {
                                                           EECBS,
                                                           EECBS_LAYERED,
-//                                                          PBS,
-//                                                          PBS_LAYERED,
+                                                          PBS,
+                                                          PBS_LAYERED,
 
-//                                                          LNS,
-//                                                          LNS_LAYERED,
-//                                                          AnytimeBCBS,
-//                                                          AnytimeBCBS_LAYERED,
-//                                                          AnytimeEECBS,
-//                                                          AnytimeEECBS_LAYERED,
-//                                                          CBSH2_RTC,
-//                                                          CBSH2_RTC_LAYERED,
+                                                          LNS,
+                                                          LNS_LAYERED,
+                                                          AnytimeBCBS,
+                                                          AnytimeBCBS_LAYERED,
+                                                          AnytimeEECBS,
+                                                          AnytimeEECBS_LAYERED,
 
-//                                                          LaCAM,
-//                                                          LaCAM_LAYERED,
-//                                                          LaCAM2,
-//                                                          LaCAM2_LAYERED,
+//                                                          CBSH2_RTC,            // cause unexpected exit
+//                                                          CBSH2_RTC_LAYERED,    // cause unexpected exit
 
-//                                                          PIBT,
-//                                                          PIBT_LAYERED,
-//                                                          PIBT2,
-//                                                          PIBT2_LAYERED,
+//                                                          LaCAM,               // need lots storage
+//                                                          LaCAM_LAYERED,       // need lots storage
+                                                          LaCAM2,
+                                                          LaCAM2_LAYERED,
 
-//                                                          HCA,
-//                                                          HCA_LAYERED,
-//                                                          PushAndSwap,
-//                                                          PushAndSwap_LAYERED
+//                                                          PIBT,            // need lots storage
+//                                                          PIBT_LAYERED,    // need lots storage
+                                                          PIBT2,
+                                                          PIBT2_LAYERED,
+
+//                                                          HCA,             // need lots storage
+//                                                          HCA_LAYERED,     // need lots storage
+
+                                                          PushAndSwap,
+                                                          PushAndSwap_LAYERED
                                                           },
-                                                          statisticss,
-                                                          output_streamss);
+                                                         map_test_config.at("output_path"),
+                                                         append);
 
-    std::ofstream os(map_test_config.at("output_path"), std::ios_base::out);
-    //os << "TYPE START TARGET TIME_COST MAKE_SPAN TOTAL_LENGTH " << std::endl;
-    for (const auto &multi_method_output : output_streamss) {
-        for (const auto method_output : multi_method_output) {
-            os << method_output << std::endl;
-        }
-    }
-    os.close();
+//    std::ofstream os(map_test_config.at("output_path"), std::ios_base::out);
+//    //os << "TYPE START TARGET TIME_COST MAKE_SPAN TOTAL_LENGTH " << std::endl;
+//    for (const auto &multi_method_output : output_streamss) {
+//        for (const auto method_output : multi_method_output) {
+//            os << method_output << std::endl;
+//        }
+//    }
+//    os.close();
     return all_success;
 }
 //
@@ -444,16 +452,16 @@ int main(void) {
 ////            MAPFTestConfig_empty_32_32
 ////    };
 //    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {10, 20, 30}, 2, 60); // layered better
-    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {200, 240, 280, 320, 360}, 1, 60); // layered better
 
-//    SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {80, 100, 130, 150, 180}, 10, 10); // layered better
-//    SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_1, {300, 350, 400, 450, 500}, 10, 60); //  layered worse
-//    SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {30, 40, 50, 60, 70}, 10, 60); // layered better
-//    SingleMapMAPFTest(MAPFTestConfig_maze_32_32_4, {40, 50, 60, 70, 80, 90}, 10, 60); // layered better
-//    SingleMapMAPFTest(MAPFTestConfig_den312d, {200, 220, 240, 260, 280}, 10, 60); // layered better
-//    SingleMapMAPFTest(MAPFTestConfig_Berlin_1_256, {500, 600, 700, 800, 900}, 10, 60); // layered better
-//    SingleMapMAPFTest(MAPFTestConfig_Paris_1_256, {600, 700, 800, 900, 1000}, 10, 60); // layered better
-//    SingleMapMAPFTest(MAPFTestConfig_den520d, {400, 500, 600, 700, 800, 900}, 10, 60); // layered better
+    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {200, 240, 280, 320, 360}, 1, 60); // layered better
+    SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {80, 100, 130, 150, 180}, 10, 60); // layered better
+    SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_1, {300, 350, 400, 450, 500}, 10, 60); //  layered worse
+    SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {30, 40, 50, 60, 70}, 10, 60); // layered better
+    SingleMapMAPFTest(MAPFTestConfig_maze_32_32_4, {40, 50, 60, 70, 80, 90}, 10, 60); // layered better
+    SingleMapMAPFTest(MAPFTestConfig_den312d, {200, 220, 240, 260, 280}, 10, 60); // layered better
+    SingleMapMAPFTest(MAPFTestConfig_Berlin_1_256, {500, 600, 700, 800, 900}, 10, 60); // layered better
+    SingleMapMAPFTest(MAPFTestConfig_Paris_1_256, {600, 700, 800, 900, 1000}, 10, 60); // layered better
+    SingleMapMAPFTest(MAPFTestConfig_den520d, {400, 500, 600, 700, 800, 900}, 10, 60); // layered better
 //
     return 0;
 }

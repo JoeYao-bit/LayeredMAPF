@@ -48,7 +48,7 @@ GridPtr<3> sg1 = std::make_shared<Grid<3>>(),
 // MAPFTestConfig_warehouse_10_20_10_2_1  5726.96 ms / layered faster， after 500 agent
 // MAPFTestConfig_den520d 237.842 ms / layered faster， after 150 agent
 // MAPFTestConfig_empty_32_32 2872.3 ms / layered faster
-auto map_test_config = MAPFTestConfig_Paris_1_256;
+auto map_test_config = MAPFTestConfig_den312d;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
     // comparing to the raw version, the layered vision will add more static constraint
     // so avoid the copy of static constraint table, will increase the performance of layered mapf
     //if(CBS_Li::ct != nullptr) { delete CBS_Li::ct; }
-    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, CBS_Li::eecbs_MAPF, CBS_Li::eecbs_MAPF, false, agent_num);
+//    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, CBS_Li::eecbs_MAPF, CBS_Li::eecbs_MAPF, false, agent_num);
 
 //    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, LaCAM::lacam_MAPF, CBS_Li::eecbs_MAPF, false, agent_num);
 //    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, LaCAM2::lacam2_MAPF, CBS_Li::eecbs_MAPF, false, agent_num);
@@ -145,9 +145,9 @@ int main(int argc, char** argv) {
     //auto multiple_paths = my_eecbs::eecbs_demo(argc, argv, map_test_config); // time cost increasing sharply as number of agents increasing
     //auto multiple_paths = second_eecbs::eecbs_demo(argc, argv, map_test_config); // time cost increasing sharply as number of agents increasing
 
-    multiple_paths = CBS_Li::eecbs_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
+    //multiple_paths = CBS_Li::eecbs_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
 
-    //multiple_paths = LaCAM::lacam_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
+    //multiple_paths = LaCAM::lacam_MAPF(dim, is_occupied_func, ists, nullptr, agent_num); // need lots storage
 
     //multiple_paths = LaCAM2::lacam2_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
 
@@ -159,10 +159,10 @@ int main(int argc, char** argv) {
     //multiple_paths = MAPF_LNS::AnytimeBCBS_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
     //multiple_paths = MAPF_LNS::AnytimeEECBS_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
 
-    //multiple_paths = PIBT_2::pibt_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
+    //multiple_paths = PIBT_2::pibt_MAPF(dim, is_occupied_func, ists, nullptr, agent_num); // need lots storage
     //multiple_paths = PIBT_2::pibt2_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
-    //multiple_paths = PIBT_2::hca_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
-    //multiple_paths = PIBT_2::push_and_swap_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
+    //multiple_paths = PIBT_2::hca_MAPF(dim, is_occupied_func, ists, nullptr, agent_num); // need lots storage
+    multiple_paths = PIBT_2::push_and_swap_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
 
     gettimeofday(&tv_after, &tz);
     //assert(multiple_paths.size() == ists.size());

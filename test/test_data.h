@@ -19,8 +19,8 @@ namespace freeNav::LayeredMAPF{
                     {"map_path",     "../test/test_data/random-32-32-20.map"},
                     {"scene_path",   "../test/test_data/random-32-32-20-random-1.scen"},
                     {"ct_path",   "../test/test_data/random-32-32-20-random-1.ct"},
-                    {"output_path", "../test/test_data/random-32-32-20-random-1.txt"},
-                    {"decomposition_output_path", "../test/test_data/random-32-32-20-random-1_de.txt"},
+                    {"output_path", "../test/test_data/layered_mapf/random-32-32-20-random-1.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/random-32-32-20-random-1_de.txt"},
                     {"agent_num",    "140"},
                     {"cut_off_time", "200"},
                     {"max_run_time", "200"} // in second
@@ -34,9 +34,9 @@ namespace freeNav::LayeredMAPF{
                     {"map_path",     "../test/test_data/den312d.map"},
                     {"scene_path",   "../test/test_data/den312d-random-1.scen"},
                     {"ct_path",   "../test/test_data/den312d.ct"},
-                    {"output_path", "../test/test_data/den312d-random-1.txt"},
-                    {"decomposition_output_path", "../test/test_data/den312d-random-1_de.txt"},
-                    {"agent_num",    "100"},
+                    {"output_path", "../test/test_data/layered_mapf/den312d-random-1.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/den312d-random-1_de.txt"},
+                    {"agent_num",    "200"},
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"} // in second
             };
@@ -48,8 +48,8 @@ namespace freeNav::LayeredMAPF{
                     {"map_path",     "../test/test_data/maze-32-32-2.map"},
                     {"scene_path",   "../test/test_data/maze-32-32-2-random-1.scen"},
                     {"ct_path",   "../test/test_data/maze-32-32-2.ct"},
-                    {"output_path", "../test/test_data/maze-32-32-2-random-1.txt"},
-                    {"decomposition_output_path", "../test/test_data/maze-32-32-2-random-1_de.txt"},
+                    {"output_path", "../test/test_data/layered_mapf/maze-32-32-2-random-1.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/maze-32-32-2-random-1_de.txt"},
                     {"agent_num",    "40"},
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"} // in second
@@ -62,8 +62,8 @@ namespace freeNav::LayeredMAPF{
                     {"map_path",     "../test/test_data/maze-32-32-4.map"},
                     {"scene_path",   "../test/test_data/maze-32-32-4-random-1.scen"},
                     {"ct_path",   "../test/test_data/maze-32-32-4.ct"},
-                    {"output_path", "../test/test_data/maze-32-32-4-random-1.txt"},
-                    {"decomposition_output_path", "../test/test_data/maze-32-32-4-random-1_de.txt"},
+                    {"output_path", "../test/test_data/layered_mapf/maze-32-32-4-random-1.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/maze-32-32-4-random-1_de.txt"},
                     {"agent_num",    "50"},
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"} // in second
@@ -76,8 +76,8 @@ namespace freeNav::LayeredMAPF{
                     {"map_path",     "../test/test_data/Berlin_1_256.map"},
                     {"scene_path",   "../test/test_data/Berlin_1_256-random-1.scen"},
                     {"ct_path",   "../test/test_data/Berlin_1_256.ct"},
-                    {"output_path", "../test/test_data/Berlin_1_256-random-1.txt"},
-                    {"decomposition_output_path", "../test/test_data/Berlin_1_256-random-1_de.txt"},
+                    {"output_path", "../test/test_data/layered_mapf/Berlin_1_256-random-1.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/Berlin_1_256-random-1_de.txt"},
                     {"agent_num",    "400"}, // 600
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"} // in second
@@ -90,8 +90,8 @@ namespace freeNav::LayeredMAPF{
                     {"map_path",     "../test/test_data/den520d.map"},
                     {"scene_path",   "../test/test_data/den520d-random-1.scen"},
                     {"ct_path",   "../test/test_data/den520d.ct"},
-                    {"output_path", "../test/test_data/den520d-random-1.txt"},
-                    {"decomposition_output_path", "../test/test_data/den520d-random-1_de.txt"},
+                    {"output_path", "../test/test_data/layered_mapf/den520d-random-1.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/den520d-random-1_de.txt"},
                     {"agent_num",    "500"}, // up to 500
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"} // in second
@@ -104,8 +104,8 @@ namespace freeNav::LayeredMAPF{
                     {"map_path",     "../test/test_data/Paris_1_256.map"},
                     {"scene_path",   "../test/test_data/Paris_1_256-random-1.scen"},
                     {"ct_path",   "../test/test_data/Paris_1_256.ct"},
-                    {"output_path", "../test/test_data/Paris_1_256-random-1.txt"},
-                    {"decomposition_output_path", "../test/test_data/Paris_1_256-random-1_de.txt"},
+                    {"output_path", "../test/test_data/layered_mapf/Paris_1_256-random-1.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/Paris_1_256-random-1_de.txt"},
                     {"agent_num",    "500"},
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"} // in second
@@ -119,8 +119,8 @@ namespace freeNav::LayeredMAPF{
                     {"map_path",     "../test/test_data/warehouse-10-20-10-2-1.map"},
                     {"scene_path",   "../test/test_data/warehouse-10-20-10-2-1-random-1.scen"},
                     {"ct_path",   "../test/test_data/warehouse-10-20-10-2-1.ct"},
-                    {"output_path", "../test/test_data/warehouse-10-20-10-2-1.txt"},
-                    {"decomposition_output_path", "../test/test_data/warehouse-10-20-10-2-1_de.txt"},
+                    {"output_path", "../test/test_data/layered_mapf/warehouse-10-20-10-2-1.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/warehouse-10-20-10-2-1_de.txt"},
                     {"agent_num",    "500"},
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"} // in second
@@ -134,8 +134,8 @@ namespace freeNav::LayeredMAPF{
                     {"map_path",     "../test/test_data/empty-32-32.map"},
                     {"scene_path",   "../test/test_data/empty-32-32-random-1.scen"},
                     {"ct_path",   "../test/test_data/empty-32-32.ct"},
-                    {"output_path", "../test/test_data/empty-32-32.txt"},
-                    {"decomposition_output_path", "../test/test_data/empty-32-32_de.txt"},
+                    {"output_path", "../test/test_data/layered_mapf/empty-32-32.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/empty-32-32_de.txt"},
                     {"agent_num",    "260"}, // 330
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"} // in second
@@ -149,8 +149,8 @@ namespace freeNav::LayeredMAPF{
                     {"map_path",     "../test/test_data/simple.map"},
                     {"scene_path",   "../test/test_data/simple.scen"},
                     {"ct_path",   "../test/test_data/simple.ct"},
-                    {"output_path", "../test/test_data/simple.txt"},
-                    {"decomposition_output_path", "../test/test_data/simple.txt"},
+                    {"output_path", "../test/test_data/layered_mapf/simple.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/simple_de.txt"},
                     {"agent_num",    "3"}, // 330
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"} // in second
