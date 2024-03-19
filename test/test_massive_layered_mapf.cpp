@@ -373,34 +373,34 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 
     bool all_success = SingleMapMAPFPathPlanningsTest<2>(dim, is_occupied_func, istss,
                                                          {
-                                                          EECBS,
-                                                          EECBS_LAYERED,
-                                                         PBS,
-                                                         PBS_LAYERED,
+                                                        //   EECBS,
+                                                        //   EECBS_LAYERED,
+                                                        //  PBS,
+                                                        //  PBS_LAYERED,
 
-                                                         LNS,
-                                                         LNS_LAYERED,
-                                                         AnytimeBCBS,
-                                                         AnytimeBCBS_LAYERED,
-                                                         AnytimeEECBS,
-                                                         AnytimeEECBS_LAYERED,
-                                                         CBSH2_RTC,
-                                                         CBSH2_RTC_LAYERED,
+                                                        //  LNS,
+                                                        //  LNS_LAYERED,
+                                                        //  AnytimeBCBS,
+                                                        //  AnytimeBCBS_LAYERED,
+                                                        //  AnytimeEECBS,
+                                                        //  AnytimeEECBS_LAYERED,
+                                                        //  CBSH2_RTC,
+                                                        //  CBSH2_RTC_LAYERED,
 
                                                          LaCAM,
                                                          LaCAM_LAYERED,
-                                                         LaCAM2,
-                                                         LaCAM2_LAYERED,
+                                                         //LaCAM2,
+                                                         //LaCAM2_LAYERED,
 
                                                          PIBT,
                                                          PIBT_LAYERED,
-                                                         PIBT2,
-                                                         PIBT2_LAYERED,
+                                                        //  PIBT2,
+                                                        //  PIBT2_LAYERED,
 
                                                          HCA,
                                                          HCA_LAYERED,
-                                                         PushAndSwap,
-                                                         PushAndSwap_LAYERED
+                                                        //  PushAndSwap,
+                                                        //  PushAndSwap_LAYERED
                                                           },
                                                           statisticss,
                                                           output_streamss);
@@ -449,10 +449,11 @@ int main(void) {
     // SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_1, {300, 350, 400, 450, 500}, 10, 60); //  layered worse
     // SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {30, 40, 50, 60, 70}, 10, 60); // layered better
     // SingleMapMAPFTest(MAPFTestConfig_maze_32_32_4, {40, 50, 60, 70, 80, 90}, 10, 60); // layered better
-    // SingleMapMAPFTest(MAPFTestConfig_den312d, {200, 220, 240, 260, 280}, 10, 60); // layered better
-     SingleMapMAPFTest(MAPFTestConfig_Berlin_1_256, {500, 600, 700, 800, 900}, 10, 60); // layered better
-     SingleMapMAPFTest(MAPFTestConfig_Paris_1_256, {600, 700, 800, 900, 1000}, 10, 60); // layered better
-     SingleMapMAPFTest(MAPFTestConfig_den520d, {400, 500, 600, 700, 800, 900}, 10, 60); // layered better
+
+    SingleMapMAPFTest(MAPFTestConfig_den312d, {200, 220, 240, 260, 280}, 10, 60); // layered better
+    SingleMapMAPFTest(MAPFTestConfig_Berlin_1_256, {500, 600, 700, 800, 900}, 10, 60); // layered better
+    SingleMapMAPFTest(MAPFTestConfig_Paris_1_256, {600, 700, 800, 900, 1000}, 10, 60); // layered better
+    SingleMapMAPFTest(MAPFTestConfig_den520d, {400, 500, 600, 700, 800, 900}, 10, 60); // layered better
 //
     return 0;
 }
