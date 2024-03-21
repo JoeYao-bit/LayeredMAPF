@@ -1,28 +1,34 @@
 import matplotlib as mp
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import ticker
+
+#import seaborn as sns
 
 def loadDataFromfile(file_path):
     data_list = list()
-    with open(file_path, "r") as f:
-        lines = f.readlines()#[1:]
-        for line in lines:
-            #print(line)
-            # 处理每一行数据
-            #print(line.strip())
-            splited_line = line.split()
-            
-            
-            new_data = LineData()
-            
-            new_data.time_cost    = float(splited_line[0])
-            new_data.max_cluster  = float(splited_line[1])
-            new_data.total_size   = float(splited_line[2])
-            new_data.success      = float(splited_line[3])
-            new_data.level        = int(splited_line[4])
-            new_data.memory_usage = float(splited_line[5])
+    try:
+        with open(file_path, "r") as f:
+            lines = f.readlines()#[1:]
+            for line in lines:
+                #print(line)
+                # 处理每一行数据
+                #print(line.strip())
+                splited_line = line.split()
+                
+                
+                new_data = LineData()
+                
+                new_data.time_cost    = float(splited_line[0])
+                new_data.max_cluster  = float(splited_line[1])
+                new_data.total_size   = float(splited_line[2])
+                new_data.success      = float(splited_line[3])
+                new_data.level        = int(splited_line[4])
+                new_data.memory_usage = float(splited_line[5])
 
-            data_list.append(new_data)
+                data_list.append(new_data)
+    except Exception as e:            
+        print(e)       
     return data_list
 
 class LineData:
@@ -41,7 +47,7 @@ class SingleTestData:
     
     
 def drawMethodMap(single_map_data, value_type):
-    fig=plt.figure(figsize=(5,3.5)) #添加绘图框
+    fig = plt.figure(figsize=(5,3.5)) #添加绘图框
     map_name = single_map_data.map_name
     
     all_raw_data = [dict(), dict(), dict()]
@@ -85,17 +91,28 @@ def drawMethodMap(single_map_data, value_type):
         plt.errorbar(x, y, yerr=std_val, label="level_"+str(i), elinewidth=2, capsize=4)
         
     plt.legend(loc='best')    
-    if value_type == "decomposition_rate":
-        plt.title(map_name+"-decomposition_rate")
-        plt.ylabel("rate of decomposition")
-    elif value_type == "time_cost":
-        plt.title(map_name+"-time_cost")
-        plt.ylabel("time cost (ms)")
-    elif value_type == "memory_usage":
-        plt.title(map_name+"-memory_usage")
-        plt.ylabel("memory usage (MB)")
+    plt.tick_params(axis='both', labelsize=18)
+    #plt.ticklabel_format(style='sci', scilimits=(0,0), axis='y')
+    
+    formater = ticker.ScalarFormatter(useMathText=True) 
+    formater.set_scientific(True)
+    formater.set_powerlimits((0,0))
+    
+    ax = plt.gca()
+    ax.yaxis.offsetText.set_fontsize(18)
+    ax.yaxis.set_major_formatter(formater)
+    # if value_type == "decomposition_rate":
+    #     plt.title(map_name+"-decomposition_rate")
+    #     plt.ylabel("rate of decomposition")
+    # elif value_type == "time_cost":
+    #     plt.title(map_name+"-time_cost")
+    #     plt.ylabel("time cost (ms)")
+    # elif value_type == "memory_usage":
+    #     plt.title(map_name+"-memory_usage")
+    #     plt.ylabel("memory usage (MB)")
             
-    plt.xlabel("count of agents")
+    # plt.xlabel("count of agents")
+    
     if value_type == "decomposition_rate":
         plt.ylim(0, 1)
 
@@ -103,10 +120,11 @@ def drawMethodMap(single_map_data, value_type):
     #plt.grid()
     plt.tight_layout()
 
-    plt.savefig('../test/pic/'+map_name+"-"+value_type, dpi = 400, bbox_inches='tight')   
+    plt.savefig('../test/pic/decomposition/'+value_type+'/'+map_name+"-"+value_type, dpi = 400, bbox_inches='tight')   
     
 data_path_dir = '../test/test_data/decomposition/'
-all_map_name = ["empty-32-32",
+all_map_name = ["empty-16-16",
+                "empty-32-32",
                 "random-32-32-20-random-1",
                 "warehouse-10-20-10-2-1",
                 "maze-32-32-2-random-1",
@@ -114,7 +132,9 @@ all_map_name = ["empty-32-32",
                 "den312d-random-1",
                 "Berlin_1_256-random-1",
                 "Paris_1_256-random-1",
-                "den520d-random-1"
+                "den520d-random-1",
+                "ht_chantry",
+                "lak303d"
                 ]
 
 all_single_data = list()
@@ -125,13 +145,15 @@ for map_name in all_map_name:
     single = SingleTestData() # 不带括号则均指向同一元素
     single.map_name = map_name
     single.data_list = loadDataFromfile(data_file_path)
+    if len(single.data_list) == 0:
+        continue
     all_single_data.append(single)
     
 for single_map_data in all_single_data:
     drawMethodMap(single_map_data, "time_cost")
     
 for single_map_data in all_single_data:
-    drawMethodMap(single_map_data, "decomposition_rate")    
+    drawMethodMap(single_map_data, "decomposition_rate")
     
 for single_map_data in all_single_data:
     drawMethodMap(single_map_data, "memory_usage")    

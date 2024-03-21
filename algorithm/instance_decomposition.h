@@ -145,9 +145,8 @@ namespace freeNav::LayeredMAPF {
                 //std::cout << "-- clusters " << i << " size " << all_clusters_[i].size() << ": " << all_clusters_[i] << std::endl;
             }
             assert(total_count == instance.size());
-            std::cout << "-- Decomposition completeness ? " << decompositionValidCheck(all_clusters_) << std::endl;
-            std::cout << " max/total size " << max_cluster_size << " / " << instance.size() << std::endl;
-
+//            std::cout << "-- Decomposition completeness ? " << decompositionValidCheck(all_clusters_) << std::endl;
+//            std::cout << " max/total size " << max_cluster_size << " / " << instance.size() << std::endl;
         }
 
         bool decompositionValidCheck(const std::vector<std::set<int> >& all_levels) const {
@@ -729,25 +728,25 @@ namespace freeNav::LayeredMAPF {
 
             // debug check
             //std::cout << " debug check " << std::endl;
-            std::map<int, int> agent_and_level;
-            for(int i=0; i<sorted_levels.size(); i++) {
-                for(const int& agent_id : sorted_levels[i]) {
-                    agent_and_level.insert({agent_id, i});
-                }
-            }
-            for(const auto& temp_pair : ahead_sequence) {
-                const int& agent_id = temp_pair.first;
-                const std::set<int>& later_agents = temp_pair.second;
-                for(const int& later_agent : later_agents) {
-                    if(agent_and_level.find(agent_id) == agent_and_level.end()) { continue; }
-                    if(agent_and_level.find(later_agent) == agent_and_level.end()) { continue; }
-                    if(agent_and_level[agent_id] > agent_and_level[later_agent]) {
-                        //std::cout << agent_id << " should > " << toString(later_agents) << std::endl;
-                        std::cout << "ERROR: but wrong sorted level " << agent_id << "(" << agent_and_level[agent_id] << ") < "
-                        << later_agent << "(" << agent_and_level[later_agent] << ")" << std::endl;
-                    }
-                }
-            }
+//            std::map<int, int> agent_and_level;
+//            for(int i=0; i<sorted_levels.size(); i++) {
+//                for(const int& agent_id : sorted_levels[i]) {
+//                    agent_and_level.insert({agent_id, i});
+//                }
+//            }
+//            for(const auto& temp_pair : ahead_sequence) {
+//                const int& agent_id = temp_pair.first;
+//                const std::set<int>& later_agents = temp_pair.second;
+//                for(const int& later_agent : later_agents) {
+//                    if(agent_and_level.find(agent_id) == agent_and_level.end()) { continue; }
+//                    if(agent_and_level.find(later_agent) == agent_and_level.end()) { continue; }
+//                    if(agent_and_level[agent_id] > agent_and_level[later_agent]) {
+//                        //std::cout << agent_id << " should > " << toString(later_agents) << std::endl;
+//                        std::cout << "ERROR: but wrong sorted level " << agent_id << "(" << agent_and_level[agent_id] << ") < "
+//                        << later_agent << "(" << agent_and_level[later_agent] << ")" << std::endl;
+//                    }
+//                }
+//            }
 
             return sorted_levels; // sorted levels
         }

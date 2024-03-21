@@ -48,7 +48,9 @@ GridPtr<3> sg1 = std::make_shared<Grid<3>>(),
 // MAPFTestConfig_warehouse_10_20_10_2_1  5726.96 ms / layered faster， after 500 agent
 // MAPFTestConfig_den520d 237.842 ms / layered faster， after 150 agent
 // MAPFTestConfig_empty_32_32 2872.3 ms / layered faster
-auto map_test_config = MAPFTestConfig_den312d;
+// MAPFTestConfig_ht_chantry
+// MAPFTestConfig_lak303d
+auto map_test_config = MAPFTestConfig_ht_chantry;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -95,6 +97,7 @@ int main(int argc, char** argv) {
     memory_recorder.clear();
     float base_usage = memory_recorder.getCurrentMemoryUsage();
     int agent_num = 100;
+    auto MAPF_func = LaCAM2::lacam2_MAPF;
     gettimeofday(&tv_pre, &tz);
     // comparing to the raw version, the layered vision will add more static constraint
     // so avoid the copy of static constraint table, will increase the performance of layered mapf
@@ -102,7 +105,7 @@ int main(int argc, char** argv) {
 //    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, CBS_Li::eecbs_MAPF, CBS_Li::eecbs_MAPF, false, agent_num);
 
 //    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, LaCAM::lacam_MAPF, CBS_Li::eecbs_MAPF, false, agent_num);
-//    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, LaCAM2::lacam2_MAPF, CBS_Li::eecbs_MAPF, false, agent_num);
+    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_func, CBS_Li::eecbs_MAPF, false, agent_num);
 
 //    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, PBS_Li::pbs_MAPF, CBS_Li::eecbs_MAPF, true, agent_num);
 //    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, CBSH2_RTC::CBSH2_RTC_MAPF, CBS_Li::eecbs_MAPF, true, agent_num);
@@ -137,8 +140,8 @@ int main(int argc, char** argv) {
     std::cout << "layered total cost          = " << total_cost << std::endl;
     std::cout << "layered maximum_single_cost = " << maximum_single_cost << std::endl;
     std::cout << std::endl;
-    sleep(1);
     memory_recorder.clear();
+    sleep(1);
     base_usage = memory_recorder.getCurrentMemoryUsage();
 
     gettimeofday(&tv_pre, &tz);
@@ -162,8 +165,9 @@ int main(int argc, char** argv) {
     //multiple_paths = PIBT_2::pibt_MAPF(dim, is_occupied_func, ists, nullptr, agent_num); // need lots storage
     //multiple_paths = PIBT_2::pibt2_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
     //multiple_paths = PIBT_2::hca_MAPF(dim, is_occupied_func, ists, nullptr, agent_num); // need lots storage
-    multiple_paths = PIBT_2::push_and_swap_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
+    //multiple_paths = PIBT_2::push_and_swap_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
 
+    multiple_paths = MAPF_func(dim, is_occupied_func, ists, nullptr, agent_num);
     gettimeofday(&tv_after, &tz);
     //assert(multiple_paths.size() == ists.size());
     visited_grid_during_lacam = LaCAM::visited_grid_;

@@ -21,7 +21,7 @@ namespace freeNav::LayeredMAPF{
                     {"ct_path",   "../test/test_data/random-32-32-20-random-1.ct"},
                     {"output_path", "../test/test_data/layered_mapf/random-32-32-20-random-1.txt"},
                     {"decomposition_output_path", "../test/test_data/decomposition/random-32-32-20-random-1_de.txt"},
-                    {"agent_num",    "140"},
+                    {"agent_num",    "650"},
                     {"cut_off_time", "200"},
                     {"max_run_time", "200"} // in second
 
@@ -78,7 +78,7 @@ namespace freeNav::LayeredMAPF{
                     {"ct_path",   "../test/test_data/Berlin_1_256.ct"},
                     {"output_path", "../test/test_data/layered_mapf/Berlin_1_256-random-1.txt"},
                     {"decomposition_output_path", "../test/test_data/decomposition/Berlin_1_256-random-1_de.txt"},
-                    {"agent_num",    "400"}, // 600
+                    {"agent_num",    "700"}, // 600
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"} // in second
             };
@@ -142,6 +142,35 @@ namespace freeNav::LayeredMAPF{
             };
 
     // empty-32-32
+    SingleMapTestConfig<2> MAPFTestConfig_empty_16_16 =
+
+            {
+                    {"map_name",     "empty_16_16"},
+                    {"map_path",     "../test/test_data/empty-16-16.map"},
+                    {"scene_path",   "../test/test_data/empty-16-16-random-1.scen"},
+                    {"ct_path",   "../test/test_data/empty-16-16.ct"},
+                    {"output_path", "../test/test_data/layered_mapf/empty-16-16.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/empty-16-16_de.txt"},
+                    {"agent_num",    "120"}, // 330
+                    {"cut_off_time", "200"},
+                    {"max_run_time", "60"} // in second
+            };
+
+    SingleMapTestConfig<2> MAPFTestConfig_empty_48_48 =
+
+            {
+                    {"map_name",     "empty-48-48"},
+                    {"map_path",     "../test/test_data/empty-48-48.map"},
+                    {"scene_path",   "../test/test_data/empty-48-48-random-1.scen"},
+                    {"ct_path",   "../test/test_data/empty-48-48.ct"},
+                    {"output_path", "../test/test_data/layered_mapf/empty-48-48.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/empty-48-48_de.txt"},
+                    {"agent_num",    "260"}, // 330
+                    {"cut_off_time", "200"},
+                    {"max_run_time", "60"} // in second
+            };
+
+    // empty-32-32
     SingleMapTestConfig<2> MAPFTestConfig_simple =
 
             {
@@ -156,5 +185,33 @@ namespace freeNav::LayeredMAPF{
                     {"max_run_time", "60"} // in second
             };
 
+    //
+    SingleMapTestConfig<2> MAPFTestConfig_ht_chantry =
+
+            {
+                    {"map_name",     "ht_chantry"},
+                    {"map_path",     "../test/test_data/ht_chantry.map"},
+                    {"scene_path",   "../test/test_data/ht_chantry-random-1.scen"},
+                    {"ct_path",   "../test/test_data/ht_chantry.ct"},
+                    {"output_path", "../test/test_data/layered_mapf/ht_chantry.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/ht_chantry_de.txt"},
+                    {"agent_num",    "260"}, // 330
+                    {"cut_off_time", "200"},
+                    {"max_run_time", "60"} // in second
+            };
+
+    SingleMapTestConfig<2> MAPFTestConfig_lak303d =
+
+            {
+                    {"map_name",     "lak303d"},
+                    {"map_path",     "../test/test_data/lak303d.map"},
+                    {"scene_path",   "../test/test_data/lak303d-random-1.scen"},
+                    {"ct_path",   "../test/test_data/lak303d.ct"},
+                    {"output_path", "../test/test_data/layered_mapf/lak303d.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/lak303d_de.txt"},
+                    {"agent_num",    "260"}, // 330
+                    {"cut_off_time", "200"},
+                    {"max_run_time", "60"} // in second
+            };
 }
 #endif //FREENAV_TEST_DATA_H
