@@ -19,25 +19,26 @@ def loadDataFromfile(file_path):
                 
                 new_data = LineData()
                 
-                new_data.time_cost    = float(splited_line[0])
-                new_data.max_cluster  = float(splited_line[1])
-                new_data.total_size   = float(splited_line[2])
-                new_data.success      = float(splited_line[3])
-                new_data.level        = int(splited_line[4])
-                new_data.memory_usage = float(splited_line[5])
-
+                new_data.time_cost         = float(splited_line[0])
+                new_data.max_cluster       = float(splited_line[1])
+                new_data.total_size        = float(splited_line[2])
+                new_data.success           = float(splited_line[3])
+                new_data.level             = int  (splited_line[4])
+                new_data.memory_usage      = float(splited_line[5])
+                new_data.num_of_subproblem = float(splited_line[6])
                 data_list.append(new_data)
     except Exception as e:            
         print(e)       
     return data_list
 
 class LineData:
-    time_cost    = 0.
-    max_cluster  = 0.
-    total_size   = 0.
-    success      = 1.
-    level        = 0
-    memory_usage = 0.
+    time_cost         = 0.
+    max_cluster       = 0.
+    total_size        = 0.
+    success           = 1.
+    level             = 0
+    memory_usage      = 0.
+    num_of_subproblem = 0
         
 
 # all data in a txt file
@@ -54,11 +55,12 @@ def drawMethodMap(single_map_data, value_type):
 
 
     for data in single_map_data.data_list:
-        total_size   = data.total_size
-        time_cost    = data.time_cost
-        success      = data.success
-        max_cluster  = data.max_cluster
-        memory_usage = data.memory_usage
+        total_size        = data.total_size
+        time_cost         = data.time_cost
+        success           = data.success
+        max_cluster       = data.max_cluster
+        memory_usage      = data.memory_usage
+        num_of_subproblem = data.num_of_subproblem
         
         if all_raw_data[0].get(total_size) == None:
             all_raw_data[0][total_size] = list()
@@ -73,7 +75,9 @@ def drawMethodMap(single_map_data, value_type):
             all_raw_data[data.level-1][total_size].append(time_cost)    
         elif value_type == "memory_usage":
             all_raw_data[data.level-1][total_size].append(memory_usage)        
-
+        elif value_type == "num_of_subproblem":
+            all_raw_data[data.level-1][total_size].append(num_of_subproblem)     
+    label_buffer = "1"        
     for i in range(0,3):    
         x = list()
         y = list()    
@@ -87,9 +91,11 @@ def drawMethodMap(single_map_data, value_type):
             for data_key, data_val in all_raw_data[i].items():
                 x.append(data_key)        
                 y.append(np.mean(data_val))
-                std_val.append(np.std(data_val))  
-        plt.errorbar(x, y, yerr=std_val, label="level_"+str(i), elinewidth=2, capsize=4)
-        
+                std_val.append(np.std(data_val))
+
+        plt.errorbar(x, y, yerr=std_val, label=label_buffer, fmt=step_fmt[i], elinewidth=2, capsize=4)
+        label_buffer = label_buffer + ", " + str(i+2)          
+
     plt.legend(loc='best')    
     plt.tick_params(axis='both', labelsize=18)
     #plt.ticklabel_format(style='sci', scilimits=(0,0), axis='y')
@@ -116,11 +122,14 @@ def drawMethodMap(single_map_data, value_type):
     if value_type == "decomposition_rate":
         plt.ylim(0, 1)
 
-    plt.legend(loc='best', fontsize = 8, ncol=2)
+    plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5)
     #plt.grid()
     plt.tight_layout()
 
     plt.savefig('../test/pic/decomposition/'+value_type+'/'+map_name+"-"+value_type, dpi = 400, bbox_inches='tight')   
+    
+    
+step_fmt = ["-","-.","--"]    
     
 data_path_dir = '../test/test_data/decomposition/'
 all_map_name = ["empty-16-16",
@@ -130,9 +139,9 @@ all_map_name = ["empty-16-16",
                 "maze-32-32-2-random-1",
                 "maze-32-32-4-random-1",
                 "den312d-random-1",
+                "den520d-random-1",
                 "Berlin_1_256-random-1",
                 "Paris_1_256-random-1",
-                "den520d-random-1",
                 "ht_chantry",
                 "lak303d"
                 ]
@@ -157,5 +166,8 @@ for single_map_data in all_single_data:
     
 for single_map_data in all_single_data:
     drawMethodMap(single_map_data, "memory_usage")    
+    
+for single_map_data in all_single_data:
+    drawMethodMap(single_map_data, "num_of_subproblem")        
     
 #plt.show()    
