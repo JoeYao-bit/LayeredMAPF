@@ -125,9 +125,11 @@ def drawMethodMap(single_map_data, value_type):
     plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5)
     #plt.grid()
     plt.tight_layout()
+    save_path = '../test/pic/decomposition/'+value_type+'/'+map_name+"-"+value_type
+    plt.savefig(save_path, dpi = 400, bbox_inches='tight')   
+    plt.close()
+    print("save picture to "+save_path)
 
-    plt.savefig('../test/pic/decomposition/'+value_type+'/'+map_name+"-"+value_type, dpi = 400, bbox_inches='tight')   
-    
     
 step_fmt = ["-","-.","--"]    
     

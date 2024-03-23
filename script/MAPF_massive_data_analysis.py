@@ -78,7 +78,11 @@ def drawMethodMap(all_data_map, xlabel, ylable, title, is_percentage=False):
     plt.legend(loc='best', fontsize = 8, ncol=2)
     #plt.grid()
     plt.tight_layout()
-    plt.savefig('../test/pic/layered_MAPF/'+title+"-"+method_name+"-"+ylable+".png", dpi = 400, bbox_inches='tight')   
+    splitted_name = method_name.split('_')
+    save_path = '../test/pic/layered_MAPF/'+splitted_name[1]+"/"+title+".png"
+    plt.savefig(save_path, dpi = 400, bbox_inches='tight')   
+    print("save picture to "+save_path)
+    plt.close()
     #break    
      
     
@@ -175,7 +179,8 @@ for single_data in all_single_data:
     drawMethodMap(all_method_time_cost_map, "Number of agents", "Time cost(ms)", "time_cost/"+single_data.map_name)        
     drawMethodMap(all_method_success_rate_map, "Number of agents", "Success rate", "success_rate/"+single_data.map_name, True)        
     drawMethodMap(all_method_memory_usage_map, "Number of agents", "Memory Usage(MB)", "memory_usage/"+single_data.map_name)        
-
+    drawMethodMap(all_method_total_cost_map, "Number of agents", "Sum of cost", "sum_of_cost/"+single_data.map_name)   
+    drawMethodMap(all_method_max_single_cost_map, "Number of agents", "Makespan", "makespan/"+single_data.map_name)   
     #break
 
 #plt.show()
