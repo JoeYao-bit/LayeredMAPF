@@ -92,8 +92,8 @@ def drawMethodMap(single_map_data, value_type):
                 x.append(data_key)        
                 y.append(np.mean(data_val))
                 std_val.append(np.std(data_val))
-
-        plt.errorbar(x, y, yerr=std_val, label=label_buffer, fmt=step_fmt[i], elinewidth=2, capsize=4)
+        # yerr=std_val
+        plt.errorbar(x, y, label=label_buffer, markersize=14, fmt=step_fmt[i], linewidth= 4, elinewidth=4, capsize=4)
         label_buffer = label_buffer + ", " + str(i+2)          
 
     plt.legend(loc='best')    
@@ -118,7 +118,8 @@ def drawMethodMap(single_map_data, value_type):
     #     plt.ylabel("memory usage (MB)")
             
     # plt.xlabel("count of agents")
-    
+    y_range = plt.ylim()
+    plt.ylim(0, y_range[1])
     if value_type == "decomposition_rate":
         plt.ylim(0, 1)
 
@@ -131,7 +132,7 @@ def drawMethodMap(single_map_data, value_type):
     print("save picture to "+save_path)
 
     
-step_fmt = ["-","-.","--"]    
+step_fmt = ["x-","o-.","^--"]    
     
 data_path_dir = '../test/test_data/decomposition/'
 all_map_name = ["empty-16-16",

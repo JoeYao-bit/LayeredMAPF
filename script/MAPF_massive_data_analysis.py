@@ -1,6 +1,7 @@
 import matplotlib as mp
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import ticker
 
 def loadDataFromfile(file_path):
     data_list = list()
@@ -57,6 +58,9 @@ def drawMethodMap(all_data_map, xlabel, ylable, title, is_percentage=False):
     fig=plt.figure(figsize=(5,3.5)) #添加绘图框
     for map_key, map_value in all_data_map.items():
         method_name = map_key
+        temp_splitted_name = method_name.split('_')
+        if len(temp_splitted_name) > 1:
+            splitted_name = temp_splitted_name[1]
         x = list()
         y = list()
         std_var = list()
@@ -68,18 +72,31 @@ def drawMethodMap(all_data_map, xlabel, ylable, title, is_percentage=False):
             y.append(np.mean(all_data_map[method_name][agent_size_key]))
             std_var.append(np.std(all_data_map[method_name][agent_size_key]))
         
-        plt.errorbar(x, y, fmt=map_and_marker[method_name], label=map_key, elinewidth=2, capsize=4)
+        plt.errorbar(x, y, std_var, fmt=map_and_marker[method_name], markersize=14, label=map_key, linewidth=4, elinewidth=4, capsize=4)
                
-    plt.title(title)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylable)
+    plt.legend(loc='best')    
+    plt.tick_params(axis='both', labelsize=18)
+    #plt.ticklabel_format(style='sci', scilimits=(0,0), axis='y')
+    
+    formater = ticker.ScalarFormatter(useMathText=True) 
+    formater.set_scientific(True)
+    formater.set_powerlimits((0,0))
+    
+    ax = plt.gca()
+    ax.yaxis.offsetText.set_fontsize(18)
+    ax.yaxis.set_major_formatter(formater)           
+               
+    # plt.title(title)
+    # plt.xlabel(xlabel)
+    # plt.ylabel(ylable)
+    y_range = plt.ylim()
+    plt.ylim(0, y_range[1])
     if is_percentage:
         plt.ylim(0, 1)
-    plt.legend(loc='best', fontsize = 8, ncol=2)
+    plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5)
     #plt.grid()
     plt.tight_layout()
-    splitted_name = method_name.split('_')
-    save_path = '../test/pic/layered_MAPF/'+splitted_name[1]+"/"+title+".png"
+    save_path = '../test/pic/layered_MAPF/'+splitted_name+"/"+title+".png"
     plt.savefig(save_path, dpi = 400, bbox_inches='tight')   
     print("save picture to "+save_path)
     plt.close()
@@ -87,15 +104,18 @@ def drawMethodMap(all_data_map, xlabel, ylable, title, is_percentage=False):
      
     
 data_path_dir = '../test/test_data/layered_mapf/'
-all_map_name = ["empty-32-32",
-                "random-32-32-20-random-1",
-                "warehouse-10-20-10-2-1",
-                "maze-32-32-2-random-1",
+all_map_name = ["empty-16-16"
+                # "empty-32-32",
+                # "random-32-32-20-random-1",
+                # "warehouse-10-20-10-2-1",
+                # "maze-32-32-2-random-1",
                 # "maze-32-32-4-random-1",
                 # "den312d-random-1",
+                # "den520d-random-1",
                 # "Berlin_1_256-random-1",
                 # "Paris_1_256-random-1",
-                # "den520d-random-1"
+                # "ht_chantry",
+                # "lak303d"
                 ]
 all_single_data = list()
 
@@ -104,19 +124,19 @@ all_single_data = list()
 
 name_of_decomposition = "DECOMPOSITION"
 
-map_and_marker = {"RAW_EECBS":'D-',       "LAYERED_EECBS":'o-',
-                  "RAW_LaCAM":'D-',       "LAYERED_LaCAM":'o-',
-                  "RAW_PBS":'D-',         "LAYERED_PBS":'o-',
-                  "RAW_LaCAM2":'D-',      "LAYERED_LaCAM2":'o-',
-                  "RAW_LNS":'D-',         "LAYERED_LNS":'o-',
-                  "RAW_AnytimeBCBS":'D-', "LAYERED_AnytimeBCBS":'o-',
-                  "RAW_AnytimeEECBS":'D-', "LAYERED_AnytimeEECBS":'o-',
-                  "RAW_CBSH2_RTC":'D-',   "LAYERED_CBSH2_RTC":'o-',
-                  "RAW_PIBT":'D-',        "LAYERED_PIBT":'o-',
-                  "RAW_PIBT2":'D-',       "LAYERED_PIBT2":'o-',
-                  "RAW_HCA":'D-',         "LAYERED_HCA":'o-',
-                  "RAW_PushAndSwap":'D-', "LAYERED_PushAndSwap":'o-',
-                  name_of_decomposition:"D-"
+map_and_marker = {"RAW_EECBS":'x-',       "LAYERED_EECBS":'o--',
+                  "RAW_LaCAM":'x-',       "LAYERED_LaCAM":'o--',
+                  "RAW_PBS":'x-',         "LAYERED_PBS":'o--',
+                  "RAW_LaCAM2":'x-',      "LAYERED_LaCAM2":'o--',
+                  "RAW_LNS":'x-',         "LAYERED_LNS":'o--',
+                  "RAW_AnytimeBCBS":'x-', "LAYERED_AnytimeBCBS":'o--',
+                  "RAW_AnytimeEECBS":'x-', "LAYERED_AnytimeEECBS":'o--',
+                  "RAW_CBSH2_RTC":'x-',   "LAYERED_CBSH2_RTC":'o--',
+                  "RAW_PIBT":'x-',        "LAYERED_PIBT":'o--',
+                  "RAW_PIBT2":'x-',       "LAYERED_PIBT2":'o--',
+                  "RAW_HCA":'x-',         "LAYERED_HCA":'o--',
+                  "RAW_PushAndSwap":'x-', "LAYERED_PushAndSwap":'o--',
+                  name_of_decomposition:"^-."
                   }
 
 
@@ -132,7 +152,6 @@ for map_name in all_map_name:
 for single_data in all_single_data:
     
     all_method_time_cost_map = dict()
-    all_method_time_cost_map[name_of_decomposition] = dict()
     all_method_total_cost_map = dict()
     all_method_max_single_cost_map = dict()
     all_method_success_rate_map = dict()
@@ -145,42 +164,55 @@ for single_data in all_single_data:
         # if line_data.method != "RAW_EECBS" and line_data.method != "LAYERED_EECBS":
         #     continue
         
-        if line_data.method != "RAW_PushAndSwap" and line_data.method != "LAYERED_PushAndSwap":
-            continue
+        # if line_data.method != "RAW_PushAndSwap" and line_data.method != "LAYERED_PushAndSwap":
+        #     continue
                
-        if all_method_time_cost_map.get(line_data.method) == None:
-            all_method_time_cost_map[line_data.method] = dict()
-            all_method_total_cost_map[line_data.method] = dict()
-            all_method_max_single_cost_map[line_data.method] = dict()
-            all_method_memory_usage_map[line_data.method] = dict()
-            all_method_success_rate_map[line_data.method] = dict()
-            all_method_cluster_cost_map[line_data.method] = dict()
-            all_method_level_sort_map[line_data.method] = dict()
+        split_method_name = line_data.method.split("_")
+        if all_method_time_cost_map.get(split_method_name[1]) == None:
+            all_method_time_cost_map[split_method_name[1]] = dict()
+            all_method_total_cost_map[split_method_name[1]] = dict()
+            all_method_max_single_cost_map[split_method_name[1]] = dict()
+            all_method_memory_usage_map[split_method_name[1]] = dict()
+            all_method_success_rate_map[split_method_name[1]] = dict()
+            all_method_cluster_cost_map[split_method_name[1]] = dict()
+            all_method_level_sort_map[split_method_name[1]] = dict()
+               
+        if all_method_time_cost_map[split_method_name[1]].get(line_data.method) == None:
+            all_method_time_cost_map[split_method_name[1]][line_data.method] = dict()
+            all_method_time_cost_map[split_method_name[1]][name_of_decomposition] = dict()            
+            all_method_total_cost_map[split_method_name[1]][line_data.method] = dict()
+            all_method_max_single_cost_map[split_method_name[1]][line_data.method] = dict()
+            all_method_memory_usage_map[split_method_name[1]][line_data.method] = dict()
+            all_method_success_rate_map[split_method_name[1]][line_data.method] = dict()
+            all_method_cluster_cost_map[split_method_name[1]][line_data.method] = dict()
+            all_method_level_sort_map[split_method_name[1]][line_data.method] = dict()
             
-        if all_method_time_cost_map[line_data.method].get(line_data.agent_count) == None:
-            all_method_time_cost_map[line_data.method][line_data.agent_count] = list()
-            all_method_time_cost_map[name_of_decomposition][line_data.agent_count] = list()
-            all_method_total_cost_map[line_data.method][line_data.agent_count] = list()
-            all_method_max_single_cost_map[line_data.method][line_data.agent_count] = list()    
-            all_method_memory_usage_map[line_data.method][line_data.agent_count] = list()    
-            all_method_success_rate_map[line_data.method][line_data.agent_count] = list() 
-            all_method_cluster_cost_map[line_data.method][line_data.agent_count] = list()    
-            all_method_level_sort_map[line_data.method][line_data.agent_count] = list()
+        if all_method_time_cost_map[split_method_name[1]][line_data.method].get(line_data.agent_count) == None:
+            all_method_time_cost_map[split_method_name[1]][line_data.method][line_data.agent_count] = list()
+            all_method_time_cost_map[split_method_name[1]][name_of_decomposition][line_data.agent_count] = list()
+            all_method_total_cost_map[split_method_name[1]][line_data.method][line_data.agent_count] = list()
+            all_method_max_single_cost_map[split_method_name[1]][line_data.method][line_data.agent_count] = list()    
+            all_method_memory_usage_map[split_method_name[1]][line_data.method][line_data.agent_count] = list()    
+            all_method_success_rate_map[split_method_name[1]][line_data.method][line_data.agent_count] = list() 
+            all_method_cluster_cost_map[split_method_name[1]][line_data.method][line_data.agent_count] = list()    
+            all_method_level_sort_map[split_method_name[1]][line_data.method][line_data.agent_count] = list()
         
-        all_method_time_cost_map[line_data.method][line_data.agent_count].append(line_data.time_cost)
-        all_method_time_cost_map[name_of_decomposition][line_data.agent_count].append(line_data.cluster_decomposition_time_cost + line_data.sort_level_time_cost)
-        all_method_total_cost_map[line_data.method][line_data.agent_count].append(line_data.total_cost)
-        all_method_max_single_cost_map[line_data.method][line_data.agent_count].append(line_data.max_single_cost)
-        all_method_memory_usage_map[line_data.method][line_data.agent_count].append(line_data.max_memory_usage)
-        all_method_success_rate_map[line_data.method][line_data.agent_count].append(line_data.success)
-        all_method_cluster_cost_map[line_data.method][line_data.agent_count].append(line_data.cluster_decomposition_time_cost)
-        all_method_level_sort_map[line_data.method][line_data.agent_count].append(line_data.sort_level_time_cost)
+        all_method_time_cost_map[split_method_name[1]][line_data.method][line_data.agent_count].append(line_data.time_cost)
+        all_method_time_cost_map[split_method_name[1]][name_of_decomposition][line_data.agent_count].append(line_data.cluster_decomposition_time_cost + line_data.sort_level_time_cost)
+        all_method_total_cost_map[split_method_name[1]][line_data.method][line_data.agent_count].append(line_data.total_cost)
+        all_method_max_single_cost_map[split_method_name[1]][line_data.method][line_data.agent_count].append(line_data.max_single_cost)
+        all_method_memory_usage_map[split_method_name[1]][line_data.method][line_data.agent_count].append(line_data.max_memory_usage)
+        all_method_success_rate_map[split_method_name[1]][line_data.method][line_data.agent_count].append(line_data.success)
+        all_method_cluster_cost_map[split_method_name[1]][line_data.method][line_data.agent_count].append(line_data.cluster_decomposition_time_cost)
+        all_method_level_sort_map[split_method_name[1]][line_data.method][line_data.agent_count].append(line_data.sort_level_time_cost)
         
-    drawMethodMap(all_method_time_cost_map, "Number of agents", "Time cost(ms)", "time_cost/"+single_data.map_name)        
-    drawMethodMap(all_method_success_rate_map, "Number of agents", "Success rate", "success_rate/"+single_data.map_name, True)        
-    drawMethodMap(all_method_memory_usage_map, "Number of agents", "Memory Usage(MB)", "memory_usage/"+single_data.map_name)        
-    drawMethodMap(all_method_total_cost_map, "Number of agents", "Sum of cost", "sum_of_cost/"+single_data.map_name)   
-    drawMethodMap(all_method_max_single_cost_map, "Number of agents", "Makespan", "makespan/"+single_data.map_name)   
+        
+    for method_key, method_value in all_method_time_cost_map.items():
+        drawMethodMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+single_data.map_name)        
+        drawMethodMap(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+single_data.map_name, True)        
+        drawMethodMap(all_method_memory_usage_map[method_key], "Number of agents", "Memory Usage(MB)", "memory_usage/"+single_data.map_name)        
+        drawMethodMap(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+single_data.map_name)   
+        drawMethodMap(all_method_max_single_cost_map[method_key], "Number of agents", "Makespan", "makespan/"+single_data.map_name)   
     #break
 
 #plt.show()
