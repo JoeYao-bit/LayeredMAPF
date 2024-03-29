@@ -92,6 +92,7 @@ namespace freeNav::LayeredMAPF {
             struct timezone tz;
             struct timeval  tv_pre;
             struct timeval  tv_after;
+            gettimeofday(&tv_pre, &tz);
 
             dimen_ = dim;
             instance_ = instance;
@@ -102,7 +103,6 @@ namespace freeNav::LayeredMAPF {
             all_clusters_= { instance_id_set_ }; // initialize of cluster (equal to the raw cluster)
 
             if(decompose_level >= 1) {
-
                 // initialize grid map
                 initializeGridMap();
                 detectFreeGroup();
@@ -110,7 +110,7 @@ namespace freeNav::LayeredMAPF {
                 establishConnectionOfHyperNode();
                 establishHeuristicTable();
 
-                gettimeofday(&tv_pre, &tz);
+                //gettimeofday(&tv_pre, &tz);
                 instanceDecomposition();
                 gettimeofday(&tv_after, &tz);
                 instance_decomposition_time_cost_ =
@@ -125,14 +125,18 @@ namespace freeNav::LayeredMAPF {
                         (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
             }
 
-            establishHeuristicTable(true);
             if(decompose_level >= 3) {
                 gettimeofday(&tv_pre, &tz);
+                establishHeuristicTable(true);
                 levelSorting();
                 gettimeofday(&tv_after, &tz);
                 sort_level_time_cost_ =
                         (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
             }
+            std::cout << "-- instance_decomposition_time_cost_ (ms) = " << instance_decomposition_time_cost_ << std::endl;
+            std::cout << "-- cluster_decomposition_time_cost_  (ms) = " << cluster_decomposition_time_cost_ << std::endl;
+            std::cout << "-- sort_level_time_cost_             (ms) = " << sort_level_time_cost_ << std::endl;
+
 
             /* print details of decomposition */
             int total_count = 0;
@@ -363,8 +367,8 @@ namespace freeNav::LayeredMAPF {
                     }
                     // add all related agent of the shortest (containing fewer agents) path into unavoidable set
                     // there are multiple solution path, pick one with least modification to unavoid set, i.e., involve less new agent
-                    const auto& alternative_path = searchAgent(failed_shortest_agent_id, {}, AgentIdsToSATID(agents), false, AgentIdsToSATID(cluster_pair.first));
-                    //const auto& alternative_path = all_agents_path.at(failed_shortest_agent_id);
+                    //const auto& alternative_path = searchAgent(failed_shortest_agent_id, {}, AgentIdsToSATID(agents), false, AgentIdsToSATID(cluster_pair.first));
+                    const auto& alternative_path = all_agents_path.at(failed_shortest_agent_id);
                     for (const int &new_agent_to_unavoid : alternative_path) {
                         if(cluster_pair.first.find(new_agent_to_unavoid) == cluster_pair.first.end()) {
                             cluster_pair.first.insert(new_agent_to_unavoid);

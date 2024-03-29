@@ -95,7 +95,7 @@ int main1() {
     auto mapf_func = PIBT_2::hca_MAPF;
 
     Paths<2> multiple_paths;
-    MemoryRecorder memory_recorder(1000);
+    MemoryRecorder memory_recorder(1);
     float base_usage = 0, maximal_usage = 0;
     memory_recorder.clear();
     sleep(1);
@@ -183,7 +183,11 @@ bool decompositionOfSingleInstance(const freeNav::Instances<N>& ists, DimensionL
     outputStream.clear();
     std::stringstream ss;
     ss << " " << time_cost << " " << max_cluster_size << " " << ists.size() << " " << is_legal << " " << level << " " << memory_usage << " "
-    << instance_decompose->all_clusters_.size();
+    << instance_decompose->all_clusters_.size() << " "
+    << instance_decompose->instance_decomposition_time_cost_ << " "
+    << instance_decompose->cluster_decomposition_time_cost_ << " "
+    << instance_decompose->sort_level_time_cost_ << " ";
+
     outputStream = ss.str();
     std::cout << " memory_usage = " << memory_usage << std::endl;
     return is_legal;
@@ -247,20 +251,19 @@ bool SingleMapDecompositionTest(const SingleMapTestConfig <2> &map_test_config,
         output_streamss.clear();
         OutputStream ostream;
         //std::cout << " start decomposition " << std::endl;
-        if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream, 1)) {
-            std::cout << " decomposition failed " << std::endl;
-            return false;
-        }
-        std::cout << "-- finish level 0 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
-        //getProcessResourceUsage();
-        output_streamss.push_back(ostream);
-        if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream, 2)) {
-            std::cout << " decomposition failed " << std::endl;
-            return false;
-        }
-        std::cout << "-- finish level 1 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
-        //getProcessResourceUsage();
-        output_streamss.push_back(ostream);
+//        if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream, 1)) {
+//            std::cout << " decomposition failed " << std::endl;
+//            return false;
+//        }
+//        std::cout << "-- finish level 0 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
+//        output_streamss.push_back(ostream);
+//        if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream, 2)) {
+//            std::cout << " decomposition failed " << std::endl;
+//            return false;
+//        }
+//        std::cout << "-- finish level 1 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
+//        output_streamss.push_back(ostream);
+
         if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream, 3)) {
             std::cout << " decomposition failed " << std::endl;
             return false;
@@ -286,35 +289,68 @@ int main() {
         int count_of_instances = 10;
 //    SingleMapDecompositionTest(MAPFTestConfig_den312d, {200, 240, 280, 320, 360, 400}, count_of_instances); //  good range
 
-        SingleMapDecompositionTest(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400},
-                                   count_of_instances); // good range
-        SingleMapDecompositionTest(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120},
-                                   count_of_instances); // good range
+//        SingleMapDecompositionTest(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400},
+//                                   count_of_instances); // good range
+//        SingleMapDecompositionTest(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120},
+//                                   count_of_instances); // good range
+//
+//        SingleMapDecompositionTest(MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240},
+//                                   count_of_instances);  // good range
+//        SingleMapDecompositionTest(MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800},
+//                                   count_of_instances); // good range
+//
+//        SingleMapDecompositionTest(MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120},
+//                                   count_of_instances); // good range
+//        SingleMapDecompositionTest(MAPFTestConfig_maze_32_32_4, {60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260},
+//                                   count_of_instances); // good range
+//
+//        SingleMapDecompositionTest(MAPFTestConfig_den312d, {100, 200, 300, 400, 500, 600, 700, 800},
+//                                   count_of_instances); //  good range
+//        SingleMapDecompositionTest(MAPFTestConfig_den520d, {100, 200, 300, 400, 500, 600, 700, 800, 900},
+//                                   count_of_instances); // layered better
+//
+//        SingleMapDecompositionTest(MAPFTestConfig_Berlin_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900},
+//                                   count_of_instances); // layered better
+//        SingleMapDecompositionTest(MAPFTestConfig_Paris_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                                   count_of_instances); // layered better
+//
+//        SingleMapDecompositionTest(MAPFTestConfig_ht_chantry, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                                   count_of_instances);
+//        SingleMapDecompositionTest(MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                                   count_of_instances); // good range
 
-        SingleMapDecompositionTest(MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240},
-                                   count_of_instances);  // good range
-        SingleMapDecompositionTest(MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800},
-                                   count_of_instances); // good range
 
-        SingleMapDecompositionTest(MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120},
-                                   count_of_instances); // good range
-        SingleMapDecompositionTest(MAPFTestConfig_maze_32_32_4, {60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260},
-                                   count_of_instances); // good range
+//        SingleMapDecompositionTest(MAPFTestConfig_maze_128_128_2, {400, 500, 600, 700, 800, 900, 1000},
+//                                  count_of_instances); // more than 60 second, slow
 
-        SingleMapDecompositionTest(MAPFTestConfig_den312d, {100, 200, 300, 400, 500, 600, 700, 800},
-                                   count_of_instances); //  good range
-        SingleMapDecompositionTest(MAPFTestConfig_den520d, {100, 200, 300, 400, 500, 600, 700, 800, 900},
-                                   count_of_instances); // layered better
+        SingleMapDecompositionTest(MAPFTestConfig_maze_128_128_10, {400, 500, 600, 700, 800, 900, 1000},
+                                   count_of_instances); // 1s in average, fast
 
-        SingleMapDecompositionTest(MAPFTestConfig_Berlin_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900},
-                                   count_of_instances); // layered better
-        SingleMapDecompositionTest(MAPFTestConfig_Paris_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                   count_of_instances); // layered better
+        SingleMapDecompositionTest(MAPFTestConfig_random_64_64_10, {400, 500, 600, 700, 800, 900, 1000},
+                                   count_of_instances); // more than 60 second, slow
 
-        SingleMapDecompositionTest(MAPFTestConfig_ht_chantry, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+        SingleMapDecompositionTest(MAPFTestConfig_random_64_64_20, {400, 500, 600, 700, 800, 900, 1000},
                                    count_of_instances);
-        SingleMapDecompositionTest(MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                   count_of_instances); // good range
+
+        SingleMapDecompositionTest(MAPFTestConfig_room_64_64_16, {400, 500, 600, 700, 800, 900, 1000},
+                                   count_of_instances);
+
+        SingleMapDecompositionTest(MAPFTestConfig_room_64_64_8, {400, 500, 600, 700, 800, 900, 1000},
+                                   count_of_instances);
+
+        SingleMapDecompositionTest(MAPFTestConfig_room_32_32_4, {200, 140, 200, 240, 280, 320},
+                                   count_of_instances);
+
+        SingleMapDecompositionTest(MAPFTestConfig_warehouse_10_20_10_2_2, {400, 500, 600, 700, 800, 900, 1000},
+                                   count_of_instances);
+
+        SingleMapDecompositionTest(MAPFTestConfig_warehouse_20_40_10_2_1, {400, 500, 600, 700, 800, 900, 1000},
+                                   count_of_instances);
+
+        SingleMapDecompositionTest(MAPFTestConfig_warehouse_20_40_10_2_2, {400, 500, 600, 700, 800, 900, 1000},
+                                   count_of_instances);
+
+
     }
     return 0;
 }

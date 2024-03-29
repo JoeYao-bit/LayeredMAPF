@@ -86,6 +86,7 @@ namespace MAPF_LNS {
                                                                        const MDD *mdd2) {
         shared_ptr<Conflict> rectangle = nullptr;
         //Rectangle reasoning for semi and non cardinal vertex conflicts
+        // yz: mdd1 size < paths[a1] size, cause out of boundary visit exception
         list<int> s1s = getStartCandidates(*paths[a1], *mdd1, timestep);
         list<int> g1s = getGoalCandidates(*paths[a1], *mdd1, timestep);
         list<int> s2s = getStartCandidates(*paths[a2], *mdd2, timestep);

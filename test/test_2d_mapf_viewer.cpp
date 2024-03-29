@@ -50,7 +50,7 @@ GridPtr<3> sg1 = std::make_shared<Grid<3>>(),
 // MAPFTestConfig_empty_32_32 2872.3 ms / layered faster
 // MAPFTestConfig_ht_chantry
 // MAPFTestConfig_lak303d
-auto map_test_config = MAPFTestConfig_ht_chantry;
+auto map_test_config = MAPFTestConfig_den312d;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -97,7 +97,7 @@ int main(int argc, char** argv) {
     memory_recorder.clear();
     float base_usage = memory_recorder.getCurrentMemoryUsage();
     int agent_num = 100;
-    auto MAPF_func = LaCAM2::lacam2_MAPF;
+    auto MAPF_func = LaCAM2::lacam2_MAPF;//CBS_Li::eecbs_MAPF;//LaCAM2::lacam2_MAPF;
     gettimeofday(&tv_pre, &tz);
     // comparing to the raw version, the layered vision will add more static constraint
     // so avoid the copy of static constraint table, will increase the performance of layered mapf
@@ -105,7 +105,7 @@ int main(int argc, char** argv) {
 //    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, CBS_Li::eecbs_MAPF, CBS_Li::eecbs_MAPF, false, agent_num);
 
 //    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, LaCAM::lacam_MAPF, CBS_Li::eecbs_MAPF, false, agent_num);
-    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_func, CBS_Li::eecbs_MAPF, false, agent_num);
+    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_func, CBS_Li::eecbs_MAPF, false, 60);
 
 //    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, PBS_Li::pbs_MAPF, CBS_Li::eecbs_MAPF, true, agent_num);
 //    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, CBSH2_RTC::CBSH2_RTC_MAPF, CBS_Li::eecbs_MAPF, true, agent_num);
@@ -167,7 +167,7 @@ int main(int argc, char** argv) {
     //multiple_paths = PIBT_2::hca_MAPF(dim, is_occupied_func, ists, nullptr, agent_num); // need lots storage
     //multiple_paths = PIBT_2::push_and_swap_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
 
-    multiple_paths = MAPF_func(dim, is_occupied_func, ists, nullptr, agent_num);
+    //multiple_paths = MAPF_func(dim, is_occupied_func, ists, nullptr, 60);
     gettimeofday(&tv_after, &tz);
     //assert(multiple_paths.size() == ists.size());
     visited_grid_during_lacam = LaCAM::visited_grid_;

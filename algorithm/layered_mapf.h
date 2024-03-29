@@ -43,7 +43,7 @@ namespace freeNav::LayeredMAPF {
     // asynchronous is not easy to implement, but too
     template <Dimension N>
     Paths<N> SingleLayerCompress(DimensionLength* dim, std::vector<int>& lasted_occupied_time_table, const Paths<N>& paths) {
-        int t=0;
+        int t=1;
         std::vector<bool> reach_states(paths.size(), false);
         Paths<N> modified_paths(paths);
         while(1) {
@@ -76,7 +76,7 @@ namespace freeNav::LayeredMAPF {
 //                }
                 // traversal all path, wait at previous frame
                 for(auto& path : modified_paths) {
-                    if(t > path.size()-1) { continue; }
+                    if(t-1 > path.size()-1) { continue; }
                     path.insert(path.begin() + t-1, path[t-1]);
                     Id temp_id = PointiToId(path[t-1], dim);
                     lasted_occupied_time_table[temp_id] = t;
@@ -152,7 +152,7 @@ namespace freeNav::LayeredMAPF {
         struct timeval  tv_after;
         gettimeofday(&tv_pre, &tz);
 
-        MAPFInstanceDecompositionPtr<N> instance_decompose = std::make_shared<MAPFInstanceDecomposition<N> >(instances, dim, isoc);
+        MAPFInstanceDecompositionPtr<N> instance_decompose = std::make_shared<MAPFInstanceDecomposition<N> >(instances, dim, isoc, 3);
 
         gettimeofday(&tv_after, &tz);
         double decomposition_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
@@ -215,7 +215,10 @@ namespace freeNav::LayeredMAPF {
             }
             //std::cout << " current ists size " << ists.size() << std::endl;
 
-            auto new_isoc = [&](const Pointi<2> & pt) -> bool { return isoc(pt) || avoid_locs[pt[1]][pt[0]]; };
+            auto new_isoc = [&](const Pointi<2> & pt) -> bool {
+                if(pt[0] < 0 || pt[0] >= dim[0] || pt[1] < 0 || pt[1] >= dim[1]) { return true; }
+                return isoc(pt) || avoid_locs[pt[1]][pt[0]];
+            };
 
             // check whether current problem is solvable
             if(completeness_verified) {
@@ -232,7 +235,7 @@ namespace freeNav::LayeredMAPF {
                 }
             }
             gettimeofday(&tv_after, &tz);
-            Paths<N> next_paths = mapf_func(dim, isoc, ists, layered_ct, remaining_time);
+            Paths<N> next_paths = mapf_func(dim, new_isoc, ists, layered_ct, remaining_time);
             if(next_paths.empty()) {
                 std::cout << " layered MAPF failed " << i << " th cluster: " << current_id_set << std::endl;
                 if(layered_ct != nullptr) {

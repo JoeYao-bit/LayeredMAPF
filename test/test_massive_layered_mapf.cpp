@@ -179,7 +179,10 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
                     } \
                 } \
             } \
-            auto new_isoc = [&](const Pointi<2> & pt) -> bool { return isoc(pt) || avoid_locs[pt[1]][pt[0]]; };   \
+            auto new_isoc = [&](const Pointi<2> & pt) -> bool {                                    \
+                if(pt[0] < 0 || pt[0] >= dim[0] || pt[1] < 0 || pt[1] >= dim[1]) { return true; }      \
+                return isoc(pt) || avoid_locs[pt[1]][pt[0]];                                           \
+            };   \
             double remaining_time = cutoff_time_cost - (tv_after.tv_sec - tv_pre.tv_sec) + (tv_after.tv_usec - tv_pre.tv_usec)/1e6; \
             if(remaining_time < 0) {                                                               \
                 if(layered_ct != nullptr) {                                                                                   \
@@ -255,20 +258,12 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
 //// 3, whether choose those agent randomly
 //// cutoff_time_cost is in seconds
 
-void appendToFile(const std::string& file_name, const std::string& content) {
-    // 3, save result to file
-    std::ofstream os(file_name, std::ios_base::app);
-    //os << "TYPE START TARGET TIME_COST MAKE_SPAN TOTAL_LENGTH " << std::endl;
-    os << content << std::endl;
-    os.close();
-}
-
 bool
 SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
                   const std::vector<int>& agent_in_instances,
                   int count_of_instance,
                   int cutoff_time_cost = 60,
-                  bool append=false) {
+                  bool prune=false) {
 
 
     TextMapLoader tl(map_test_config.at("map_path"), is_char_occupied);
@@ -342,7 +337,7 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 
     auto PBS = RAW_TEST_TYPE("RAW_PBS", PBS_Li::pbs_MAPF, dim, cutoff_time_cost);
     // all layered mapf must start with "LAYERED_"
-    auto PBS_LAYERED = LAYERED_TEST_TYPE("LAYERED_PBS", PBS_Li::pbs_MAPF, dim, cutoff_time_cost, false);
+    auto PBS_LAYERED = LAYERED_TEST_TYPE("LAYERED_PBS", PBS_Li::pbs_MAPF, dim, cutoff_time_cost, true);
 
     auto LaCAM2 = RAW_TEST_TYPE("RAW_LaCAM2", LaCAM2::lacam2_MAPF, dim, cutoff_time_cost);
     // all layered mapf must start with "LAYERED_"
@@ -384,37 +379,42 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
                                                          {
                                                           EECBS,
                                                           EECBS_LAYERED,
+
                                                           PBS,
                                                           PBS_LAYERED,
-
+//
                                                           LNS,
-                                                          LNS_LAYERED,
-//                                                          AnytimeBCBS, // unexccepted assert failed abut MDD
+                                                          LNS_LAYERED, // unexccepted assert failed abut MDD
+
+//                                                          AnytimeBCBS,
 //                                                          AnytimeBCBS_LAYERED,
+//
 //                                                          AnytimeEECBS,
 //                                                          AnytimeEECBS_LAYERED,
 
-//                                                          CBSH2_RTC,            // cause unexpected exit
-//                                                          CBSH2_RTC_LAYERED,    // cause unexpected exit
+                                                          CBSH2_RTC,            // cause unexpected exit
+                                                          CBSH2_RTC_LAYERED,    // cause unexpected exit
 
 //                                                          LaCAM,               // need lots storage
 //                                                          LaCAM_LAYERED,       // need lots storage
+
                                                           LaCAM2,
                                                           LaCAM2_LAYERED,
 
 //                                                          PIBT,            // need lots storage
 //                                                          PIBT_LAYERED,    // need lots storage
+
                                                           PIBT2,
                                                           PIBT2_LAYERED,
 
-//                                                          HCA,             // need lots storage
-//                                                          HCA_LAYERED,     // need lots storage
+                                                          HCA,             // need lots storage
+                                                          HCA_LAYERED,     // need lots storage
 
                                                           PushAndSwap,
                                                           PushAndSwap_LAYERED
                                                           },
                                                          map_test_config.at("output_path"),
-                                                         append);
+                                                         prune);
 
 //    std::ofstream os(map_test_config.at("output_path"), std::ios_base::out);
 //    //os << "TYPE START TARGET TIME_COST MAKE_SPAN TOTAL_LENGTH " << std::endl;
@@ -426,6 +426,7 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 //    os.close();
     return all_success;
 }
+
 //
 ////MAPFTestConfig_random_32_32_20        {45 ~ 150}
 ////MAPFTestConfig_maze_32_32_2           { ~ }
@@ -449,21 +450,147 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 //     MAPFTestConfig_empty_32_32 // 2872.3 ms / layered faster
 //};
 //
+
+// each method have a common range of agents
 int main(void) {
 ////    configs = {
 ////            MAPFTestConfig_empty_32_32
 ////    };
 //    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {10, 20, 30}, 2, 60); // layered better
 
-    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {200, 240, 280, 320, 360}, 10, 60); // layered better
-//    SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {80, 100, 130, 150, 180}, 10, 60); // layered better
-//    SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_1, {300, 350, 400, 450, 500}, 10, 60); //  layered worse
-//    SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {30, 40, 50, 60, 70}, 10, 60); // layered better
-//    SingleMapMAPFTest(MAPFTestConfig_maze_32_32_4, {40, 50, 60, 70, 80, 90}, 10, 60); // layered better
-//    SingleMapMAPFTest(MAPFTestConfig_den312d, {200, 220, 240, 260, 280}, 10, 60); // layered better
-//    SingleMapMAPFTest(MAPFTestConfig_den520d, {400, 500, 600, 700, 800, 900}, 10, 60); // layered better
-//    SingleMapMAPFTest(MAPFTestConfig_Berlin_1_256, {500, 600, 700, 800, 900}, 10, 60); // layered better
-//    SingleMapMAPFTest(MAPFTestConfig_Paris_1_256, {600, 700, 800, 900, 1000}, 10, 60); // layered better
+    for(int i=0; i<10; i++) {
+        //SingleMapMAPFTest(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120}, 10, 60); // layered better
+        SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {40, 80, 120, 160, 200, 240, 280, 320, 360}, 10, 60); // layered better
+
+        SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {80, 100, 130, 150, 180}, 10, 60); // layered better
+        SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_1, {300, 350, 400, 450, 500}, 10, 60); //  layered worse
+
+        SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {30, 40, 50, 60, 70}, 10, 60); // layered better
+        SingleMapMAPFTest(MAPFTestConfig_maze_32_32_4, {40, 50, 60, 70, 80, 90}, 10, 60); // layered better
 //
+//        SingleMapMAPFTest(MAPFTestConfig_den312d, {200, 220, 240, 260, 280}, 10, 60); // layered better
+//        SingleMapMAPFTest(MAPFTestConfig_den520d, {400, 500, 600, 700, 800, 900}, 10, 60); // layered better
+//
+//        SingleMapMAPFTest(MAPFTestConfig_Berlin_1_256, {500, 600, 700, 800, 900, 1000}, 10, 60); // layered better
+//        SingleMapMAPFTest(MAPFTestConfig_Paris_1_256, {500, 600, 700, 800, 900, 1000}, 10, 60); // layered better
+
+//        SingleMapMAPFTest(MAPFTestConfig_ht_chantry, {500, 600, 700, 800, 900, 1000}, 10,
+//                          60); // layered better
+//        SingleMapMAPFTest(MAPFTestConfig_lak303d, {500, 600, 700, 800, 900, 1000}, 10,
+//                          60); // layered better
+    }
+
+    //
     return 0;
 }
+
+
+
+
+bool SingleMapAndMethodMAPFTest(const MAPF_FUNC<2>& mapf_func, const std::string& raw_name, const std::string& layered_name,
+                                const SingleMapTestConfig <2> &map_test_config,
+                                const std::vector<int>& agent_config,
+                                bool use_path_constraint = false,
+                                int cutoff_time_cost = 60,
+                                bool prune=false) {
+    assert(agent_config.size() == 4);
+    TextMapLoader tl(map_test_config.at("map_path"), is_char_occupied);
+    std::cout << "start SingleMapTest from map " << map_test_config.at("map_path") << std::endl;
+    auto dimension = tl.getDimensionInfo();
+
+    IS_OCCUPIED_FUNC<2> is_occupied_func;
+
+    SET_OCCUPIED_FUNC<2> set_occupied_func;
+
+    auto is_occupied = [&tl](const Pointi<2> &pt) -> bool { return tl.isOccupied(pt); };
+    is_occupied_func = is_occupied;
+
+    auto set_occupied = [&tl](const Pointi<2> &pt) { tl.setOccupied(pt); };
+    set_occupied_func = set_occupied;
+
+    const auto& dim = tl.getDimensionInfo();
+    ScenarioLoader2D sl(map_test_config.at("scene_path").c_str());
+    int count_of_experiments = sl.GetNumExperiments();
+
+    std::vector<int> agent_in_instances;
+    int base_agent_count = agent_config[0];
+    while(true) {
+        if(base_agent_count < agent_config[1]) {
+            agent_in_instances.push_back(base_agent_count);
+            base_agent_count = base_agent_count + agent_config[2];
+        } else { break; }
+    }
+
+    const auto& insts_ids = pickCasesFromScene(count_of_experiments, agent_in_instances, agent_config[3]);
+    InstancesS<2> istss;
+    for(const auto& ids : insts_ids) {
+        Instances<2> ists;
+        for(const int& id : ids) {
+            const auto &experiment = sl.GetNthExperiment(id);
+            Pointi<2> pt1({experiment.GetStartX(), experiment.GetStartY()});
+            Pointi<2> pt2({experiment.GetGoalX(), experiment.GetGoalY()});
+            Instance<2> ist = {pt1, pt2};
+            //std::cout << " start, target = " << pt1 << ", " << pt2 << std::endl;
+            ists.push_back(ist);
+        }
+        istss.push_back(ists);
+    }
+
+    auto RAW_MAPF = getMassiveTextMAPFFunc(raw_name, mapf_func, dim, cutoff_time_cost);
+    // all layered mapf must start with "LAYERED_"
+    auto LAYERED_MAPF = getLayeredMassiveTextMAPFFunc(layered_name, mapf_func, dim, cutoff_time_cost, use_path_constraint);
+
+    bool all_success = SingleMapMAPFPathPlanningsTest<2>(dim, is_occupied_func, istss,
+                                                         {RAW_MAPF, LAYERED_MAPF},
+                                                         map_test_config.at("output_path"),
+                                                          prune);
+
+    return all_success;
+}
+
+// method name and respective min/max num of agents, interval, repeat times
+MethodAndAgentConfigs MethodAndAgentConfigs_empty_16_16 =
+        {
+          {CBS_Li::eecbs_MAPF, {{10, 120, 20, 5},"RAW_EECBS", "LAYERED_EECBS", true}},
+          {PBS_Li::pbs_MAPF, {{10, 120, 20, 5},"RAW_PBS", "LAYERED_PBS", false}},
+          {MAPF_LNS::LNS_MAPF, {{10, 120, 20, 10},"RAW_LNS", "LAYERED_LNS", true}},  // unexpected exit result by mdd level size < path size
+          {MAPF_LNS::AnytimeBCBS_MAPF,{{10, 120, 20, 5},"RAW_AnytimeBCBS", "LAYERED_AnytimeBCBS", true}},
+          {MAPF_LNS::AnytimeEECBS_MAPF, {{10, 120, 20, 5},"RAW_AnytimeEECBS", "LAYERED_AnytimeEECBS", true}},
+          //{CBSH2_RTC::CBSH2_RTC_MAPF, {{10, 100, 10, 5},"RAW_AnytimeEECBS", "LAYERED_AnytimeEECBS", true}}, // unexpected exit
+          //{PIBT_2::pibt_MAPF, {{10, 100, 10, 10},"RAW_PIBT", "LAYERED_PIBT", false}}, // need lots storage
+          {PIBT_2::pibt2_MAPF, {{10, 120, 20, 5},"RAW_PIBT2", "LAYERED_PIBT2", false}},
+          {PIBT_2::hca_MAPF, {{10, 100, 10, 10},"RAW_HCA", "LAYERED_HCA", false}}, // need storage
+          {PIBT_2::push_and_swap_MAPF, {{10, 120, 20, 5},"RAW_PushAndSwap", "LAYERED_PushAndSwap", false}},
+          //{LaCAM::lacam_MAPF, {{10, 100, 10, 10},"RAW_LaCAM", "LAYERED_LaCAM"}, false}, // need lots storage
+          {LaCAM2::lacam2_MAPF, {{10, 120, 20, 5},"RAW_LaCAM2", "LAYERED_LaCAM2", false}},
+          };
+
+MapMAPFTestConfig MAPFConfig_empty_16_16 =
+        {{MAPFTestConfig_empty_16_16, MethodAndAgentConfigs_empty_16_16}};
+
+// each method have it own range of agents
+
+int main2(void) {
+
+    MapMAPFTestConfigs all_MapMAPFConfig = {MAPFConfig_empty_16_16};
+
+    for(const auto& map_mapf_config : all_MapMAPFConfig) {
+        for(const auto& mapf_and_config : map_mapf_config) {
+            const SingleMapTestConfig<2>& map_config = mapf_and_config.first;
+            for(const  auto& method_and_agent_config : mapf_and_config.second) {
+                const MAPF_FUNC<2>& mapf_func         = method_and_agent_config.first;
+                const std::string& raw_name           = method_and_agent_config.second.raw_name_;
+                const std::string& layered_name       = method_and_agent_config.second.layered_name_;
+                const std::vector<int>& agent_configs = method_and_agent_config.second.agent_configs_;
+                const bool& use_path_constraint       = method_and_agent_config.second.use_path_constraint_;
+                bool all_success = SingleMapAndMethodMAPFTest(mapf_func, raw_name, layered_name,
+                                                              map_config, agent_configs,
+                                                              use_path_constraint, 60, false);
+            }
+        }
+    }
+
+    return 0;
+}
+
+
