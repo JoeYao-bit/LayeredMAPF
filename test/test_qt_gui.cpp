@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
     // comparing to the raw version, the layered vision will add more static constraint
     // so avoid the copy of static constraint table, will increase the performance of layered mapf
     //if(CBS_Li::ct != nullptr) { delete CBS_Li::ct; }
-    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, CBS_Li::eecbs_MAPF, CBS_Li::eecbs_MAPF);
+    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, LaCAM2::lacam2_MAPF, CBS_Li::eecbs_MAPF, false);
     //multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, LaCAM::lacam_MAPF, CBS_Li::eecbs_MAPF, false, 60);
     //multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, PBS_Li::pbs_MAPF, CBS_Li::eecbs_MAPF, true, 60);
     //multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, CBSH2_RTC::CBSH2_RTC_MAPF, CBS_Li::eecbs_MAPF, true, 60);

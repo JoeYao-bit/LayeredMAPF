@@ -63,7 +63,9 @@ namespace freeNav::LayeredMAPF {
 
         GridMAPFPtr<N> agent_grid_ptr_; // if nullptr, this is of agent's start and target
 
-        std::set<int> connecting_nodes_;// other nodes that connect to current node
+        std::set<int> connecting_nodes_set_;// other nodes that connect to current node
+
+        std::vector<int> connecting_nodes_;// other nodes that connect to current node
 
         int hyper_node_id_ = -1;
 
@@ -925,12 +927,12 @@ namespace freeNav::LayeredMAPF {
             int start_hyper_node = grid_map_[PointiToId(start_pt, dimen_)]->hyper_node_id_;
             if(distinguish_sat) {
                 assert(!all_heuristic_table_sat_.empty());
-                HyperGraphNodePathSearch<N> search_machine(start_hyper_node, all_hyper_nodes_, avoid_agents, passing_agents, all_heuristic_table_sat_[agent_id]);
-                return search_machine.search(true, ignore_cost_set);
+                HyperGraphNodePathSearch<N> search_machine;
+                return search_machine.search(start_hyper_node, all_hyper_nodes_, avoid_agents, passing_agents, all_heuristic_table_sat_[agent_id], true, ignore_cost_set);
             } else {
                 assert(!all_heuristic_table_agent_.empty());
-                HyperGraphNodePathSearch<N> search_machine(start_hyper_node, all_hyper_nodes_, avoid_agents, passing_agents, all_heuristic_table_agent_[agent_id]);
-                return search_machine.search(false, ignore_cost_set);
+                HyperGraphNodePathSearch<N> search_machine;
+                return search_machine.search(start_hyper_node, all_hyper_nodes_, avoid_agents, passing_agents, all_heuristic_table_agent_[agent_id], false, ignore_cost_set);
             }
         }
 
@@ -1034,10 +1036,16 @@ namespace freeNav::LayeredMAPF {
                 Id new_id = PointiToId(new_pt, dimen_);
                 if(grid_map_[new_id]->hyper_node_id_ < 0) { continue; }
                 // if is near to another hyper node
-                current_hyper_node->connecting_nodes_.insert(grid_map_[new_id]->hyper_node_id_);
+                auto retv_pair1 = current_hyper_node->connecting_nodes_set_.insert(grid_map_[new_id]->hyper_node_id_);
+                if(retv_pair1.second) {
+                    current_hyper_node->connecting_nodes_.push_back(grid_map_[new_id]->hyper_node_id_);
+                }
                 if(grid_map_[new_id]->agent_id_ < 0) {
                     // if this is a free group
-                    all_hyper_nodes_[grid_map_[new_id]->hyper_node_id_]->connecting_nodes_.insert(grid_map_[id]->hyper_node_id_);
+                    auto retv_pair2 = all_hyper_nodes_[grid_map_[new_id]->hyper_node_id_]->connecting_nodes_set_.insert(grid_map_[id]->hyper_node_id_);
+                    if(retv_pair2.second) {
+                        all_hyper_nodes_[grid_map_[new_id]->hyper_node_id_]->connecting_nodes_.push_back(grid_map_[id]->hyper_node_id_);
+                    }
                 }
             }
         }
@@ -1052,6 +1060,10 @@ namespace freeNav::LayeredMAPF {
             for(int i=0; i < instance_.size(); i++) {
                 updateConnectionToNearbyHyperNode(instance_[i].first);
                 updateConnectionToNearbyHyperNode(instance_[i].second);
+            }
+            // clear std::set in hyper node
+            for(const auto& node_ref : all_hyper_nodes_) {
+                node_ref->connecting_nodes_set_.clear();
             }
         }
 
