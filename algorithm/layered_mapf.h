@@ -152,7 +152,7 @@ namespace freeNav::LayeredMAPF {
         struct timeval  tv_after;
         gettimeofday(&tv_pre, &tz);
 
-        MAPFInstanceDecompositionPtr<N> instance_decompose = std::make_shared<MAPFInstanceDecomposition<N> >(instances, dim, isoc, 3);
+        MAPFInstanceDecompositionPtr<N> instance_decompose = std::make_shared<MAPFInstanceDecomposition<N> >(instances, dim, isoc, 2);
 
         gettimeofday(&tv_after, &tz);
         double decomposition_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
