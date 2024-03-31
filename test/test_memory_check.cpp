@@ -250,19 +250,19 @@ bool SingleMapDecompositionTest(const SingleMapTestConfig <2> &map_test_config,
         const auto& ists = istss[i-1];
         output_streamss.clear();
         OutputStream ostream;
-        //std::cout << " start decomposition " << std::endl;
-//        if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream, 1)) {
-//            std::cout << " decomposition failed " << std::endl;
-//            return false;
-//        }
-//        std::cout << "-- finish level 0 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
-//        output_streamss.push_back(ostream);
-//        if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream, 2)) {
-//            std::cout << " decomposition failed " << std::endl;
-//            return false;
-//        }
-//        std::cout << "-- finish level 1 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
-//        output_streamss.push_back(ostream);
+        std::cout << " start decomposition " << std::endl;
+        if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream, 1)) {
+            std::cout << " decomposition failed " << std::endl;
+            return false;
+        }
+        std::cout << "-- finish level 0 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
+        output_streamss.push_back(ostream);
+        if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream, 2)) {
+            std::cout << " decomposition failed " << std::endl;
+            return false;
+        }
+        std::cout << "-- finish level 1 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
+        output_streamss.push_back(ostream);
 
         if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream, 3)) {
             std::cout << " decomposition failed " << std::endl;
@@ -319,15 +319,15 @@ int main() {
 //        SingleMapDecompositionTest(MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
 //                                   count_of_instances); // good range
 
-
+          // new maps
 //        SingleMapDecompositionTest(MAPFTestConfig_maze_128_128_2, {400, 500, 600, 700, 800, 900, 1000},
 //                                  count_of_instances); // more than 60 second, slow
 
-        SingleMapDecompositionTest(MAPFTestConfig_maze_128_128_10, {400, 500, 600, 700, 800, 900, 1000},
-                                   count_of_instances); // 1s in average, fast
-
-        SingleMapDecompositionTest(MAPFTestConfig_random_64_64_10, {400, 500, 600, 700, 800, 900, 1000},
-                                   count_of_instances); // more than 60 second, slow
+//        SingleMapDecompositionTest(MAPFTestConfig_maze_128_128_10, {400, 500, 600, 700, 800, 900, 1000},
+//                                   count_of_instances); // 1s in average, fast
+//
+//        SingleMapDecompositionTest(MAPFTestConfig_random_64_64_10, {400, 500, 600, 700, 800, 900, 1000},
+//                                   count_of_instances); // more than 60 second, slow
 
         SingleMapDecompositionTest(MAPFTestConfig_random_64_64_20, {400, 500, 600, 700, 800, 900, 1000},
                                    count_of_instances);

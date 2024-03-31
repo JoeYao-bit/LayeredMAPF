@@ -7,6 +7,7 @@
 
 #include "instance_decomposition.h"
 #include <boost/heap/pairing_heap.hpp>
+#include <unordered_set>
 
 namespace freeNav::LayeredMAPF {
 
@@ -32,24 +33,13 @@ namespace freeNav::LayeredMAPF {
         explicit HyperGraphNodeData(const HyperGraphNodePtr<N>& current_node_ptr, const HyperGraphNodeDataPtr<N>& parent, bool distinguish_sat = false, bool ignore_cost = false) :
                 current_node_ptr_(current_node_ptr), TreeNode<N, HyperGraphNodeDataPtr<N>>(parent) {
             if(parent != nullptr) {
-                passed_agents_ = parent->passed_agents_;
                 g_val_ = parent->g_val_;
-            } else {
-                g_val_ = 0; // the agent itself is not considered as "passed"
-            }
-            // if is a agent node, rather than a free group node
-            if(current_node_ptr->agent_grid_ptr_ != nullptr) {
-                int raw_agent_id = current_node_ptr->agent_grid_ptr_->agent_id_;
-                int previous_size = passed_agents_.size();
-                if(distinguish_sat) {
-                    passed_agents_.insert(raw_agent_id);
-                } else {
-                    passed_agents_.insert(raw_agent_id / 2);
-                }
-                // if add new agent nodes, g_val ++
-                if(!ignore_cost && passed_agents_.size() > previous_size) {
+                // if is a agent node, rather than a free group node
+                if(current_node_ptr->agent_grid_ptr_ != nullptr && !ignore_cost) {
                     g_val_ ++;
                 }
+            } else {
+                g_val_ = 1; // the agent itself is not considered as "passed"
             }
         }
 
@@ -57,7 +47,6 @@ namespace freeNav::LayeredMAPF {
             g_val_            = other_node.g_val_;
             h_val_            = other_node.h_val_;
             current_node_ptr_ = other_node.current_node_ptr_;
-            passed_agents_    = other_node.passed_agents_;
             this->pa_         = other_node.pa_;
             this->ch_         = other_node.ch_;
         }
@@ -73,8 +62,6 @@ namespace freeNav::LayeredMAPF {
         int getFVal() {
             return g_val_ + h_val_;
         }
-
-        std::set<int> passed_agents_;
 
         struct compare_node {
             // returns true if n1 > n2 (note -- this gives us *min*-heap).
@@ -103,6 +90,44 @@ namespace freeNav::LayeredMAPF {
         typedef typename boost::heap::pairing_heap< HyperGraphNodeDataPtr<N>, boost::heap::compare<typename HyperGraphNodeData<N>::compare_node> >::handle_type open_handle_t;
 
         open_handle_t open_handle_;
+
+    };
+
+
+    template<Dimension N>
+    struct HyperGraphNodeDataComplex : public HyperGraphNodeData<N> {
+
+        // distinguish_sat = false means count the start and target as one, if both occurred
+        explicit HyperGraphNodeDataComplex(const HyperGraphNodePtr<N>& current_node_ptr, const HyperGraphNodeDataPtr<N>& parent, bool distinguish_sat = false, bool ignore_cost = false) :
+                HyperGraphNodeData<N>(current_node_ptr, parent, distinguish_sat, ignore_cost) {
+            if(parent != nullptr) {
+                passed_agents_ = parent->passed_agents_;
+                this->g_val_ = parent->g_val_;
+            } else {
+                this->g_val_ = 0; // the agent itself is not considered as "passed"
+            }
+            // if is a agent node, rather than a free group node
+            if(current_node_ptr->agent_grid_ptr_ != nullptr) {
+                int raw_agent_id = current_node_ptr->agent_grid_ptr_->agent_id_;
+                int previous_size = passed_agents_.size();
+                if(distinguish_sat) {
+                    passed_agents_.insert(raw_agent_id);
+                } else {
+                    passed_agents_.insert(raw_agent_id / 2);
+                }
+                // if add new agent nodes, g_val ++
+                if(!ignore_cost && passed_agents_.size() > previous_size) {
+                    this->g_val_ ++;
+                }
+            }
+        }
+
+        void copy(const HyperGraphNodeData<N>& other_node) {
+            this->copy(other_node);
+            passed_agents_    = other_node.passed_agents_;
+        }
+
+        std::set<int> passed_agents_;
 
     };
 
@@ -190,6 +215,30 @@ namespace freeNav::LayeredMAPF {
             heuristic_table_ = heuristic_table;
         }
 
+        // unordered_set
+        std::set<int> getPassingAgents(const HyperGraphNodeDataPtr<N>& node_ptr, bool distinguish_sat = false) {
+            std::set<int> retv;
+            HyperGraphNodeDataPtr<N> buffer = node_ptr, pre = nullptr;
+
+            while(buffer != nullptr) {
+                //std::cout << " buffer " << buffer << std::endl;
+                if(buffer->current_node_ptr_->agent_grid_ptr_ != nullptr) {
+                    int raw_agent_id = buffer->current_node_ptr_->agent_grid_ptr_->agent_id_;
+                    if(distinguish_sat) {
+                        retv.insert(raw_agent_id);
+                    } else {
+                        retv.insert(raw_agent_id / 2);
+                    }
+                }
+                pre = buffer;
+                buffer = buffer->pa_;
+//                if(pre == buffer) {
+//                    std::cout << " loop in path " << std::endl;
+//                }
+            }
+            return retv;
+        }
+
         /* determine the path for a agent in the hyper graph, considering avoidance for other agents */
         // search in a Best-First way or Breadth-First-way ? I prefer Best-First way
         // how to set heuristic value ? only considering the last agent node rather than free group node
@@ -212,6 +261,7 @@ namespace freeNav::LayeredMAPF {
             int other_node_id = current_agent_id + 1;
 
             HyperGraphNodeDataPtr<N> start_node = new HyperGraphNodeData<N>(start_node_ptr, nullptr, distinguish_sat);
+//            std::cout << "start_node cur and pre " << start_node << " / " << start_node->pa_ << std::endl;
             start_node->h_val_ = heuristic_table_[hyper_node_id_];
             start_node->open_handle_ = open_list_.push(start_node);
             start_node->in_openlist_ = true;
@@ -220,6 +270,7 @@ namespace freeNav::LayeredMAPF {
             int count = 0;
             while (!open_list_.empty()) // yz: focal may be empty and this is legal !
             {
+//                std::cout << " count = " << count << ", open_list_.size() " << open_list_.size() << std::endl;
                 count ++;
                 //if(count >= 200) return {};//exit(0);
                 auto curr_node = popNode();
@@ -227,8 +278,10 @@ namespace freeNav::LayeredMAPF {
                 if(curr_node->current_node_ptr_->agent_grid_ptr_ != nullptr) // if current node is belong to an agent
                 {
                     if(curr_node->current_node_ptr_->agent_grid_ptr_->agent_id_ == other_node_id) { // reach target agent
-                        //std::cout << " HyperGraphNodePathSearch reach target" << std::endl;
-                        auto passed_agents = curr_node->passed_agents_;
+//                        std::cout << " HyperGraphNodePathSearch reach target" << std::endl;
+//                        std::cout << "start_node cur and pre " << start_node << " / " << start_node->pa_ << std::endl;
+
+                        auto passed_agents = getPassingAgents(curr_node, distinguish_sat);//curr_node->passed_agents_;
                         releaseNodes();
                         return passed_agents;
                     }
@@ -248,8 +301,15 @@ namespace freeNav::LayeredMAPF {
                     if(!ignore_cost_set.empty() && neighbor_node_ptr->agent_grid_ptr_ != nullptr) {
                         ignore_cost = ignore_cost_set.find(neighbor_node_ptr->agent_grid_ptr_->agent_id_) != ignore_cost_set.end();
                     }
+//                    std::cout << "start_node 1 cur and pre " << start_node << " / " << start_node->pa_ << std::endl;
                     auto next_node = new HyperGraphNodeData<N>(neighbor_node_ptr, curr_node, distinguish_sat, ignore_cost);
                     next_node->h_val_ = heuristic_table_[neighbor_node_id];
+
+//                    std::cout << "start_node 2 cur and pre " << start_node << " / " << start_node->pa_ << std::endl;
+//                    std::cout << "start_node g_val h_val " << start_node->g_val_ << " / " << start_node->h_val_ << std::endl;
+//
+//                    std::cout << "next_node g_val h_val " << next_node->g_val_ << " / " << next_node->h_val_ << std::endl;
+//                    std::cout << "next_node cur and pre " << next_node << " / " << next_node->pa_ << std::endl;
                     bool is_new_node = true;
                     // try to retrieve it from the hash table
                     auto it = allNodes_table_.find(next_node);
@@ -264,11 +324,14 @@ namespace freeNav::LayeredMAPF {
                     // update existing node's if needed (only in the open_list)
                     auto existing_next = *it;
 
-                    if (existing_next->getFVal() > curr_node->getFVal())// if f-val decreased through this new path
+                    if (existing_next->getFVal() > next_node->getFVal())// if f-val decreased through this new path
                              // or it remains the same but there's fewer conflicts
                     {
                         if (!existing_next->in_openlist_) // if it is in the closed list (reopen)
                         {
+//                            std::cout << " existing_next->getFVal() > curr_node->getFVal() " << existing_next->getFVal() << " > "
+//                                      <<  curr_node->getFVal() << std::endl;
+//                            std::cout << " reinsert " << existing_next << std::endl;
                             existing_next->copy(*next_node);
                             pushNode(existing_next);
                         } else {

@@ -30,7 +30,7 @@ namespace CBSH2_RTC {
                 ("output,o", po::value<std::string>(), "output file for schedule")
                 ("outputPaths", po::value<std::string>(), "output file for paths")
                 ("agentNum,k", po::value<int>()->default_value(0), "number of agents")
-                ("cutoffTime,t", po::value<double>()->default_value(2*cutoff_time), "cutoff time (seconds)") // *2 to get real cutoff time
+                ("cutoffTime,t", po::value<double>()->default_value(cutoff_time/2), "cutoff time (seconds)") // *2 to get real cutoff time
                 ("nodeLimit", po::value<int>()->default_value(MAX_NODES), "node limit")
                 ("screen,s", po::value<int>()->default_value(0), "screen option (0: none; 1: results; 2:all)")
                 ("seed,d", po::value<int>()->default_value(0), "random seed")

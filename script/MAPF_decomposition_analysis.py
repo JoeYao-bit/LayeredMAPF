@@ -26,6 +26,11 @@ def loadDataFromfile(file_path):
                 new_data.level             = int  (splited_line[4])
                 new_data.memory_usage      = float(splited_line[5])
                 new_data.num_of_subproblem = float(splited_line[6])
+                
+                new_data.level_1           = float(splited_line[7])
+                new_data.level_2           = float(splited_line[8])
+                new_data.level_3           = float(splited_line[9])
+                
                 data_list.append(new_data)
     except Exception as e:            
         print(e)       
@@ -39,6 +44,9 @@ class LineData:
     level             = 0
     memory_usage      = 0.
     num_of_subproblem = 0
+    level_1           = 0.
+    level_2           = 0.
+    level_3           = 0.
         
 
 # all data in a txt file
@@ -135,18 +143,26 @@ def drawMethodMap(single_map_data, value_type):
 step_fmt = ["x-","o-.","^--"]    
     
 data_path_dir = '../test/test_data/decomposition/'
-all_map_name = ["empty-16-16",
-                "empty-32-32",
-                "random-32-32-20",
-                "warehouse-10-20-10-2-1",
-                "maze-32-32-2",
-                "maze-32-32-4",
-                "den312d",
-                "den520d",
-                "Berlin_1_256",
-                "Paris_1_256",
-                "ht_chantry",
-                "lak303d"
+all_map_name = [
+                # "empty-16-16",
+                # "empty-32-32",
+                # "random-32-32-20",
+                # "warehouse-10-20-10-2-1",
+                # "maze-32-32-2",
+                # "maze-32-32-4",
+                # "den312d",
+                # "den520d",
+                # "Berlin_1_256",
+                # "Paris_1_256",
+                # "ht_chantry",
+                # "lak303d",
+                "random-64-64-20",
+                "room-64-64-16",
+                "room-64-64-8",
+                "room-32-32-4",
+                "warehouse-10-20-10-2-2",
+                "warehouse-20-40-10-2-1",
+                "warehouse-20-40-10-2-2"
                 ]
 
 all_single_data = list()

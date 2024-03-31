@@ -109,7 +109,7 @@ namespace freeNav::LayeredMAPF {
                 // establish connection between hyper nodes (between free group and agent instance (start and target), and between agent instance)
                 establishConnectionOfHyperNode();
                 establishHeuristicTable();
-
+                //return;
                 //gettimeofday(&tv_pre, &tz);
                 instanceDecomposition();
                 gettimeofday(&tv_after, &tz);
@@ -124,10 +124,10 @@ namespace freeNav::LayeredMAPF {
                 cluster_decomposition_time_cost_ =
                         (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
             }
+            establishHeuristicTable(true);
 
             if(decompose_level >= 3) {
                 gettimeofday(&tv_pre, &tz);
-                establishHeuristicTable(true);
                 levelSorting();
                 gettimeofday(&tv_after, &tz);
                 sort_level_time_cost_ =
@@ -149,8 +149,8 @@ namespace freeNav::LayeredMAPF {
                 //std::cout << "-- clusters " << i << " size " << all_clusters_[i].size() << ": " << all_clusters_[i] << std::endl;
             }
             assert(total_count == instance.size());
-//            std::cout << "-- Decomposition completeness ? " << decompositionValidCheck(all_clusters_) << std::endl;
-//            std::cout << " max/total size " << max_cluster_size << " / " << instance.size() << std::endl;
+            std::cout << "-- Decomposition completeness ? " << decompositionValidCheck(all_clusters_) << std::endl;
+            std::cout << " max/total size " << max_cluster_size << " / " << instance.size() << std::endl;
         }
 
         bool decompositionValidCheck(const std::vector<std::set<int> >& all_levels) const {
@@ -1065,6 +1065,7 @@ namespace freeNav::LayeredMAPF {
                 const std::vector<int> heuristic_table = calculateHyperGraphStaticHeuristic(hyper_graph_node_of_target, all_hyper_nodes_, distinguish_sat);
                 all_heuristic_table.push_back(heuristic_table);
             }
+            std::cout << " finish " << __FUNCTION__ << std::endl;
         }
 
         void serializeAllPassingAgent() {
