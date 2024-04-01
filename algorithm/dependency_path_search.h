@@ -29,8 +29,7 @@ namespace freeNav::LayeredMAPF {
     template<Dimension N>
     struct HyperGraphNodeData : public TreeNode<N, HyperGraphNodeDataPtr<N> > {
 
-        // distinguish_sat = false means count the start and target as one, if both occurred
-        explicit HyperGraphNodeData(const HyperGraphNodePtr<N>& current_node_ptr, const HyperGraphNodeDataPtr<N>& parent, bool distinguish_sat = false, bool ignore_cost = false) :
+        explicit HyperGraphNodeData(const HyperGraphNodePtr<N>& current_node_ptr, const HyperGraphNodeDataPtr<N>& parent, bool ignore_cost = false) :
                 current_node_ptr_(current_node_ptr), TreeNode<N, HyperGraphNodeDataPtr<N>>(parent) {
             if(parent != nullptr) {
                 g_val_ = parent->g_val_;
@@ -93,44 +92,6 @@ namespace freeNav::LayeredMAPF {
 
     };
 
-
-    template<Dimension N>
-    struct HyperGraphNodeDataComplex : public HyperGraphNodeData<N> {
-
-        // distinguish_sat = false means count the start and target as one, if both occurred
-        explicit HyperGraphNodeDataComplex(const HyperGraphNodePtr<N>& current_node_ptr, const HyperGraphNodeDataPtr<N>& parent, bool distinguish_sat = false, bool ignore_cost = false) :
-                HyperGraphNodeData<N>(current_node_ptr, parent, distinguish_sat, ignore_cost) {
-            if(parent != nullptr) {
-                passed_agents_ = parent->passed_agents_;
-                this->g_val_ = parent->g_val_;
-            } else {
-                this->g_val_ = 0; // the agent itself is not considered as "passed"
-            }
-            // if is a agent node, rather than a free group node
-            if(current_node_ptr->agent_grid_ptr_ != nullptr) {
-                int raw_agent_id = current_node_ptr->agent_grid_ptr_->agent_id_;
-                int previous_size = passed_agents_.size();
-                if(distinguish_sat) {
-                    passed_agents_.insert(raw_agent_id);
-                } else {
-                    passed_agents_.insert(raw_agent_id / 2);
-                }
-                // if add new agent nodes, g_val ++
-                if(!ignore_cost && passed_agents_.size() > previous_size) {
-                    this->g_val_ ++;
-                }
-            }
-        }
-
-        void copy(const HyperGraphNodeData<N>& other_node) {
-            this->copy(other_node);
-            passed_agents_    = other_node.passed_agents_;
-        }
-
-        std::set<int> passed_agents_;
-
-    };
-
     //template<Dimension N>
     //using HyperGraphNodePtr = HyperGraphNode<N>*;
 
@@ -140,7 +101,7 @@ namespace freeNav::LayeredMAPF {
     // calculate static heuristic table, using BFS, dist to target = 0
     // dist is defined like g_val and h_val, how many agent need to cross to reach target
     template <Dimension N>
-    std::vector<int> calculateHyperGraphStaticHeuristic(const HyperGraphNodePtr<N>& target_ptr, const HyperGraphNodePtrs<N> all_hyper_nodes, bool distinguish_sat = false) {
+    std::vector<int> calculateHyperGraphStaticHeuristic(const HyperGraphNodePtr<N>& target_ptr, const HyperGraphNodePtrs<N> all_hyper_nodes) {
 
         // the two table update simultaneously
         std::vector<int> heuristic_table(all_hyper_nodes.size(), MAX<int>);
@@ -148,7 +109,7 @@ namespace freeNav::LayeredMAPF {
 
         HyperGraphNodeDataPtrs<N> current_set, all_ptr_set;
 
-        HyperGraphNodeDataPtr<N> init_data_ptr = new HyperGraphNodeData<N>(target_ptr, nullptr, distinguish_sat);
+        HyperGraphNodeDataPtr<N> init_data_ptr = new HyperGraphNodeData<N>(target_ptr, nullptr);
         all_ptr_set.push_back(init_data_ptr);
         current_set.push_back(init_data_ptr);
 
@@ -175,7 +136,7 @@ namespace freeNav::LayeredMAPF {
                     const auto& neighbor_node_ptr = all_hyper_nodes[neighbor_node_id];
                     //std::cout << "neighbor_node_ptr->hyper_node_id_ " << neighbor_node_ptr->hyper_node_id_ << std::endl;
 
-                    HyperGraphNodeDataPtr<N> next_node_data_ptr = new HyperGraphNodeData<N>(neighbor_node_ptr, node_ptr, distinguish_sat);
+                    HyperGraphNodeDataPtr<N> next_node_data_ptr = new HyperGraphNodeData<N>(neighbor_node_ptr, node_ptr);
                     all_ptr_set.push_back(next_node_data_ptr);
                     next_h = next_node_data_ptr->g_val_;
                     //std::cout << " next_h " << next_h << std::endl;
@@ -208,8 +169,7 @@ namespace freeNav::LayeredMAPF {
         // unordered_set
         std::set<int> getPassingAgents(const HyperGraphNodeDataPtr<N>& node_ptr, bool distinguish_sat = false) {
             std::set<int> retv;
-            HyperGraphNodeDataPtr<N> buffer = node_ptr, pre = nullptr;
-
+            HyperGraphNodeDataPtr<N> buffer = node_ptr;
             while(buffer != nullptr) {
                 //std::cout << " buffer " << buffer << std::endl;
                 if(buffer->current_node_ptr_->agent_grid_ptr_ != nullptr) {
@@ -220,11 +180,7 @@ namespace freeNav::LayeredMAPF {
                         retv.insert(raw_agent_id / 2);
                     }
                 }
-                pre = buffer;
                 buffer = buffer->pa_;
-//                if(pre == buffer) {
-//                    std::cout << " loop in path " << std::endl;
-//                }
             }
             return retv;
         }
@@ -235,6 +191,7 @@ namespace freeNav::LayeredMAPF {
         // agent in ignore_cost_set is not considered in cost accumulation
         // assume all start node is id of agent, as well as id in avoid_agents
         // return all agent involve in the path, if return empty set, considering as find no result
+        // distinguish_sat means whether considering
         std::set<int> search(int hyper_node_id,
                              const HyperGraphNodePtrs<N> all_hyper_nodes,
                              const std::set<int> &avoid_agents,
@@ -255,7 +212,7 @@ namespace freeNav::LayeredMAPF {
             assert(current_agent_id % 2 == 0); // must start from agent's start point
             int other_node_id = current_agent_id + 1;
 
-            HyperGraphNodeDataPtr<N> start_node = new HyperGraphNodeData<N>(start_node_ptr, nullptr, distinguish_sat);
+            HyperGraphNodeDataPtr<N> start_node = new HyperGraphNodeData<N>(start_node_ptr, nullptr);
 //            std::cout << "start_node cur and pre " << start_node << " / " << start_node->pa_ << std::endl;
             start_node->h_val_ = heuristic_table[hyper_node_id];
             start_node->open_handle_ = open_list_.push(start_node);
@@ -297,7 +254,7 @@ namespace freeNav::LayeredMAPF {
                         ignore_cost = ignore_cost_set.find(neighbor_node_ptr->agent_grid_ptr_->agent_id_) != ignore_cost_set.end();
                     }
 //                    std::cout << "start_node 1 cur and pre " << start_node << " / " << start_node->pa_ << std::endl;
-                    auto next_node = new HyperGraphNodeData<N>(neighbor_node_ptr, curr_node, distinguish_sat, ignore_cost);
+                    auto next_node = new HyperGraphNodeData<N>(neighbor_node_ptr, curr_node, ignore_cost);
                     next_node->h_val_ = heuristic_table[neighbor_node_id];
 
 //                    std::cout << "start_node 2 cur and pre " << start_node << " / " << start_node->pa_ << std::endl;

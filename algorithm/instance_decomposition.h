@@ -126,7 +126,6 @@ namespace freeNav::LayeredMAPF {
                 cluster_decomposition_time_cost_ =
                         (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
             }
-            establishHeuristicTable(true);
 
             if(decompose_level >= 3) {
                 gettimeofday(&tv_pre, &tz);
@@ -180,9 +179,6 @@ namespace freeNav::LayeredMAPF {
 
         HyperGraphNodePtrs<N> all_hyper_nodes_;
 
-        // save heuristic table for each agent
-        std::vector<std::vector<int> > all_heuristic_table_agent_;
-
         std::vector<GridMAPFPtr<N> > grid_map_;
 
         std::vector<std::set<int> > all_clusters_;
@@ -198,6 +194,8 @@ namespace freeNav::LayeredMAPF {
         ~ MAPFInstanceDecomposition() {
             releaseData();
         }
+
+        std::vector<std::vector<int> > all_heuristic_table_sat_;
 
     private:
 
@@ -268,9 +266,9 @@ namespace freeNav::LayeredMAPF {
                         all_unavoidable_agent.insert(std::pair<int, std::set<int> >(agent_id, {}));
                     }
 
-                    std::set<int> within_set = distinguish_sat ? instance_id_set : AgentIdsToSATID(instance_id_set);
-                    std::set<int> avoid_list = (distinguish_sat ? std::set<int>({ other_agent }) : std::set<int>({ other_agent*2, other_agent*2 + 1 }));
-                    if((searchAgent(agent_id, avoid_list, within_set)).empty()) {
+                    std::set<int> within_set = AgentIdsToSATID(instance_id_set);
+                    std::set<int> avoid_list = std::set<int>({ other_agent*2, other_agent*2 + 1 });
+                    if((searchAgent(agent_id, avoid_list, within_set, distinguish_sat)).empty()) {
                         all_unavoidable_agent.at(agent_id).insert(other_agent);
                     }
                 }
@@ -517,7 +515,7 @@ namespace freeNav::LayeredMAPF {
         // a cluster is split into multiple time indexed level
         // each level may have one or multiple agent
         // by update sat path of agents
-        std::vector<std::set<int> >  clusterDecomposeToLevel(const std::set<int>& cluster) const {
+        std::vector<std::set<int> >  clusterDecomposeToLevel(const std::set<int>& cluster, bool active_loop_avoidance = false) const {
             // 1, get each agent's sat path
             std::map<int, std::set<int> > all_agents_path;
             //std::cout << "-- agents " << agents << std::endl;
@@ -553,7 +551,7 @@ namespace freeNav::LayeredMAPF {
                 all_agents_path.insert({agent_id, passing_sats});
 
                 // if current agent is in loop, try to find alternative path that can avoid loop
-#define TRY_AVOID_LOOP 1
+#define TRY_AVOID_LOOP 0
 #if TRY_AVOID_LOOP
                 std::set<int> avoid_sats;
                 //int count=0;
@@ -925,15 +923,9 @@ namespace freeNav::LayeredMAPF {
             // test search pass agent search
             Pointi<N> start_pt = instance_[agent_id].first;
             int start_hyper_node = grid_map_[PointiToId(start_pt, dimen_)]->hyper_node_id_;
-            if(distinguish_sat) {
-                assert(!all_heuristic_table_sat_.empty());
-                HyperGraphNodePathSearch<N> search_machine;
-                return search_machine.search(start_hyper_node, all_hyper_nodes_, avoid_agents, passing_agents, all_heuristic_table_sat_[agent_id], true, ignore_cost_set);
-            } else {
-                assert(!all_heuristic_table_agent_.empty());
-                HyperGraphNodePathSearch<N> search_machine;
-                return search_machine.search(start_hyper_node, all_hyper_nodes_, avoid_agents, passing_agents, all_heuristic_table_agent_[agent_id], false, ignore_cost_set);
-            }
+            assert(!all_heuristic_table_sat_.empty());
+            HyperGraphNodePathSearch<N> search_machine;
+            return search_machine.search(start_hyper_node, all_hyper_nodes_, avoid_agents, passing_agents, all_heuristic_table_sat_[agent_id], distinguish_sat, ignore_cost_set);
         }
 
         /* function about initialize of Layered MAPF */
@@ -1067,17 +1059,17 @@ namespace freeNav::LayeredMAPF {
             }
         }
 
-        void establishHeuristicTable(bool distinguish_sat = false) {
-            auto& all_heuristic_table = distinguish_sat ? all_heuristic_table_sat_ : all_heuristic_table_agent_;
+        void establishHeuristicTable() {
+            auto& all_heuristic_table = all_heuristic_table_sat_;
             all_heuristic_table.clear();
             for(const auto& start_and_target : instance_) {
                 Pointi<N> target = start_and_target.second;
                 auto target_id = PointiToId(target, dimen_);
                 auto hyper_graph_node_of_target = all_hyper_nodes_[grid_map_[target_id]->hyper_node_id_];
-                const std::vector<int> heuristic_table = calculateHyperGraphStaticHeuristic(hyper_graph_node_of_target, all_hyper_nodes_, distinguish_sat);
+                const std::vector<int> heuristic_table = calculateHyperGraphStaticHeuristic(hyper_graph_node_of_target, all_hyper_nodes_);
                 all_heuristic_table.push_back(heuristic_table);
             }
-            std::cout << " finish " << __FUNCTION__ << std::endl;
+            //std::cout << " finish " << __FUNCTION__ << std::endl;
         }
 
         void serializeAllPassingAgent() {
@@ -1101,8 +1093,6 @@ namespace freeNav::LayeredMAPF {
         Instances<N> instance_;
 
         std::set<int> instance_id_set_;
-
-        std::vector<std::vector<int> > all_heuristic_table_sat_;
 
     };
 

@@ -31,7 +31,19 @@ using namespace freeNav::LayeredMAPF;
 // MAPFTestConfig_den520d 237.842 ms / layered faster， after 150 agent
 // MAPFTestConfig_empty_32_32 2872.3 ms / layered faster
 // MAPFTestConfig_simple
-auto map_test_config = MAPFTestConfig_den312d;
+// MAPFTestConfig_ht_chantry
+// MAPFTestConfig_lak303d
+// MAPFTestConfig_maze_128_128_2
+// MAPFTestConfig_maze_128_128_10
+// MAPFTestConfig_random_64_64_10
+// MAPFTestConfig_random_64_64_20
+// MAPFTestConfig_room_64_64_16
+// MAPFTestConfig_room_64_64_8
+// MAPFTestConfig_room_32_32_4
+// MAPFTestConfig_warehouse_10_20_10_2_2
+// MAPFTestConfig_warehouse_20_40_10_2_1
+// MAPFTestConfig_warehouse_20_40_10_2_2
+auto map_test_config = MAPFTestConfig_ht_chantry;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') { return false; }

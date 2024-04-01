@@ -36,7 +36,7 @@ namespace freeNav::LayeredMAPF{
                     {"ct_path",   "../test/test_data/den312d.ct"},
                     {"output_path", "../test/test_data/layered_mapf/den312d.txt"},
                     {"decomposition_output_path", "../test/test_data/decomposition/den312d_de.txt"},
-                    {"agent_num",    "600"},
+                    {"agent_num",    "700"},
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"} // in second
             };
@@ -121,7 +121,7 @@ namespace freeNav::LayeredMAPF{
                     {"ct_path",   "../test/test_data/warehouse-10-20-10-2-1.ct"},
                     {"output_path", "../test/test_data/layered_mapf/warehouse-10-20-10-2-1.txt"},
                     {"decomposition_output_path", "../test/test_data/decomposition/warehouse-10-20-10-2-1_de.txt"},
-                    {"agent_num",    "450"},
+                    {"agent_num",    "800"},
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"} // in second
             };

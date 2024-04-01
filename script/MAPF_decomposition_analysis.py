@@ -144,22 +144,32 @@ step_fmt = ["x-","o-.","^--"]
     
 data_path_dir = '../test/test_data/decomposition/'
 all_map_name = [
-                # "empty-16-16",
-                # "empty-32-32",
-                # "random-32-32-20",
-                # "warehouse-10-20-10-2-1",
-                # "maze-32-32-2",
-                # "maze-32-32-4",
-                # "den312d",
-                # "den520d",
-                # "Berlin_1_256",
-                # "Paris_1_256",
-                # "ht_chantry",
-                # "lak303d",
+                "empty-16-16",
+                "empty-32-32",
+                
+                "maze-32-32-2",
+                "maze-32-32-4",
+                "maze-128-128-10",
+                "maze-128-128-2",
+                
+                "den312d",
+                "den520d",
+                
+                "Berlin_1_256",
+                "Paris_1_256",
+                
+                "ht_chantry",
+                "lak303d",
+                
+                "random-64-64-10",
                 "random-64-64-20",
+                "random-32-32-20",
+                
                 "room-64-64-16",
                 "room-64-64-8",
                 "room-32-32-4",
+                
+                "warehouse-10-20-10-2-1",
                 "warehouse-10-20-10-2-2",
                 "warehouse-20-40-10-2-1",
                 "warehouse-20-40-10-2-2"
