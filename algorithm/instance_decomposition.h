@@ -556,9 +556,9 @@ namespace freeNav::LayeredMAPF {
                 all_agents_path.insert({agent_id, passing_sats});
 
                 // if current agent is in loop, try to find alternative path that can avoid loop
-#define TRY_AVOID_LOOP 0
+#define TRY_AVOID_LOOP 1
 #if TRY_AVOID_LOOP
-                std::set<int> avoid_sats;
+                std::vector<bool> avoid_sats(2*instance_.size(), false);
                 //int count=0;
                 while(1) {
                     std::set<int> current_loop = getCurrentAgentLoopInPaths(all_agents_path, agent_id);
@@ -566,7 +566,10 @@ namespace freeNav::LayeredMAPF {
                     if(current_loop.size() == 1) { break; }
                     // get the intersection between current agent's sat path and
                     std::set<int> intersected_sat = getIntersectionBetweenLoopAndPath(agent_id, all_agents_path[agent_id], current_loop);
-                    avoid_sats.insert(intersected_sat.begin(), intersected_sat.end());
+                    for(const auto& sat : intersected_sat) {
+                        avoid_sats[sat] = true;
+                    }
+//                    avoid_sats.insert(intersected_sat.begin(), intersected_sat.end());
 //                    std::cout << " agent " << agent_id << " intersect with sat " << intersected_sat << std::endl;
 //                    std::cout << " agent " << agent_id << " avoid sat " << avoid_sats << std::endl;
                     if(intersected_sat.empty()) {
@@ -575,7 +578,7 @@ namespace freeNav::LayeredMAPF {
                         break;
                     }
                     //break;
-                    auto alternative_passing_sats = searchAgent(agent_id, avoid_sats, AgentIdsToSATID(cluster), true); // pass test
+                    auto alternative_passing_sats = searchAgent(agent_id, avoid_sats, cluster_sat, true); // pass test
                     // if find no legal path, exit, mean this agent will form a new loop
                     if(alternative_passing_sats.empty()) { break; }
                     all_agents_path[agent_id] = alternative_passing_sats;

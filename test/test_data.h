@@ -64,7 +64,7 @@ namespace freeNav::LayeredMAPF{
                     {"ct_path",   "../test/test_data/maze-32-32-4.ct"},
                     {"output_path", "../test/test_data/layered_mapf/maze-32-32-4.txt"},
                     {"decomposition_output_path", "../test/test_data/decomposition/maze-32-32-4_de.txt"},
-                    {"agent_num",    "50"},
+                    {"agent_num",    "250"},
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"} // in second
             };
