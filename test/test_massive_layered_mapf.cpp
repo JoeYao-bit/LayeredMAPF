@@ -379,12 +379,12 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
                                                          {
                                                           EECBS,
                                                           EECBS_LAYERED,
-
-                                                          PBS,
-                                                          PBS_LAYERED,
 //
-                                                          LNS,
-                                                          LNS_LAYERED, // unexccepted assert failed abut MDD
+//                                                          PBS,
+//                                                          PBS_LAYERED,
+////
+//                                                          LNS,
+//                                                          LNS_LAYERED, // unexccepted assert failed abut MDD
 
 //                                                          AnytimeBCBS,
 //                                                          AnytimeBCBS_LAYERED,
@@ -392,26 +392,26 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 //                                                          AnytimeEECBS,
 //                                                          AnytimeEECBS_LAYERED,
 
-                                                          CBSH2_RTC,            // cause unexpected exit
-                                                          CBSH2_RTC_LAYERED,    // cause unexpected exit
+//                                                          CBSH2_RTC,            // cause unexpected exit
+//                                                          CBSH2_RTC_LAYERED,    // cause unexpected exit
 
 //                                                          LaCAM,               // need lots storage
 //                                                          LaCAM_LAYERED,       // need lots storage
 
-                                                          LaCAM2,
-                                                          LaCAM2_LAYERED,
+//                                                          LaCAM2,
+//                                                          LaCAM2_LAYERED,
 
 //                                                          PIBT,            // need lots storage
 //                                                          PIBT_LAYERED,    // need lots storage
 
-                                                          PIBT2,
-                                                          PIBT2_LAYERED,
+//                                                          PIBT2,
+//                                                          PIBT2_LAYERED,
 
-                                                          HCA,             // need lots storage
-                                                          HCA_LAYERED,     // need lots storage
+//                                                          HCA,             // need lots storage
+//                                                          HCA_LAYERED,     // need lots storage
 
-                                                          PushAndSwap,
-                                                          PushAndSwap_LAYERED
+//                                                          PushAndSwap,
+//                                                          PushAndSwap_LAYERED
                                                           },
                                                          map_test_config.at("output_path"),
                                                          prune);
@@ -458,7 +458,7 @@ int main(void) {
 ////    };
 //    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {10, 20, 30}, 2, 60); // layered better
 
-    for(int i=0; i<10; i++) {
+    for(int i=0; i<1; i++) {
         //SingleMapMAPFTest(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120}, 10, 60); // layered better
         SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {40, 80, 120, 160, 200, 240, 280, 320, 360}, 10, 60); // layered better
 
@@ -467,17 +467,17 @@ int main(void) {
 
         SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {30, 40, 50, 60, 70}, 10, 60); // layered better
         SingleMapMAPFTest(MAPFTestConfig_maze_32_32_4, {40, 50, 60, 70, 80, 90}, 10, 60); // layered better
-//
-//        SingleMapMAPFTest(MAPFTestConfig_den312d, {200, 220, 240, 260, 280}, 10, 60); // layered better
-//        SingleMapMAPFTest(MAPFTestConfig_den520d, {400, 500, 600, 700, 800, 900}, 10, 60); // layered better
-//
-//        SingleMapMAPFTest(MAPFTestConfig_Berlin_1_256, {500, 600, 700, 800, 900, 1000}, 10, 60); // layered better
-//        SingleMapMAPFTest(MAPFTestConfig_Paris_1_256, {500, 600, 700, 800, 900, 1000}, 10, 60); // layered better
 
-//        SingleMapMAPFTest(MAPFTestConfig_ht_chantry, {500, 600, 700, 800, 900, 1000}, 10,
-//                          60); // layered better
-//        SingleMapMAPFTest(MAPFTestConfig_lak303d, {500, 600, 700, 800, 900, 1000}, 10,
-//                          60); // layered better
+        SingleMapMAPFTest(MAPFTestConfig_den312d, {400, 500, 600, 700, 800, 900}, 10, 60); // layered better
+        SingleMapMAPFTest(MAPFTestConfig_den520d, {400, 500, 600, 700, 800, 900}, 10, 60); // layered better
+
+        SingleMapMAPFTest(MAPFTestConfig_Berlin_1_256, {500, 600, 700, 800, 900, 1000}, 10, 60); // layered better
+        SingleMapMAPFTest(MAPFTestConfig_Paris_1_256, {500, 600, 700, 800, 900, 1000}, 10, 60); // layered better
+
+        SingleMapMAPFTest(MAPFTestConfig_ht_chantry, {500, 600, 700, 800, 900, 1000}, 10,
+                          60); // layered better
+        SingleMapMAPFTest(MAPFTestConfig_lak303d, {500, 600, 700, 800, 900, 1000}, 10,
+                          60); // layered better
     }
 
     //

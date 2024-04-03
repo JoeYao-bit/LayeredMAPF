@@ -156,13 +156,13 @@ namespace freeNav::LayeredMAPF {
 
         bool decompositionValidCheck(const std::vector<std::set<int> >& all_levels) const {
             for(int i=0; i<all_levels.size(); i++) {
-                std::set<int> avoid_sats = {};
+                std::vector<bool> avoid_sats(2*instance_.size(), false);
                 for(int j=0; j<all_levels.size(); j++) {
                     if(i == j) { continue; }
                     if(i > j) {
-                        for(const int& pre_agent : all_levels[j]) { avoid_sats.insert(2*pre_agent + 1); }
+                        for(const int& pre_agent : all_levels[j]) { avoid_sats[2*pre_agent + 1] = true; }
                     } else {
-                        for(const int& after_agent : all_levels[j]) { avoid_sats.insert(2*after_agent); }
+                        for(const int& after_agent : all_levels[j]) { avoid_sats[2*after_agent] = true; }
                     }
                 }
                 for(const int& agent : all_levels[i]) {
@@ -213,19 +213,20 @@ namespace freeNav::LayeredMAPF {
         }
 
         // transform agents' id to 2*id and 2*id + 1
-        std::set<int> AgentIdsToSATID(const std::set<int>& agent_ids) const {
-            std::set<int> retv;
+        std::vector<bool> AgentIdsToSATID(const std::set<int>& agent_ids) const {
+            std::vector<bool> retv(2*instance_.size(), false);
             for(const int& agent_id : agent_ids) {
-                retv.insert(2*agent_id);
-                retv.insert(2*agent_id + 1);
+                retv[2*agent_id] = true;
+                retv[2*agent_id + 1] = true;
             }
             return retv;
         }
 
         bool isClusterIndependent(const std::set<int>& instance_id_set, const std::set<int>& specific_agents = {}) {
             auto set_need_check = specific_agents.empty() ? instance_id_set : specific_agents;
+            std::vector<bool> buffer_sat = AgentIdsToSATID(instance_id_set);
             for (const auto &unavoid_agent : set_need_check) {
-                auto passing_agents = searchAgent(unavoid_agent, {}, AgentIdsToSATID(instance_id_set)); // pass test
+                auto passing_agents = searchAgent(unavoid_agent, {}, buffer_sat); // pass test
                 if (passing_agents.empty()) {
                     // failed always caused by cluster in remaining set that block the whole way
                     return false;
@@ -238,8 +239,9 @@ namespace freeNav::LayeredMAPF {
         std::pair<std::set<int>, std::set<int>> clusterIndependentCheck(const std::set<int>& instance_id_set, const std::set<int>& specific_agents = {}) {
             std::set<int> success_in_set, failed_in_set;
             auto set_need_check = specific_agents.empty() ? instance_id_set : specific_agents;
+            std::vector<bool> buffer_sat = AgentIdsToSATID(instance_id_set);
             for (const auto &unavoid_agent : set_need_check) {
-                auto passing_agents = searchAgent(unavoid_agent, {}, AgentIdsToSATID(instance_id_set)); // pass test
+                auto passing_agents = searchAgent(unavoid_agent, {}, buffer_sat); // pass test
                 if (passing_agents.empty()) {
                     // failed always caused by cluster in remaining set that block the whole way
                     failed_in_set.insert(unavoid_agent);
@@ -257,6 +259,7 @@ namespace freeNav::LayeredMAPF {
         std::map<int, std::set<int> > searchUnAvoidAgentForEachAgent(
                 const std::map<int, std::set<int> >& all_passing_agent, const std::set<int>& instance_id_set, bool distinguish_sat = false) const {
             std::map<int, std::set<int> > all_unavoidable_agent;
+            std::vector<bool> within_set = AgentIdsToSATID(instance_id_set);
             for(const auto& id_agent_pair : all_passing_agent) {
                 const int& agent_id = id_agent_pair.first;
                 const std::set<int>& agent_path = id_agent_pair.second;
@@ -265,9 +268,8 @@ namespace freeNav::LayeredMAPF {
                     if(all_unavoidable_agent.find(agent_id) == all_unavoidable_agent.end()) {
                         all_unavoidable_agent.insert(std::pair<int, std::set<int> >(agent_id, {}));
                     }
-
-                    std::set<int> within_set = AgentIdsToSATID(instance_id_set);
-                    std::set<int> avoid_list = std::set<int>({ other_agent*2, other_agent*2 + 1 });
+                    std::vector<bool> avoid_list(2*instance_.size(), false);
+                    avoid_list[other_agent*2] = true, avoid_list[other_agent*2 + 1] = true;
                     if((searchAgent(agent_id, avoid_list, within_set, distinguish_sat)).empty()) {
                         all_unavoidable_agent.at(agent_id).insert(other_agent);
                     }
@@ -287,8 +289,9 @@ namespace freeNav::LayeredMAPF {
             // upper bound of cluster size
             std::map<int, std::set<int> > all_agents_path;
             //std::cout << "-- agents " << agents << std::endl;
+            std::vector<bool> buffer_sat = AgentIdsToSATID(agents);
             for(const int& agent_id : agents) {
-                auto passing_agents = searchAgent(agent_id, {}, AgentIdsToSATID(agents)); // pass test
+                auto passing_agents = searchAgent(agent_id, {}, buffer_sat); // pass test
                 all_agents_path.insert({agent_id, passing_agents});
                 //std::cout << "agent " << agent_id << " 's pass agents: " << passing_agents << std::endl;
             }
@@ -410,8 +413,9 @@ namespace freeNav::LayeredMAPF {
 
             // get top level isolated clusters
             std::map<int, std::set<int> > all_agents_path;
+            std::vector<bool> buffer_sat = AgentIdsToSATID(buffer_agents);
             for(const int& agent_id : buffer_agents) {
-                auto passing_agents = searchAgent(agent_id, {}, AgentIdsToSATID(buffer_agents)); // pass test
+                auto passing_agents = searchAgent(agent_id, {}, buffer_sat); // pass test
                 all_agents_path.insert({agent_id, passing_agents});
                 //std::cout << "agent " << agent_id << " 's pass agents: " << passing_agents << std::endl;
             }
@@ -523,8 +527,9 @@ namespace freeNav::LayeredMAPF {
             // provide more room to avoid large loops
             std::vector<std::pair<int, int>> sat_path_length_and_agent;
 
+            std::vector<bool> cluster_sat = AgentIdsToSATID(cluster);
             for(const int& agent_id : cluster) {
-                auto passing_sats = searchAgent(agent_id, {}, AgentIdsToSATID(cluster), true); // pass test
+                auto passing_sats = searchAgent(agent_id, {}, cluster_sat, true); // pass test
                 assert(!passing_sats.empty());
                 //std::cout << agent_id << " agent passing_sats " << passing_sats << std::endl;
                 sat_path_length_and_agent.push_back({agent_id, passing_sats.size()});
@@ -543,7 +548,7 @@ namespace freeNav::LayeredMAPF {
             for(const auto& agent_id : cluster) {
 #endif
                 //std::cout << " agent_id " << agent_id << " and sat path length " << temp_pair.second << std::endl;
-                auto passing_sats = searchAgent(agent_id, {}, AgentIdsToSATID(cluster), true); // pass test
+                auto passing_sats = searchAgent(agent_id, {}, cluster_sat, true); // pass test
                 assert(!passing_sats.empty());
                 //std::cout << agent_id << " agent passing_sats " << passing_sats << std::endl;
 
@@ -919,7 +924,11 @@ namespace freeNav::LayeredMAPF {
 
         // return path that consists of agents
         // distinguish_sat whether consider start and target as one in calculate cost
-        std::set<int> searchAgent(int agent_id, const std::set<int>& avoid_agents, const std::set<int>& passing_agents, bool distinguish_sat = false, const std::set<int>& ignore_cost_set = {}) const {
+        std::set<int> searchAgent(int agent_id,
+                                  const std::vector<bool>& avoid_agents,
+                                  const std::vector<bool>& passing_agents,
+                                  bool distinguish_sat = false,
+                                  const std::vector<bool>& ignore_cost_set = {}) const {
             // test search pass agent search
             Pointi<N> start_pt = instance_[agent_id].first;
             int start_hyper_node = grid_map_[PointiToId(start_pt, dimen_)]->hyper_node_id_;

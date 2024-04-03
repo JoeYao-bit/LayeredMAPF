@@ -194,18 +194,18 @@ namespace freeNav::LayeredMAPF {
         // distinguish_sat means whether considering
         std::set<int> search(int hyper_node_id,
                              const HyperGraphNodePtrs<N> all_hyper_nodes,
-                             const std::set<int> &avoid_agents,
-                             const std::set<int> &passing_agents,
+                             const std::vector<bool> &avoid_agents,
+                             const std::vector<bool> &passing_agents,
                              const std::vector<int> heuristic_table,
-                             bool distinguish_sat = false, const std::set<int>& ignore_cost_set = {}) {
+                             bool distinguish_sat = false, const std::vector<bool> & ignore_cost_set = {}) {
             const auto &start_node_ptr = all_hyper_nodes[hyper_node_id];
             assert(start_node_ptr->agent_grid_ptr_ != nullptr);
 
             if(start_node_ptr != nullptr) {
                 // check whether avoid specific agents
-                if(avoid_agents.find(start_node_ptr->agent_grid_ptr_->agent_id_) != avoid_agents.end()) { return {}; }
+                if(!avoid_agents.empty() && avoid_agents[start_node_ptr->agent_grid_ptr_->agent_id_]) { return {}; }
                 // check whether passing specific agents, if passing_agents_ == empty, ignore this constraint
-                if(!passing_agents.empty() && passing_agents.find(start_node_ptr->agent_grid_ptr_->agent_id_) == passing_agents.end()) { return {}; }
+                if(!passing_agents.empty() && passing_agents[start_node_ptr->agent_grid_ptr_->agent_id_] == false) { return {}; }
             }
 
             const int &current_agent_id = start_node_ptr->agent_grid_ptr_->agent_id_;
@@ -245,13 +245,13 @@ namespace freeNav::LayeredMAPF {
                     // if current node is of an agent, check whether it in the avoidance list
                     if(neighbor_node_ptr->agent_grid_ptr_ != nullptr) {
                         // check whether avoid specific agents
-                        if(avoid_agents.find(neighbor_node_ptr->agent_grid_ptr_->agent_id_) != avoid_agents.end()) { continue; }
+                        if(!avoid_agents.empty() && avoid_agents[neighbor_node_ptr->agent_grid_ptr_->agent_id_]) { continue; }
                         // check whether passing specific agents, if passing_agents_ == empty, ignore this constraint
-                        if(!passing_agents.empty() && passing_agents.find(neighbor_node_ptr->agent_grid_ptr_->agent_id_) == passing_agents.end()) { continue; }
+                        if(!passing_agents.empty() && passing_agents[neighbor_node_ptr->agent_grid_ptr_->agent_id_] == false) { continue; }
                     }
                     bool ignore_cost = false;
                     if(!ignore_cost_set.empty() && neighbor_node_ptr->agent_grid_ptr_ != nullptr) {
-                        ignore_cost = ignore_cost_set.find(neighbor_node_ptr->agent_grid_ptr_->agent_id_) != ignore_cost_set.end();
+                        ignore_cost = ignore_cost_set[neighbor_node_ptr->agent_grid_ptr_->agent_id_];
                     }
 //                    std::cout << "start_node 1 cur and pre " << start_node << " / " << start_node->pa_ << std::endl;
                     auto next_node = new HyperGraphNodeData<N>(neighbor_node_ptr, curr_node, ignore_cost);
