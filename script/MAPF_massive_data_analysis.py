@@ -2,6 +2,7 @@ import matplotlib as mp
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import ticker
+import os
 
 def loadDataFromfile(file_path):
     data_list = list()
@@ -55,9 +56,9 @@ class SingleTestData:
     map_name = ''
     
 def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):    
-    fig=plt.figure(figsize=(7,5)) #添加绘图框
     map_and_agent_data = dict()
     for map_key, map_value in all_data_map.items():
+        fig=plt.figure(figsize=(5,3.5)) #添加绘图框
         for method_key, method_value in all_data_map[map_key].items():
             x = list()
             y = list()
@@ -75,39 +76,46 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
             else:
                 plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[splited_method_name[0]], markersize=14, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4)
                 
-    plt.tick_params(axis='both', labelsize=18)
-    formater = ticker.ScalarFormatter(useMathText=True) 
-    formater.set_scientific(True)
-    formater.set_powerlimits((0,0))
-    ax = plt.gca()
-    ax.yaxis.offsetText.set_fontsize(18)
-    ax.yaxis.set_major_formatter(formater)           
-    y_range = plt.ylim()
-    plt.ylim(0, y_range[1])
-    if is_percentage:
-        plt.ylim(0, 1)
-    plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5)
-    plt.tight_layout()        
-    save_path = '../test/pic/layered_MAPF/'+title
-    plt.savefig(save_path, dpi = 400, bbox_inches='tight')   
-    plt.close()
-    print("save path to " + save_path)
+        plt.tick_params(axis='both', labelsize=18)
+        formater = ticker.ScalarFormatter(useMathText=True) 
+        formater.set_scientific(True)
+        formater.set_powerlimits((0,0))
+        ax = plt.gca()
+        ax.yaxis.offsetText.set_fontsize(18)
+        ax.yaxis.set_major_formatter(formater)           
+        y_range = plt.ylim()
+        plt.ylim(0, y_range[1])
+        plt.title(ylable)
+        if is_percentage:
+            plt.ylim(0, 1)
+        plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5)
+        plt.tight_layout()        
+        save_path = '../test/pic/layered_MAPF/'+title
+        
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+            print("Folder: " + save_path + " created")
+            
+        save_path = save_path + "/" + map_key
+        plt.savefig(save_path, dpi = 400, bbox_inches='tight')   
+        plt.close()
+        print("save path to " + save_path)
      
     
 data_path_dir = '../test/test_data/layered_mapf/'
-all_map_name = [# "empty-16-16",
-                # "empty-32-32",
-                # "random-32-32-20",
-                # "warehouse-10-20-10-2-1",
-                # "maze-32-32-2",
-                # "maze-32-32-4",
-                # "den312d",
-                # "den520d",
-                 "Berlin_1_256",
-                 "Paris_1_256",
-                 "ht_chantry",
-                # "lak303d"
-                ]
+# all_map_name = ["empty-16-16",
+#                 "empty-32-32",
+#                 "random-32-32-20",
+#                 "warehouse-10-20-10-2-1",
+#                 "maze-32-32-2"
+#                 "maze-32-32-4",
+#                 "den312d",
+#                 "den520d",
+#                 "Berlin_1_256",
+#                 "Paris_1_256",
+#                 "ht_chantry",
+#                 "lak303d"
+#                 ]
 all_single_data = list()
 
 #map_and_marker = {"Berlin_1_256":'D-', "Boston_2_256":'o-', "Denver_2_256":'s-', "London_2_256":'p-', 
@@ -153,26 +161,44 @@ method_color_map = {
                   }
 
 map_format_map = {
-                 "empty-16-16":'P',
-                 "empty-32-32":'p',
-                 "random-32-32-20":'X',
-                 "warehouse-10-20-10-2-1":'+',
+                 "empty-16-16":'o',
+                 "empty-32-32":'o',
+                 
                  "maze-32-32-2":'*',
-                 "maze-32-32-4":'o',
-                 "den312d":'V',
-                 "den520d":'^',
+                 "maze-32-32-4":'*',
+                 "maze-128-128-2":'*',
+                 "maze-128-128-10":'*',
+                 
+                 "den312d":'v',
+                 "den520d":'v',
+                 
                  "Berlin_1_256":'<',
-                 "Paris_1_256":'>',
+                 "Paris_1_256":'<',
+                 
                  "ht_chantry":'H',
-                 "lak303d":'D'
+                 "lak303d":'H',
+                 
+                 "random-32-32-20":'D',
+                 "random-64-64-10":'D',  # maximum 8s
+                 "random-64-64-20":'D',
+                 
+                 "room-32-32-4":'X',
+                 "room-64-64-8":'X',
+                 "room-64-64-16":'X',
+
+                 "warehouse-10-20-10-2-1":'+',
+                 "warehouse-20-40-10-2-2":'+',
+                 "warehouse-20-40-20-2-1":'+',
+                 "warehouse-20-40-20-2-2":'+',
+
 }
 
 # 1, load all data
-for map_name in all_map_name:
-    data_file_path = data_path_dir + map_name + '.txt'
+for map_name_key, map_format_value in map_format_map.items():
+    data_file_path = data_path_dir + map_name_key + '.txt'
     print('load data from', data_file_path)
     single = SingleTestData() # 不带括号则均指向同一元素
-    single.map_name = map_name
+    single.map_name = map_name_key
     single.data_list = loadDataFromfile(data_file_path)
     all_single_data.append(single)
     
@@ -189,8 +215,8 @@ for single_data in all_single_data:
     #map_name = single.map_name
     for line_data in single_data.data_list:
         
-        # if line_data.method != "RAW_EECBS" and line_data.method != "LAYERED_EECBS":
-        #    continue
+        if line_data.method != "RAW_EECBS" and line_data.method != "LAYERED_EECBS":
+           continue
         
         # if line_data.method != "RAW_PushAndSwap" and line_data.method != "LAYERED_PushAndSwap":
         #     continue
