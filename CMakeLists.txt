@@ -96,12 +96,13 @@ aux_source_directory(third_party/CBSH2-RTC/src              CBSH2-RTC_src)
 aux_source_directory(third_party/PBS/src                    PBS_src)
 aux_source_directory(third_party/lacam/src                  lacam_src)
 aux_source_directory(third_party/lacam2/src                 lacam2_src)
+aux_source_directory(third_party/lacam3/src                 lacam3_src)
 aux_source_directory(third_party/MAPF-LNS2/src              MAPF_LNS2_src)
 aux_source_directory(third_party/MAPF-LNS2/src/CBS          MAPF_LNS2_CBS_src)
 aux_source_directory(third_party/MAPF-LNS2/src/PIBT         MAPF_LNS2_PIBT_src)
 aux_source_directory(third_party/pibt2/src                  PIBT2_src)
 
-add_library(EECBS_lib  ${EECBS_src} ${PBS_src} ${lacam_src} ${CBSH2-RTC_src} ${lacam2_src}
+add_library(EECBS_lib  ${EECBS_src} ${PBS_src} ${lacam_src} ${CBSH2-RTC_src} ${lacam2_src} ${lacam3_src}
         ${MAPF_LNS2_src} ${MAPF_LNS2_CBS_src} ${MAPF_LNS2_PIBT_src} ${PIBT2_src})
 
 aux_source_directory(test/visualization vis_src)
@@ -118,6 +119,9 @@ target_link_libraries(test_2d_mapf_viewer freeNav-base alg_lib)
 
 add_executable(test_lacam test/test_lacam.cpp)
 target_link_libraries(test_lacam freeNav-base alg_lib)
+
+add_executable(test_lacam3 test/main.cpp)
+target_link_libraries(test_lacam3 freeNav-base alg_lib)
 
 add_executable(test_memory_check test/test_memory_check.cpp)
 target_link_libraries(test_memory_check freeNav-base alg_lib)
