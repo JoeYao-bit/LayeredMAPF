@@ -6,36 +6,41 @@
 
 #include "dist_table.hpp"
 #include "lnode.hpp"
+namespace LaCAM3 {
 
 // high-level search node
-struct HNode;
-struct CompareHNodePointers {  // for determinism
-  bool operator()(const HNode *lhs, const HNode *rhs) const;
-};
+    struct HNode;
 
-struct HNode {
-  static int COUNT;
+    struct CompareHNodePointers {  // for determinism
+        bool operator()(const HNode *lhs, const HNode *rhs) const;
+    };
 
-  const Config C;
-  HNode *parent;
-  std::set<HNode *, CompareHNodePointers> neighbor;
+    struct HNode {
+        static int COUNT;
 
-  // value
-  int g;
-  int h;
-  int f;
+        const Config C;
+        HNode *parent;
+        std::set<HNode *, CompareHNodePointers> neighbor;
 
-  // for low-level search
-  std::vector<float> priorities;
-  std::vector<int> order;
-  std::queue<LNode *> search_tree;
+        // value
+        int g;
+        int h;
+        int f;
 
-  HNode(Config _C, DistTable *D, HNode *_parent = nullptr, int _g = 0,
-        int _h = 0);
-  ~HNode();
+        // for low-level search
+        std::vector<float> priorities;
+        std::vector<int> order;
+        std::queue<LNode *> search_tree;
 
-  LNode *get_next_lowlevel_node(std::mt19937 &MT);
-};
-using HNodes = std::vector<HNode *>;
+        HNode(Config _C, DistTable *D, HNode *_parent = nullptr, int _g = 0,
+              int _h = 0);
 
-std::ostream &operator<<(std::ostream &os, const HNode *H);
+        ~HNode();
+
+        LNode *get_next_lowlevel_node(std::mt19937 &MT);
+    };
+
+    using HNodes = std::vector<HNode *>;
+
+    std::ostream &operator<<(std::ostream &os, const HNode *H);
+}

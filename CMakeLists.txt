@@ -120,7 +120,7 @@ target_link_libraries(test_2d_mapf_viewer freeNav-base alg_lib)
 add_executable(test_lacam test/test_lacam.cpp)
 target_link_libraries(test_lacam freeNav-base alg_lib)
 
-add_executable(test_lacam3 test/main.cpp)
+add_executable(test_lacam3 test/test_lacam3.cpp)
 target_link_libraries(test_lacam3 freeNav-base alg_lib)
 
 add_executable(test_memory_check test/test_memory_check.cpp)

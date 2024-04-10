@@ -1,7 +1,7 @@
 #include <argparse/argparse.hpp>
 #include <iostream>
 #include <lacam3/include/lacam.hpp>
-
+using namespace LaCAM3;
 int main(int argc, char *argv[])
 {
   // arguments parser

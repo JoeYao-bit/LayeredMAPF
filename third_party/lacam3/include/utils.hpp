@@ -22,50 +22,59 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+namespace LaCAM3 {
 
-using Time = std::chrono::steady_clock;
+    using Time = std::chrono::steady_clock;
 
 // time manager
-struct Deadline {
-  const Time::time_point t_s;
-  const double time_limit_ms;
+    struct Deadline {
+        const Time::time_point t_s;
+        const double time_limit_ms;
 
-  Deadline(double _time_limit_ms = 0);
-  double elapsed_ms() const;
-  double elapsed_ns() const;
-};
+        Deadline(double _time_limit_ms = 0);
 
-double elapsed_ms(const Deadline *deadline);
-double elapsed_ns(const Deadline *deadline);
-bool is_expired(const Deadline *deadline);
+        double elapsed_ms() const;
 
-float get_random_float(std::mt19937 &MT, float from = 0, float to = 1);
-float get_random_float(std::mt19937 *MT, float from = 0, float to = 1);
-int get_random_int(std::mt19937 &MT, int from = 0, int to = 1);
-int get_random_int(std::mt19937 *MT, int from = 0, int to = 1);
+        double elapsed_ns() const;
+    };
 
-template <typename Head, typename... Tail>
-void info(const int level, const int verbose, Head &&head, Tail &&...tail);
+    double elapsed_ms(const Deadline *deadline);
 
-void info(const int level, const int verbose);
+    double elapsed_ns(const Deadline *deadline);
 
-template <typename Head, typename... Tail>
-void info(const int level, const int verbose, Head &&head, Tail &&...tail)
-{
-  if (verbose < level) return;
-  std::cout << head;
-  info(level, verbose, std::forward<Tail>(tail)...);
+    bool is_expired(const Deadline *deadline);
+
+    float get_random_float(std::mt19937 &MT, float from = 0, float to = 1);
+
+    float get_random_float(std::mt19937 *MT, float from = 0, float to = 1);
+
+    int get_random_int(std::mt19937 &MT, int from = 0, int to = 1);
+
+    int get_random_int(std::mt19937 *MT, int from = 0, int to = 1);
+
+    template<typename Head, typename... Tail>
+    void info(const int level, const int verbose, Head &&head, Tail &&...tail);
+
+    void info(const int level, const int verbose);
+
+    template<typename Head, typename... Tail>
+    void info(const int level, const int verbose, Head &&head, Tail &&...tail) {
+        if (verbose < level) return;
+        std::cout << head;
+        info(level, verbose, std::forward<Tail>(tail)...);
+    }
+
+    template<typename... Body>
+    void info(const int level, const int verbose, const Deadline *deadline,
+              Body &&...body) {
+        if (verbose < level) return;
+        std::cout << "elapsed:" << std::setw(6) << elapsed_ms(deadline) << "ms  ";
+        info(level, verbose, (body)...);
+    }
+
+    std::ostream &operator<<(std::ostream &os, const std::vector<int> &arr);
+
+    std::ostream &operator<<(std::ostream &os, const std::list<int> &arr);
+
+    std::ostream &operator<<(std::ostream &os, const std::set<int> &arr);
 }
-
-template <typename... Body>
-void info(const int level, const int verbose, const Deadline *deadline,
-          Body &&...body)
-{
-  if (verbose < level) return;
-  std::cout << "elapsed:" << std::setw(6) << elapsed_ms(deadline) << "ms  ";
-  info(level, verbose, (body)...);
-}
-
-std::ostream &operator<<(std::ostream &os, const std::vector<int> &arr);
-std::ostream &operator<<(std::ostream &os, const std::list<int> &arr);
-std::ostream &operator<<(std::ostream &os, const std::set<int> &arr);
