@@ -3,6 +3,8 @@
  */
 #pragma once
 #include "utils.hpp"
+#include "../../../freeNav-base/basic_elements/point.h"
+
 namespace LaCAM3 {
 
     struct Vertex {
@@ -28,6 +30,8 @@ namespace LaCAM3 {
         Graph();
 
         Graph(const std::string &filename);  // taking map filename
+        // yz: for common interfaces
+        Graph(freeNav::DimensionLength* dim, const freeNav::IS_OCCUPIED_FUNC<2> & isoc);
         ~Graph();
 
         int size() const;  // the number of vertices, |V|

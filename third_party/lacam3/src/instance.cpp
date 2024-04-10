@@ -107,4 +107,23 @@ namespace LaCAM3 {
         }
         return true;
     }
+
+    Instance::Instance(freeNav::DimensionLength* dim, const freeNav::IS_OCCUPIED_FUNC<2> & isoc,
+                       const freeNav::Instances<2> & instance_sat) : G(new Graph(dim, isoc)), starts(Config()), goals(Config()), N(instance_sat.size()) {
+        // yz: insert start and target
+        for(const auto& sat : instance_sat) {
+            auto x_s = sat.first[0];
+            auto y_s = sat.first[1];
+            auto x_g = sat.second[0];
+            auto y_g = sat.second[1];
+            if (x_s < 0 || G->width <= x_s || x_g < 0 || G->width <= x_g) continue;
+            if (y_s < 0 || G->height <= y_s || y_g < 0 || G->height <= y_g) continue;
+            auto s = G->U[G->width * y_s + x_s];
+            auto g = G->U[G->width * y_g + x_g];
+            if (s == nullptr || g == nullptr) continue;
+            starts.push_back(s);
+            goals.push_back(g);
+        }
+    }
+
 }

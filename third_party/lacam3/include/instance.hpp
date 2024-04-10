@@ -6,6 +6,9 @@
 
 #include "graph.hpp"
 #include "utils.hpp"
+#include "../../../freeNav-base/basic_elements/point.h"
+#include "EECBS/inc/ConstraintTable.h" // yz: use EECBS's constraint table as static constraint during each expansion of LaCAM
+
 namespace LaCAM3 {
 
     struct Instance {
@@ -28,6 +31,11 @@ namespace LaCAM3 {
         // random instance generation
         Instance(const std::string &map_filename, const int _N = 1,
                  const int seed = 0);
+
+
+        // yz: for freeNav style interfaces
+        Instance(freeNav::DimensionLength* dim, const freeNav::IS_OCCUPIED_FUNC<2> & isoc,
+                 const freeNav::Instances<2> & instance_sat);
 
         ~Instance();
 

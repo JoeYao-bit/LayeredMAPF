@@ -24,7 +24,7 @@ namespace LaCAM3 {
         DistTable *D;
 
         // specific to PIBT
-        const int NO_AGENT;
+        const int NO_AGENT_LACAM3;
         std::vector<int> occupied_now;                // for quick collision checking
         std::vector<int> occupied_next;               // for quick collision checking
         std::vector<std::array<Vertex *, 5>> C_next;  // next location candidates

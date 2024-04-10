@@ -127,4 +127,51 @@ namespace LaCAM3 {
         }
         return os;
     }
+
+    Graph::Graph(freeNav::DimensionLength* dim, const freeNav::IS_OCCUPIED_FUNC<2> & isoc) {
+        width = dim[0], height = dim[1];
+        U = Vertices(width * height, nullptr);
+
+        freeNav::Pointi<2> pt;
+        for(int x=0; x<dim[0]; x++) {
+            for(int y=0; y<dim[1]; y++) {
+                pt = freeNav::Pointi<2>{x, y};
+                if(!isoc(pt)) {
+                    auto index = width * y + x;
+                    auto v = new Vertex(V.size(), index, x, y);
+                    V.push_back(v);
+                    U[index] = v;
+                }
+            }
+        }
+
+        // create edges
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                auto v = U[width * y + x];
+                if (v == nullptr) continue;
+                // left
+                if (x > 0) {
+                    auto u = U[width * y + (x - 1)];
+                    if (u != nullptr) v->neighbor.push_back(u);
+                }
+                // right
+                if (x < width - 1) {
+                    auto u = U[width * y + (x + 1)];
+                    if (u != nullptr) v->neighbor.push_back(u);
+                }
+                // up
+                if (y < height - 1) {
+                    auto u = U[width * (y + 1) + x];
+                    if (u != nullptr) v->neighbor.push_back(u);
+                }
+                // down
+                if (y > 0) {
+                    auto u = U[width * (y - 1) + x];
+                    if (u != nullptr) v->neighbor.push_back(u);
+                }
+            }
+        }
+    }
+
 }

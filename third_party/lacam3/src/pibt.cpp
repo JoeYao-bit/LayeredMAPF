@@ -8,9 +8,9 @@ namespace LaCAM3 {
               N(ins->N),
               V_size(ins->G->size()),
               D(_D),
-              NO_AGENT(N),
-              occupied_now(V_size, NO_AGENT),
-              occupied_next(V_size, NO_AGENT),
+              NO_AGENT_LACAM3(N),
+              occupied_now(V_size, NO_AGENT_LACAM3),
+              occupied_next(V_size, NO_AGENT_LACAM3),
               C_next(N, std::array<Vertex *, 5>()),
               tie_breakers(V_size, 0),
               flg_swap(_flg_swap),
@@ -30,13 +30,13 @@ namespace LaCAM3 {
             // set occupied next
             if (Q_to[i] != nullptr) {
                 // vertex collision
-                if (occupied_next[Q_to[i]->id] != NO_AGENT) {
+                if (occupied_next[Q_to[i]->id] != NO_AGENT_LACAM3) {
                     success = false;
                     break;
                 }
                 // swap collision
                 auto j = occupied_now[Q_to[i]->id];
-                if (j != NO_AGENT && j != i && Q_to[j] == Q_from[i]) {
+                if (j != NO_AGENT_LACAM3 && j != i && Q_to[j] == Q_from[i]) {
                     success = false;
                     break;
                 }
@@ -55,8 +55,8 @@ namespace LaCAM3 {
 
         // cleanup
         for (auto i = 0; i < N; ++i) {
-            occupied_now[Q_from[i]->id] = NO_AGENT;
-            if (Q_to[i] != nullptr) occupied_next[Q_to[i]->id] = NO_AGENT;
+            occupied_now[Q_from[i]->id] = NO_AGENT_LACAM3;
+            if (Q_to[i] != nullptr) occupied_next[Q_to[i]->id] = NO_AGENT_LACAM3;
         }
 
         return success;
@@ -92,19 +92,19 @@ namespace LaCAM3 {
                   });
 
         // emulate swap
-        auto swap_agent = NO_AGENT;
+        auto swap_agent = NO_AGENT_LACAM3;
         if (flg_swap) {
             swap_agent = is_swap_required_and_possible(i, Q_from, Q_to);
-            if (swap_agent != NO_AGENT) {
+            if (swap_agent != NO_AGENT_LACAM3) {
                 // reverse vertex scoring
                 std::reverse(C_next[i].begin(), C_next[i].begin() + K + 1);
             }
         }
 
         auto swap_operation = [&]() {
-            if (swap_agent != NO_AGENT &&                 // swap_agent exists
+            if (swap_agent != NO_AGENT_LACAM3 &&                 // swap_agent exists
                 Q_to[swap_agent] == nullptr &&            // not decided
-                occupied_next[Q_from[i]->id] == NO_AGENT  // free
+                occupied_next[Q_from[i]->id] == NO_AGENT_LACAM3  // free
                     ) {
                 // pull swap_agent
                 occupied_next[Q_from[i]->id] = swap_agent;
@@ -117,19 +117,19 @@ namespace LaCAM3 {
             auto u = C_next[i][k];
 
             // avoid vertex conflicts
-            if (occupied_next[u->id] != NO_AGENT) continue;
+            if (occupied_next[u->id] != NO_AGENT_LACAM3) continue;
 
             const auto j = occupied_now[u->id];
 
             // avoid swap conflicts with constraints
-            if (j != NO_AGENT && Q_to[j] == Q_from[i]) continue;
+            if (j != NO_AGENT_LACAM3 && Q_to[j] == Q_from[i]) continue;
 
             // reserve next location
             occupied_next[u->id] = i;
             Q_to[i] = u;
 
             // priority inheritance
-            if (j != NO_AGENT && u != Q_from[i] && Q_to[j] == nullptr &&
+            if (j != NO_AGENT_LACAM3 && u != Q_from[i] && Q_to[j] == nullptr &&
                 !funcPIBT(j, Q_from, Q_to))
                 continue;
 
@@ -148,7 +148,7 @@ namespace LaCAM3 {
                                             Config &Q_to) {
         // agent-j occupying the desired vertex for agent-i
         const auto j = occupied_now[C_next[i][0]->id];
-        if (j != NO_AGENT && j != i &&  // j exists
+        if (j != NO_AGENT_LACAM3 && j != i &&  // j exists
             Q_to[j] == nullptr &&       // j does not decide next location
             is_swap_required(i, j, Q_from[i], Q_from[j]) &&  // swap required
             is_swap_possible(Q_from[j], Q_from[i])           // swap possible
@@ -160,7 +160,7 @@ namespace LaCAM3 {
         if (C_next[i][0] != Q_from[i]) {
             for (auto u : Q_from[i]->neighbor) {
                 const auto k = occupied_now[u->id];
-                if (k != NO_AGENT &&              // k exists
+                if (k != NO_AGENT_LACAM3 &&              // k exists
                     C_next[i][0] != Q_from[k] &&  // this is for clear operation
                     is_swap_required(k, i, Q_from[i],
                                      C_next[i][0]) &&  // emulating from one step ahead
@@ -169,7 +169,7 @@ namespace LaCAM3 {
                 }
             }
         }
-        return NO_AGENT;
+        return NO_AGENT_LACAM3;
     }
 
     bool PIBT::is_swap_required(const int pusher, const int puller,
@@ -183,7 +183,7 @@ namespace LaCAM3 {
             for (auto u : v_puller->neighbor) {
                 const auto i = occupied_now[u->id];
                 if (u == v_pusher ||
-                    (u->neighbor.size() == 1 && i != NO_AGENT && ins->goals[i] == u)) {
+                    (u->neighbor.size() == 1 && i != NO_AGENT_LACAM3 && ins->goals[i] == u)) {
                     --n;
                 } else {
                     tmp = u;
@@ -210,7 +210,7 @@ namespace LaCAM3 {
             for (auto u : v_puller->neighbor) {
                 const auto i = occupied_now[u->id];
                 if (u == v_pusher ||
-                    (u->neighbor.size() == 1 && i != NO_AGENT && ins->goals[i] == u)) {
+                    (u->neighbor.size() == 1 && i != NO_AGENT_LACAM3 && ins->goals[i] == u)) {
                     --n;
                 } else {
                     tmp = u;
