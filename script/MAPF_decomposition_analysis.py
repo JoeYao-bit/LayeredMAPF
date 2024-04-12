@@ -172,7 +172,11 @@ all_map_name = [
                 "warehouse-10-20-10-2-1",
                 "warehouse-10-20-10-2-2",
                 "warehouse-20-40-10-2-1",
-                "warehouse-20-40-10-2-2"
+                "warehouse-20-40-10-2-2",
+                
+                "Boston_0_256",
+                "lt_gallowstemplar_n",
+                "orz900d"
                 ]
 
 all_single_data = list()
