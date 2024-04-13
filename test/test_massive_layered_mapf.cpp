@@ -88,9 +88,12 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
         double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3; \
         sleep(1);                 \
         float maximal_usage = memory_recorder.getMaximalMemoryUsage(); \
-        if(0){ \
-            std::cout << name << " maximal usage = " << maximal_usage - base_usage << " MB" << " with data " << memory_recorder.getAllUsedMemory().size() << std::endl; \
+        if(1){ \
+            std::cout << name << " maximal usage = " << maximal_usage - base_usage << " MB" << " with data size " << memory_recorder.getAllUsedMemory().size() << std::endl; \
         }                                                               \
+        if(1) { \
+            std::cout << name << " time_cost = " << time_cost << " ms" << std::endl; \
+        } \
         std::stringstream ss; \
         ss << name << " " << ists.size() << " " << time_cost << " " \
            << total_cost << " " << maximum_single_cost << " " << !paths.empty() << " " << maximal_usage - base_usage << " "; \
@@ -229,9 +232,12 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
         }                                                                                          \
         sleep(1);         \
         float maximal_usage = memory_recorder.getMaximalMemoryUsage(); \
-        if(0){ \
-            std::cout << name << " maximal usage = " << maximal_usage - base_usage << " MB" << " with data " << memory_recorder.getAllUsedMemory().size()<< std::endl; \
+        if(1){ \
+            std::cout << name << " maximal usage = " << maximal_usage - base_usage << " MB" << " with data size " << memory_recorder.getAllUsedMemory().size()<< std::endl; \
         }                                                                                          \
+        if(1) { \
+            std::cout << name << " time_cost = " << time_cost << " ms" << std::endl; \
+        }\
         std::stringstream ss; \
         ss << name << " " << instances.size() << " " << time_cost << " " \
            << total_cost << " " << maximum_single_cost << " " << !paths.empty() << " " << maximal_usage - base_usage << " " \
@@ -377,12 +383,12 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 
     bool all_success = SingleMapMAPFPathPlanningsTest<2>(dim, is_occupied_func, istss,
                                                          {
-                                                          EECBS,
-                                                          EECBS_LAYERED,
+//                                                          EECBS,
+//                                                          EECBS_LAYERED,
 //
 //                                                          PBS,
 //                                                          PBS_LAYERED,
-////
+
 //                                                          LNS,
 //                                                          LNS_LAYERED, // unexccepted assert failed abut MDD
 
@@ -398,20 +404,20 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 //                                                          LaCAM,               // need lots storage
 //                                                          LaCAM_LAYERED,       // need lots storage
 
-//                                                          LaCAM2,
+//                                                          LaCAM2,              // added massive test
 //                                                          LaCAM2_LAYERED,
 
 //                                                          PIBT,            // need lots storage
 //                                                          PIBT_LAYERED,    // need lots storage
 
-//                                                          PIBT2,
-//                                                          PIBT2_LAYERED,
+                                                          PIBT2,
+                                                          PIBT2_LAYERED,
 
 //                                                          HCA,             // need lots storage
 //                                                          HCA_LAYERED,     // need lots storage
 
-//                                                          PushAndSwap,
-//                                                          PushAndSwap_LAYERED
+                                                          PushAndSwap,
+                                                          PushAndSwap_LAYERED
                                                           },
                                                          map_test_config.at("output_path"),
                                                          prune);
@@ -458,26 +464,80 @@ int main(void) {
 ////    };
 //    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {10, 20, 30}, 2, 60); // layered better
 
+    int cut_off_time = 30;
+    int repeat_times = 5;
     for(int i=0; i<1; i++) {
         //SingleMapMAPFTest(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120}, 10, 60); // layered better
-        SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {40, 80, 120, 160, 200, 240, 280, 320, 360}, 10, 60); // layered better
 
-        SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {80, 100, 130, 150, 180}, 10, 60); // layered better
-        SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_1, {300, 350, 400, 450, 500}, 10, 60); //  layered worse
+//        SingleMapMAPFTest(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120},
+//                          10, 60); // good range
+//        SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400},
+//                          10, 60); // good range
+//
+//        SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120},
+//                          repeat_times, cut_off_time); // good range 40, 60, 80,
+//        SingleMapMAPFTest(MAPFTestConfig_maze_32_32_4, {20, 40, 80, 120, 160, 200, 240},
+//                          repeat_times, cut_off_time); // good range / PushAndSwapFailed here
+//        SingleMapMAPFTest(MAPFTestConfig_maze_128_128_2, {100, 200, 300, 400, 500, 600, 700},
+//                          repeat_times, cut_off_time);
+////      warn@ PushAndSwap: invalid move due to clear operation
+////error@PushAndSwap: vertex conflict
+//
+//        SingleMapMAPFTest(MAPFTestConfig_maze_128_128_10, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                          repeat_times, cut_off_time); // good range
+//
+//
+//        SingleMapMAPFTest(MAPFTestConfig_den312d, {100, 200, 300, 400, 500, 600, 700, 800},
+//                          repeat_times, cut_off_time); //  good range
+//        SingleMapMAPFTest(MAPFTestConfig_den520d, {100, 200, 300, 400, 500, 600, 700, 800, 900},
+//                          repeat_times, cut_off_time); // layered better
+//////
+//        SingleMapMAPFTest(MAPFTestConfig_Berlin_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900},
+//                          repeat_times, cut_off_time); // layered better
+//        SingleMapMAPFTest(MAPFTestConfig_Paris_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                          repeat_times, cut_off_time); // layered better
+//////
+//        SingleMapMAPFTest(MAPFTestConfig_ht_chantry, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                          repeat_times, cut_off_time);
+//        SingleMapMAPFTest(MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                          repeat_times, cut_off_time); // good range
 
-        SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {30, 40, 50, 60, 70}, 10, 60); // layered better
-        SingleMapMAPFTest(MAPFTestConfig_maze_32_32_4, {40, 50, 60, 70, 80, 90}, 10, 60); // layered better
+//        SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240},
+//                          repeat_times, cut_off_time);  // good range
+        // decomposition maximum 8s
+//        SingleMapMAPFTest(MAPFTestConfig_random_64_64_10, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                          repeat_times, cut_off_time); // good range
+//
+//        SingleMapMAPFTest(MAPFTestConfig_random_64_64_20, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                          repeat_times, cut_off_time); // good range
+//                          / PushAndSwapFailed here
+//                          warn@ PushAndSwap: invalid move due to clear operation
+//                          error@PushAndSwap: vertex conflict
 
-        SingleMapMAPFTest(MAPFTestConfig_den312d, {400, 500, 600, 700, 800, 900}, 10, 60); // layered better
-        SingleMapMAPFTest(MAPFTestConfig_den520d, {400, 500, 600, 700, 800, 900}, 10, 60); // layered better
+//        SingleMapMAPFTest(MAPFTestConfig_room_64_64_16, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                          repeat_times, cut_off_time); // good range
+//        SingleMapMAPFTest(MAPFTestConfig_room_64_64_8, {100, 200, 300, 400, 500, 600, 700},
+//                          repeat_times, cut_off_time);
+//        SingleMapMAPFTest(MAPFTestConfig_room_32_32_4, {10, 20, 40, 60, 80, 120, 160, 200}, repeat_times, cut_off_time);
 
-        SingleMapMAPFTest(MAPFTestConfig_Berlin_1_256, {500, 600, 700, 800, 900, 1000}, 10, 60); // layered better
-        SingleMapMAPFTest(MAPFTestConfig_Paris_1_256, {500, 600, 700, 800, 900, 1000}, 10, 60); // layered better
+        //  100, 200, 300, 400,
+        //SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800}, repeat_times, cut_off_time); // good range
+        //                          / PushAndSwapFailed here
+        //                          warn@ PushAndSwap: invalid move due to clear operation
+        //                          error@PushAndSwap: vertex conflict
 
-        SingleMapMAPFTest(MAPFTestConfig_ht_chantry, {500, 600, 700, 800, 900, 1000}, 10,
-                          60); // layered better
-        SingleMapMAPFTest(MAPFTestConfig_lak303d, {500, 600, 700, 800, 900, 1000}, 10,
-                          60); // layered better
+        //SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, repeat_times, cut_off_time); // good range
+
+        //SingleMapMAPFTest(MAPFTestConfig_warehouse_20_40_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, repeat_times, cut_off_time); // good range
+        //SingleMapMAPFTest(MAPFTestConfig_warehouse_20_40_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, repeat_times, cut_off_time); // good range
+
+
+//        SingleMapMAPFTest(MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, repeat_times, cut_off_time); // good range
+//
+//        SingleMapMAPFTest(MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, repeat_times, cut_off_time); // good range
+        SingleMapMAPFTest(MAPFTestConfig_orz900d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, repeat_times, cut_off_time); // good range
+
+
     }
 
     //

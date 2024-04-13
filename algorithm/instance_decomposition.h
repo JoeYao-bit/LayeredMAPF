@@ -556,7 +556,7 @@ namespace freeNav::LayeredMAPF {
                 all_agents_path.insert({agent_id, passing_sats});
 
                 // if current agent is in loop, try to find alternative path that can avoid loop
-#define TRY_AVOID_LOOP 1
+#define TRY_AVOID_LOOP 0
 #if TRY_AVOID_LOOP
                 std::vector<bool> avoid_sats(2*instance_.size(), false);
                 //int count=0;
@@ -601,6 +601,30 @@ namespace freeNav::LayeredMAPF {
             const auto& sorted_level = getSortedLevelFromStrongComponent(all_strong_components, ahead_sequence, later_sequence);
 
             return sorted_level;
+        }
+
+        /* unfinished algorithm */
+        std::vector<std::vector<int> > levelDecomposition(const std::vector<std::set<int> >& levels) {
+            for(int i=0; i<levels.size(); i++) {
+                // construct available set
+                std::vector<bool> passing_sat(2*instance_.size(), false);
+                for(int j=0; j<levels.size(); j++) {
+                    if(j == i) { continue; }
+                    if(j > i) {
+                        for(const auto& pre_agent : levels[j]) {
+                            // previous sub-problems start is passable
+                            passing_sat[2*pre_agent] = true;
+                        }
+                    } else {
+                        for(const auto& later_agent : levels[j]) {
+                            // later sub-problems target is passable
+                            passing_sat[2*later_agent + 1] = true;
+                        }
+                    }
+                }
+                //
+            }
+            return {};
         }
 
         // ahead_sequence store agent > another agent

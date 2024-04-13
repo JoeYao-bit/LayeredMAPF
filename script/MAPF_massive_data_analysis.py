@@ -22,10 +22,15 @@ def loadDataFromfile(file_path):
                 new_data.method = splited_line[0]
                 new_data.agent_count = int(splited_line[1])
                 new_data.time_cost = float(splited_line[2])
-                new_data.total_cost = float(splited_line[3])
-                new_data.max_single_cost = float(splited_line[4])
+                new_data.total_cost = int(splited_line[3])
+                new_data.max_single_cost = int(splited_line[4])
                 new_data.success = int(splited_line[5])
                 new_data.max_memory_usage = float(splited_line[6])
+                
+                if np.isnan(new_data.total_cost):
+                    continue
+                if np.isnan(new_data.max_single_cost):
+                    continue
                 
                 if new_data.time_cost > 35000:
                     new_data.success = 0
@@ -49,7 +54,7 @@ class LineData:
     agent_count = 0
     time_cost = 0
     total_cost = 0 
-    max_single_cost = 0.
+    max_single_cost = 0
     success = 0
     max_memory_usage = 0.
     # specific time component for layered MAPF
@@ -69,14 +74,17 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
         for method_key, method_value in all_data_map[map_key].items():
             x = list()
             y = list()
-            std_var = list()
+            #std_var = list()
             sorted_keys = sorted(all_data_map[map_key][method_key].keys())
             
             splited_method_name = method_key.split('_')
             for agent_size_key in sorted_keys:
                 x.append(agent_size_key)
-                y.append(np.mean(all_data_map[map_key][method_key][agent_size_key]))
-                std_var.append(np.std(all_data_map[map_key][method_key][agent_size_key]))
+                if len(all_data_map[map_key][method_key][agent_size_key]) > 0:
+                    y.append(np.mean(all_data_map[map_key][method_key][agent_size_key]))
+                else:
+                    y.append(0)
+                #std_var.append(np.std(all_data_map[map_key][method_key][agent_size_key]))
             # fmt=method_marker_map[method_key]
             if len(splited_method_name) == 1:
                 plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[name_of_decomposition], markersize=14, label=map_key+"/"+name_of_decomposition, linewidth=2, elinewidth=4, capsize=4)
@@ -89,12 +97,18 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
         formater.set_powerlimits((0,0))
         ax = plt.gca()
         ax.yaxis.offsetText.set_fontsize(18)
-        ax.yaxis.set_major_formatter(formater)           
-        y_range = plt.ylim()
-        plt.ylim(0, y_range[1])
-        #plt.title(ylable)
+        ax.yaxis.set_major_formatter(formater) 
+        
+        y_range = plt.ylim()      
+        if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage(MB)":
+            ax.set_yscale('log')  
+            plt.ylim(1, y_range[1]*10)  
+        else:    
+            plt.ylim(0, y_range[1])
+        plt.title(ylable)
         if is_percentage:
             plt.ylim(0, 1)
+                
         #plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5)
         plt.tight_layout()        
         save_path = '../test/pic/layered_MAPF/'+title
@@ -110,7 +124,7 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
 
 def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
     map_and_agent_data = dict()
-    fig=plt.figure(figsize=(5,3.5)) #添加绘图框 
+    fig=plt.figure(figsize=(5,4.5)) #添加绘图框 
     map_lists = list()
     value_lists_raw = list()
     value_lists_layered = list()
@@ -120,7 +134,10 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
         for method_key, method_value in all_data_map[map_key].items():
             value = list()           
             for agent_size_key in all_data_map[map_key][method_key].keys():
-                value.append(np.mean(all_data_map[map_key][method_key][agent_size_key]))
+                if len(all_data_map[map_key][method_key][agent_size_key]) > 0:
+                    value.append(np.mean(all_data_map[map_key][method_key][agent_size_key]))
+                else:
+                    value.append(0)
             head_split = method_key.split('_')
             if head_split[0] == 'LAYERED':  
                 plt.bar(map_format_list.index(map_key)+1+width/2, np.mean(value), width, hatch="////")    
@@ -143,13 +160,18 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
     formater.set_powerlimits((0,0))
     ax = plt.gca()
     ax.yaxis.offsetText.set_fontsize(18)
-    ax.yaxis.set_major_formatter(formater)           
-    y_range = plt.ylim()
-    plt.ylim(0, y_range[1])
-   
+    ax.yaxis.set_major_formatter(formater)      
+    
+    y_range = plt.ylim()      
+    if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage(MB)":
+        ax.set_yscale('log')  
+        plt.ylim(1, y_range[1]*10)  
+    else:    
+        plt.ylim(0, y_range[1])
     plt.title(ylable)
     if is_percentage:
         plt.ylim(0, 1)
+            
     #plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5)
     plt.tight_layout()        
     save_path = '../test/pic/layered_MAPF/'+title
@@ -166,9 +188,12 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
     
 def drawSummaryOfMethod(all_data_map, xlable, ylable, title, is_percentage=False):
     map_and_agent_data = dict()
-    fig=plt.figure(figsize=(5,3.5)) #添加绘图框 
+    fig=plt.figure(figsize=(5,4.5)) #添加绘图框 
 
     width = 0.4 
+    formater = ticker.ScalarFormatter(useMathText=True) 
+    formater.set_scientific(True)
+    formater.set_powerlimits((0,0))
     
     for method_top, method_value in all_data_map.items():
         value_lists_raw = list()
@@ -177,33 +202,50 @@ def drawSummaryOfMethod(all_data_map, xlable, ylable, title, is_percentage=False
             for method_key, method_value in all_data_map[method_top][map_key].items():
                 value = list()           
                 for agent_size_key in all_data_map[method_top][map_key][method_key].keys():
-                    value.append(np.mean(all_data_map[method_top][map_key][method_key][agent_size_key]))
+                    if len(all_data_map[method_top][map_key][method_key][agent_size_key]) > 0:
+                        value.append(np.mean(all_data_map[method_top][map_key][method_key][agent_size_key]))
+                    else:
+                        value.append(0)
                 head_split = method_key.split('_')
                 if head_split[0] == 'LAYERED':  
                     value_lists_layered.append(np.mean(value))  
                 if head_split[0] == 'RAW':
                     value_lists_raw.append(np.mean(value)) 
                     
-        plt.xticks(rotation=70)         
-        if len(value_lists_layered) > 0:
-            plt.bar(drawing_method_set.index(method_top)+width/2, np.mean(value_lists_layered), width, hatch="////") 
-        if len(value_lists_raw) > 0:
-            plt.bar(drawing_method_set.index(method_top)-width/2, np.mean(value_lists_raw), width)   
+        plt.xticks(rotation=70)    
+        if ylable == "Success rate(%)":
+            if len(value_lists_layered) > 0:
+                p1 = plt.bar(drawing_method_set.index(method_top)+width/2, np.mean(value_lists_layered), width, hatch="////") 
+                plt.bar_label(p1, label_type='edge', fmt="%.2g", rotation=70)#, fmt=formater) 
+            if len(value_lists_raw) > 0:
+                p2 = plt.bar(drawing_method_set.index(method_top)-width/2, np.mean(value_lists_raw), width)   
+                plt.bar_label(p2, label_type='edge', fmt="%.2g", rotation=70)#, fmt=formater)   
+        else:
+            if len(value_lists_layered) > 0:
+                p1 = plt.bar(drawing_method_set.index(method_top)+width/2, np.mean(value_lists_layered), width, hatch="////") 
+                plt.bar_label(p1, label_type='edge', fmt="%.1e", rotation=70)#, fmt=formater) 
+            if len(value_lists_raw) > 0:
+                p2 = plt.bar(drawing_method_set.index(method_top)-width/2, np.mean(value_lists_raw), width)   
+                plt.bar_label(p2, label_type='edge', fmt="%.1e", rotation=70)#, fmt=formater)    
         # break            
     
     plt.tick_params(axis='both', labelsize=14)
-    formater = ticker.ScalarFormatter(useMathText=True) 
-    formater.set_scientific(True)
-    formater.set_powerlimits((0,0))
+
     ax = plt.gca()
-    ax.yaxis.offsetText.set_fontsize(18)
-    ax.yaxis.set_major_formatter(formater)           
-    y_range = plt.ylim()
-    plt.ylim(0, y_range[1])
-   
+    ax.yaxis.offsetText.set_fontsize(8)
+    ax.yaxis.set_major_formatter(formater)     
+    plt.xticks([0,1,2,3,4,5,6], drawing_method_set_2)
+    
+    y_range = plt.ylim()      
+    if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage(MB)":
+        ax.set_yscale('log')  
+        plt.ylim(y_range[0]/10, y_range[1]*10)  
+    else:    
+        plt.ylim(0, y_range[1]*1.1)
     plt.title(ylable)
     if is_percentage:
         plt.ylim(0, 1)
+        
     #plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5)
     plt.tight_layout()        
     save_path = '../test/pic/layered_MAPF/'+title
@@ -345,6 +387,16 @@ drawing_method_set = [
                       "PIBT2", # some map not ok，advance in memory usage, drawback in time cost, full map
                       "LNS", # test ok, advance in memory usage, advance in time cost
                      ]
+
+drawing_method_set_2 = [
+                      "EECBS", # tested ok, advance in time cost, nothing in memory usage
+                      "PBS",  # tested ok, advance in time cost, advance in memory usage, full map
+                      "PAS", # some map not ok, advance in time cost, nothing in memory usage, full map
+                      "LaCAM2",# tested ok, drawback in time cost, drawback in memory usage, full map
+                      "HCA", # test ok, advance in memory usage, drawback in time cost, full map
+                      "PIBT2", # some map not ok，advance in memory usage, drawback in time cost, full map
+                      "LNS", # test ok, advance in memory usage, advance in time cost
+                     ]
     
 for single_data in all_single_data:
     #map_name = single.map_name
@@ -405,7 +457,7 @@ for single_data in all_single_data:
             all_method_total_cost_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.total_cost)
             all_method_makespan_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.max_single_cost)
 
-# for method_key, method_value in all_method_time_cost_map.items(): 
+#for method_key, method_value in all_method_time_cost_map.items(): 
 #     # draw at each agent size
 #     drawMethodMaps(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)           
 #     drawMethodMaps(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
@@ -413,16 +465,16 @@ for single_data in all_single_data:
 #     drawMethodMaps(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
 #     drawMethodMaps(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)        
     
-#     # draw summary of maps
-#     drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)    
-#     drawSummaryOfMap(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
-#     drawSummaryOfMap(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
-#     drawSummaryOfMap(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
-#     drawSummaryOfMap(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)      
+# #     # draw summary of maps
+    # drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)    
+    # drawSummaryOfMap(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
+    # drawSummaryOfMap(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
+    # drawSummaryOfMap(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
+    # drawSummaryOfMap(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)      
     
 #draw summary of methods
 drawSummaryOfMethod(all_method_time_cost_map, "Number of agents", "Time cost(ms)", "time_cost")           
 drawSummaryOfMethod(all_method_memory_usage_map, "Number of agents", "Memory usage(MB)", "memory_usage")           
 drawSummaryOfMethod(all_method_total_cost_map, "Number of agents", "Sum of cost", "sum_of_cost")           
 drawSummaryOfMethod(all_method_makespan_map, "Number of agents", "Makespan", "makespan")           
-drawSummaryOfMethod(all_method_success_rate_map, "Number of agents", "Success rate", "success_rate")      
+drawSummaryOfMethod(all_method_success_rate_map, "Number of agents", "Success rate(%)", "success_rate")      

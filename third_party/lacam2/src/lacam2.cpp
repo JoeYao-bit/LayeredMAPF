@@ -64,7 +64,6 @@ namespace LaCAM2 {
         for(int agent=0; agent<instance_sat.size(); agent++) {
             const freeNav::Pointi<2>& target = retv[agent].back();
             auto& path = retv[agent];
-//            std::cout << "before prune" << path << std::endl;
             for(auto iter = path.end(); iter != path.begin(); ) {
                 if(*(iter-2) == target) {
                     iter = path.erase(iter-1);
@@ -72,45 +71,9 @@ namespace LaCAM2 {
                     break;
                 }
             }
-//            std::cout << "target " << target << " instance_sat[agent].second " << instance_sat[agent].second << std::endl;
-//            std::cout << "start " << path.front() << " instance_sat[agent].first " << instance_sat[agent].first << std::endl;
             assert(path.front() == instance_sat[agent].first);
             assert(path.back() == instance_sat[agent].second);
-//            std::cout << "after prune" << path << std::endl;
         }
-        // debug: check whether resulted path meet ct
-//        std::cout << "** lacam internal new path meet ct check, previous path size " << previous_paths.size()
-//                  << " current new path size " <<  retv.size() << std::endl;
-//        freeNav::Paths<2> new_paths = previous_paths;
-//        new_paths.insert(new_paths.end(), retv.begin(), retv.end());
-//        std::cout << " is previous path with new paths valid (validateSolution) ? " << freeNav::validateSolution<2>(new_paths) << std::endl;
-//        for(int agent=0; agent<instance_sat.size(); agent++) {
-//            const auto& current_path = retv[agent];
-//            for(int t=1; t<current_path.size(); t++) {
-//                int next_location = dim[0] * current_path[t][1] + current_path[t][0],
-//                    curr_location = dim[0] * current_path[t-1][1] + current_path[t-1][0];
-//                int next_timestep = t;
-//                if (ct->constrained(next_location, next_timestep)) {
-//                    cout << "CT check Agent " << agent << " have vertex conflict at " << freeNav::IdToPointi<2>(next_location, dim) << " at timestep " << next_timestep << endl;
-//                    return {};
-//                }
-//                if(ct->constrained(curr_location, next_location, next_timestep)) {
-//                    cout << "CT check  Agent " << agent << " have edge conflict from " << freeNav::IdToPointi<2>(curr_location, dim)  << " to " << freeNav::IdToPointi<2>(next_location, dim)  << " at timestep " << next_timestep << endl;
-//                    return {};
-//                }
-//            }
-//        }
-
-//        if (!solution.empty()) {
-//            for (const auto &previous_path : retv) {
-//                MAPFPath path_eecbs;
-//                for (int i = 0; i < previous_path.size(); i++) {
-//                    path_eecbs.push_back(
-//                            PathEntry(dim[0] * previous_path[i][1] + previous_path[i][0]));
-//                }
-//                ct->insert2CT(path_eecbs);
-//            }
-//        }
         return retv;
     }
 

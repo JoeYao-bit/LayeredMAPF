@@ -43,7 +43,7 @@ namespace LaCAM3 {
                 .implicit_value(true);
         program.add_argument("--no-star")
                 .help("turn off the anytime part, i.e., usual LaCAM")
-                .default_value(false)
+                .default_value(true) // false
                 .implicit_value(true);
         program.add_argument("--random-insert-prob1")
                 .help("probability of inserting the start node")
@@ -106,8 +106,8 @@ namespace LaCAM3 {
 
         // setup instance
         const auto verbose = std::stoi(program.get<std::string>("verbose"));
-        const auto time_limit_sec =
-                std::stoi(program.get<std::string>("time_limit_sec"));
+        const auto time_limit_sec = cutoff_time;
+                //std::stoi(program.get<std::string>("time_limit_sec"));
         const auto scen_name = program.get<std::string>("scen");
         const auto seed = std::stoi(program.get<std::string>("seed"));
 //        const auto map_name = program.get<std::string>("map");

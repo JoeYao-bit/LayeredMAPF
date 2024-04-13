@@ -111,6 +111,20 @@ namespace freeNav::LayeredMAPF{
                     {"max_run_time", "60"} // in second
             };
 
+    SingleMapTestConfig<2> MAPFTestConfig_Boston_0_256 =
+
+            {
+                    {"map_name",     "Boston_0_256"},
+                    {"map_path",     "../test/test_data/Boston_0_256.map"},
+                    {"scene_path",   "../test/test_data/Boston_0_256-random-1.scen"},
+                    {"ct_path",   "../test/test_data/Boston_0_256.ct"},
+                    {"output_path", "../test/test_data/layered_mapf/Boston_0_256.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/Boston_0_256_de.txt"},
+                    {"agent_num",    "500"},
+                    {"cut_off_time", "200"},
+                    {"max_run_time", "60"} // in second
+            };
+
     // warehouse-10-20-10-2-1
     SingleMapTestConfig<2> MAPFTestConfig_warehouse_10_20_10_2_1 =
 
@@ -121,7 +135,7 @@ namespace freeNav::LayeredMAPF{
                     {"ct_path",   "../test/test_data/warehouse-10-20-10-2-1.ct"},
                     {"output_path", "../test/test_data/layered_mapf/warehouse-10-20-10-2-1.txt"},
                     {"decomposition_output_path", "../test/test_data/decomposition/warehouse-10-20-10-2-1_de.txt"},
-                    {"agent_num",    "800"},
+                    {"agent_num",    "400"},
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"} // in second
             };
@@ -136,7 +150,7 @@ namespace freeNav::LayeredMAPF{
                     {"ct_path",   "../test/test_data/empty-32-32.ct"},
                     {"output_path", "../test/test_data/layered_mapf/empty-32-32.txt"},
                     {"decomposition_output_path", "../test/test_data/decomposition/empty-32-32_de.txt"},
-                    {"agent_num",    "260"}, // 330
+                    {"agent_num",    "360"}, // 330
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"} // in second
             };
@@ -361,6 +375,35 @@ namespace freeNav::LayeredMAPF{
                     {"output_path", "../test/test_data/layered_mapf/warehouse-20-40-10-2-2.txt"},
                     {"decomposition_output_path", "../test/test_data/decomposition/warehouse-20-40-10-2-2_de.txt"},
                     {"agent_num",    "330"}, // 330
+                    {"cut_off_time", "200"},
+                    {"max_run_time", "60"} // in second
+            };
+
+    // lt_gallowstemplar_n
+    SingleMapTestConfig<2> MAPFTestConfig_lt_gallowstemplar_n =
+
+            {
+                    {"map_name",     "lt_gallowstemplar_n"},
+                    {"map_path",     "../test/test_data/lt_gallowstemplar_n.map"},
+                    {"scene_path",   "../test/test_data/lt_gallowstemplar_n-random-1.scen"},
+                    {"ct_path",   "../test/test_data/lt_gallowstemplar_n.ct"},
+                    {"output_path", "../test/test_data/layered_mapf/lt_gallowstemplar_n.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/lt_gallowstemplar_n_de.txt"},
+                    {"agent_num",    "500"}, // 330
+                    {"cut_off_time", "200"},
+                    {"max_run_time", "60"} // in second
+            };
+    // orz900d
+    SingleMapTestConfig<2> MAPFTestConfig_orz900d =
+
+            {
+                    {"map_name",     "orz900d"},
+                    {"map_path",     "../test/test_data/orz900d.map"},
+                    {"scene_path",   "../test/test_data/orz900d-random-1.scen"},
+                    {"ct_path",   "../test/test_data/orz900d.ct"},
+                    {"output_path", "../test/test_data/layered_mapf/orz900d.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/orz900d_de.txt"},
+                    {"agent_num",    "500"}, // 330
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"} // in second
             };
