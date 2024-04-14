@@ -4,8 +4,8 @@ namespace PIBT_2 {
 
     const std::string HCA::SOLVER_NAME = "HCA";
 
-    HCA::HCA(MAPF_Instance *_P)
-            : MAPF_Solver(_P),
+    HCA::HCA(MAPF_Instance *_P, CBS_Li::ConstraintTable *ct)
+            : MAPF_Solver(_P, ct),
               table_starts(G->getNodesSize(), false),
               table_goals(G->getNodesSize(), false) {
         solver_name = HCA::SOLVER_NAME;

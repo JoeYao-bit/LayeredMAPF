@@ -98,7 +98,7 @@ int main(int argc, char** argv) {
     memory_recorder.clear();
     float base_usage = memory_recorder.getCurrentMemoryUsage();
     int agent_num = 100;
-    auto MAPF_func = LaCAM::lacam_MAPF;//PIBT_2::push_and_swap_MAPF;//CBS_Li::eecbs_MAPF;//LaCAM2::lacam2_MAPF;
+    auto MAPF_func = PIBT_2::hca_MAPF;//PIBT_2::push_and_swap_MAPF;//CBS_Li::eecbs_MAPF;//LaCAM2::lacam2_MAPF;
     gettimeofday(&tv_pre, &tz);
     // comparing to the raw version, the layered vision will add more static constraint
     // so avoid the copy of static constraint table, will increase the performance of layered mapf
@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
 //    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, PIBT_2::hca_MAPF, CBS_Li::eecbs_MAPF, false, agent_num);
 //    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, PIBT_2::push_and_swap_MAPF, CBS_Li::eecbs_MAPF, false, agent_num);
 
-    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_func, CBS_Li::eecbs_MAPF, false, 30);
+    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_func, CBS_Li::eecbs_MAPF, true, 30);
 
     gettimeofday(&tv_after, &tz);
     double layered_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;

@@ -40,7 +40,7 @@ bool plan_finish = false;
 // MAPFTestConfig_den520d 237.842 ms / layered faster， after 150 agent
 // MAPFTestConfig_empty_32_32 2872.3 ms / layered faster
 
-auto map_test_config = freeNav::LayeredMAPF::MAPFTestConfig_empty_32_32;
+auto map_test_config = freeNav::LayeredMAPF::MAPFTestConfig_den520d;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -58,7 +58,7 @@ IS_OCCUPIED_FUNC<2> is_occupied_func = is_occupied;
 SET_OCCUPIED_FUNC<2> set_occupied_func = set_occupied;
 
 
-int main1() {
+int main() {
 
     std::cout << " map name " << map_test_config.at("map_path") << std::endl;
     // load mapf scene
@@ -101,7 +101,7 @@ int main1() {
     sleep(1);
     base_usage = memory_recorder.getCurrentMemoryUsage();
     gettimeofday(&tv_pre, &tz);
-    multiple_paths = freeNav::LayeredMAPF::layeredMAPF<2>(ists, dim, is_occupied, mapf_func, CBS_Li::eecbs_MAPF, false, 60);
+    multiple_paths = freeNav::LayeredMAPF::layeredMAPF<2>(ists, dim, is_occupied, mapf_func, CBS_Li::eecbs_MAPF, true, 60);
     gettimeofday(&tv_after, &tz);
     double layered_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
     std::cout << multiple_paths.size() << " paths " << " / agents " << ists.size() << std::endl;
@@ -283,11 +283,10 @@ bool SingleMapDecompositionTest(const SingleMapTestConfig <2> &map_test_config,
 
 
 // do decomposition test
-int main() {
+int main1() {
 
     for(int i=0; i<2; i++) {
         int count_of_instances = 10;
-//    SingleMapDecompositionTest(MAPFTestConfig_den312d, {400, 500, 600, 700, 800}, count_of_instances); //  good range
 
         SingleMapDecompositionTest(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400},
                                    count_of_instances); // good range
@@ -353,7 +352,7 @@ int main() {
                                    count_of_instances); // good range
 
         // MAPFTestConfig_orz900d
-        SingleMapDecompositionTest(MAPFTestConfig_orz900d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+        SingleMapDecompositionTest(MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
                                    count_of_instances); // good range
     }
     return 0;

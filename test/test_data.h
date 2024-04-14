@@ -21,7 +21,7 @@ namespace freeNav::LayeredMAPF{
                     {"ct_path",   "../test/test_data/random-32-32-20-random-1.ct"},
                     {"output_path", "../test/test_data/layered_mapf/random-32-32-20.txt"},
                     {"decomposition_output_path", "../test/test_data/decomposition/random-32-32-20_de.txt"},
-                    {"agent_num",    "650"},
+                    {"agent_num",    "250"},
                     {"cut_off_time", "200"},
                     {"max_run_time", "200"} // in second
 
@@ -78,7 +78,7 @@ namespace freeNav::LayeredMAPF{
                     {"ct_path",   "../test/test_data/Berlin_1_256.ct"},
                     {"output_path", "../test/test_data/layered_mapf/Berlin_1_256.txt"},
                     {"decomposition_output_path", "../test/test_data/decomposition/Berlin_1_256_de.txt"},
-                    {"agent_num",    "700"}, // 600
+                    {"agent_num",    "1000"}, // 600
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"} // in second
             };
@@ -408,6 +408,20 @@ namespace freeNav::LayeredMAPF{
                     {"max_run_time", "60"} // in second
             };
 
+    // ost003d
+    SingleMapTestConfig<2> MAPFTestConfig_ost003d =
+
+            {
+                    {"map_name",     "ost003d"},
+                    {"map_path",     "../test/test_data/ost003d.map"},
+                    {"scene_path",   "../test/test_data/ost003d-random-1.scen"},
+                    {"ct_path",   "../test/test_data/ost003d.ct"},
+                    {"output_path", "../test/test_data/layered_mapf/ost003d.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/ost003d_de.txt"},
+                    {"agent_num",    "500"}, // 330
+                    {"cut_off_time", "200"},
+                    {"max_run_time", "60"} // in second
+            };
     struct MethodConfigs {
         std::vector<int> agent_configs_;
         std::string raw_name_;

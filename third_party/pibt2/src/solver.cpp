@@ -6,7 +6,7 @@ namespace PIBT_2 {
 
     std::set<int> visited_grid_;
 
-    MinimumSolver::MinimumSolver(Problem *_P)
+    MinimumSolver::MinimumSolver(Problem *_P, CBS_Li::ConstraintTable *ct)
             : solver_name(""),
               G(_P->getG()),
               MT(_P->getMT()),
@@ -15,7 +15,8 @@ namespace PIBT_2 {
               solved(false),
               comp_time(0),
               verbose(false),
-              log_short(false) {
+              log_short(false),
+              ct_(ct) {
     }
 
     void MinimumSolver::solve() {
@@ -65,8 +66,8 @@ namespace PIBT_2 {
 // base class with utilities
 // -----------------------------------------------
 
-    MAPF_Solver::MAPF_Solver(MAPF_Instance *_P)
-            : MinimumSolver(_P),
+    MAPF_Solver::MAPF_Solver(MAPF_Instance *_P, CBS_Li::ConstraintTable *ct)
+            : MinimumSolver(_P, ct),
               P(_P),
               LB_soc(0),
               LB_makespan(0),
@@ -303,7 +304,9 @@ namespace PIBT_2 {
         bool invalid = true;
         while (!OPEN.empty()) {
             // check time limit
-            if (time_limit > 0 && getElapsedTime(t_start) > time_limit) break;
+            if (time_limit > 0 && getElapsedTime(t_start) > time_limit) {
+                break;
+            }
 
             // minimum node
             n = OPEN.top();
@@ -342,7 +345,6 @@ namespace PIBT_2 {
             }
             std::reverse(path.begin(), path.end());
         }
-
         // free
         for (auto p : GC) delete p;
 
@@ -377,7 +379,9 @@ namespace PIBT_2 {
             }
             if (max_constraint_time > 0) break;
         }
-
+        if(ct_ != nullptr) {
+            max_constraint_time = std::max(max_constraint_time, ct_->getHoldingTime(g->id, 0));
+        }
         // setup functions
 
         /*
@@ -426,6 +430,23 @@ namespace PIBT_2 {
                 const int t = std::get<1>(c);
                 if (m->v == std::get<0>(c) && (t == -1 || t == m->g)) return true;
             }
+
+            if(ct_ != nullptr) {
+                assert(m->p != nullptr);
+                const int& next_location = m->v->id;
+                const int& current_location = m->p->v->id;
+                const int& goal_location = g->id;
+                const int& next_timestep = m->g;
+                if (ct_->constrained(next_location, next_timestep) ||
+                        ct_->constrained(current_location, next_location, next_timestep))
+                    return true;
+                // yz: avoid occupation of target caused conflict with previous path
+                if(next_location == goal_location) {
+                    if(next_timestep < ct_->getHoldingTime(next_location, 0)) {
+                        return true;
+                    }
+                }
+            }
             return false;
         };
 
@@ -437,6 +458,8 @@ namespace PIBT_2 {
 
         return p;
     }
+
+
 
     void MAPF_Solver::updatePathTable(const Paths &paths, const int id) {
         const int makespan = paths.getMakespan();

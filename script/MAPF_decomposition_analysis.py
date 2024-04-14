@@ -176,7 +176,7 @@ all_map_name = [
                 
                 "Boston_0_256",
                 "lt_gallowstemplar_n",
-                "orz900d"
+                "ost003d"
                 ]
 
 all_single_data = list()

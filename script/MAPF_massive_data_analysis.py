@@ -124,7 +124,7 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
 
 def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
     map_and_agent_data = dict()
-    fig=plt.figure(figsize=(5,4.5)) #添加绘图框 
+    fig=plt.figure(figsize=(5,3.5)) #添加绘图框 
     map_lists = list()
     value_lists_raw = list()
     value_lists_layered = list()
@@ -140,7 +140,7 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
                     value.append(0)
             head_split = method_key.split('_')
             if head_split[0] == 'LAYERED':  
-                plt.bar(map_format_list.index(map_key)+1+width/2, np.mean(value), width, hatch="////")    
+                plt.bar(map_format_list.index(map_key)+1+width/2, np.mean(value), width, hatch="//")    
                 #print(title + "/" + ylable + "layered = " + str(np.mean(value)))
                 value_lists_layered.extend(value)  
                 
@@ -215,14 +215,14 @@ def drawSummaryOfMethod(all_data_map, xlable, ylable, title, is_percentage=False
         plt.xticks(rotation=70)    
         if ylable == "Success rate(%)":
             if len(value_lists_layered) > 0:
-                p1 = plt.bar(drawing_method_set.index(method_top)+width/2, np.mean(value_lists_layered), width, hatch="////") 
+                p1 = plt.bar(drawing_method_set.index(method_top)+width/2, np.mean(value_lists_layered), width, hatch="//") 
                 plt.bar_label(p1, label_type='edge', fmt="%.2g", rotation=70)#, fmt=formater) 
             if len(value_lists_raw) > 0:
                 p2 = plt.bar(drawing_method_set.index(method_top)-width/2, np.mean(value_lists_raw), width)   
                 plt.bar_label(p2, label_type='edge', fmt="%.2g", rotation=70)#, fmt=formater)   
         else:
             if len(value_lists_layered) > 0:
-                p1 = plt.bar(drawing_method_set.index(method_top)+width/2, np.mean(value_lists_layered), width, hatch="////") 
+                p1 = plt.bar(drawing_method_set.index(method_top)+width/2, np.mean(value_lists_layered), width, hatch="//") 
                 plt.bar_label(p1, label_type='edge', fmt="%.1e", rotation=70)#, fmt=formater) 
             if len(value_lists_raw) > 0:
                 p2 = plt.bar(drawing_method_set.index(method_top)-width/2, np.mean(value_lists_raw), width)   
@@ -318,7 +318,7 @@ map_format_list = [
                  # 21
                  "Boston_0_256",
                  "lt_gallowstemplar_n",
-                 "orz900d"
+                 "ost003d"
 
 ]
 
@@ -356,7 +356,7 @@ map_format_map = {
                  
                  "Boston_0_256":'<',
                  "lt_gallowstemplar_n":'H',
-                 "orz900d":'H'
+                 "ost003d":'H'
 
 }
 
@@ -457,20 +457,20 @@ for single_data in all_single_data:
             all_method_total_cost_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.total_cost)
             all_method_makespan_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.max_single_cost)
 
-#for method_key, method_value in all_method_time_cost_map.items(): 
-#     # draw at each agent size
-#     drawMethodMaps(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)           
-#     drawMethodMaps(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
-#     drawMethodMaps(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
-#     drawMethodMaps(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
-#     drawMethodMaps(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)        
+for method_key, method_value in all_method_time_cost_map.items(): 
+    # draw at each agent size
+    drawMethodMaps(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)           
+    drawMethodMaps(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
+    drawMethodMaps(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
+    drawMethodMaps(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
+    drawMethodMaps(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)        
     
-# #     # draw summary of maps
-    # drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)    
-    # drawSummaryOfMap(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
-    # drawSummaryOfMap(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
-    # drawSummaryOfMap(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
-    # drawSummaryOfMap(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)      
+#     # draw summary of maps
+    drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)    
+    drawSummaryOfMap(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
+    drawSummaryOfMap(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
+    drawSummaryOfMap(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
+    drawSummaryOfMap(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)      
     
 #draw summary of methods
 drawSummaryOfMethod(all_method_time_cost_map, "Number of agents", "Time cost(ms)", "time_cost")           

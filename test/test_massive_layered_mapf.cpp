@@ -383,14 +383,14 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 
     bool all_success = SingleMapMAPFPathPlanningsTest<2>(dim, is_occupied_func, istss,
                                                          {
-//                                                          EECBS,
-//                                                          EECBS_LAYERED,
-//
-//                                                          PBS,
-//                                                          PBS_LAYERED,
+                                                          EECBS,
+                                                          EECBS_LAYERED,
 
-//                                                          LNS,
-//                                                          LNS_LAYERED, // unexccepted assert failed abut MDD
+                                                          PBS,
+                                                          PBS_LAYERED,
+
+                                                          LNS,
+                                                          LNS_LAYERED, // unexccepted assert failed abut MDD
 
 //                                                          AnytimeBCBS,
 //                                                          AnytimeBCBS_LAYERED,
@@ -404,8 +404,8 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 //                                                          LaCAM,               // need lots storage
 //                                                          LaCAM_LAYERED,       // need lots storage
 
-//                                                          LaCAM2,              // added massive test
-//                                                          LaCAM2_LAYERED,
+                                                          LaCAM2,              // added massive test
+                                                          LaCAM2_LAYERED,
 
 //                                                          PIBT,            // need lots storage
 //                                                          PIBT_LAYERED,    // need lots storage
@@ -413,8 +413,8 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
                                                           PIBT2,
                                                           PIBT2_LAYERED,
 
-//                                                          HCA,             // need lots storage
-//                                                          HCA_LAYERED,     // need lots storage
+                                                          HCA,             // need lots storage
+                                                          HCA_LAYERED,     // need lots storage
 
                                                           PushAndSwap,
                                                           PushAndSwap_LAYERED
@@ -535,8 +535,9 @@ int main(void) {
 //        SingleMapMAPFTest(MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, repeat_times, cut_off_time); // good range
 //
 //        SingleMapMAPFTest(MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, repeat_times, cut_off_time); // good range
-        SingleMapMAPFTest(MAPFTestConfig_orz900d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, repeat_times, cut_off_time); // good range
-
+        //SingleMapMAPFTest(MAPFTestConfig_orz900d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, repeat_times, cut_off_time); // good range
+        //MAPFTestConfig_ost003d
+        SingleMapMAPFTest(MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, repeat_times, cut_off_time); // good range
 
     }
 
