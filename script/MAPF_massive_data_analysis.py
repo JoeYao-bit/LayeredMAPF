@@ -382,7 +382,7 @@ drawing_method_set = [
                       "EECBS", # tested ok, advance in time cost, nothing in memory usage
                       "PBS",  # tested ok, advance in time cost, advance in memory usage, full map
                       "PushAndSwap", # some map not ok, advance in time cost, nothing in memory usage, full map
-                      "LaCAM2",# tested ok, drawback in time cost, drawback in memory usage, full map
+                      "LaCAM",# tested ok, drawback in time cost, drawback in memory usage, full map
                       "HCA", # test ok, advance in memory usage, drawback in time cost, full map
                       "PIBT2", # some map not ok，advance in memory usage, drawback in time cost, full map
                       "LNS", # test ok, advance in memory usage, advance in time cost
@@ -392,7 +392,7 @@ drawing_method_set_2 = [
                       "EECBS", # tested ok, advance in time cost, nothing in memory usage
                       "PBS",  # tested ok, advance in time cost, advance in memory usage, full map
                       "PAS", # some map not ok, advance in time cost, nothing in memory usage, full map
-                      "LaCAM2",# tested ok, drawback in time cost, drawback in memory usage, full map
+                      "LaCAM",# tested ok, drawback in time cost, drawback in memory usage, full map
                       "HCA", # test ok, advance in memory usage, drawback in time cost, full map
                       "PIBT2", # some map not ok，advance in memory usage, drawback in time cost, full map
                       "LNS", # test ok, advance in memory usage, advance in time cost

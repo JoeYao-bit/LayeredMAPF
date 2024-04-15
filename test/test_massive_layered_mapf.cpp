@@ -409,8 +409,8 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 //                                                          PIBT,            // need lots storage
 //                                                          PIBT_LAYERED,    // need lots storage
 
-                                                          PIBT2,
-                                                          PIBT2_LAYERED,
+                                                        //   PIBT2,
+                                                        //   PIBT2_LAYERED,
 
                                                         //   HCA,             // need lots storage
                                                         //   HCA_LAYERED,     // need lots storage
