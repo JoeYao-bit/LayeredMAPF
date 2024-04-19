@@ -49,10 +49,10 @@ add_library(alg_lib ${alg_src})
 target_link_libraries(alg_lib EECBS_lib lib-graph)
 #add_library(external_lib ${third1_src} ${third2_src} ${third3_src})
 
-add_executable(test_lacam test/test_lacam.cpp)
-target_link_libraries(test_lacam alg_lib)
+add_executable(test_single_layered_MAPF test/test_single_layered_MAPF.cpp)
+target_link_libraries(test_single_layered_MAPF alg_lib)
 
-add_executable(test_memory_check test/test_memory_check.cpp)
+add_executable(test_memory_check test/test_massive_decomposition.cpp)
 target_link_libraries(test_memory_check alg_lib)
 
 add_executable(test_massive_layered_mapf test/test_massive_layered_mapf.cpp)
