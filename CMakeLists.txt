@@ -123,8 +123,8 @@ target_link_libraries(test_lacam freeNav-base alg_lib)
 add_executable(test_lacam3 test/test_lacam3.cpp)
 target_link_libraries(test_lacam3 freeNav-base alg_lib)
 
-add_executable(test_memory_check test/test_memory_check.cpp)
-target_link_libraries(test_memory_check freeNav-base alg_lib)
+add_executable(test_massive_decomposition test/test_massive_decomposition.cpp)
+target_link_libraries(test_massive_decomposition freeNav-base alg_lib)
 
 add_executable(test_massive_layered_mapf test/test_massive_layered_mapf.cpp)
 target_link_libraries(test_massive_layered_mapf freeNav-base alg_lib)

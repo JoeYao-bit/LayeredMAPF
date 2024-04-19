@@ -43,7 +43,7 @@ using namespace freeNav::LayeredMAPF;
 // MAPFTestConfig_warehouse_10_20_10_2_2
 // MAPFTestConfig_warehouse_20_40_10_2_1
 // MAPFTestConfig_warehouse_20_40_10_2_2
-auto map_test_config = MAPFTestConfig_maze_32_32_4;
+auto map_test_config = MAPFTestConfig_lak303d;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') { return false; }

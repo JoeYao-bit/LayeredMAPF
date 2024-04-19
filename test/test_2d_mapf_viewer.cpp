@@ -51,7 +51,7 @@ GridPtr<3> sg1 = std::make_shared<Grid<3>>(),
 // MAPFTestConfig_empty_32_32 2872.3 ms
 // MAPFTestConfig_ht_chantry
 // MAPFTestConfig_lak303d
-auto map_test_config = MAPFTestConfig_empty_16_16;
+auto map_test_config = MAPFTestConfig_lak303d;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
