@@ -37,13 +37,6 @@ const auto ins = Instance(scen_filename, map_filename, 3);
 
 TEST(Memory, Analysis)
 {
-    // launch some task to occupy cpu and memory
-//    for (int i = 0; i < 4; i++)
-//        std::thread([]
-//                    {
-//                        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-//                    }).detach();
-
     int current_pid = GetCurrentPid(); // or you can set a outside program pid
     float cpu_usage_ratio = GetCpuUsageRatio(current_pid);
     float memory_usage = GetMemoryUsage(current_pid);

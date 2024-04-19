@@ -12,7 +12,6 @@ def loadDataFromfile(file_path):
             lines = f.readlines()#[1:]
             for line in lines:
                 #print(line)
-                # 处理每一行数据
                 #print(line.strip())
                 splited_line = line.split()
                 
@@ -115,17 +114,6 @@ def drawMethodMap(single_map_data, value_type):
     ax = plt.gca()
     ax.yaxis.offsetText.set_fontsize(18)
     ax.yaxis.set_major_formatter(formater)
-    # if value_type == "decomposition_rate":
-    #     plt.title(map_name+"-decomposition_rate")
-    #     plt.ylabel("rate of decomposition")
-    # elif value_type == "time_cost":
-    #     plt.title(map_name+"-time_cost")
-    #     plt.ylabel("time cost (ms)")
-    # elif value_type == "memory_usage":
-    #     plt.title(map_name+"-memory_usage")
-    #     plt.ylabel("memory usage (MB)")
-            
-    # plt.xlabel("count of agents")
     y_range = plt.ylim()
     plt.ylim(0, y_range[1])
     if value_type == "decomposition_rate":
@@ -184,7 +172,7 @@ all_single_data = list()
 for map_name in all_map_name:
     data_file_path = data_path_dir + map_name + '_de.txt'
     print('load data from', data_file_path)
-    single = SingleTestData() # 不带括号则均指向同一元素
+    single = SingleTestData()
     single.map_name = map_name
     single.data_list = loadDataFromfile(data_file_path)
     if len(single.data_list) == 0:

@@ -40,15 +40,15 @@ Pointi<3> pt1, pt2;
 GridPtr<3> sg1 = std::make_shared<Grid<3>>(),
            sg2 = std::make_shared<Grid<3>>();
 
-// MAPFTestConfig_random_32_32_20 413.8 ms / layered slower, but faster after 160 agent
-// MAPFTestConfig_maze_32_32_2 25.42 ms / layered faster, after 58 agent
-// MAPFTestConfig_maze_32_32_4 54.914 ms / layered faster
-// MAPFTestConfig_den312d  314.776 ms / layered faster，after 250 agent
-// MAPFTestConfig_Berlin_1_256 56.385 ms / layered faster
-// MAPFTestConfig_Paris_1_256 1005.82 ms / layered faster
-// MAPFTestConfig_warehouse_10_20_10_2_1  5726.96 ms / layered faster， after 500 agent
-// MAPFTestConfig_den520d 237.842 ms / layered faster， after 150 agent
-// MAPFTestConfig_empty_32_32 2872.3 ms / layered faster
+// MAPFTestConfig_random_32_32_20 413.8 ms
+// MAPFTestConfig_maze_32_32_2 25.42 ms
+// MAPFTestConfig_maze_32_32_4 54.914 ms
+// MAPFTestConfig_den312d  314.776 ms
+// MAPFTestConfig_Berlin_1_256 56.385 ms
+// MAPFTestConfig_Paris_1_256 1005.82 ms
+// MAPFTestConfig_warehouse_10_20_10_2_1
+// MAPFTestConfig_den520d 237.842 ms
+// MAPFTestConfig_empty_32_32 2872.3 ms
 // MAPFTestConfig_ht_chantry
 // MAPFTestConfig_lak303d
 auto map_test_config = MAPFTestConfig_empty_16_16;
@@ -68,13 +68,11 @@ IS_OCCUPIED_FUNC<2> is_occupied_func = is_occupied;
 
 SET_OCCUPIED_FUNC<2> set_occupied_func = set_occupied;
 
-//int current_time_index = 0;
 std::set<int> visited_grid_during_lacam;
 int main(int argc, char** argv) {
     MemoryRecorder memory_recorder(50);
     std::cout << " map name " << map_test_config.at("map_path") << std::endl;
     // load mapf scene
-    //GeneralMAPFScenePtr<2> scene_ptr;
     const auto& dim = loader.getDimensionInfo();
     freeNav::Instances<2> ists;
     ScenarioLoader2D sl(map_test_config.at("scene_path").c_str());
@@ -93,35 +91,13 @@ int main(int argc, char** argv) {
     std::cout << "get " << ists.size() << " instances" << std::endl;
     Paths<2> multiple_paths;
     // decomposition
-    //freeNav::TCBS::MAPFInstanceDecomposition<2> decompose(ists, dim, is_occupied);
     sleep(1);
     memory_recorder.clear();
     float base_usage = memory_recorder.getCurrentMemoryUsage();
-    int agent_num = 100;
-    auto MAPF_func = LaCAM::lacam_MAPF;//PIBT_2::hca_MAPF;//PIBT_2::push_and_swap_MAPF;//CBS_Li::eecbs_MAPF;//LaCAM2::lacam2_MAPF;
+    auto MAPF_func = CBS_Li::eecbs_MAPF;
     gettimeofday(&tv_pre, &tz);
-    // comparing to the raw version, the layered vision will add more static constraint
-    // so avoid the copy of static constraint table, will increase the performance of layered mapf
-    //if(CBS_Li::ct != nullptr) { delete CBS_Li::ct; }
-//    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, CBS_Li::eecbs_MAPF, CBS_Li::eecbs_MAPF, false, agent_num);
-
-//    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, LaCAM::lacam_MAPF, CBS_Li::eecbs_MAPF, false, agent_num);
-//    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_func, CBS_Li::eecbs_MAPF, false, 30);
-
-//    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, PBS_Li::pbs_MAPF, CBS_Li::eecbs_MAPF, true, agent_num);
-//    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, CBSH2_RTC::CBSH2_RTC_MAPF, CBS_Li::eecbs_MAPF, true, agent_num);
-
-//    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_LNS::LNS_MAPF, CBS_Li::eecbs_MAPF, true, agent_num);
-//    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_LNS::AnytimeBCBS_MAPF, CBS_Li::eecbs_MAPF, true, agent_num);
-//    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_LNS::AnytimeEECBS_MAPF, CBS_Li::eecbs_MAPF, true, agent_num);
-
-//    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, PIBT_2::pibt_MAPF, CBS_Li::eecbs_MAPF, false, agent_num);
-//    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, PIBT_2::pibt2_MAPF, CBS_Li::eecbs_MAPF, false, agent_num);
-//    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, PIBT_2::hca_MAPF, CBS_Li::eecbs_MAPF, false, agent_num);
-//    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, PIBT_2::push_and_swap_MAPF, CBS_Li::eecbs_MAPF, false, agent_num);
 
     multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_func, CBS_Li::eecbs_MAPF, true, 30);
-
     gettimeofday(&tv_after, &tz);
     double layered_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
     std::cout << multiple_paths.size() << " agents " << std::endl;
@@ -132,7 +108,6 @@ int main(int argc, char** argv) {
     {
         std::cout << "layered mapf maximal usage = " << maximal_usage - base_usage << " MB" << std::endl;
     }
-
 
     int total_cost = 0, maximum_single_cost = 0;
     for(const auto& path : multiple_paths) {
@@ -148,33 +123,9 @@ int main(int argc, char** argv) {
     base_usage = memory_recorder.getCurrentMemoryUsage();
 
     gettimeofday(&tv_pre, &tz);
-    //auto multiple_paths = my_eecbs::eecbs_demo(argc, argv, map_test_config); // time cost increasing sharply as number of agents increasing
-    //auto multiple_paths = second_eecbs::eecbs_demo(argc, argv, map_test_config); // time cost increasing sharply as number of agents increasing
-
-    //multiple_paths = CBS_Li::eecbs_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
-
-    //multiple_paths = LaCAM::lacam_MAPF(dim, is_occupied_func, ists, nullptr, agent_num); // need lots storage
-
-    //multiple_paths = LaCAM2::lacam2_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
-
-    //multiple_paths = PBS_Li::pbs_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
-
-    //multiple_paths = CBSH2_RTC::CBSH2_RTC_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
-
-    //multiple_paths = MAPF_LNS::LNS_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
-    //multiple_paths = MAPF_LNS::AnytimeBCBS_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
-    //multiple_paths = MAPF_LNS::AnytimeEECBS_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
-
-    //multiple_paths = PIBT_2::pibt_MAPF(dim, is_occupied_func, ists, nullptr, agent_num); // need lots storage
-    //multiple_paths = PIBT_2::pibt2_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
-    //multiple_paths = PIBT_2::hca_MAPF(dim, is_occupied_func, ists, nullptr, agent_num); // need lots storage
-    //multiple_paths = PIBT_2::push_and_swap_MAPF(dim, is_occupied_func, ists, nullptr, agent_num);
-
     multiple_paths = MAPF_func(dim, is_occupied_func, ists, nullptr, 60);
     gettimeofday(&tv_after, &tz);
-    //assert(multiple_paths.size() == ists.size());
     visited_grid_during_lacam = LaCAM::visited_grid_;
-    //std::cout << " visited_grid_during_lacam size " << visited_grid_during_lacam.size() << std::endl;
     double build_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
     std::cout << multiple_paths.size() << " paths " << " / agents " << ists.size() << std::endl;
     std::cout << "-- raw mapf end in " << build_cost << "ms" << std::endl;
@@ -196,43 +147,6 @@ int main(int argc, char** argv) {
     std::cout << "total cost          = " << total_cost << std::endl;
     std::cout << "maximum_single_cost = " << maximum_single_cost << std::endl;
 
-    /* initialize my own CBS */
-//    freeNav::CBS::Instances<2> ists;
-//    ConflictBasedSearchPtr<2> my_cbs = std::make_shared<ConflictBasedSearch<2> >(loader.getDimensionInfo(), is_occupied);
-//
-//    /* load test data */
-//    ScenarioLoader2D sl(map_test_config.at("scene_path").c_str());
-//    int max_count_of_case = atoi((map_test_config.at("agent_num")).c_str());
-//    int count_of_experiments = sl.GetNumExperiments();
-//
-//    // load experiment data
-//    for (int i = 0; i < std::min(max_count_of_case, count_of_experiments); i++) {
-//        const auto &experiment = sl.GetNthExperiment(i);
-//        Pointi<2> pt1({experiment.GetStartX(), experiment.GetStartY()});
-//        Pointi<2> pt2({experiment.GetGoalX(), experiment.GetGoalY()});
-//        freeNav::CBS::Instance<2> ist = {pt1, pt2};
-//        //std::cout << " start, target = " << pt1 << ", " << pt2 << std::endl;
-//        ists.push_back(ist);
-//    }
-//// //    ists = {{{61, 40}, {8, 14}}};
-//    std::cout << "get " << ists.size() << " instances" << std::endl;
-//    /* start my own CBS */
-//    gettimeofday(&tv_pre, &tz);
-//    auto multiple_paths_mycbs = my_cbs->solve(ists, atoi((map_test_config.at("cut_off_time")).c_str()));
-//    std::cout << multiple_paths_mycbs.size() << " agents " << std::endl;
-//    gettimeofday(&tv_after, &tz);
-//    double cbs_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
-//    std::cout << "-- my CBS end in " << cbs_cost << "ms" << std::endl;
-//    total_cost = 0, maximum_single_cost = 0;
-//    for(const auto& path : multiple_paths_mycbs) {
-//        //std::cout << path << std::endl;
-//        total_cost += path.size();
-//        maximum_single_cost = std::max(maximum_single_cost, (int)path.size());
-//    }
-//    std::cout << "total cost          = " << total_cost << std::endl;
-//    std::cout << "maximum_single_cost = " << maximum_single_cost << std::endl;
-
-    /* end my CBS */
     ThreadPool tp(1);
 
     // set viewer

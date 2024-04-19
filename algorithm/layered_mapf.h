@@ -71,9 +71,6 @@ namespace freeNav::LayeredMAPF {
                     lasted_occupied_time_table[temp_id] = t;
                 }
             } else {
-//                if(t == 0) {
-//                    std::cout << "ERROR: illegal start " << std::endl;
-//                }
                 // traversal all path, wait at previous frame
                 for(auto& path : modified_paths) {
                     if(t-1 > path.size()-1) { continue; }
@@ -122,17 +119,8 @@ namespace freeNav::LayeredMAPF {
                                   DimensionLength* dim,
                                   const IS_OCCUPIED_FUNC<N> & isoc) {
 
-//        struct timezone tz;
-//        struct timeval  tv_pre;
-//        struct timeval  tv_after;
-//        gettimeofday(&tv_pre, &tz);
-
         MAPFInstanceDecompositionPtr<N> instance_decompose = std::make_shared<MAPFInstanceDecomposition<N> >(instances, dim, isoc);
 
-//        gettimeofday(&tv_after, &tz);
-//        double decomposition_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
-//        std::cout << "-- decomposition take " << decomposition_cost << " ms to get "
-//                  << instance_decompose->all_clusters_.size() << " clusters " << std::endl;
         return instance_decompose->all_clusters_;
     }
 
@@ -191,16 +179,8 @@ namespace freeNav::LayeredMAPF {
                 const auto& current_cluster = instance_decompose->all_clusters_[j];
                 for(const int& agent_id : current_cluster) {
                     if(j < i) {
-//                        layered_ct->insert2CT(dim[0] * instances[agent_id].second[1] + instances[agent_id].second[0], 0, MAX_TIMESTEP);
-//                        CBS_Li::MAPFPath path_eecbs;
-//                        path_eecbs.push_back(CBS_Li::PathEntry(dim[0] * instances[agent_id].second[1] + instances[agent_id].second[0]));
-//                        layered_ct->insert2CT(path_eecbs);
                         avoid_locs[instances[agent_id].second[1]][instances[agent_id].second[0]] = true;
                     } else {
-//                        layered_ct->insert2CT(dim[0] * instances[agent_id].first[1] + instances[agent_id].first[0], 0, MAX_TIMESTEP);
-//                        CBS_Li::MAPFPath path_eecbs;
-//                        path_eecbs.push_back(CBS_Li::PathEntry(dim[0] * instances[agent_id].first[1] + instances[agent_id].first[0]));
-//                        layered_ct->insert2CT(path_eecbs);
                         avoid_locs[instances[agent_id].first[1]][instances[agent_id].first[0]] = true;
                     }
                 }
@@ -213,8 +193,6 @@ namespace freeNav::LayeredMAPF {
                 }
                 return {};
             }
-            //std::cout << " current ists size " << ists.size() << std::endl;
-
             auto new_isoc = [&](const Pointi<2> & pt) -> bool {
                 if(pt[0] < 0 || pt[0] >= dim[0] || pt[1] < 0 || pt[1] >= dim[1]) { return true; }
                 return isoc(pt) || avoid_locs[pt[1]][pt[0]];
@@ -230,8 +208,6 @@ namespace freeNav::LayeredMAPF {
                         layered_ct = nullptr;
                     }
                     return {};
-                } else {
-                    //std::cout << " layered EECBS MAPF varify success, " << i << " th cluster: " << current_id_set << std::endl;
                 }
             }
             gettimeofday(&tv_after, &tz);
@@ -271,7 +247,6 @@ namespace freeNav::LayeredMAPF {
                     }
                 }
             }
-            //std::cout << " layered MAPF success " << i << " th cluster " << std::endl;
             retv.insert(retv.end(), next_paths.begin(), next_paths.end());
             pathss.push_back(next_paths);
 

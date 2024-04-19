@@ -393,20 +393,6 @@ namespace freeNav::LayeredMAPF{
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"} // in second
             };
-    // orz900d
-    SingleMapTestConfig<2> MAPFTestConfig_orz900d =
-
-            {
-                    {"map_name",     "orz900d"},
-                    {"map_path",     "../test/test_data/orz900d.map"},
-                    {"scene_path",   "../test/test_data/orz900d-random-1.scen"},
-                    {"ct_path",   "../test/test_data/orz900d.ct"},
-                    {"output_path", "../test/test_data/layered_mapf/orz900d.txt"},
-                    {"decomposition_output_path", "../test/test_data/decomposition/orz900d_de.txt"},
-                    {"agent_num",    "500"}, // 330
-                    {"cut_off_time", "200"},
-                    {"max_run_time", "60"} // in second
-            };
 
     // ost003d
     SingleMapTestConfig<2> MAPFTestConfig_ost003d =

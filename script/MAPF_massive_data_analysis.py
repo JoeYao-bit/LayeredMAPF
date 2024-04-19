@@ -8,11 +8,8 @@ def loadDataFromfile(file_path):
     data_list = list()
     try:
         with open(file_path, "r") as f:
-            lines = f.readlines()#[1:]
+            lines = f.readlines()
             for line in lines:
-                #print(line)
-                # 处理每一行数据
-                #print(line.strip())
                 splited_line = line.split()
                 
                 head_split = splited_line[0].split('_')
@@ -74,7 +71,6 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
         for method_key, method_value in all_data_map[map_key].items():
             x = list()
             y = list()
-            #std_var = list()
             sorted_keys = sorted(all_data_map[map_key][method_key].keys())
             
             splited_method_name = method_key.split('_')
@@ -84,8 +80,6 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
                     y.append(np.mean(all_data_map[map_key][method_key][agent_size_key]))
                 else:
                     y.append(0)
-                #std_var.append(np.std(all_data_map[map_key][method_key][agent_size_key]))
-            # fmt=method_marker_map[method_key]
             if len(splited_method_name) == 1:
                 plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[name_of_decomposition], markersize=14, label=map_key+"/"+name_of_decomposition, linewidth=2, elinewidth=4, capsize=4)
             else:
@@ -109,8 +103,7 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
         if is_percentage:
             plt.ylim(0, 1)
                 
-        #plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5)
-        plt.tight_layout()        
+        plt.tight_layout()
         save_path = '../test/pic/layered_MAPF/'+title
         
         if not os.path.exists(save_path):
@@ -134,10 +127,6 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
         for method_key, method_value in all_data_map[map_key].items():
             value = list()           
             for agent_size_key in all_data_map[map_key][method_key].keys():
-                # if len(all_data_map[map_key][method_key][agent_size_key]) > 0:
-                #     value.append(np.mean(all_data_map[map_key][method_key][agent_size_key]))
-                # else:
-                #     value.append(0)
                 if ylable == "Makespan" or ylable == "Sum of cost":
                     if len(all_data_map[map_key][method_key][agent_size_key]) > 0:
                         # only considering success cases
@@ -155,13 +144,11 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
             head_split = method_key.split('_')
             if head_split[0] == 'LAYERED':  
                 plt.bar(map_format_list.index(map_key)+1+width/2, np.mean(value), width, hatch="//")    
-                #print(title + "/" + ylable + "layered = " + str(np.mean(value)))
-                value_lists_layered.extend(value)  
+                value_lists_layered.extend(value)
                 
             if head_split[0] == 'RAW':
                 plt.bar(map_format_list.index(map_key)+1-width/2, np.mean(value), width)    
-                #print(title + "/" + ylable + "raw     = " + str(np.mean(value)))
-                value_lists_raw.extend(value) 
+                value_lists_raw.extend(value)
                 
         plt.xticks(rotation=70)         
     
@@ -202,7 +189,7 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
     
 def drawSummaryOfMethod(all_data_map, xlable, ylable, title, is_percentage=False):
     map_and_agent_data = dict()
-    fig=plt.figure(figsize=(5,4.5)) #添加绘图框 
+    fig=plt.figure(figsize=(5,4.5))
 
     width = 0.4 
     formater = ticker.ScalarFormatter(useMathText=True) 
@@ -365,11 +352,10 @@ map_format_map = {
                  
                  "ht_chantry":'H',
                  "lak303d":'H',
-                 #########################
+
                  "random-32-32-20":'D',
                  "random-64-64-10":'D',  # maximum 8s
-                 #"random-64-64-20":'D',
-                 
+
                  "room-32-32-4":'X',
                  "room-64-64-8":'X',
                  "room-64-64-16":'X',
@@ -491,7 +477,7 @@ for method_key, method_value in all_method_time_cost_map.items():
     # drawMethodMaps(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
     # drawMethodMaps(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)        
     
-#     # draw summary of maps
+    # draw summary of maps
     drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)    
     drawSummaryOfMap(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
     drawSummaryOfMap(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
