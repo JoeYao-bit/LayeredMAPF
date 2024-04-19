@@ -375,7 +375,7 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 
     auto HCA = RAW_TEST_TYPE("RAW_HCA", PIBT_2::hca_MAPF, dim, cutoff_time_cost);
     // all layered mapf must start with "LAYERED_"
-    auto HCA_LAYERED = LAYERED_TEST_TYPE("LAYERED_HCA", PIBT_2::hca_MAPF, dim, cutoff_time_cost, false);
+    auto HCA_LAYERED = LAYERED_TEST_TYPE("LAYERED_HCA", PIBT_2::hca_MAPF, dim, cutoff_time_cost, true);
 
     auto PushAndSwap = RAW_TEST_TYPE("RAW_PushAndSwap", PIBT_2::push_and_swap_MAPF, dim, cutoff_time_cost);
     // all layered mapf must start with "LAYERED_"
@@ -383,12 +383,12 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 
     bool all_success = SingleMapMAPFPathPlanningsTest<2>(dim, is_occupied_func, istss,
                                                          {
-                                                          EECBS,
-                                                          EECBS_LAYERED,
-
-                                                          PBS,
-                                                          PBS_LAYERED,
-
+//                                                          EECBS,
+//                                                          EECBS_LAYERED,
+//
+//                                                          PBS,
+//                                                          PBS_LAYERED,
+//
                                                           LNS,
                                                           LNS_LAYERED, // unexccepted assert failed abut MDD
 
@@ -404,20 +404,20 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 //                                                          LaCAM,               // need lots storage
 //                                                          LaCAM_LAYERED,       // need lots storage
 
-                                                          LaCAM2,              // added massive test
-                                                          LaCAM2_LAYERED,
+//                                                          LaCAM2,              // added massive test
+//                                                          LaCAM2_LAYERED,
 
 //                                                          PIBT,            // need lots storage
 //                                                          PIBT_LAYERED,    // need lots storage
 
-                                                          PIBT2,
-                                                          PIBT2_LAYERED,
+//                                                          PIBT2,
+//                                                          PIBT2_LAYERED,
 
-                                                          HCA,             // need lots storage
-                                                          HCA_LAYERED,     // need lots storage
+//                                                          HCA,             // need lots storage
+//                                                          HCA_LAYERED,     // need lots storage
 
-                                                          PushAndSwap,
-                                                          PushAndSwap_LAYERED
+//                                                          PushAndSwap,
+//                                                          PushAndSwap_LAYERED
                                                           },
                                                          map_test_config.at("output_path"),
                                                          prune);
@@ -472,12 +472,12 @@ int main(void) {
 //        SingleMapMAPFTest(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120},
 //                          10, 60); // good range
 //        SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400},
-//                          10, 60); // good range
-//
-//        SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120},
-//                          repeat_times, cut_off_time); // good range 40, 60, 80,
-//        SingleMapMAPFTest(MAPFTestConfig_maze_32_32_4, {20, 40, 80, 120, 160, 200, 240},
-//                          repeat_times, cut_off_time); // good range / PushAndSwapFailed here
+//                          repeat_times, 60); // good range
+
+        SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120},
+                          repeat_times, cut_off_time); // good range 40, 60, 80,
+        SingleMapMAPFTest(MAPFTestConfig_maze_32_32_4, {20, 40, 80, 120, 160, 200, 240},
+                          repeat_times, cut_off_time); // good range / PushAndSwapFailed here
 //        SingleMapMAPFTest(MAPFTestConfig_maze_128_128_2, {100, 200, 300, 400, 500, 600, 700},
 //                          repeat_times, cut_off_time);
 ////      warn@ PushAndSwap: invalid move due to clear operation
@@ -491,53 +491,52 @@ int main(void) {
 //                          repeat_times, cut_off_time); //  good range
 //        SingleMapMAPFTest(MAPFTestConfig_den520d, {100, 200, 300, 400, 500, 600, 700, 800, 900},
 //                          repeat_times, cut_off_time); // layered better
-//////
+//
 //        SingleMapMAPFTest(MAPFTestConfig_Berlin_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900},
 //                          repeat_times, cut_off_time); // layered better
 //        SingleMapMAPFTest(MAPFTestConfig_Paris_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
 //                          repeat_times, cut_off_time); // layered better
-//////
+//
 //        SingleMapMAPFTest(MAPFTestConfig_ht_chantry, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
 //                          repeat_times, cut_off_time);
 //        SingleMapMAPFTest(MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
 //                          repeat_times, cut_off_time); // good range
-
+//
 //        SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240},
 //                          repeat_times, cut_off_time);  // good range
-        // decomposition maximum 8s
+//
 //        SingleMapMAPFTest(MAPFTestConfig_random_64_64_10, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-//                          repeat_times, cut_off_time); // good range
+//                          repeat_times, cut_off_time); // good range // decomposition maximum 8s
 //
 //        SingleMapMAPFTest(MAPFTestConfig_random_64_64_20, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
 //                          repeat_times, cut_off_time); // good range
-//                          / PushAndSwapFailed here
-//                          warn@ PushAndSwap: invalid move due to clear operation
-//                          error@PushAndSwap: vertex conflict
-
+//////                          / PushAndSwapFailed here
+//////                          warn@ PushAndSwap: invalid move due to clear operation
+//////                          error@PushAndSwap: vertex conflict
+////
 //        SingleMapMAPFTest(MAPFTestConfig_room_64_64_16, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
 //                          repeat_times, cut_off_time); // good range
 //        SingleMapMAPFTest(MAPFTestConfig_room_64_64_8, {100, 200, 300, 400, 500, 600, 700},
 //                          repeat_times, cut_off_time);
 //        SingleMapMAPFTest(MAPFTestConfig_room_32_32_4, {10, 20, 40, 60, 80, 120, 160, 200}, repeat_times, cut_off_time);
-
-        //  100, 200, 300, 400,
-        //SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800}, repeat_times, cut_off_time); // good range
-        //                          / PushAndSwapFailed here
-        //                          warn@ PushAndSwap: invalid move due to clear operation
-        //                          error@PushAndSwap: vertex conflict
-
-        //SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, repeat_times, cut_off_time); // good range
-
-        //SingleMapMAPFTest(MAPFTestConfig_warehouse_20_40_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, repeat_times, cut_off_time); // good range
-        //SingleMapMAPFTest(MAPFTestConfig_warehouse_20_40_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, repeat_times, cut_off_time); // good range
-
-
+//
+//        //  100, 200, 300, 400,
+//        SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800}, repeat_times, cut_off_time); // good range
+//        //                          / PushAndSwapFailed here
+//        //                          warn@ PushAndSwap: invalid move due to clear operation
+//        //                          error@PushAndSwap: vertex conflict
+//
+//        SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, repeat_times, cut_off_time); // good range
+//
+//        SingleMapMAPFTest(MAPFTestConfig_warehouse_20_40_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, repeat_times, cut_off_time); // good range
+//        SingleMapMAPFTest(MAPFTestConfig_warehouse_20_40_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, repeat_times, cut_off_time); // good range
+//
+//
 //        SingleMapMAPFTest(MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, repeat_times, cut_off_time); // good range
 //
 //        SingleMapMAPFTest(MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, repeat_times, cut_off_time); // good range
-        //SingleMapMAPFTest(MAPFTestConfig_orz900d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, repeat_times, cut_off_time); // good range
-        //MAPFTestConfig_ost003d
-        SingleMapMAPFTest(MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, repeat_times, cut_off_time); // good range
+//        //MAPFTestConfig_ost003d
+//        SingleMapMAPFTest(MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}, repeat_times, cut_off_time); // good range
 
     }
 

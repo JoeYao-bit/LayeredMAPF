@@ -51,7 +51,7 @@ GridPtr<3> sg1 = std::make_shared<Grid<3>>(),
 // MAPFTestConfig_empty_32_32 2872.3 ms / layered faster
 // MAPFTestConfig_ht_chantry
 // MAPFTestConfig_lak303d
-auto map_test_config = MAPFTestConfig_Berlin_1_256;
+auto map_test_config = MAPFTestConfig_empty_16_16;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -98,7 +98,7 @@ int main(int argc, char** argv) {
     memory_recorder.clear();
     float base_usage = memory_recorder.getCurrentMemoryUsage();
     int agent_num = 100;
-    auto MAPF_func = PIBT_2::hca_MAPF;//PIBT_2::push_and_swap_MAPF;//CBS_Li::eecbs_MAPF;//LaCAM2::lacam2_MAPF;
+    auto MAPF_func = LaCAM::lacam_MAPF;//PIBT_2::hca_MAPF;//PIBT_2::push_and_swap_MAPF;//CBS_Li::eecbs_MAPF;//LaCAM2::lacam2_MAPF;
     gettimeofday(&tv_pre, &tz);
     // comparing to the raw version, the layered vision will add more static constraint
     // so avoid the copy of static constraint table, will increase the performance of layered mapf

@@ -40,7 +40,7 @@ bool plan_finish = false;
 // MAPFTestConfig_den520d 237.842 ms / layered faster， after 150 agent
 // MAPFTestConfig_empty_32_32 2872.3 ms / layered faster
 
-auto map_test_config = freeNav::LayeredMAPF::MAPFTestConfig_den520d;
+auto map_test_config = freeNav::LayeredMAPF::MAPFTestConfig_ost003d;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -58,7 +58,7 @@ IS_OCCUPIED_FUNC<2> is_occupied_func = is_occupied;
 SET_OCCUPIED_FUNC<2> set_occupied_func = set_occupied;
 
 
-int main() {
+int main1() {
 
     std::cout << " map name " << map_test_config.at("map_path") << std::endl;
     // load mapf scene
@@ -92,7 +92,7 @@ int main() {
     // PIBT_2::pibt2_MAPF // no leak
     // PIBT_2::hca_MAPF // no leak
     // PIBT_2::push_and_swap_MAPF // no leak
-    auto mapf_func = PIBT_2::hca_MAPF;
+    auto mapf_func = LaCAM::lacam_MAPF;
 
     Paths<2> multiple_paths;
     MemoryRecorder memory_recorder(1);
@@ -101,7 +101,7 @@ int main() {
     sleep(1);
     base_usage = memory_recorder.getCurrentMemoryUsage();
     gettimeofday(&tv_pre, &tz);
-    multiple_paths = freeNav::LayeredMAPF::layeredMAPF<2>(ists, dim, is_occupied, mapf_func, CBS_Li::eecbs_MAPF, true, 60);
+    multiple_paths = freeNav::LayeredMAPF::layeredMAPF<2>(ists, dim, is_occupied, mapf_func, CBS_Li::eecbs_MAPF, false, 30);
     gettimeofday(&tv_after, &tz);
     double layered_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
     std::cout << multiple_paths.size() << " paths " << " / agents " << ists.size() << std::endl;
@@ -206,75 +206,79 @@ bool getProcessResourceUsage()
     return true;
 }
 
+
+int count_of_instance_total = 0;
 bool SingleMapDecompositionTest(const SingleMapTestConfig <2> &map_test_config,
                                   const std::vector<int>& agent_in_instances,
-                                  int count_of_instance) {
-    // 0, load scenerio
-    TextMapLoader tl(map_test_config.at("map_path"), is_char_occupied1);
-    std::cout << "start SingleMapTest from map " << map_test_config.at("map_path") << std::endl;
-    IS_OCCUPIED_FUNC<2> is_occupied_func;
-    SET_OCCUPIED_FUNC<2> set_occupied_func;
-    auto is_occupied = [&tl](const freeNav::Pointi<2> &pt) -> bool { return tl.isOccupied(pt); };
-    is_occupied_func = is_occupied;
-    auto set_occupied = [&tl](const freeNav::Pointi<2> &pt) { tl.setOccupied(pt); };
-    set_occupied_func = set_occupied;
-    //std::cout << " map name " << map_test_config.at("map_path") << std::endl;
-    // load mapf scene
-    //GeneralMAPFScenePtr<2> scene_ptr;
-    const auto& dim = tl.getDimensionInfo();
-//    freeNav::Instances<2> ists;
-    ScenarioLoader2D sl(map_test_config.at("scene_path").c_str());
-//    int max_count_of_case = atoi((map_test_config.at("agent_num")).c_str());
-    int count_of_experiments = sl.GetNumExperiments();
+                                  const int& count_of_instance) {
 
-    // 1, get all test instances
-    const auto& insts_ids = freeNav::LayeredMAPF::pickCasesFromScene<2>(count_of_experiments, agent_in_instances, count_of_instance);
-
-    InstancesS<2> istss;
-    for(const auto& ids : insts_ids) {
-        freeNav::Instances<2> ists;
-        for(const int& id : ids) {
-            const auto &experiment = sl.GetNthExperiment(id);
-            Pointi<2> pt1({experiment.GetStartX(), experiment.GetStartY()});
-            Pointi<2> pt2({experiment.GetGoalX(), experiment.GetGoalY()});
-            freeNav::Instance<2> ist = {pt1, pt2};
-            //std::cout << " start, target = " << pt1 << ", " << pt2 << std::endl;
-            ists.push_back(ist);
-        }
-        istss.push_back(ists);
-    }
-
-    // 2, do decomposition for each case
-    OutputStreamS output_streamss;
-    for(int i=1; i<=istss.size(); i++) {
-        const auto& ists = istss[i-1];
-        output_streamss.clear();
-        OutputStream ostream;
-        std::cout << " start decomposition " << std::endl;
-        if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream, 1)) {
-            std::cout << " decomposition failed " << std::endl;
-            return false;
-        }
-        std::cout << "-- finish level 0 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
-        output_streamss.push_back(ostream);
-        if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream, 2)) {
-            std::cout << " decomposition failed " << std::endl;
-            return false;
-        }
-        std::cout << "-- finish level 1 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
-        output_streamss.push_back(ostream);
-
-        if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream, 3)) {
-            std::cout << " decomposition failed " << std::endl;
-            return false;
-        }
-        std::cout << "-- finish level 2 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
-        //getProcessResourceUsage();
-        output_streamss.push_back(ostream);
-        for(const auto& content : output_streamss) {
-            appendToFile(map_test_config.at("decomposition_output_path"), content);
-        }
-    }
+    count_of_instance_total += agent_in_instances.size();
+//    // 0, load scenerio
+//    TextMapLoader tl(map_test_config.at("map_path"), is_char_occupied1);
+//    std::cout << "start SingleMapTest from map " << map_test_config.at("map_path") << std::endl;
+//    IS_OCCUPIED_FUNC<2> is_occupied_func;
+//    SET_OCCUPIED_FUNC<2> set_occupied_func;
+//    auto is_occupied = [&tl](const freeNav::Pointi<2> &pt) -> bool { return tl.isOccupied(pt); };
+//    is_occupied_func = is_occupied;
+//    auto set_occupied = [&tl](const freeNav::Pointi<2> &pt) { tl.setOccupied(pt); };
+//    set_occupied_func = set_occupied;
+//    //std::cout << " map name " << map_test_config.at("map_path") << std::endl;
+//    // load mapf scene
+//    //GeneralMAPFScenePtr<2> scene_ptr;
+//    const auto& dim = tl.getDimensionInfo();
+////    freeNav::Instances<2> ists;
+//    ScenarioLoader2D sl(map_test_config.at("scene_path").c_str());
+////    int max_count_of_case = atoi((map_test_config.at("agent_num")).c_str());
+//    int count_of_experiments = sl.GetNumExperiments();
+//
+//    // 1, get all test instances
+//    const auto& insts_ids = freeNav::LayeredMAPF::pickCasesFromScene<2>(count_of_experiments, agent_in_instances, count_of_instance);
+//
+//    InstancesS<2> istss;
+//    for(const auto& ids : insts_ids) {
+//        freeNav::Instances<2> ists;
+//        for(const int& id : ids) {
+//            const auto &experiment = sl.GetNthExperiment(id);
+//            Pointi<2> pt1({experiment.GetStartX(), experiment.GetStartY()});
+//            Pointi<2> pt2({experiment.GetGoalX(), experiment.GetGoalY()});
+//            freeNav::Instance<2> ist = {pt1, pt2};
+//            //std::cout << " start, target = " << pt1 << ", " << pt2 << std::endl;
+//            ists.push_back(ist);
+//        }
+//        istss.push_back(ists);
+//    }
+//
+//    // 2, do decomposition for each case
+//    OutputStreamS output_streamss;
+//    for(int i=1; i<=istss.size(); i++) {
+//        const auto& ists = istss[i-1];
+//        output_streamss.clear();
+//        OutputStream ostream;
+//        std::cout << " start decomposition " << std::endl;
+//        if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream, 1)) {
+//            std::cout << " decomposition failed " << std::endl;
+//            return false;
+//        }
+//        std::cout << "-- finish level 0 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
+//        output_streamss.push_back(ostream);
+//        if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream, 2)) {
+//            std::cout << " decomposition failed " << std::endl;
+//            return false;
+//        }
+//        std::cout << "-- finish level 1 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
+//        output_streamss.push_back(ostream);
+//
+//        if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream, 3)) {
+//            std::cout << " decomposition failed " << std::endl;
+//            return false;
+//        }
+//        std::cout << "-- finish level 2 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
+//        //getProcessResourceUsage();
+//        output_streamss.push_back(ostream);
+//        for(const auto& content : output_streamss) {
+//            appendToFile(map_test_config.at("decomposition_output_path"), content);
+//        }
+//    }
 
     return true;
 }
@@ -283,18 +287,18 @@ bool SingleMapDecompositionTest(const SingleMapTestConfig <2> &map_test_config,
 
 
 // do decomposition test
-int main1() {
+int main() {
 
-    for(int i=0; i<2; i++) {
+    for(int i=0; i<1; i++) {
         int count_of_instances = 10;
 
         SingleMapDecompositionTest(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400},
-                                   count_of_instances); // good range
+                                   count_of_instances); // good range // 11
         SingleMapDecompositionTest(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120},
-                                   count_of_instances); // good range
+                                   count_of_instances); // good range // 7
 
         SingleMapDecompositionTest(MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120},
-                                   count_of_instances); // good range
+                                   count_of_instances); // good range // 11
         SingleMapDecompositionTest(MAPFTestConfig_maze_32_32_4, {60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260},
                                    count_of_instances); // good range
         SingleMapDecompositionTest(MAPFTestConfig_maze_128_128_2, {100, 200, 300, 400, 500, 600, 700},
@@ -320,8 +324,8 @@ int main1() {
         SingleMapDecompositionTest(MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240},
                                    count_of_instances);  // good range
         // maximum 8s
-        SingleMapDecompositionTest(MAPFTestConfig_random_64_64_10, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                   count_of_instances); // good range
+//        SingleMapDecompositionTest(MAPFTestConfig_random_64_64_10, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                                   count_of_instances); // good range
         SingleMapDecompositionTest(MAPFTestConfig_random_64_64_20, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
                                    count_of_instances); // good range
 
@@ -351,10 +355,11 @@ int main1() {
         SingleMapDecompositionTest(MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
                                    count_of_instances); // good range
 
-        // MAPFTestConfig_orz900d
+        // MAPFTestConfig_ost003d
         SingleMapDecompositionTest(MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
                                    count_of_instances); // good range
     }
+    std::cout << "count_of_instance_total = " << count_of_instance_total << std::endl;
     return 0;
 }
 
