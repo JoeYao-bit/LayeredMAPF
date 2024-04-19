@@ -157,9 +157,14 @@ https://github.com/jarro2783/cxxopts
 # Usage
 
 ## LayeredMAPF with single MAPF instance
+
+OpenCV viewer:
 ```
-OpenCV viewer: ./test_2d_mapf_viewer
-Qt: ./test_2d_mapf_viewer
+./test_2d_mapf_viewer
+```
+Qt:
+```
+ ./test_2d_mapf_viewer
 ```
 
 ## Massive Decomposition of MAPF instance test
