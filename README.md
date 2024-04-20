@@ -9,6 +9,7 @@ Motivated by the exponential growth in the cost of solving MAPF instances (in te
 ```
 git clone git@github.com:JoeYao-bit/LayeredMAPF.git
 cd LayeredMAPF
+git checkout minimize_dependence
 git submodule update --init  --recursive
 mkdir build
 cd build
@@ -20,9 +21,7 @@ make
 # Install Dependencies
 This branch is a simplified version of Layered MAPF, which have minimized dependencies.
 A full version is branch "main", including visualization, but have lots of dependencies.
-```
-git checkout minimize_dependence
-```
+
 ## Git
 ```
 sudo apt-get install libgoogle-glog-dev
