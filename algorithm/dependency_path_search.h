@@ -115,7 +115,6 @@ namespace freeNav::LayeredMAPF {
 
         heuristic_table[target_ptr->hyper_node_id_] = 0; // in target, dist to target = 0
         nearest_node_table[target_ptr->hyper_node_id_] = nullptr;
-        //std::cout << " target_ptr->hyper_node_id_ " << target_ptr->hyper_node_id_ << std::endl;
         int current_h, next_h;
 
         int target_id = target_ptr->agent_grid_ptr_->agent_id_;
@@ -129,18 +128,13 @@ namespace freeNav::LayeredMAPF {
             for(const auto& node_ptr : current_set) {
 
                 current_h = heuristic_table[node_ptr->current_node_ptr_->hyper_node_id_];
-                //std::cout << " current_h " << current_h << std::endl;
 
                 for(const auto& neighbor_node_id : node_ptr->current_node_ptr_->connecting_nodes_) {
-                    //std::cout << "neighbor_node_id " << neighbor_node_id << std::endl;
                     const auto& neighbor_node_ptr = all_hyper_nodes[neighbor_node_id];
-                    //std::cout << "neighbor_node_ptr->hyper_node_id_ " << neighbor_node_ptr->hyper_node_id_ << std::endl;
 
                     HyperGraphNodeDataPtr<N> next_node_data_ptr = new HyperGraphNodeData<N>(neighbor_node_ptr, node_ptr);
                     all_ptr_set.push_back(next_node_data_ptr);
                     next_h = next_node_data_ptr->g_val_;
-                    //std::cout << " next_h " << next_h << std::endl;
-                    //std::cout << " heuristic_table[neighbor_node_ptr->hyper_node_id_] " << heuristic_table[neighbor_node_ptr->hyper_node_id_] << std::endl;
                     if(heuristic_table[neighbor_node_ptr->hyper_node_id_] > next_h) {
                         heuristic_table[neighbor_node_ptr->hyper_node_id_] = next_h;
                         nearest_node_table[neighbor_node_ptr->hyper_node_id_] = next_node_data_ptr;
@@ -171,7 +165,6 @@ namespace freeNav::LayeredMAPF {
             std::set<int> retv;
             HyperGraphNodeDataPtr<N> buffer = node_ptr;
             while(buffer != nullptr) {
-                //std::cout << " buffer " << buffer << std::endl;
                 if(buffer->current_node_ptr_->agent_grid_ptr_ != nullptr) {
                     int raw_agent_id = buffer->current_node_ptr_->agent_grid_ptr_->agent_id_;
                     if(distinguish_sat) {
@@ -213,7 +206,6 @@ namespace freeNav::LayeredMAPF {
             int other_node_id = current_agent_id + 1;
 
             HyperGraphNodeDataPtr<N> start_node = new HyperGraphNodeData<N>(start_node_ptr, nullptr);
-//            std::cout << "start_node cur and pre " << start_node << " / " << start_node->pa_ << std::endl;
             start_node->h_val_ = heuristic_table[hyper_node_id];
             start_node->open_handle_ = open_list_.push(start_node);
             start_node->in_openlist_ = true;
@@ -222,17 +214,12 @@ namespace freeNav::LayeredMAPF {
             int count = 0;
             while (!open_list_.empty()) // yz: focal may be empty and this is legal !
             {
-//                std::cout << " count = " << count << ", open_list_.size() " << open_list_.size() << std::endl;
                 count ++;
-                //if(count >= 200) return {};//exit(0);
                 auto curr_node = popNode();
                 // check if the popped node is a goal
                 if(curr_node->current_node_ptr_->agent_grid_ptr_ != nullptr) // if current node is belong to an agent
                 {
                     if(curr_node->current_node_ptr_->agent_grid_ptr_->agent_id_ == other_node_id) { // reach target agent
-//                        std::cout << " HyperGraphNodePathSearch reach target" << std::endl;
-//                        std::cout << "start_node cur and pre " << start_node << " / " << start_node->pa_ << std::endl;
-
                         auto passed_agents = getPassingAgents(curr_node, distinguish_sat);//curr_node->passed_agents_;
                         releaseNodes();
                         return passed_agents;
@@ -257,11 +244,6 @@ namespace freeNav::LayeredMAPF {
                     auto next_node = new HyperGraphNodeData<N>(neighbor_node_ptr, curr_node, ignore_cost);
                     next_node->h_val_ = heuristic_table[neighbor_node_id];
 
-//                    std::cout << "start_node 2 cur and pre " << start_node << " / " << start_node->pa_ << std::endl;
-//                    std::cout << "start_node g_val h_val " << start_node->g_val_ << " / " << start_node->h_val_ << std::endl;
-//
-//                    std::cout << "next_node g_val h_val " << next_node->g_val_ << " / " << next_node->h_val_ << std::endl;
-//                    std::cout << "next_node cur and pre " << next_node << " / " << next_node->pa_ << std::endl;
                     bool is_new_node = true;
                     // try to retrieve it from the hash table
                     auto it = allNodes_table_.find(next_node);
@@ -281,9 +263,7 @@ namespace freeNav::LayeredMAPF {
                     {
                         if (!existing_next->in_openlist_) // if it is in the closed list (reopen)
                         {
-//                            std::cout << " existing_next->getFVal() > curr_node->getFVal() " << existing_next->getFVal() << " > "
-//                                      <<  curr_node->getFVal() << std::endl;
-//                            std::cout << " reinsert " << existing_next << std::endl;
+
                             existing_next->copy(*next_node);
                             pushNode(existing_next);
                         } else {
@@ -301,7 +281,6 @@ namespace freeNav::LayeredMAPF {
                 }  // end for loop that generates successors
             }  // end while loop
             releaseNodes();
-            // std::cout << " HyperGraphNodePathSearch reach failed" << std::endl;
             return {};
         }
 
@@ -328,9 +307,7 @@ namespace freeNav::LayeredMAPF {
 
         void releaseNodes() {
             for(auto it = allNodes_table_.begin();it!=allNodes_table_.end();it++) {
-                //std::cout<<*it<<" ";
                 delete *it;
-                //*it = nullptr;
             }
             open_list_.clear();
             allNodes_table_.clear();

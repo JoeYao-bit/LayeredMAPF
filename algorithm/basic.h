@@ -37,7 +37,6 @@ namespace freeNav::LayeredMAPF {
         size_t soc = 0;
         for (int a1 = 0; a1 < num_of_agents; a1++)
         {
-            //std::cout << " path " << a1 << ": " << paths[a1] << std::endl;
             soc += paths[a1].size() - 1; // yz: soc: sum of cost
             for (int a2 = a1 + 1; a2 < num_of_agents; a2++)
             {
@@ -80,7 +79,6 @@ namespace freeNav::LayeredMAPF {
                 }
             }
         }
-        //std::cout << " TCBS get valid solution " << std::endl;
         return true;
     }
 
