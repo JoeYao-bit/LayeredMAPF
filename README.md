@@ -19,7 +19,7 @@ make
 
 # Install Dependencies
 This branch is a simplified version of Layered MAPF, which have minimized dependencies.
-
+A full version is branch "main", including visualization, but have lots of dependencies.
 ```
 git checkout minimize_dependence
 ```
@@ -38,6 +38,9 @@ sudo apt-get install libboost-system-dev
 sudo apt-get install libboost-program-options-dev
 ```
 
+# Eigen
+sudo apt-get install libeigen3-dev
+
 ## Gtest
 ```
 sudo apt-get install libgoogle-glog-dev
@@ -54,7 +57,7 @@ make
 sudo make install
 ```
 
-## Python
+## Python (Optional, if you want run Python scripts)
 ```
 sudo apt install python3-pip
 pip install matplotlib
