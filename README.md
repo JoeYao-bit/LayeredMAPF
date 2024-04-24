@@ -56,7 +56,7 @@ make
 sudo make install
 ```
 
-## Python (Optional, if you want run Python scripts)
+## Python (Optional, if you want to run Python scripts)
 ```
 sudo apt install python3-pip
 pip install matplotlib
