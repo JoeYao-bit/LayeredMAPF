@@ -97,7 +97,7 @@ layered EECBS maximum_single_cost = 469 \
 --variation of memory 142.352 MB \
 --EECBS maximal usage = 146.344 MB \
 EECBS total cost          = 64594 \
-EECBS maximum_single_cost = 478 \
+EECBS maximum_single_cost = 478 
 ```
 ## Massive Decomposition of MAPF instance test
 ```
