@@ -70,12 +70,13 @@ pip install matplotlib
 ```
 ./test_single_layered_MAPF
 ```
-```
 Expected output: 
-map info: 
-type octile
-height 194
-width 194
+
+
+>map info: 
+>type octile
+>height 194
+>width 194
 map
  map name ../test/test_data/lak303d.map
 get 330 instances
