@@ -70,10 +70,7 @@ pip install matplotlib
 ```
 ./test_single_layered_MAPF
 ```
-Expected output:
-
-/home/yaozhuo/code/LayeredMAPF/cmake-build-debug/test_single_layered_MAPF
-
+Expected output: \\
 map info: 
 
 type octile
