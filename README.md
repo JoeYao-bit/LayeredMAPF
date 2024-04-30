@@ -70,36 +70,34 @@ pip install matplotlib
 ```
 ./test_single_layered_MAPF
 ```
-Expected output: 
-
-
->map info: 
->type octile
->height 194
->width 194
-map
- map name ../test/test_data/lak303d.map
-get 330 instances
--- instance_decomposition_time_cost_ (ms) = 50.831
--- cluster_decomposition_time_cost_  (ms) = 0.048
--- sort_level_time_cost_             (ms) = 0.019
--- Decomposition completeness ? 1
- max/total size 1 / 330
--- decomposition take 66.412 ms to get 330 clusters 
- layered mapf success 1
-330 agents 
--- layered EECBS end in 2341.38ms
- is solution valid ? 1
-layered EECBS maximal usage = 15.1875 MB
-layered EECBS total cost          = 73383
-layered EECBS maximum_single_cost = 469
-330 paths  / agents 330
--- EECBS end in 5608.04ms
- is solution valid ? 1
---variation of memory 142.352 MB
---EECBS maximal usage = 146.344 MB
-EECBS total cost          = 64594
-EECBS maximum_single_cost = 478
+Expected output: \
+map info: \
+type octile \
+height 194 \
+width 194 \
+map \
+ map name ../test/test_data/lak303d.map \
+get 330 instances \
+-- instance_decomposition_time_cost_ (ms) = 50.831 \
+-- cluster_decomposition_time_cost_  (ms) = 0.048 \
+-- sort_level_time_cost_             (ms) = 0.019 \
+-- Decomposition completeness ? 1 \
+ max/total size 1 / 330 \
+-- decomposition take 66.412 ms to get 330 clusters  \
+ layered mapf success 1 \
+330 agents  \
+-- layered EECBS end in 2341.38ms \
+ is solution valid ? 1 \
+layered EECBS maximal usage = 15.1875 MB \
+layered EECBS total cost          = 73383 \
+layered EECBS maximum_single_cost = 469 \
+330 paths  / agents 330 \
+-- EECBS end in 5608.04ms \
+ is solution valid ? 1 \
+--variation of memory 142.352 MB \
+--EECBS maximal usage = 146.344 MB \
+EECBS total cost          = 64594 \
+EECBS maximum_single_cost = 478 \
 ```
 ## Massive Decomposition of MAPF instance test
 ```
