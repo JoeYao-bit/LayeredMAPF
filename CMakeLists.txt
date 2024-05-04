@@ -45,7 +45,8 @@ add_library(EECBS_lib  ${EECBS_src} ${PBS_src} ${lacam_src} ${CBSH2-RTC_src} ${l
 target_link_libraries(EECBS_lib freeNav-base)
 
 aux_source_directory(algorithm alg_src)
-add_library(alg_lib ${alg_src})
+aux_source_directory(algorithm/LA-MAPF lamapf_src)
+add_library(alg_lib ${alg_src} ${lamapf_src})
 target_link_libraries(alg_lib EECBS_lib lib-graph)
 #add_library(external_lib ${third1_src} ${third2_src} ${third3_src})
 
@@ -58,4 +59,6 @@ target_link_libraries(test_memory_check alg_lib)
 add_executable(test_massive_layered_mapf test/test_massive_layered_mapf.cpp)
 target_link_libraries(test_massive_layered_mapf alg_lib)
 
+add_executable(test_geometry test/test_geometry.cpp)
+target_link_libraries(test_geometry alg_lib)
 
