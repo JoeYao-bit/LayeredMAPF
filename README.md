@@ -19,7 +19,7 @@ make
 
 # Install Dependencies
 This branch is a full version of Layered MAPF, which have lots of dependencies, for visualization and develop convinience.
-<font color=red>If you want a quick start, swtich to branch "minimum_denpendence"  would be a wise choice, follow its README.</font>
+<font color=red>If you want a quick start, swtich to branch "minimum_dependence"  would be a wise choice, follow its README.</font>
 
 ```
 git checkout minimize_dependence
