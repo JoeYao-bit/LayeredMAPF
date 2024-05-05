@@ -110,7 +110,8 @@ add_library(vis_lib ${vis_src} ${qt_src})
 target_link_libraries(vis_lib ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} ${Pangolin_LIBRARIES} ${QT_LIBS})
 
 aux_source_directory(algorithm alg_src)
-add_library(alg_lib ${alg_src})
+aux_source_directory(algorithm/LA-MAPF lamapf_src)
+add_library(alg_lib ${alg_src} ${lamapf_src})
 target_link_libraries(alg_lib EECBS_lib vis_lib lib-graph)
 #add_library(external_lib ${third1_src} ${third2_src} ${third3_src})
 
@@ -134,3 +135,6 @@ target_link_libraries(test_create_random_map_fr_mapf freeNav-base alg_lib)
 
 add_executable(test_qt_gui test/test_qt_gui.cpp test/visualization/qt_gui/resources/images.qrc)
 target_link_libraries(test_qt_gui freeNav-base alg_lib)
+
+add_executable(test_geometry test/test_geometry.cpp)
+target_link_libraries(test_geometry freeNav-base alg_lib)
