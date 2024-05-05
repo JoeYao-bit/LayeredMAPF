@@ -24,7 +24,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         // for a N dimensional space, there are 2*N orientation
         // e.g., 0,1,2,3 for 2D, 0,1,2,3,4,5,6,7 for 3D
         // int orient can be translated into a Orthogonal vector:
-        // e.g., 2D: 0 -> (-1, 1),    1 -> (1, 0),    2 -> (0, -1),    3 -> (0, 1)
+        // e.g., 2D: 0 -> (-1, 0),    1 -> (1, 0),    2 -> (0, -1),    3 -> (0, 1)
         //       3D: 0 -> (-1, 0, 0), 1 -> (1, 0, 0), 2 -> (0, -1, 0), 3 -> (0, 1, 0), 4 -> (0, 0, -1), 5 -> (0, 0, 1),
         int orient_ = 0;
     };
@@ -69,21 +69,40 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                DimensionLength* dim,
                                const IS_OCCUPIED_FUNC<N>& isoc, const DistanceMapUpdater<N>& distance_table) const {
             const Pointi<N> pt1 = edge_from.pt_, pt2 = edge_to.pt_;
-            if(isoc(pt1) || isoc(pt1)) { return true; }
+            if(isoc(pt1) || isoc(pt2)) { return true; }
             if(radius_ < 0.5) { return false; }
-            if(pt1 == pt2) { return true; } // any orientation change are permit, as this is a circle
-            assert(edge_to.orient_ == edge_to.orient_); // if not the same position, can not change in orientation
-            assert((pt1 - pt2).Norm() <= 1); // limit range of move ?
-            Line<N> line(pt1, pt2);
-            int check_step = line.step;
-            Pointi<N> pt;
-            for(int i=1; i<check_step; i++) {
-                pt = line.GetPoint(i);
-                Id pt_id = PointiToId(pt, dim);
-                if(distance_table.getClosestDistance(pt_id) <= radius_) {
+            if(pt1 == pt2) {
+                // the angle of orientation change must be minus than 90 degree
+                if(edge_from.orient_ / 2 == edge_to.orient_ / 2) {
                     return true;
+                } else {
+                    return false;
                 }
+            } // any orientation change are permit, as this is a circle
+            if(edge_to.orient_ != edge_from.orient_) { return true; }; // if not the same position, can not change in orientation
+            assert((pt1 - pt2).Norm() <= 1); // limit range of move ?
+            // can only move in current orient
+            Pointi<N> mov_vector = pt2 - pt1;
+//            std::cout << "pt1/pt2 orient = " << pt1 << " " << pt2 << " " << edge_from.orient_ << std::endl;
+//            std::cout << "mov_vector[edge_to.orient_/2] " << mov_vector[edge_to.orient_/2] << std::endl;
+//            if(mov_vector[edge_to.orient_/2] == 0) { return true; }
+
+            if(edge_to.orient_ % 2 == 0) {
+                if(mov_vector[edge_to.orient_/2] != -1) { return true;}
+            } else {
+                if(mov_vector[edge_to.orient_/2] != 1) { return true;}
             }
+
+//            Line<N> line(pt1, pt2);
+//            int check_step = line.step;
+//            Pointi<N> pt;
+//            for(int i=1; i<check_step; i++) {
+//                pt = line.GetPoint(i);
+//                Id pt_id = PointiToId(pt, dim);
+//                if(distance_table.getClosestDistance(pt_id) <= radius_) {
+//                    return true;
+//                }
+//            }
             return false;
         }
 
