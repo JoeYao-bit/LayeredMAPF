@@ -6,6 +6,8 @@
 #define LAYEREDMAPF_LARGE_AGENT_MAPF_H
 
 #include "shaped_agent.h"
+#include "constraint.h"
+#include <boost/heap/pairing_heap.hpp>
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
@@ -21,6 +23,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //        std::vector<SubGraphNodePtr<N> > neighbor_;
 //    };
 //
+
+#define MAX_TIMESTEP INT_MAX / 2
+#define MAX_COST INT_MAX / 2
+#define MAX_NODES INT_MAX / 2
+
     template<Dimension N>
     struct SubGraphOfAgent {
         std::vector<PosePtr<N> > all_poses_;
@@ -31,7 +38,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     template<Dimension N>
     class LargeAgentMAPF {
     public:
-        LargeAgentMAPF(const Instances<N> & instances,
+        LargeAgentMAPF(const InstanceOrients<N> & instances,
                        const Agents<N>& agents,
                        DimensionLength* dim,
                        const IS_OCCUPIED_FUNC<N> & isoc) : instances_(instances), agents_(agents), dim_(dim), isoc_(isoc),
@@ -58,6 +65,23 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             agent_sub_graphs_.reserve(instances_.size());
             for(const auto& agent : agents) {
                 agent_sub_graphs_.push_back(constructSubGraphOfAgent(agent));
+            }
+            // 4, construct each agent's heuristic table, i.e., distance from each node to target
+            agents_heuristic_tables_.reserve(instances_.size());
+            for(int agent=0; agent<instances_.size(); agent++) {
+                // check start
+                int start_node_id = PointiToId<N>(instances_[agent].first.first, dim_)*2*N + instances_[agent].first.second;
+                if(agent_sub_graphs_[agent].all_poses_[start_node_id] == nullptr) {
+                    std::cerr << " agent " << agent << "'s start " << instances_[agent].first.first << "^" << instances_[agent].first.second << " is unavailable " << std::endl;
+                    continue;
+                }
+                // check target
+                int target_node_id = PointiToId<N>(instances_[agent].second.first, dim_)*2*N + instances_[agent].second.second;
+                if(agent_sub_graphs_[agent].all_poses_[target_node_id] == nullptr) {
+                    std::cerr << " agent " << agent << "'s target " << instances_[agent].second.first << "^" << instances_[agent].second.second << " is unavailable " << std::endl;
+                    continue;
+                }
+                agents_heuristic_tables_.push_back(constructHeuristicTable(agent_sub_graphs_[agent], target_node_id));
             }
         }
 
@@ -124,6 +148,48 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return sub_graph;
         }
 
+        std::vector<int> constructHeuristicTable(const SubGraphOfAgent<N>& sub_graph, const int& goal_id) const {
+            struct Node {
+                int node_id;
+                int value;
+
+                Node() = default;
+
+                Node(int node_id, int value) : node_id(node_id), value(value) {}
+
+                // the following is used to compare nodes in the OPEN list
+                struct compare_node {
+                    // returns true if n1 > n2 (note -- this gives us *min*-heap).
+                    bool operator()(const Node &n1, const Node &n2) const {
+                        return n1.value >= n2.value;
+                    }
+                };  // used by OPEN (heap) to compare nodes (top of the heap has min f-val, and then highest g-val)
+            };
+
+            std::vector<int> agent_heuristic(sub_graph.all_poses_.size(), MAX_TIMESTEP);
+
+            // generate a heap that can save nodes (and an open_handle)
+            boost::heap::pairing_heap<Node, boost::heap::compare<typename Node::compare_node> > heap;
+
+            Node root(goal_id, 0);
+            agent_heuristic[goal_id] = 0;
+            heap.push(root);  // add root to heap
+            // yz: compute heuristic from goal to visible grid via Breadth First Search
+            //     search the static shortest path
+            while (!heap.empty()) {
+                Node curr = heap.top();
+                heap.pop();
+                for (int next_location : sub_graph.all_edges_[curr.node_id]) {
+                    if (agent_heuristic[next_location] > curr.value + 1) {
+                        agent_heuristic[next_location] = curr.value + 1;
+                        Node next(next_location, curr.value + 1);
+                        heap.push(next);
+                    }
+                }
+            }
+            return agent_heuristic;
+        }
+
         ~LargeAgentMAPF() {
             // release pose ptrs
             for(auto& pose_ptr : all_poses_) {
@@ -135,16 +201,19 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
 
     //protected:
-        const Instances<N> instances_;
+        // initial constant values
+        const InstanceOrients<N> instances_;
         const Agents<N>& agents_;
         DimensionLength* dim_;
         const IS_OCCUPIED_FUNC<N>& isoc_;
 
+        // intermediate variables
         std::vector<PosePtr<N> > all_poses_;
         DistanceMapUpdater<N> distance_map_updater_;
-
         std::vector<SubGraphOfAgent<N> > agent_sub_graphs_;
+        std::vector<std::vector<int> > agents_heuristic_tables_;
 
+        // final solution
         Path<N> solution_;
 
     };

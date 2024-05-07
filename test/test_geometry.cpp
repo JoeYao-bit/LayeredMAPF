@@ -3,6 +3,8 @@
 //
 
 #include <gtest/gtest.h>
+#include <sstream>
+#include <string>
 #include "../algorithm/LA-MAPF/shaped_agent.h"
 #include "../algorithm/LA-MAPF/large_agent_CBS.h"
 #include "../freeNav-base/visualization/canvas/canvas.h"
@@ -39,6 +41,8 @@ int zoom_ratio = 20;
 Pointi<2> pt1;
 int current_subgraph_id = 0;
 bool draw_all_subgraph_node = false;
+bool draw_all_instance = false;
+bool draw_heuristic_table = false;
 
 TEST(circleAgentSubGraph, test) {
     Canvas canvas("circle agent", dim[0], dim[1], .1, zoom_ratio);
@@ -52,7 +56,7 @@ TEST(circleAgentSubGraph, test) {
     canvas.setMouseCallBack(mouse_call_back);
 
     // fake instances
-    Instances<2> instances = {{{28, 13}, {27, 15}}, {{27, 21}, {6, 2}} };
+    InstanceOrients<2> instances = {{{{28, 13}, 1}, {{27, 15},1} }, {{{27, 21}, 1}, {{6, 2}, 1}} };
     Agents<2> agents;
     CircleAgent<2> a1(.5), a2(.4);
     agents.push_back((Agent<2>*)(&a1));
@@ -76,8 +80,8 @@ TEST(circleAgentSubGraph, test) {
             }
         }
         Id id = PointiToId(pt1, dim);
-        int orient = 0;
-        //for(int orient=0; orient<4; orient++)
+        //int orient = 0;
+        for(int orient=0; orient<4; orient++)
         {
             auto current_node  = current_subgraph.all_poses_[id*4 + orient];
             auto current_edges = current_subgraph.all_edges_[id*4 + orient];
@@ -88,6 +92,37 @@ TEST(circleAgentSubGraph, test) {
                     canvas.drawGrid(current_subgraph.all_poses_[edge_id]->pt_[0],
                                     current_subgraph.all_poses_[edge_id]->pt_[1],
                                     COLOR_TABLE[2]);
+                }
+            }
+        }
+        if(draw_all_instance) {
+            //for (int i=0; i<instances.size(); i++)
+            {
+                const auto &instance = instances[current_subgraph_id];
+                canvas.drawGrid(instance.first.first[0], instance.first.first[1], COLOR_TABLE[(2 + current_subgraph_id)%30]);
+                canvas.drawArrowInt(instance.first.first[0], instance.first.first[1], 0 , zoom_ratio, zoom_ratio/2);
+
+                canvas.drawGrid(instance.second.first[0], instance.second.first[1], COLOR_TABLE[(2 + current_subgraph_id)%30]);
+                canvas.drawArrowInt(instance.second.first[0], instance.second.first[1], 0 , zoom_ratio, zoom_ratio/2);
+
+            }
+        }
+        if(draw_heuristic_table) {
+            const auto& heuristic_table = lacbs.agents_heuristic_tables_[current_subgraph_id];
+            Id total_index = getTotalIndexOfSpace<2>(dim);
+            for(int i=0; i<total_index; i++) {
+                // pick minimum heuristic value in all direction
+                int value = MAX<int>;
+                for(int orient=0; orient<4; orient++) {
+                    if(heuristic_table[i*4 + orient] < value) {
+                        value = heuristic_table[i*4 + orient];
+                    }
+                }
+                if(value != MAX<int> && value < 10) {
+                    Pointi<2> position = IdToPointi<2>(i, dim);
+                    std::stringstream ss;
+                    ss << value;
+                    canvas.drawTextInt(position[0], position[1], ss.str().c_str(), cv::Vec3b::all(0), .5);
                 }
             }
         }
@@ -102,6 +137,10 @@ TEST(circleAgentSubGraph, test) {
             std::cout << " switch to subgraph " << current_subgraph_id << std::endl;
         } else if(key == 'a') {
             draw_all_subgraph_node = !draw_all_subgraph_node;
+        } else if(key == 'i') {
+            draw_all_instance = !draw_all_instance;
+        } else if(key == 'h') {
+            draw_heuristic_table = !draw_heuristic_table;
         }
     }
 

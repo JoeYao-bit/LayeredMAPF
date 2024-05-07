@@ -12,7 +12,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     template <Dimension N>
     class LargeAgentCBS : public LargeAgentMAPF<N> {
     public:
-        LargeAgentCBS(const Instances<N> & instances,
+        LargeAgentCBS(const InstanceOrients<N> & instances,
                       const Agents<N>& agents,
                       DimensionLength* dim,
                       const IS_OCCUPIED_FUNC<N> & isoc) : LargeAgentMAPF<N>(instances, agents, dim, isoc) {
