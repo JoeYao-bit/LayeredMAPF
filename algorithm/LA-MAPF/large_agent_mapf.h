@@ -24,22 +24,20 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //    };
 //
 
-#define MAX_TIMESTEP INT_MAX / 2
-#define MAX_COST INT_MAX / 2
-#define MAX_NODES INT_MAX / 2
+
 
     template<Dimension N>
     struct SubGraphOfAgent {
         std::vector<PosePtr<N> > all_poses_;
-        std::vector<std::vector<Id> > all_edges_;
+        std::vector<std::vector<size_t> > all_edges_;
     };
 
 
-    template<Dimension N>
+    template<Dimension N, typename AgentType>
     class LargeAgentMAPF {
     public:
         LargeAgentMAPF(const InstanceOrients<N> & instances,
-                       const Agents<N>& agents,
+                       const std::vector<AgentType>& agents,
                        DimensionLength* dim,
                        const IS_OCCUPIED_FUNC<N> & isoc) : instances_(instances), agents_(agents), dim_(dim), isoc_(isoc),
                                                            distance_map_updater_(DistanceMapUpdater<N>(this->isoc_, this->dim_)) {
@@ -91,18 +89,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return solution_;
         }
 
-        SubGraphOfAgent<N> constructSubGraphOfAgent(const Agent<N>* agent) const {
+        SubGraphOfAgent<N> constructSubGraphOfAgent(const AgentType& agent) const {
             Id total_index = getTotalIndexOfSpace<N>(dim_);
             assert(all_poses_.size() == total_index*2*N);
             SubGraphOfAgent<N> sub_graph;
             sub_graph.all_poses_.resize(total_index*2*N, nullptr);
             // initial nodes in subgraph
-            for(Id id=0; id<total_index; id++) {
+            for(size_t id=0; id<total_index; id++) {
                 if(all_poses_[id*2*N] != nullptr) {
                     // if current grid is free, then check all orientation
                     for(int orient=0; orient<2*N; orient ++) {
                         const auto& current_pose = all_poses_[id * 2 * N + orient];
-                        if(!agent->isCollide(*current_pose, dim_, isoc_, distance_map_updater_)) {
+                        if(!agent.isCollide(*current_pose, dim_, isoc_, distance_map_updater_)) {
                             sub_graph.all_poses_[id * 2 * N + orient] = current_pose;
                         }
                     }
@@ -112,11 +110,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             // and orientation can only change 90 degree at one timestep, that means the two orient must be orthogonal
             sub_graph.all_edges_.resize(total_index*2*N, {});
             Pointis<N> neighbors = GetNearestOffsetGrids<N>();
-            for(int pose_id=0; pose_id < sub_graph.all_poses_.size(); pose_id++) {
+            for(size_t pose_id=0; pose_id < sub_graph.all_poses_.size(); pose_id++) {
                 const auto& node_ptr = sub_graph.all_poses_[pose_id];
                 if(node_ptr != nullptr) {
                     // add edges about position changing
-                    int origin_orient = pose_id%(2*N);
+                    size_t origin_orient = pose_id%(2*N);
                     Pointi<N> origin_pt = node_ptr->pt_;
                     Pointi<N> new_pt;
                     for(const auto& offset : neighbors) {
@@ -125,21 +123,21 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         Id another_node_id = PointiToId<N>(new_pt, dim_)*2*N + origin_orient;
                         PosePtr<N> another_node_ptr = sub_graph.all_poses_[another_node_id];
                         if(another_node_ptr == nullptr) { continue; }
-                        if(!agent->isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, distance_map_updater_)) {
+                        if(!agent.isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, distance_map_updater_)) {
                             sub_graph.all_edges_[pose_id].push_back(another_node_id);
                         }
                     }
                     // add edges about orientation changing
-                    int base_id = pose_id / (2*N) * (2*N);
-                    for(int orient=0; orient<2*N; orient++) {
+                    size_t base_id = pose_id / (2*N) * (2*N);
+                    for(size_t orient=0; orient<2*N; orient++) {
                         // avoid repeat itself
                         if(node_ptr->orient_ == orient) { continue; }
                         // if another node in subgraph
-                        Id another_node_id = base_id + orient;
+                        size_t another_node_id = base_id + orient;
                         PosePtr<N> another_node_ptr = sub_graph.all_poses_[another_node_id];
                         if(another_node_ptr == nullptr) { continue; }
                         // check whether can transfer to another node
-                        if(!agent->isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, distance_map_updater_)) {
+                        if(!agent.isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, distance_map_updater_)) {
                             sub_graph.all_edges_[pose_id].push_back(another_node_id);
                         }
                     }
@@ -148,7 +146,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return sub_graph;
         }
 
-        std::vector<int> constructHeuristicTable(const SubGraphOfAgent<N>& sub_graph, const int& goal_id) const {
+        std::vector<int> constructHeuristicTable(const SubGraphOfAgent<N>& sub_graph, const size_t& goal_id) const {
             struct Node {
                 int node_id;
                 int value;
@@ -203,7 +201,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     //protected:
         // initial constant values
         const InstanceOrients<N> instances_;
-        const Agents<N>& agents_;
+        const std::vector<AgentType>& agents_;
         DimensionLength* dim_;
         const IS_OCCUPIED_FUNC<N>& isoc_;
 

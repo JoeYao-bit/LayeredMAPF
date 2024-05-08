@@ -9,13 +9,13 @@
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
-    template <Dimension N>
-    class LargeAgentCBS : public LargeAgentMAPF<N> {
+    template <Dimension N, typename AgentType>
+    class LargeAgentCBS : public LargeAgentMAPF<N, AgentType> {
     public:
         LargeAgentCBS(const InstanceOrients<N> & instances,
-                      const Agents<N>& agents,
+                      const std::vector<AgentType>& agents,
                       DimensionLength* dim,
-                      const IS_OCCUPIED_FUNC<N> & isoc) : LargeAgentMAPF<N>(instances, agents, dim, isoc) {
+                      const IS_OCCUPIED_FUNC<N> & isoc) : LargeAgentMAPF<N, AgentType>(instances, agents, dim, isoc) {
         }
 
         virtual bool solve() override {

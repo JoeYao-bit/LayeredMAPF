@@ -57,11 +57,11 @@ TEST(circleAgentSubGraph, test) {
 
     // fake instances
     InstanceOrients<2> instances = {{{{28, 13}, 1}, {{27, 15},1} }, {{{27, 21}, 1}, {{6, 2}, 1}} };
-    Agents<2> agents;
+    CircleAgents<2> agents;
     CircleAgent<2> a1(.5), a2(.4);
-    agents.push_back((Agent<2>*)(&a1));
-    agents.push_back((Agent<2>*)(&a2));
-    LargeAgentCBS<2> lacbs(instances, agents, dim, is_occupied);
+    agents.push_back(a1);
+    agents.push_back(a2);
+    LargeAgentCBS<2, CircleAgent<2> > lacbs(instances, agents, dim, is_occupied);
 
     while(true) {
         canvas.resetCanvas();

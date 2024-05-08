@@ -10,6 +10,10 @@
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
+#define MAX_TIMESTEP INT_MAX / 2
+#define MAX_COST INT_MAX / 2
+#define MAX_NODES INT_MAX / 2
+
     // distance from current position to obstacles
     // if inside obstacle, = 0
     // for accelerate collision check between obstacles and agents
@@ -35,22 +39,35 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     template <Dimension N>
     struct Agent {
 
-        virtual bool isCollide(const Pose<N> pose, DimensionLength* dim, const IS_OCCUPIED_FUNC<N>& isoc, const DistanceMapUpdater<N>& distance_table) const = 0;
+        explicit Agent(float excircle_radius, float incircle_radius) : excircle_radius_(excircle_radius), incircle_radius_(incircle_radius) {}
 
-        virtual bool isCollide(const Pose<N>& edge_from, const Pose<N>& edge_to, DimensionLength* dim, const IS_OCCUPIED_FUNC<N>& isoc, const DistanceMapUpdater<N>& distance_table) const = 0;
+        virtual bool isCollide(const Pose<N>& pose,
+                               DimensionLength* dim,
+                               const IS_OCCUPIED_FUNC<N>& isoc,
+                               const DistanceMapUpdater<N>& distance_table) const = 0;
+
+        virtual bool isCollide(const Pose<N>& edge_from,
+                               const Pose<N>& edge_to,
+                               DimensionLength* dim,
+                               const IS_OCCUPIED_FUNC<N>& isoc,
+                               const DistanceMapUpdater<N>& distance_table) const = 0;
+
+        float excircle_radius_, incircle_radius_;
 
     };
 
     template <Dimension N>
-    using Agents = std::vector<Agent<N>* >;
+    using Agents = std::vector<Agent<N> >;
 
     template <Dimension N>
-    struct CircleAgent {
+    struct CircleAgent : public Agent<N> {
 
-        CircleAgent(float radius):radius_(radius) {}
+        CircleAgent(float radius) : Agent<N>(radius, radius), radius_(radius) {}
 
-        virtual bool isCollide(const Pose<N>& pose, DimensionLength* dim,
-                               const IS_OCCUPIED_FUNC<N>& isoc, const DistanceMapUpdater<N>& distance_table) const {
+        virtual bool isCollide(const Pose<N>& pose,
+                               DimensionLength* dim,
+                               const IS_OCCUPIED_FUNC<N>& isoc,
+                               const DistanceMapUpdater<N>& distance_table) const {
             if(isoc(pose.pt_)) { return true; }
             if(radius_ < 0.5) {
                 return false;
@@ -65,9 +82,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         // when add edges, assume agent can only change position or orientation, cannot change both of them
         // and orientation can only change 90 degree at one timestep, that means the offset between orient are 1, 2, 4, ... (2^0, 2^1, 2^2...)
 
-        virtual bool isCollide(const Pose<N>& edge_from, const Pose<N>& edge_to,
+        virtual bool isCollide(const Pose<N>& edge_from,
+                               const Pose<N>& edge_to,
                                DimensionLength* dim,
-                               const IS_OCCUPIED_FUNC<N>& isoc, const DistanceMapUpdater<N>& distance_table) const {
+                               const IS_OCCUPIED_FUNC<N>& isoc,
+                               const DistanceMapUpdater<N>& distance_table) const {
             const Pointi<N> pt1 = edge_from.pt_, pt2 = edge_to.pt_;
             if(isoc(pt1) || isoc(pt2)) { return true; }
             if(radius_ < 0.5) { return false; }
@@ -109,6 +128,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         const float radius_ = 1.;
 
     };
+
+    template <Dimension N>
+    using CircleAgents = std::vector<CircleAgent<N> >;
 
     // detect collision between agents
 
