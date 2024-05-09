@@ -14,28 +14,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 #define MAX_COST INT_MAX / 2
 #define MAX_NODES INT_MAX / 2
 
-    // distance from current position to obstacles
-    // if inside obstacle, = 0
-    // for accelerate collision check between obstacles and agents
-    typedef std::vector<float> DistanceTable;
-
-    template <Dimension N>
-    struct Pose {
-        Pose(Pointi<N> pt, int orient) : pt_(pt), orient_(orient) {}
-
-        Pointi<N> pt_;
-
-        // for a N dimensional space, there are 2*N orientation
-        // e.g., 0,1,2,3 for 2D, 0,1,2,3,4,5,6,7 for 3D
-        // int orient can be translated into a Orthogonal vector:
-        // e.g., 2D: 0 -> (-1, 0),    1 -> (1, 0),    2 -> (0, -1),    3 -> (0, 1)
-        //       3D: 0 -> (-1, 0, 0), 1 -> (1, 0, 0), 2 -> (0, -1, 0), 3 -> (0, 1, 0), 4 -> (0, 0, -1), 5 -> (0, 0, 1),
-        int orient_ = 0;
-    };
-
-    template <Dimension N>
-    using PosePtr = Pose<N>*;
-
     template <Dimension N>
     struct Agent {
 

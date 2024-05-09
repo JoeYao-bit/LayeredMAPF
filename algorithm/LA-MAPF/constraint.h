@@ -27,18 +27,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     public:
 
-        ConstraintTable(const size_t& node_size,
+        ConstraintTable(int agent_id,
                         const std::vector<AgentType>& agents,
                         const std::vector<PosePtr<N> >& all_poses,
                         DimensionLength* dim,
-                        const IS_OCCUPIED_FUNC<N> & isoc) : node_size_(node_size), agents_(agents), all_poses_(all_poses), dim_(dim), isoc_(isoc) {
+                        const IS_OCCUPIED_FUNC<N> & isoc) : agent_id_(agent_id), node_size_(all_poses.size()), agents_(agents), all_poses_(all_poses), dim_(dim), isoc_(isoc) {
             // get max excircle radius /  min incircle radius
             for(const auto& agent : agents) {
-                if(agent->excircle_radius_ > max_excircle_radius_) {
-                    max_excircle_radius_ = agent->excircle_radius_;
+                if(agent.excircle_radius_ > max_excircle_radius_) {
+                    max_excircle_radius_ = agent.excircle_radius_;
                 }
-                if(agent->incircle_radius_ < min_incircle_radius_) {
-                    min_incircle_radius_ = agent->incircle_radius_;
+                if(agent.incircle_radius_ < min_incircle_radius_) {
+                    min_incircle_radius_ = agent.incircle_radius_;
                 }
             }
 
@@ -109,9 +109,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         // get how many conflict the agent by transfer from node curr_id to next_id have
         // using collision check between agents, so need agent information
-        int getNumOfConflictsForStep(int agent_id, const PosePtr<N>& curr_ps, const PosePtr<N>& next_ps, int next_timestep) const {
+        int getNumOfConflictsForStep(const PosePtr<N>& curr_ps, const PosePtr<N>& next_ps, int next_timestep) const {
             int rst = 0;
-            const float& agent_excircle_radius = agents_[agent_id]->excircle_radius_;
+            const float& agent_excircle_radius = agents_[agent_id_].excircle_radius_;
             if (!cat_.empty()) {
                 // check whether curr and next node have other agent in time
                 float sensitive_radius = agent_excircle_radius + agent_excircle_radius;
@@ -126,7 +126,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 Id near_next_pt_id;
                 // should use a radius limitation to make it a circle, now it is a square
                 for(size_t offset_id=0; offset_id<local_total_index; offset_id++) {
-                    near_offset = PointiToId(offset_id, temp_dim);
+                    near_offset = IdToPointi<N>(offset_id, temp_dim);
                     near_next_pt = next_ps->pt_ - basic_offset + near_offset;
                     // check other path that close to next position, as they may cause conflict
                     if(!isOutOfBoundary(near_next_pt, dim_)) {
@@ -138,7 +138,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                 std::vector<EdgeInfo> other_edges = cat_[next_timestep-1][near_next_node_id];
                                 for(const auto& edge_info : other_edges) {
                                     size_t other_node_id = std::get<1>(edge_info) % node_size_;
-                                    if(isCollide(agents_[agent_id], *curr_ps, *next_ps,
+                                    if(isCollide(agents_[agent_id_], *curr_ps, *next_ps,
                                                  agents_[std::get<0>(edge_info)], *all_poses_[near_next_node_id], *all_poses_[other_node_id])) {
                                         rst++;
                                     }
@@ -149,7 +149,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                 std::vector<EdgeInfo> other_edges = cat_[next_timestep][near_next_node_id];
                                 for(const auto& edge_info : other_edges) {
                                     size_t other_node_id = std::get<1>(edge_info) / node_size_;
-                                    if(isCollide(agents_[agent_id], *curr_ps, *next_ps,
+                                    if(isCollide(agents_[agent_id_], *curr_ps, *next_ps,
                                                  agents_[std::get<0>(edge_info)], *all_poses_[other_node_id], *all_poses_[near_next_node_id])) {
                                         rst++;
                                     }
@@ -162,14 +162,36 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return rst;
         }
 
+        // the earliest timestep that the agent can hold the location after earliest_timestep
+        int getHoldingTime(const size_t& node_id, int earliest_timestep) const
+        {
+            int rst = earliest_timestep;
+            // CT
+            auto it = ct_.find(node_id);
+            if (it != ct_.end()) {
+                for (auto time_range : it->second)
+                    rst = std::max(rst, time_range.second);
+            }
+            return rst;
+        }
 
-    private:
+        int getMaxTimestep() const // everything is static after the max timestep
+        {
+            int rst = std::max(std::max(ct_max_timestep_, cat_max_timestep_), length_min_);
+            if (length_max_ < MAX_TIMESTEP)
+                rst = std::max(rst, length_max_);
+            return rst;
+        }
+
+        //private:
 
         DimensionLength* dim_;
 
         const IS_OCCUPIED_FUNC<N>& isoc_;
 
         const int node_size_;
+
+        int agent_id_;
 
         const std::vector<AgentType>& agents_;
 
@@ -182,6 +204,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         int ct_max_timestep_ = 0;
 
         int cat_max_timestep_ = 0;
+
+        int length_min_ = 0;
+
+        int length_max_ = MAX_TIMESTEP;
 
         typedef boost::unordered_map<size_t, std::list<std::pair<int, int> > > CT; // constraint table
 

@@ -72,8 +72,8 @@ TEST(circleAgentSubGraph, test) {
         const auto& current_subgraph = lacbs.agent_sub_graphs_[current_subgraph_id];
 
         if(draw_all_subgraph_node) {
-            for (int i = 0; i < current_subgraph.all_poses_.size(); i++) {
-                const auto &node_ptr = current_subgraph.all_poses_[i];
+            for (int i = 0; i < current_subgraph.all_nodes_.size(); i++) {
+                const auto &node_ptr = current_subgraph.all_nodes_[i];
                 if (node_ptr != nullptr) {
                     canvas.drawGrid(node_ptr->pt_[0], node_ptr->pt_[1], COLOR_TABLE[0]);
                 }
@@ -83,14 +83,14 @@ TEST(circleAgentSubGraph, test) {
         //int orient = 0;
         for(int orient=0; orient<4; orient++)
         {
-            auto current_node  = current_subgraph.all_poses_[id*4 + orient];
+            auto current_node  = current_subgraph.all_nodes_[id * 4 + orient];
             auto current_edges = current_subgraph.all_edges_[id*4 + orient];
             if (current_node != nullptr) {
                 canvas.drawGrid(current_node->pt_[0], current_node->pt_[1], COLOR_TABLE[1]);
                 for (const auto &edge_id : current_edges) {
-                    if (current_subgraph.all_poses_[edge_id]->pt_ == pt1) { continue; }
-                    canvas.drawGrid(current_subgraph.all_poses_[edge_id]->pt_[0],
-                                    current_subgraph.all_poses_[edge_id]->pt_[1],
+                    if (current_subgraph.all_nodes_[edge_id]->pt_ == pt1) { continue; }
+                    canvas.drawGrid(current_subgraph.all_nodes_[edge_id]->pt_[0],
+                                    current_subgraph.all_nodes_[edge_id]->pt_[1],
                                     COLOR_TABLE[2]);
                 }
             }
@@ -99,11 +99,11 @@ TEST(circleAgentSubGraph, test) {
             //for (int i=0; i<instances.size(); i++)
             {
                 const auto &instance = instances[current_subgraph_id];
-                canvas.drawGrid(instance.first.first[0], instance.first.first[1], COLOR_TABLE[(2 + current_subgraph_id)%30]);
-                canvas.drawArrowInt(instance.first.first[0], instance.first.first[1], 0 , zoom_ratio, zoom_ratio/2);
+                canvas.drawGrid(instance.first.pt_[0], instance.first.pt_[1], COLOR_TABLE[(2 + current_subgraph_id)%30]);
+                canvas.drawArrowInt(instance.first.pt_[0], instance.first.pt_[1], 0 , zoom_ratio, zoom_ratio/2);
 
-                canvas.drawGrid(instance.second.first[0], instance.second.first[1], COLOR_TABLE[(2 + current_subgraph_id)%30]);
-                canvas.drawArrowInt(instance.second.first[0], instance.second.first[1], 0 , zoom_ratio, zoom_ratio/2);
+                canvas.drawGrid(instance.second.pt_[0], instance.second.pt_[1], COLOR_TABLE[(2 + current_subgraph_id)%30]);
+                canvas.drawArrowInt(instance.second.pt_[0], instance.second.pt_[1], 0 , zoom_ratio, zoom_ratio/2);
 
             }
         }
