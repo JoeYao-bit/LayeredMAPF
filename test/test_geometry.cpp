@@ -43,6 +43,7 @@ int current_subgraph_id = 0;
 bool draw_all_subgraph_node = false;
 bool draw_all_instance = false;
 bool draw_heuristic_table = false;
+bool draw_path = false;
 
 TEST(circleAgentSubGraph, test) {
     Canvas canvas("circle agent", dim[0], dim[1], .1, zoom_ratio);
@@ -95,6 +96,14 @@ TEST(circleAgentSubGraph, test) {
                 }
             }
         }
+        if(draw_path) {
+            const auto& path = lacbs.solutions_[current_subgraph_id];
+            for (const auto &pose_id : path) {
+                canvas.drawGrid(lacbs.all_poses_[pose_id]->pt_[0],
+                                lacbs.all_poses_[pose_id]->pt_[1],
+                                COLOR_TABLE[(2+current_subgraph_id) % 30]);
+            }
+        }
         if(draw_all_instance) {
             //for (int i=0; i<instances.size(); i++)
             {
@@ -118,7 +127,8 @@ TEST(circleAgentSubGraph, test) {
                         value = heuristic_table[i*4 + orient];
                     }
                 }
-                if(value != MAX<int> && value < 10) {
+                if(value != MAX<int> && value < 20
+                ) {
                     Pointi<2> position = IdToPointi<2>(i, dim);
                     std::stringstream ss;
                     ss << value;
@@ -141,6 +151,8 @@ TEST(circleAgentSubGraph, test) {
             draw_all_instance = !draw_all_instance;
         } else if(key == 'h') {
             draw_heuristic_table = !draw_heuristic_table;
+        } else if(key == 'p') {
+            draw_path = !draw_path;
         }
     }
 

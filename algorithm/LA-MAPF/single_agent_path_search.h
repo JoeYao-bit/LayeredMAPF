@@ -112,7 +112,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     //protected:
 
         int min_f_val_; // minimal f value in OPEN
-        int lower_bound_; // Threshold for FOCAL
+        int lower_bound_ = 0; // Threshold for FOCAL
         double w_ = 1; // suboptimal bound
         const ConstraintTable<N, AgentType>& constraint_table_;
 

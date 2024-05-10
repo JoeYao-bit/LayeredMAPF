@@ -77,6 +77,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             // lower_bound = int(w * min_f_val));
 
             auto holding_time = this->constraint_table_.getHoldingTime(this->target_node_id_, this->constraint_table_.length_min_);
+            this->lower_bound_ = std::max(holding_time, this->lower_bound_); // yz: considering minimum time stamp to target
+
             auto static_timestep = this->constraint_table_.getMaxTimestep() + 1; // everything is static after this timestep
 
             while (!open_list.empty()) {
