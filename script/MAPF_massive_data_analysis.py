@@ -255,7 +255,7 @@ def drawSummaryOfMethod(all_data_map, xlable, ylable, title, is_percentage=False
         plt.ylim(y_range[0]/10, y_range[1]*10)  
     else:    
         plt.ylim(0, y_range[1]*1.1)
-    plt.title(ylable)
+    #plt.title(ylable)
     if is_percentage:
         plt.ylim(0, 1)
         
@@ -490,3 +490,4 @@ drawSummaryOfMethod(all_method_memory_usage_map, "Number of agents", "Memory usa
 drawSummaryOfMethod(all_method_total_cost_map, "Number of agents", "Sum of cost", "sum_of_cost")           
 drawSummaryOfMethod(all_method_makespan_map, "Number of agents", "Makespan", "makespan")           
 drawSummaryOfMethod(all_method_success_rate_map, "Number of agents", "Success rate", "success_rate")      
+

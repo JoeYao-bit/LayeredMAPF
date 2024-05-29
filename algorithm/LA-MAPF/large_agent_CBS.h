@@ -38,6 +38,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     solutions_.push_back(solution);
                 }
             }
+            // 2, detect conflict
+            for(int i=0; i<this->instances_.size()-1; i++) {
+                for(int j=i+1; j<this->instances_.size(); j++) {
+                    const auto& conflicts = detectFirstConflictBetweenPaths<N>(solutions_[i], solutions_[j], this->agents_[i], this->agents_[j], this->all_poses_);
+                    break;
+                }
+            }
         }
 
         virtual bool solve() override {

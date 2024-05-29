@@ -15,8 +15,8 @@ using namespace freeNav;
 using namespace freeNav::LayeredMAPF;
 using namespace freeNav::LayeredMAPF::LA_MAPF;
 
-CircleAgent<2> c1(2.5);
-CircleAgent<2> c2(3.5);
+CircleAgent<2> c1(2.5, 0);
+CircleAgent<2> c2(3.5, 1);
 
 TEST(circleAgentIsCollide, test) {
     Pose<2> p1({1,1},0), p2({1,2}, 0), p3({1,3}, 0), p4({4,1}, 0);
@@ -57,9 +57,10 @@ TEST(circleAgentSubGraph, test) {
     canvas.setMouseCallBack(mouse_call_back);
 
     // fake instances
-    InstanceOrients<2> instances = {{{{28, 13}, 1}, {{27, 15},1} }, {{{27, 21}, 1}, {{6, 2}, 1}} };
+    InstanceOrients<2> instances = {{{{6, 3}, 1}, {{23, 22},1} },
+                                    {{{6, 2}, 1}, {{22, 21}, 1}} };
     CircleAgents<2> agents;
-    CircleAgent<2> a1(.5), a2(.4);
+    CircleAgent<2> a1(.5, 0), a2(.4, 1);
     agents.push_back(a1);
     agents.push_back(a2);
     LargeAgentCBS<2, CircleAgent<2> > lacbs(instances, agents, dim, is_occupied);
@@ -85,7 +86,7 @@ TEST(circleAgentSubGraph, test) {
         for(int orient=0; orient<4; orient++)
         {
             auto current_node  = current_subgraph.all_nodes_[id * 4 + orient];
-            auto current_edges = current_subgraph.all_edges_[id*4 + orient];
+            auto current_edges = current_subgraph.all_edges_[id * 4 + orient];
             if (current_node != nullptr) {
                 canvas.drawGrid(current_node->pt_[0], current_node->pt_[1], COLOR_TABLE[1]);
                 for (const auto &edge_id : current_edges) {
@@ -127,7 +128,7 @@ TEST(circleAgentSubGraph, test) {
                         value = heuristic_table[i*4 + orient];
                     }
                 }
-                if(value != MAX<int> && value < 20
+                if(value != MAX<int> && value < 10
                 ) {
                     Pointi<2> position = IdToPointi<2>(i, dim);
                     std::stringstream ss;

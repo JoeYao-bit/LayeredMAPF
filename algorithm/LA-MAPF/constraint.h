@@ -5,19 +5,11 @@
 #ifndef LAYEREDMAPF_CONSTRAINT_H
 #define LAYEREDMAPF_CONSTRAINT_H
 
-#include "../freeNav-base/basic_elements/point.h"
-#include "shaped_agent.h"
-#include <boost/unordered/unordered_map.hpp>
+#include "common.h"
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
-    // <agent id, node from, node to, time range start, time range end>
-    typedef std::tuple<int, size_t, size_t, int, int> Constraint;
 
-    // conflict resulted by two agents, and constraint store what move and when cause conflict
-    typedef std::pair<Constraint, Constraint> Conflict;
-
-    typedef std::vector<size_t> LAMAPF_Path; // node id sequence
 
     template<Dimension N, typename AgentType>
     struct ConstraintTable {
@@ -47,11 +39,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         inline size_t getEdgeIndex(const size_t& from, const size_t& to) const { return from * node_size_ + to; }
 
 
-        void insert2CT(size_t from, size_t to, int t_min, int t_max) {
+        void insert2CT(const size_t& from, const size_t& to, int t_min, int t_max) {
             insert2CT(getEdgeIndex(from, to), t_min, t_max);
         }
 
-        void insert2CT(size_t loc, int t_min, int t_max) {
+        void insert2CT(const size_t& loc, int t_min, int t_max) {
             assert(loc >= 0);
             ct_[loc].emplace_back(t_min, t_max);
             if (t_max < MAX_TIMESTEP && t_max > ct_max_timestep_) {
@@ -61,7 +53,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
         }
 
-        bool constrained(size_t id, int t) const {
+        bool constrained(const size_t& id, int t) const {
             assert(id >= 0);
             const auto &it = ct_.find(id);
             if (it == ct_.end()) {
@@ -75,7 +67,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return false;
         }
 
-        bool constrained(size_t curr_loc, size_t next_loc, int next_t) const {
+        bool constrained(const size_t& curr_loc, const size_t& next_loc, int next_t) const {
             return constrained(getEdgeIndex(curr_loc, next_loc), next_t);
         }
 
@@ -220,6 +212,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<int> cat_goals_; // the visit time of goal
 
     };
+
+
+
 
 }
 

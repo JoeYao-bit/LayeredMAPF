@@ -4,9 +4,7 @@
 
 #ifndef LAYEREDMAPF_SHAPED_AGENT_H
 #define LAYEREDMAPF_SHAPED_AGENT_H
-#include <boost/geometry.hpp>
-#include "../freeNav-base/basic_elements/distance_map_update.h"
-#include "../../freeNav-base/basic_elements/point.h"
+#include "common.h"
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
@@ -14,33 +12,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 #define MAX_COST INT_MAX / 2
 #define MAX_NODES INT_MAX / 2
 
-    template <Dimension N>
-    struct Agent {
 
-        explicit Agent(float excircle_radius, float incircle_radius) : excircle_radius_(excircle_radius), incircle_radius_(incircle_radius) {}
-
-        virtual bool isCollide(const Pose<N>& pose,
-                               DimensionLength* dim,
-                               const IS_OCCUPIED_FUNC<N>& isoc,
-                               const DistanceMapUpdater<N>& distance_table) const = 0;
-
-        virtual bool isCollide(const Pose<N>& edge_from,
-                               const Pose<N>& edge_to,
-                               DimensionLength* dim,
-                               const IS_OCCUPIED_FUNC<N>& isoc,
-                               const DistanceMapUpdater<N>& distance_table) const = 0;
-
-        float excircle_radius_, incircle_radius_;
-
-    };
-
-    template <Dimension N>
-    using Agents = std::vector<Agent<N> >;
 
     template <Dimension N>
     struct CircleAgent : public Agent<N> {
 
-        CircleAgent(float radius) : Agent<N>(radius, radius), radius_(radius) {}
+        CircleAgent(float radius, int id) : Agent<N>(radius, radius, id), radius_(radius) {}
 
         virtual bool isCollide(const Pose<N>& pose,
                                DimensionLength* dim,
@@ -145,6 +122,68 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     bool isCollide(const CircleAgent<2>& a1, const Pose<2>& s1,
                    const CircleAgent<2>& a2, const Pose<2>& s2, const Pose<2>& e2) {
         return isCollide(a2, s2, e2, a1, s1);
+    }
+
+
+    template<Dimension N>
+    std::vector<Conflict> detectFirstConflictBetweenPaths(const LAMAPF_Path& p1, const LAMAPF_Path& p2,
+                                                          const CircleAgent<N>& a1, const CircleAgent<N>& a2,
+                                                          const std::vector<Pose<N>*>& all_nodes) {
+        int t1 = p1.size()-1, t2 = p2.size()-1;
+        const auto& longer_agent  = p1.size() > p2.size() ? a1 : a2;
+        const auto& shorter_agent = longer_agent.id_ == a1.id_ ? a2 : a1;
+        const auto& longer_path   = longer_agent.id_ == a1.id_ ? p1 : p2;
+        const auto& shorter_path  = longer_agent.id_ == a1.id_ ? p2 : p1;
+
+        int common_part = std::min(t1, t2);
+        for(int t=0; t<common_part-1; t++) {
+            if(isCollide(a1, *all_nodes[p1[t]], *all_nodes[p1[t+1]], a2, *all_nodes[p2[t]], *all_nodes[p2[t+1]])) {
+                Constraint c1(a1.id_, p1[t], p1[t+1], t, t+1), c2(a2.id_, p1[t], p1[t+1], t, t+1);
+                Conflict cf(c1, c2);
+                return { cf };
+            }
+        }
+        for(int t=common_part-1; t<std::max(t1, t2) - 1; t++) {
+            if(isCollide(longer_agent, *all_nodes[longer_path[t]], *all_nodes[longer_path[t+1]], shorter_agent, *all_nodes[shorter_path.back()])) {
+                Constraint c1(longer_agent.id_,  longer_path[t], longer_path[t+1], t, t+1),
+                           c2(shorter_agent.id_, shorter_path.back(), MAX_NODES,   0, t+1);
+                Conflict cf(c1, c2);
+                return { cf };
+            }
+        }
+        return {};
+    }
+
+    template<Dimension N>
+    std::vector<Conflict> detectAllConflictBetweenPaths(const LAMAPF_Path& p1, const LAMAPF_Path& p2,
+                                                        const CircleAgent<N>& a1, const CircleAgent<N>& a2,
+                                                        const std::vector<Pose<N>*>& all_nodes) {
+        int t1 = p1.size()-1, t2 = p2.size()-1;
+        const auto& longer_agent  = p1.size() > p2.size() ? a1 : a2;
+        const auto& shorter_agent = longer_agent.id_ == a1.id_ ? a2 : a1;
+        const auto& longer_path   = longer_agent.id_ == a1.id_ ? p1 : p2;
+        const auto& shorter_path  = longer_agent.id_ == a1.id_ ? p2 : p1;
+
+        int common_part = std::min(t1, t2);
+        std::vector<Conflict> cfs;
+        for(int t=0; t<common_part-1; t++) {
+            if(isCollide(a1, *all_nodes[p1[t]], *all_nodes[p1[t+1]],
+                         a2, *all_nodes[p2[t]], *all_nodes[p2[t+1]])) {
+                Constraint c1(a1.id_, p1[t], p1[t+1], t, t+1), c2(a2.id_, p1[t], p1[t+1], t, t+1);
+                Conflict cf(c1, c2);
+                cfs.push_back(cf);
+            }
+        }
+        for(int t=common_part-1; t<std::max(t1, t2) - 1; t++) {
+            if(isCollide(longer_agent, *all_nodes[longer_path[t]], *all_nodes[longer_path[t+1]],
+                         shorter_agent, *all_nodes[shorter_path.back()])) {
+                Constraint c1(longer_agent.id_,  longer_path[t], longer_path[t+1], t, t+1),
+                        c2(shorter_agent.id_, shorter_path.back(), MAX_NODES,   0, t+1);
+                Conflict cf(c1, c2);
+                cfs.push_back(cf);
+            }
+        }
+        return cfs;
     }
 
     // boost seems have no distance calculation about 3D segments, compile failed
