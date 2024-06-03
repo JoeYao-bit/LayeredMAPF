@@ -82,7 +82,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
         }
 
-        virtual bool solve() = 0;
+        virtual bool solve(double time_limit, int cost_lowerbound = 0, int cost_upperbound = MAX_COST) = 0;
 
         virtual std::vector<LAMAPF_Path> getSolution() const {
             return solution_;

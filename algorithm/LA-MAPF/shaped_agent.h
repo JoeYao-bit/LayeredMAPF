@@ -100,7 +100,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         bg_pt pt1(s1.pt_[0], s1.pt_[1]), pt2(e1.pt_[0], e1.pt_[1]),
               pt3(s2.pt_[0], s2.pt_[1]), pt4(e2.pt_[0], e2.pt_[1]);
         bg_seg seg1(pt1, pt2), seg2(pt3, pt4);
-        std::cout << " bg::distance(seg1, seg2) = " << bg::distance(seg1, seg2) << std::endl;
+        //std::cout << " bg::distance(seg1, seg2) = " << bg::distance(seg1, seg2) << std::endl;
         return bg::distance(seg1, seg2) <= (a1.radius_ + a2.radius_);
     }
 
@@ -115,7 +115,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         bg_pt pt1(s1.pt_[0], s1.pt_[1]), pt2(e1.pt_[0], e1.pt_[1]),
                 pt3(s2.pt_[0], s2.pt_[1]);
         bg_seg seg1(pt1, pt2);
-        std::cout << " bg::distance(seg1, pt3) = " << bg::distance(seg1, pt3) << std::endl;
+        //std::cout << " bg::distance(seg1, pt3) = " << bg::distance(seg1, pt3) << std::endl;
         return bg::distance(seg1, pt3) <= (a1.radius_ + a2.radius_);
     }
 
@@ -126,7 +126,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
 
     template<Dimension N>
-    std::vector<Conflict> detectFirstConflictBetweenPaths(const LAMAPF_Path& p1, const LAMAPF_Path& p2,
+    std::vector<std::shared_ptr<Conflict> > detectFirstConflictBetweenPaths(const LAMAPF_Path& p1, const LAMAPF_Path& p2,
                                                           const CircleAgent<N>& a1, const CircleAgent<N>& a2,
                                                           const std::vector<Pose<N>*>& all_nodes) {
         int t1 = p1.size()-1, t2 = p2.size()-1;
@@ -138,16 +138,17 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         int common_part = std::min(t1, t2);
         for(int t=0; t<common_part-1; t++) {
             if(isCollide(a1, *all_nodes[p1[t]], *all_nodes[p1[t+1]], a2, *all_nodes[p2[t]], *all_nodes[p2[t+1]])) {
-                Constraint c1(a1.id_, p1[t], p1[t+1], t, t+1), c2(a2.id_, p1[t], p1[t+1], t, t+1);
-                Conflict cf(c1, c2);
+                auto c1 = std::make_shared<Constraint>(a1.id_, p1[t], p1[t+1], t, t+1);
+                auto c2 = std::make_shared<Constraint>(a2.id_, p1[t], p1[t+1], t, t+1);
+                auto cf = std::make_shared<Conflict>(a1.id_, a2.id_, Constraints{c1}, Constraints{c2});
                 return { cf };
             }
         }
         for(int t=common_part-1; t<std::max(t1, t2) - 1; t++) {
             if(isCollide(longer_agent, *all_nodes[longer_path[t]], *all_nodes[longer_path[t+1]], shorter_agent, *all_nodes[shorter_path.back()])) {
-                Constraint c1(longer_agent.id_,  longer_path[t], longer_path[t+1], t, t+1),
-                           c2(shorter_agent.id_, shorter_path.back(), MAX_NODES,   0, t+1);
-                Conflict cf(c1, c2);
+                auto c1 = std::make_shared<Constraint>(longer_agent.id_,  longer_path[t], longer_path[t+1], t, t+1);
+                auto c2 = std::make_shared<Constraint>(shorter_agent.id_, shorter_path.back(), MAX_NODES,   0, t+1);
+                auto cf = std::make_shared<Conflict>(longer_agent.id_, shorter_agent.id_, Constraints{c1}, Constraints{c2});
                 return { cf };
             }
         }
@@ -169,17 +170,29 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         for(int t=0; t<common_part-1; t++) {
             if(isCollide(a1, *all_nodes[p1[t]], *all_nodes[p1[t+1]],
                          a2, *all_nodes[p2[t]], *all_nodes[p2[t+1]])) {
-                Constraint c1(a1.id_, p1[t], p1[t+1], t, t+1), c2(a2.id_, p1[t], p1[t+1], t, t+1);
-                Conflict cf(c1, c2);
+
+                std::cout << "cs type 1 : " << *all_nodes[p1[t]] << "->" << *all_nodes[p1[t+1]] << ", "
+                                            << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t+1]]
+                                            << "/t:{" << t << "," << t+1 << "}" << std::endl;
+
+                Constraint c1(a1.id_, p1[t], p1[t+1], t, t+1),
+                           c2(a2.id_, p1[t], p1[t+1], t, t+1);
+                Conflict cf(a1.id_, a2.id_, {c1}, {c2});
                 cfs.push_back(cf);
             }
         }
         for(int t=common_part-1; t<std::max(t1, t2) - 1; t++) {
             if(isCollide(longer_agent, *all_nodes[longer_path[t]], *all_nodes[longer_path[t+1]],
                          shorter_agent, *all_nodes[shorter_path.back()])) {
-                Constraint c1(longer_agent.id_,  longer_path[t], longer_path[t+1], t, t+1),
-                        c2(shorter_agent.id_, shorter_path.back(), MAX_NODES,   0, t+1);
-                Conflict cf(c1, c2);
+
+                std::cout << "cs type 2 : " << *all_nodes[longer_path[t]] << "->" << *all_nodes[longer_path[t+1]] << ", "
+                                            << *all_nodes[shorter_path.back()]
+                                            << "/t:{" << t << "," << t+1 << "}"
+                                            << std::endl;
+
+                Constraint c1(longer_agent.id_,  longer_path[t],      longer_path[t+1], t, t+1),
+                           c2(shorter_agent.id_, shorter_path.back(), MAX_NODES,        0, t+1);
+                Conflict cf(longer_agent.id_, shorter_path.id_, {c1}, {c2});
                 cfs.push_back(cf);
             }
         }
