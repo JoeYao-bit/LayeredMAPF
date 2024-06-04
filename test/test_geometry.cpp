@@ -64,7 +64,8 @@ TEST(circleAgentSubGraph, test) {
     agents.push_back(a1);
     agents.push_back(a2);
     LargeAgentCBS<2, CircleAgent<2> > lacbs(instances, agents, dim, is_occupied);
-
+    bool solved = lacbs.solve(60, 0);
+    std::cout << "find solution ? " << solved << std::endl;
     while(true) {
         canvas.resetCanvas();
         canvas.drawGridMap(dim, is_occupied);

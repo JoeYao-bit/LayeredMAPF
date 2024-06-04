@@ -138,16 +138,16 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         int common_part = std::min(t1, t2);
         for(int t=0; t<common_part-1; t++) {
             if(isCollide(a1, *all_nodes[p1[t]], *all_nodes[p1[t+1]], a2, *all_nodes[p2[t]], *all_nodes[p2[t+1]])) {
-                auto c1 = std::make_shared<Constraint>(a1.id_, p1[t], p1[t+1], t, t+1);
-                auto c2 = std::make_shared<Constraint>(a2.id_, p1[t], p1[t+1], t, t+1);
+                auto c1 = std::make_shared<Constraint>(a1.id_, p1[t], p1[t+1], t, t+2);
+                auto c2 = std::make_shared<Constraint>(a2.id_, p1[t], p1[t+1], t, t+2);
                 auto cf = std::make_shared<Conflict>(a1.id_, a2.id_, Constraints{c1}, Constraints{c2});
                 return { cf };
             }
         }
         for(int t=common_part-1; t<std::max(t1, t2) - 1; t++) {
             if(isCollide(longer_agent, *all_nodes[longer_path[t]], *all_nodes[longer_path[t+1]], shorter_agent, *all_nodes[shorter_path.back()])) {
-                auto c1 = std::make_shared<Constraint>(longer_agent.id_,  longer_path[t], longer_path[t+1], t, t+1);
-                auto c2 = std::make_shared<Constraint>(shorter_agent.id_, shorter_path.back(), MAX_NODES,   0, t+1);
+                auto c1 = std::make_shared<Constraint>(longer_agent.id_,  longer_path[t], longer_path[t+1], t, t+2);
+                auto c2 = std::make_shared<Constraint>(shorter_agent.id_, shorter_path.back(), MAX_NODES,   0, t+2);
                 auto cf = std::make_shared<Conflict>(longer_agent.id_, shorter_agent.id_, Constraints{c1}, Constraints{c2});
                 return { cf };
             }
@@ -156,7 +156,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     }
 
     template<Dimension N>
-    std::vector<Conflict> detectAllConflictBetweenPaths(const LAMAPF_Path& p1, const LAMAPF_Path& p2,
+    std::vector<std::shared_ptr<Conflict> > detectAllConflictBetweenPaths(const LAMAPF_Path& p1, const LAMAPF_Path& p2,
                                                         const CircleAgent<N>& a1, const CircleAgent<N>& a2,
                                                         const std::vector<Pose<N>*>& all_nodes) {
         int t1 = p1.size()-1, t2 = p2.size()-1;
@@ -166,7 +166,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         const auto& shorter_path  = longer_agent.id_ == a1.id_ ? p2 : p1;
 
         int common_part = std::min(t1, t2);
-        std::vector<Conflict> cfs;
+        std::vector<std::shared_ptr<Conflict> > cfs;
         for(int t=0; t<common_part-1; t++) {
             if(isCollide(a1, *all_nodes[p1[t]], *all_nodes[p1[t+1]],
                          a2, *all_nodes[p2[t]], *all_nodes[p2[t+1]])) {
@@ -175,9 +175,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                             << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t+1]]
                                             << "/t:{" << t << "," << t+1 << "}" << std::endl;
 
-                Constraint c1(a1.id_, p1[t], p1[t+1], t, t+1),
-                           c2(a2.id_, p1[t], p1[t+1], t, t+1);
-                Conflict cf(a1.id_, a2.id_, {c1}, {c2});
+                auto c1 = std::make_shared<Constraint>(a1.id_, p1[t], p1[t+1], t, t+2);
+                auto c2 = std::make_shared<Constraint>(a2.id_, p2[t], p2[t+1], t, t+2);
+                auto cf = std::make_shared<Conflict>(a1.id_, a2.id_, Constraints{c1}, Constraints{c2});
                 cfs.push_back(cf);
             }
         }
@@ -190,9 +190,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                             << "/t:{" << t << "," << t+1 << "}"
                                             << std::endl;
 
-                Constraint c1(longer_agent.id_,  longer_path[t],      longer_path[t+1], t, t+1),
-                           c2(shorter_agent.id_, shorter_path.back(), MAX_NODES,        0, t+1);
-                Conflict cf(longer_agent.id_, shorter_path.id_, {c1}, {c2});
+                auto c1 = std::make_shared<Constraint>(longer_agent.id_,  longer_path[t],      longer_path[t+1], t, t+2);
+                auto c2 = std::make_shared<Constraint>(shorter_agent.id_, shorter_path.back(), MAX_NODES,        0, t+2);
+                auto cf = std::make_shared<Conflict>(longer_agent.id_, shorter_agent.id_, Constraints{c1}, Constraints{c2});
                 cfs.push_back(cf);
             }
         }

@@ -82,6 +82,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             auto static_timestep = this->constraint_table_.getMaxTimestep() + 1; // everything is static after this timestep
 
             while (!open_list.empty()) {
+                //std::cout << "open, focal size = " << open_list.size() << ", " << focal_list.size() << std::endl;
                 updateFocalList(); // update FOCAL if min f-val increased
                 auto *curr = popNode();
                 assert(curr->node_id >= 0);
@@ -98,36 +99,36 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 auto next_locations = this->sub_graph_.all_edges_[curr->node_id];//instance.getNeighbors(curr->location);
 
                 next_locations.emplace_back(curr->node_id); // considering wait
-                for (int next_location : next_locations) {
+                for (const size_t& next_node_id : next_locations) {
                     int next_timestep = curr->timestep + 1;
                     if (static_timestep <
                         next_timestep) { // now everything is static, so switch to space A* where we always use the same timestep
                         // yz: no need to wait after no constraint is applied
-                        if (next_location == curr->node_id) {
+                        if (next_node_id == curr->node_id) {
                             continue;
                         }
                         next_timestep--;
                     }
                     // yz: check whether satisfied all constraint, including vertex constraint and edge constraint
-                    if (this->constraint_table_.constrained(next_location, next_timestep) ||
-                            this->constraint_table_.constrained(curr->node_id, next_location, next_timestep))
+                    if (this->constraint_table_.constrained(next_node_id, next_timestep) ||
+                            this->constraint_table_.constrained(curr->node_id, next_node_id, next_timestep))
                         continue;
 
                     // compute cost to next_id via curr node
                     int next_g_val = curr->g_val + 1;
-                    int next_h_val = std::max(this->lower_bound_ - next_g_val, this->heuristic_[next_location]);
+                    int next_h_val = std::max(this->lower_bound_ - next_g_val, this->heuristic_[next_node_id]);
                     if (next_g_val + next_h_val > this->constraint_table_.length_max_)
                         continue;
                     int next_internal_conflicts = curr->num_of_conflicts +
                             this->constraint_table_.getNumOfConflictsForStep(this->sub_graph_.all_nodes_[curr->node_id],
-                                                                             this->sub_graph_.all_nodes_[next_location],
+                                                                             this->sub_graph_.all_nodes_[next_node_id],
                                                                              next_timestep);
 
                     // generate (maybe temporary) node
-                    auto next = new AStarNode(next_location, next_g_val, next_h_val,
+                    auto next = new AStarNode(next_node_id, next_g_val, next_h_val,
                                               curr, next_timestep, next_internal_conflicts);
 
-                    if (next_location == this->target_node_id_ && curr->node_id == this->target_node_id_)
+                    if (next_node_id == this->target_node_id_ && curr->node_id == this->target_node_id_)
                         next->wait_at_goal = true;
 
                     // try to retrieve it from the hash table
@@ -195,6 +196,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
 
         inline AStarNode *popNode() {
+            assert(!focal_list.empty() && !open_list.empty());
+            std::cout << "open, focal size = " << open_list.size() << ", " << focal_list.size() << std::endl;
+
             auto node = focal_list.top();
             focal_list.pop();
             open_list.erase(node->open_handle);

@@ -9,8 +9,6 @@
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
-
-
     template<Dimension N, typename AgentType>
     struct ConstraintTable {
 
@@ -33,7 +31,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     min_incircle_radius_ = agent.incircle_radius_;
                 }
             }
-
         }
 
         inline size_t getEdgeIndex(const size_t& from, const size_t& to) const { return from * node_size_ + to; }
@@ -61,7 +58,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 std::tie(agent_id, node_from, node_to, start_t, end_t) = *cs;
                 if(agent_id != agent) { continue; }
                 length_min_ = std::max(length_min_, end_t + 1);
-                if(node_to == MAX_NODES) {
+                if(node_to != MAX_NODES) {
                     insert2CT(node_from, node_to, start_t, end_t);
                 } else {
                     insert2CT(node_from, start_t, end_t);
@@ -75,10 +72,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             if (it == ct_.end()) {
                 return false;
             }
+            std::cout << "constrained id,t = " << id << ", " << t << std::endl;
             // yz: whether current vertex is occupied in the time range
             for (const auto &constraint: it->second) {
-                if (constraint.first <= t && t < constraint.second)
+                std::cout << "constraint.first/second = " << constraint.first << "/" << constraint.second << std::endl;
+                if (constraint.first <= t && t < constraint.second) {
                     return true;
+                }
             }
             return false;
         }
@@ -228,9 +228,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<int> cat_goals_; // the visit time of goal
 
     };
-
-
-
 
 }
 

@@ -31,95 +31,77 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 if(solution.empty()) {
                     std::cerr << " agent " << agent << " search path failed " << std::endl;
                 } else {
-                    std::cout << instances[agent].first << "->" << instances[agent].second << std::endl;
-                    for(int t=0; t<solution.size(); t++) {
-                        std::cout << *(this->all_poses_[solution[t]]) << "->";
-                    }
-                    std::cout << std::endl;
+                    printPath(agent, solution);
                     solutions_.push_back(solution);
                 }
             }
             // 2, detect conflict
-            for(int i=0; i<this->instances_.size()-1; i++) {
-                for(int j=i+1; j<this->instances_.size(); j++) {
-                    const auto& conflicts = detectFirstConflictBetweenPaths<N>(solutions_[i], solutions_[j], this->agents_[i], this->agents_[j], this->all_poses_);
-                    //break;
-                }
-            }
-            //const auto& conflicts = detectAllConflictBetweenPaths<N>(solutions_[0], solutions_[0], this->agents_[0], this->agents_[0], this->all_poses_);
+//            for(int i=0; i<this->instances_.size()-1; i++) {
+//                for(int j=i+1; j<this->instances_.size(); j++) {
+//                    const auto& conflicts = detectFirstConflictBetweenPaths<N>(solutions_[i], solutions_[j], this->agents_[i], this->agents_[j], this->all_poses_);
+//                    //break;
+//                }
+//            }
+            //const auto& conflicts = detectAllConflictBetweenPaths<N>(solutions_[0], solutions_[1], this->agents_[0], this->agents_[1], this->all_poses_);
         }
-
-
 
         virtual bool solve(double time_limit, int cost_lowerbound = 0, int cost_upperbound = MAX_COST) override {
             this->cost_lowerbound = cost_lowerbound;
             this->cost_upperbound = cost_upperbound;
             this->time_limit = time_limit;
-            // set timer
-            start = clock();
             // yz: generate a init node of CT
             generateRoot();
+            std::cout << "-- generate root node " << std::endl;
+            int count = 0;
             while (!cleanup_list.empty() && !solution_found) {
+                if(count >= 100) { break; }
+                std::cout << "-- " << count << " iteration " << std::endl;
+                count ++;
                 // yz: select node with minimum heuristic value
                 auto curr = selectNode();
+                std::cout << " curr->g_val = " << curr->g_val << std::endl;
                 // yz: check whether reach terminate condition
                 if (terminate(curr))
                     return solution_found;
                 if (!curr->h_computed)  // heuristics has not been computed yet
                 {
-                    runtime = (double) (clock() - start) / CLOCKS_PER_SEC;
-                    bool succ = true;
-                    runtime = (double) (clock() - start) / CLOCKS_PER_SEC;
                     curr->h_val = 0;
-                    if (!succ) // no solution, so prune this node
-                    {
-                        curr->clear();
-                        continue;
-                    }
                     if (reinsertNode(curr)) {
                         continue;
                     }
                 }
-                //Expand the node
-                bool foundBypass = true;
-                while (foundBypass) {
-                    // yz: reach terminate condition
-                    if (terminate(curr))
-                        return solution_found;
-                    foundBypass = false;
-                    CBSNode *child[2] = {new CBSNode(), new CBSNode()};
-                    // yz: pick conflict with the highest priority
-                    curr->conflict = chooseConflict(*curr);
-                    // yz: child 1,2 inherit constraint from curr
-                    addConstraints(curr, child[0], child[1]);
-                    bool solved[2] = {false, false};
-                    std::vector<LAMAPF_Path> copy(solutions_);
-                    // yz: split to two branches
-                    for (int i = 0; i < 2; i++) {
-                        if (i > 0)
-                            solutions_ = copy;
-                        // yz: check whether child is legal, if legal, add to parent node
-                        solved[i] = generateChild(child[i], curr);
-                        if (!solved[i]) {
-                            delete (child[i]);
-                            continue;
-                        }
-                    }
-                    if (foundBypass) {
-                        for (auto &i : child) {
-                            delete i;
-                            i = nullptr;
-                        }
-                    } else {
-                        for (int i = 0; i < 2; i++) {
-                            if (solved[i]) {
-                                pushNode(child[i]);
-                                curr->children.push_back(child[i]);
-                            }
-                        }
-                        curr->clear();
+
+                // yz: reach terminate condition
+                if (terminate(curr))
+                    return solution_found;
+                std::cout << "-- generate children node " << std::endl;
+                CBSNode *child[2] = {new CBSNode(), new CBSNode()};
+                // yz: pick conflict with the highest priority
+                curr->conflict = chooseConflict(*curr);
+                printConflict(*curr->conflict);
+                // yz: child 1,2 inherit constraint from curr
+                addConstraints(curr, child[0], child[1]);
+                bool solved[2] = {false, false};
+                std::vector<LAMAPF_Path> copy(solutions_);
+                // yz: split to two branches
+                for (int i = 0; i < 2; i++) {
+                    if (i > 0)
+                        solutions_ = copy;
+                    // yz: check whether child is legal, if legal, add to parent node
+                    solved[i] = generateChild(child[i], curr);
+                    if (!solved[i]) {
+                        delete (child[i]);
+                        continue;
                     }
                 }
+                for (int i = 0; i < 2; i++) {
+                    if (solved[i]) {
+                        pushNode(child[i]);
+                        curr->children.push_back(child[i]);
+                    }
+                }
+                curr->clear();
+                //break;
             }  // end of while loop
             return solution_found;
         }
@@ -137,7 +119,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         bool solution_found = false;
         int solution_cost = -2;
-        clock_t start;
 
         HighLvNode *dummy_start = nullptr;
         HighLvNode *goal_node = nullptr;
@@ -150,6 +131,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         boost::heap::pairing_heap<CBSNode *, boost::heap::compare<CBSNode::compare_node_by_f> > cleanup_list; // it is called open list in ECBS
         boost::heap::pairing_heap<CBSNode *, boost::heap::compare<CBSNode::compare_node_by_inadmissible_f> > open_list; // this is used for EES
         boost::heap::pairing_heap<CBSNode *, boost::heap::compare<CBSNode::compare_node_by_d> > focal_list; // this is ued for both ECBS and EES
+
+        void printPath(int agent, const LAMAPF_Path& path) {
+            std::cout << "agent " << agent << ": " <<  this->instances_[agent].first << "->" << this->instances_[agent].second << std::endl;
+            for(int t=0; t<path.size(); t++) {
+                std::cout << *(this->all_poses_[path[t]]) << "->";
+            }
+            std::cout << std::endl;
+        }
 
         // yz: child node inherit constraint from parent node
         void addConstraints(const HighLvNode *curr, HighLvNode *child1, HighLvNode *child2) const {
@@ -169,7 +158,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
             root->h_val = 0;
             root->depth = 0;
+            root->h_computed = true;
             findConflicts(*root);
+            pushNode(root);
         }
 
         // yz: check whether current result paths is legal
@@ -221,6 +212,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
             if ((int) soc != solution_cost) {
                 std::cout << "The solution cost is wrong!" << std::endl;
+                std::cout <<"soc = " << soc << " / solution_cost = " << solution_cost << std::endl;
                 return false;
             }
             return true;
@@ -230,11 +222,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         bool terminate(HighLvNode *curr) {
             // yz: if lower bound >= upper bound, terminate with no solution
             if (cost_lowerbound >= cost_upperbound) {
+                std::cout << " cost_lowerbound >= cost_upperbound " << std::endl;
                 solution_cost = cost_lowerbound;
                 solution_found = false;
                 return true;
             }
-            runtime = (double) (clock() - start) / CLOCKS_PER_SEC;
             // yz: if current node have no conflict, find a solution, terminate
             if (curr->conflicts.empty() && curr->unknownConf.empty()) //no conflicts
             {// found a solution
@@ -298,11 +290,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         // yz: add conflicts between a1's path and a2's path to curr
         void findConflicts(HighLvNode &curr, int a1, int a2) {
-            const auto& conflicts = detectFirstConflictBetweenPaths<N>(
+            const auto& conflicts = detectAllConflictBetweenPaths<N>(
                     solutions_[a1], solutions_[a2], this->agents_[a1], this->agents_[a2], this->all_poses_);
             for(const auto & conflict : conflicts) {
                 curr.unknownConf.push_front(conflict); // It's at least a semi conflict
             }
+            std::cout << " get " << curr.unknownConf.size() << " conflicts between " << a1 << " and " << a2 << std::endl;
         }
 
         void findConflicts(HighLvNode &curr) {
@@ -342,7 +335,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
         }
 
-// yz: choose conflict in HLNode with highest priority constraint, keep HLNode unchanged
+        // yz: choose conflict in HLNode with highest priority constraint, keep HLNode unchanged
         std::shared_ptr<Conflict> chooseConflict(const HighLvNode &node) const {
             std::shared_ptr<Conflict> choose;
             if (node.conflicts.empty() && node.unknownConf.empty())
@@ -361,6 +354,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         choose = conflict;
                 }
             }
+            std::cout << "-- choose conflict time range [" << choose->t1 << ", " << choose->t2 << "]" << std::endl;
             return choose;
         }
 
@@ -388,6 +382,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             while(true) {
                 if(buffer_node == nullptr) { break; }
                 constraint_table.insertCT(buffer_node->constraints, agent);
+                // debug
+                std::cout << "add constraint: " << std::endl;
+                for(const auto& cs : buffer_node->constraints) {
+                    printConstraint(*cs);
+                }
                 buffer_node = buffer_node->parent;
             }
             const size_t& start_node_id = this->instance_node_ids_[agent].first,
@@ -398,18 +397,33 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                this->agent_sub_graphs_[agent],
                                                constraint_table);
             astar.lower_bound_ = lowerbound;
-            LAMAPF_Path solution = astar.solve();
-            return false;
+            LAMAPF_Path new_path = astar.solve();
+            if (!new_path.empty()) {
+                std::cout << " old path size = " << solutions_[agent].size() << std::endl;
+                std::cout << "new path: size = " << new_path.size() << std::endl;
+                printPath(agent, new_path);
+                assert(!isSamePath(solutions_[agent], new_path));
+                node->paths.emplace_back(agent, new_path); // yz: add to replanned paths
+                // yz: update current node's total cost (time step) of paths
+                node->g_val = node->g_val - (int) solutions_[agent].size() + (int) new_path.size();
+                solutions_[agent] = node->paths.back().second;
+                node->makespan = std::max(node->makespan, new_path.size() - 1);
+                std::cout << "new node->g_val " << node->g_val << std::endl;
+                return true;
+            } else {
+                return false;
+            }
         }
 
         // yz: check whether child node is legal or illegal. if legal, add
         bool generateChild(CBSNode *node, CBSNode *parent) {
-            clock_t t1 = clock();
             node->parent = parent;
             node->HighLvNode::parent = parent;
             node->g_val = parent->g_val;
             node->makespan = parent->makespan;
             node->depth = parent->depth + 1;
+            node->h_val = std::max(0, parent->h_val);
+            node->h_computed = true;
             // yz: get agents that violates the first constraint
             auto agents = getInvalidAgents(node->constraints);
             assert(!agents.empty());
@@ -420,9 +434,28 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     return false;
                 }
             }
-
             findConflicts(*node);
             return true;
+        }
+
+        void printConflict(const Conflict& cf) {
+            int a1, a2; size_t from1, from2, to1, to2;
+            int start_t1, start_t2, end_t1, end_t2;
+            std::tie(a1, from1, to1, start_t1, end_t1) = *(cf.cs1.front());
+            std::tie(a2, from2, to2, start_t2, end_t2) = *(cf.cs2.front());
+
+            std::cout << "cf agent: " << a1 << ", " << a2 << " | " << *this->all_poses_[from1] << "->" << *this->all_poses_[to1] << ", "
+                      << *this->all_poses_[from2] << "->" << *this->all_poses_[to2]
+                      << "/t:{" << start_t1 << "," << end_t1 << "}" << std::endl;
+        }
+
+        void printConstraint(const Constraint & cs) {
+            int agent; size_t from, to;
+            int start_t, end_t;
+            std::tie(agent, from, to, start_t, end_t) = cs;
+
+            std::cout << "cf agent: " << agent << " | {" << from << "}" << *this->all_poses_[from] << "->{" << to <<  "}" << *this->all_poses_[to] << ", "
+                      << "/t:{" << start_t << "," << end_t << "}" << std::endl;
         }
 
     };

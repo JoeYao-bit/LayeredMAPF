@@ -33,9 +33,24 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     struct Conflict {
         Conflict(int a1, int a2, const Constraints& cs1, const Constraints& cs2)
-        : a1(a1), a2(a2), cs1(cs1), cs2(cs2) { }
+        : a1(a1), a2(a2), cs1(cs1), cs2(cs2) {
+            int agent; size_t from, to;
+            int start_t, end_t;
+            // get start time index of conflict 1
+            for(const auto& cs : cs1) {
+                std::tie(agent, from, to, start_t, end_t) = *cs;
+                t1 = start_t < t1 ? start_t : t1;
+                t2 = end_t > t2   ? end_t   : t2;
+            }
+            for(const auto& cs : cs2) {
+                std::tie(agent, from, to, start_t, end_t) = *cs;
+                t1 = start_t < t1 ? start_t : t1;
+                t2 = end_t > t2   ? end_t   : t2;
+            }
+        }
 
-        int a1, a2;
+        int a1, a2; // agent id
+        int t1 = MAX<int>, t2 = 0; // time range of constraints
         Constraints cs1;
         Constraints cs2;
 
@@ -49,7 +64,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     typedef std::vector<size_t> LAMAPF_Path; // node id sequence
 
-
+    bool isSamePath(const std::vector<size_t>& path1, const std::vector<size_t>& path2);
 
     template <Dimension N>
     struct Agent {
