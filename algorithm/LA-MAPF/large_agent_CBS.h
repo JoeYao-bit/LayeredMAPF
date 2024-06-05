@@ -31,8 +31,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 if(solution.empty()) {
                     std::cerr << " agent " << agent << " search path failed " << std::endl;
                 } else {
-                    printPath(agent, solution);
-                    solutions_.push_back(solution);
+//                    printPath(agent, solution);
+                    initial_solutions_.push_back(solution);
                 }
             }
             // 2, detect conflict
@@ -45,24 +45,30 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             //const auto& conflicts = detectAllConflictBetweenPaths<N>(solutions_[0], solutions_[1], this->agents_[0], this->agents_[1], this->all_poses_);
         }
 
+        ~LargeAgentCBS() {
+            releaseNodes();
+        }
+
         virtual bool solve(double time_limit, int cost_lowerbound = 0, int cost_upperbound = MAX_COST) override {
             this->cost_lowerbound = cost_lowerbound;
             this->cost_upperbound = cost_upperbound;
             this->time_limit = time_limit;
             // yz: generate a init node of CT
             generateRoot();
-            std::cout << "-- generate root node " << std::endl;
+//            std::cout << "-- generate root node " << std::endl;
             int count = 0;
             while (!cleanup_list.empty() && !solution_found) {
                 if(count >= 100) { break; }
-                std::cout << "-- " << count << " iteration " << std::endl;
+//                std::cout << "-- " << count << " iteration " << std::endl;
                 count ++;
                 // yz: select node with minimum heuristic value
                 auto curr = selectNode();
-                std::cout << " curr->g_val = " << curr->g_val << std::endl;
+//                std::cout << " curr->g_val = " << curr->g_val << std::endl;
                 // yz: check whether reach terminate condition
-                if (terminate(curr))
+                if (terminate(curr)) {
+                    std::cout << "-- finish after " << count << " iteration" << std::endl;
                     return solution_found;
+                }
                 if (!curr->h_computed)  // heuristics has not been computed yet
                 {
                     curr->h_val = 0;
@@ -74,11 +80,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 // yz: reach terminate condition
                 if (terminate(curr))
                     return solution_found;
-                std::cout << "-- generate children node " << std::endl;
+//                std::cout << "-- generate children node " << std::endl;
                 CBSNode *child[2] = {new CBSNode(), new CBSNode()};
                 // yz: pick conflict with the highest priority
                 curr->conflict = chooseConflict(*curr);
-                printConflict(*curr->conflict);
+                //printConflict(*curr->conflict);
                 // yz: child 1,2 inherit constraint from curr
                 addConstraints(curr, child[0], child[1]);
                 bool solved[2] = {false, false};
@@ -106,7 +112,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return solution_found;
         }
 
-        std::vector<LAMAPF_Path> solutions_;
+        std::vector<LAMAPF_Path> solutions_, initial_solutions_;
 
     private:
 
@@ -152,9 +158,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         void generateRoot() {
             auto root = new CBSNode();
             root->g_val = 0;
-            for (int i = 0; i < this->instances_.size(); i++) {
-                root->makespan = std::max(root->makespan, solutions_[i].size() - 1); // yz: makespan
-                root->g_val += (int) solutions_[i].size() - 1; // yz: sum of all current path cost
+            solutions_.resize(this->instances_.size(), {});
+            for (int agent = 0; agent < this->instances_.size(); agent++) {
+                solutions_[agent] = initial_solutions_[agent];
+                root->makespan = std::max(root->makespan, solutions_[agent].size() - 1); // yz: makespan
+                root->g_val += (int) solutions_[agent].size() - 1; // yz: sum of all current path cost
             }
             root->h_val = 0;
             root->depth = 0;
@@ -172,9 +180,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
 
             // check whether the paths are feasible
-            size_t soc = 0;
             for (int a1 = 0; a1 < this->instances_.size(); a1++) {
-                soc += solutions_[a1].size() - 1; // yz: soc: sum of cost
                 for (int a2 = a1 + 1; a2 < this->instances_.size(); a2++) {
                     size_t min_path_length = solutions_[a1].size() < solutions_[a2].size() ? solutions_[a1].size() : solutions_[a2].size();
                     // yz: check conflict in common time range
@@ -210,6 +216,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     }
                 }
             }
+            size_t soc = getSOC();
             if ((int) soc != solution_cost) {
                 std::cout << "The solution cost is wrong!" << std::endl;
                 std::cout <<"soc = " << soc << " / solution_cost = " << solution_cost << std::endl;
@@ -237,6 +244,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     std::cout << "Solution invalid!!!" << std::endl;
                     exit(-1);
                 }
+                std::cout << "-- find solution with depth = " << curr->depth << std::endl;
                 return true;
             }
             // yz: if exceed time limit or number of high level node exceed limit
@@ -261,6 +269,25 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return true;
         }
 
+        // takes the paths_found_initially and UPDATE all (constrained) paths found for agents from curr to start
+        // yz: set HLNode's newest path as solution, and update replanned path in hyper node
+        // yz: update paths in CBS to paths under current hyper node constraint
+        inline void updatePaths(HighLvNode *curr) {
+            for (int agent = 0; agent < this->instances_.size(); agent++)
+                solutions_[agent] = initial_solutions_[agent]; // yz: considering what if an agent that never have conflict with other agent
+
+            std::vector<bool> updated(this->instances_.size(), false);  // initialized for false
+            while (curr != nullptr) {
+                for (auto &path : curr->paths) {
+                    if (!updated[path.first]) {
+                        solutions_[path.first] = path.second;
+                        updated[path.first] = true;
+                    }
+                }
+                curr = curr->parent;
+            }
+        }
+
         // yz: get heuristic node from open list with minimum heuristic value
 //     considering high level solver type
         CBSNode* selectNode() {
@@ -268,6 +295,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             cost_lowerbound = std::max(cost_lowerbound, cleanup_list.top()->getFVal());
             curr = cleanup_list.top();
             cleanup_list.pop();
+            // takes the paths_found_initially and UPDATE all constrained paths found for agents from curr to dummy_start (and lower-bounds)
+            updatePaths(curr);
             return curr;
         }
 
@@ -295,7 +324,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             for(const auto & conflict : conflicts) {
                 curr.unknownConf.push_front(conflict); // It's at least a semi conflict
             }
-            std::cout << " get " << curr.unknownConf.size() << " conflicts between " << a1 << " and " << a2 << std::endl;
+//            std::cout << " get " << curr.unknownConf.size() << " conflicts between agent " << a1 << " and " << a2 << std::endl;
         }
 
         void findConflicts(HighLvNode &curr) {
@@ -354,7 +383,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         choose = conflict;
                 }
             }
-            std::cout << "-- choose conflict time range [" << choose->t1 << ", " << choose->t2 << "]" << std::endl;
+//            std::cout << "-- choose conflict time range [" << choose->t1 << ", " << choose->t2 << ")" << std::endl;
             return choose;
         }
 
@@ -383,10 +412,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 if(buffer_node == nullptr) { break; }
                 constraint_table.insertCT(buffer_node->constraints, agent);
                 // debug
-                std::cout << "add constraint: " << std::endl;
-                for(const auto& cs : buffer_node->constraints) {
-                    printConstraint(*cs);
-                }
+//                std::cout << "add constraint: " << std::endl;
+//                for(const auto& cs : buffer_node->constraints) {
+//                    printConstraint(*cs);
+//                }
                 buffer_node = buffer_node->parent;
             }
             const size_t& start_node_id = this->instance_node_ids_[agent].first,
@@ -399,16 +428,19 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             astar.lower_bound_ = lowerbound;
             LAMAPF_Path new_path = astar.solve();
             if (!new_path.empty()) {
-                std::cout << " old path size = " << solutions_[agent].size() << std::endl;
-                std::cout << "new path: size = " << new_path.size() << std::endl;
-                printPath(agent, new_path);
+//                std::cout << " old path size = " << solutions_[agent].size() << std::endl;
+//                std::cout << "new path: size = " << new_path.size() << std::endl;
+//                printPath(agent, new_path);
                 assert(!isSamePath(solutions_[agent], new_path));
                 node->paths.emplace_back(agent, new_path); // yz: add to replanned paths
                 // yz: update current node's total cost (time step) of paths
+//                std::cout << "old node->g_val = " << node->g_val << std::endl;
+//                std::cout << "old soc = " << getSOC() << std::endl;
                 node->g_val = node->g_val - (int) solutions_[agent].size() + (int) new_path.size();
                 solutions_[agent] = node->paths.back().second;
                 node->makespan = std::max(node->makespan, new_path.size() - 1);
-                std::cout << "new node->g_val " << node->g_val << std::endl;
+//                std::cout << "new node->g_val = " << node->g_val << std::endl;
+//                std::cout << "new soc = " << getSOC() << std::endl;
                 return true;
             } else {
                 return false;
@@ -454,8 +486,25 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             int start_t, end_t;
             std::tie(agent, from, to, start_t, end_t) = cs;
 
-            std::cout << "cf agent: " << agent << " | {" << from << "}" << *this->all_poses_[from] << "->{" << to <<  "}" << *this->all_poses_[to] << ", "
+            std::cout << "cs agent: " << agent << " | {" << from << "}" << *this->all_poses_[from] << "->{" << to <<  "}" << *this->all_poses_[to] << ", "
                       << "/t:{" << start_t << "," << end_t << "}" << std::endl;
+        }
+
+        inline void releaseNodes() {
+            open_list.clear();
+            cleanup_list.clear();
+            focal_list.clear();
+            for (auto &node : allNodes_table)
+                delete node;
+            allNodes_table.clear();
+        }
+
+        size_t getSOC() const {
+            size_t soc = 0;
+            for (size_t a1 = 0; a1 < this->instances_.size(); a1++) {
+                soc += solutions_[a1].size() - 1; // yz: soc: sum of cost
+            }
+            return soc;
         }
 
     };

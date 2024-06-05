@@ -37,7 +37,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             bool operator()(const LowLvNode *n1, const LowLvNode *n2) const {
                 if (n1->g_val + n1->h_val == n2->g_val + n2->h_val) {
                     if (n1->h_val == n2->h_val) {
-                        return true;//rand() % 2 == 0;   // break ties randomly
+                        return rand() % 2 == 0;   // break ties randomly
                     }
                     return n1->h_val >= n2->h_val;  // break ties towards smaller h_vals (closer to goal location)
                 }
@@ -52,7 +52,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 if (n1->num_of_conflicts == n2->num_of_conflicts) {
                     if (n1->g_val + n1->h_val == n2->g_val + n2->h_val) {
                         if (n1->h_val == n2->h_val) {
-                            return true;//rand() % 2 == 0;   // break ties randomly
+                            return rand() % 2 == 0;   // break ties randomly
                         }
                         return n1->h_val >= n2->h_val;  // break ties towards smaller h_vals (closer to goal location)
                     }

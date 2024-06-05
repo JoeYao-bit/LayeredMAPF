@@ -72,10 +72,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             if (it == ct_.end()) {
                 return false;
             }
-            std::cout << "constrained id,t = " << id << ", " << t << std::endl;
+            //std::cout << "constrained id,t = " << id << ", " << t << std::endl;
             // yz: whether current vertex is occupied in the time range
             for (const auto &constraint: it->second) {
-                std::cout << "constraint.first/second = " << constraint.first << "/" << constraint.second << std::endl;
+                //std::cout << "constraint.first/second = " << constraint.first << "/" << constraint.second << std::endl;
                 if (constraint.first <= t && t < constraint.second) {
                     return true;
                 }

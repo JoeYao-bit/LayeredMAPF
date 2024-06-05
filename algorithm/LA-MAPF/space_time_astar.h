@@ -71,7 +71,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             auto start = new AStarNode(this->start_node_id_, 0, std::max(this->lower_bound_, this->heuristic_[this->start_node_id_]), nullptr, 0, 0);
 
             start->open_handle = open_list.push(start);
-            start->focal_handle = focal_list.push(start);
+//            start->focal_handle = focal_list.push(start);
             start->in_openlist = true;
             allNodes_table.insert(start); // yz: visited vertex
             // lower_bound = int(w * min_f_val));
@@ -83,7 +83,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             while (!open_list.empty()) {
                 //std::cout << "open, focal size = " << open_list.size() << ", " << focal_list.size() << std::endl;
-                updateFocalList(); // update FOCAL if min f-val increased
+                //updateFocalList(); // update FOCAL if min f-val increased
                 auto *curr = popNode();
                 assert(curr->node_id >= 0);
                 // check if the popped node is a goal
@@ -151,15 +151,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                             existing_next->copy(*next);
                             pushNode(existing_next);
                         } else {
-                            bool add_to_focal = false;  // check if it was above the focal bound before and now below (thus need to be inserted)
-                            bool update_in_focal = false;  // check if it was inside the focal and needs to be updated (because f-val changed)
+//                            bool add_to_focal = false;  // check if it was above the focal bound before and now below (thus need to be inserted)
+//                            bool update_in_focal = false;  // check if it was inside the focal and needs to be updated (because f-val changed)
                             bool update_open = false;
-                            if ((next_g_val + next_h_val) <= this->w_ * this->min_f_val_) {  // if the new f-val qualify to be in FOCAL
-                                if (existing_next->getFVal() > this->w_ * this->min_f_val_)
-                                    add_to_focal = true;  // and the previous f-val did not qualify to be in FOCAL then add
-                                else
-                                    update_in_focal = true;  // and the previous f-val did qualify to be in FOCAL then update
-                            }
+//                            if ((next_g_val + next_h_val) <= this->w_ * this->min_f_val_) {  // if the new f-val qualify to be in FOCAL
+//                                if (existing_next->getFVal() > this->w_ * this->min_f_val_)
+//                                    add_to_focal = true;  // and the previous f-val did not qualify to be in FOCAL then add
+//                                else
+//                                    update_in_focal = true;  // and the previous f-val did qualify to be in FOCAL then update
+//                            }
                             if (existing_next->getFVal() > next_g_val + next_h_val)
                                 update_open = true;
 
@@ -167,11 +167,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
                             if (update_open)
                                 open_list.increase(existing_next->open_handle);  // increase because f-val improved
-                            if (add_to_focal)
-                                existing_next->focal_handle = focal_list.push(existing_next);
-                            if (update_in_focal)
-                                focal_list.update(
-                                        existing_next->focal_handle);  // should we do update? yes, because number of conflicts may go up or down
+//                            if (add_to_focal)
+//                                existing_next->focal_handle = focal_list.push(existing_next);
+//                            if (update_in_focal) {
+//                                // should we do update? yes, because number of conflicts may go up or down
+//                                focal_list.update(existing_next->focal_handle);
+//                            }
                         }
                     }
 
@@ -184,23 +185,26 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     private:
 
         void updateFocalList() {
-            auto open_head = open_list.top();
-            if (open_head->getFVal() > this->min_f_val_) {
-                int new_min_f_val = (int) open_head->getFVal();
-                for (auto n : open_list) {
-                    if (n->getFVal() > this->w_ * this->min_f_val_ && n->getFVal() <= this->w_ * new_min_f_val)
-                        n->focal_handle = focal_list.push(n);
-                }
-                this->min_f_val_ = new_min_f_val;
-            }
+//            auto open_head = open_list.top();
+//            if (open_head->getFVal() > this->min_f_val_) {
+//                int new_min_f_val = (int) open_head->getFVal();
+//                for (auto n : open_list) {
+//                    if (n->getFVal() > this->w_ * this->min_f_val_ && n->getFVal() <= this->w_ * new_min_f_val)
+//                        n->focal_handle = focal_list.push(n);
+//                }
+//                this->min_f_val_ = new_min_f_val;
+//            }
         }
 
         inline AStarNode *popNode() {
-            assert(!focal_list.empty() && !open_list.empty());
-            std::cout << "open, focal size = " << open_list.size() << ", " << focal_list.size() << std::endl;
-
-            auto node = focal_list.top();
-            focal_list.pop();
+//            std::cout << "open, focal size = " << open_list.size() << std::endl;
+//            std::cout << "open, focal size = " << open_list.size() << ", " << focal_list.size() << std::endl;
+//
+//            assert(!focal_list.empty() && !open_list.empty());
+//
+//            auto node = focal_list.top();
+//            focal_list.pop();
+            auto node = open_list.top();
             open_list.erase(node->open_handle);
             node->in_openlist = false;
             return node;
@@ -209,8 +213,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         inline void pushNode(AStarNode *node) {
             node->open_handle = open_list.push(node);
             node->in_openlist = true;
-            if (node->getFVal() <= this->w_ * this->min_f_val_)
-                node->focal_handle = focal_list.push(node);
+//            if (node->getFVal() <= this->w_ * this->min_f_val_)
+//                node->focal_handle = focal_list.push(node);
         }
 
         void updatePath(const LowLvNode *goal, LAMAPF_Path &path) {
@@ -229,7 +233,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         typedef boost::heap::pairing_heap<AStarNode *, boost::heap::compare<AStarNode::compare_node> > heap_open_t;
         typedef boost::heap::pairing_heap<AStarNode *, boost::heap::compare<AStarNode::secondary_compare_node> > heap_focal_t;
         heap_open_t open_list;
-        heap_focal_t focal_list;
+        //heap_focal_t focal_list;
 
         // define typedef for hash_map
         typedef boost::unordered_set<AStarNode *, AStarNode::NodeHasher, AStarNode::eqnode> hashtable_t;
