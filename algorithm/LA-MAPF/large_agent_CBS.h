@@ -178,44 +178,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 std::cout << "Solution cost exceeds the sub-optimality bound!" << std::endl;
                 return false;
             }
-
-            // check whether the paths are feasible
-            for (int a1 = 0; a1 < this->instances_.size(); a1++) {
-                for (int a2 = a1 + 1; a2 < this->instances_.size(); a2++) {
-                    size_t min_path_length = solutions_[a1].size() < solutions_[a2].size() ? solutions_[a1].size() : solutions_[a2].size();
-                    // yz: check conflict in common time range
-                    for (size_t timestep = 0; timestep < min_path_length; timestep++) {
-                        int loc1 = solutions_[a1][timestep];
-                        int loc2 = solutions_[a2][timestep];
-                        // yz: vertex conflict error
-                        if (loc1 == loc2) {
-                            std::cout << "Agents " << a1 << " and " << a2 << " collides at " << loc1 << " at timestep "
-                                 << timestep << std::endl;
-                            return false;
-                        } else if (timestep < min_path_length - 1
-                                   && loc1 == solutions_[a2][timestep + 1]
-                                   && loc2 == solutions_[a1][timestep + 1]) {
-                            std::cout << "Agents " << a1 << " and " << a2 << " collides at (" <<
-                                 loc1 << "-->" << loc2 << ") at timestep " << timestep << std::endl;
-                            return false;
-                        }
-                    }
-                    // yz: check conflict when one of them is stop
-                    if (solutions_[a1].size() != solutions_[a2].size()) {
-                        int a1_ = solutions_[a1].size() < solutions_[a2].size() ? a1 : a2;
-                        int a2_ = solutions_[a1].size() < solutions_[a2].size() ? a2 : a1;
-                        int loc1 = solutions_[a1_].back();
-                        for (size_t timestep = min_path_length; timestep < solutions_[a2_].size(); timestep++) {
-                            int loc2 = solutions_[a2_][timestep];
-                            if (loc1 == loc2) {
-                                std::cout << "Agents " << a1 << " and " << a2 << " collides at " << loc1 << " at timestep "
-                                     << timestep << std::endl;
-                                return false; // It's at least a semi conflict
-                            }
-                        }
-                    }
-                }
-            }
             size_t soc = getSOC();
             if ((int) soc != solution_cost) {
                 std::cout << "The solution cost is wrong!" << std::endl;
@@ -240,8 +202,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 solution_found = true;
                 goal_node = curr;
                 solution_cost = goal_node->getFHatVal() - goal_node->cost_to_go;
+                auto conflicts = findConflicts(*curr);
+                if(!conflicts.empty()) {
+                    std::cout << "Solution have conflict !!!" << std::endl;
+                    exit(-1);
+                }
                 if (!validateSolution()) {
-                    std::cout << "Solution invalid!!!" << std::endl;
+                    std::cout << "Solution have wrong cost !!!" << std::endl;
                     exit(-1);
                 }
                 std::cout << "-- find solution with depth = " << curr->depth << std::endl;
@@ -318,16 +285,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
 
         // yz: add conflicts between a1's path and a2's path to curr
-        void findConflicts(HighLvNode &curr, int a1, int a2) {
+        Conflicts findConflicts(HighLvNode &curr, int a1, int a2) {
             const auto& conflicts = detectAllConflictBetweenPaths<N>(
                     solutions_[a1], solutions_[a2], this->agents_[a1], this->agents_[a2], this->all_poses_);
             for(const auto & conflict : conflicts) {
                 curr.unknownConf.push_front(conflict); // It's at least a semi conflict
             }
+            return conflicts;
 //            std::cout << " get " << curr.unknownConf.size() << " conflicts between agent " << a1 << " and " << a2 << std::endl;
         }
 
-        void findConflicts(HighLvNode &curr) {
+        Conflicts findConflicts(HighLvNode &curr) {
+            Conflicts retv;
             if (curr.parent != nullptr) {
                 // Copy from parent
                 auto new_agents = curr.getReplannedAgents();
@@ -350,18 +319,22 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                 break;
                             }
                         }
-                        if (!skip)
-                            findConflicts(curr, a1, a2);
+                        if (!skip) {
+                            auto retv1 = findConflicts(curr, a1, a2);
+                            retv.insert(retv.end(), retv1.begin(), retv1.end());
+                        }
                     }
                 }
             } else {
                 // yz: add constraints between all pair of agents to current hyper node curr
                 for (int a1 = 0; a1 < this->instances_.size(); a1++) {
                     for (int a2 = a1 + 1; a2 < this->instances_.size(); a2++) {
-                        findConflicts(curr, a1, a2);
+                        auto retv2 = findConflicts(curr, a1, a2);
+                        retv.insert(retv.end(), retv2.begin(), retv2.end());
                     }
                 }
             }
+            return retv;
         }
 
         // yz: choose conflict in HLNode with highest priority constraint, keep HLNode unchanged

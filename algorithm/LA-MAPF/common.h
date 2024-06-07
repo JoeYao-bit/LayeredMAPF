@@ -59,6 +59,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         double secondary_priority = 0; // used as the tie-breaking creteria for conflict selection
     };
 
+    typedef std::vector<std::shared_ptr<Conflict> > Conflicts;
+
     bool operator<(const Conflict &conflict1, const Conflict &conflict2);
 
 
