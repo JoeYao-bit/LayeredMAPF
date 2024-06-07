@@ -21,8 +21,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             // 1, initial paths
             for(int agent=0; agent<this->instance_node_ids_.size(); agent++) {
                 ConstraintTable<N, AgentType> constraint_table(agent, this->agents_, this->all_poses_, this->dim_, this->isoc_);
+//                for(int another_agent=0; another_agent<this->instance_node_ids_.size(); another_agent++) {
+//                    if(agent == another_agent) { continue; }
+//                    constraint_table.insert2CT(this->instance_node_ids_[agent].first, 0, MAX_TIMESTEP);
+//                }
                 const size_t& start_node_id = this->instance_node_ids_[agent].first,
                               target_node_id = this->instance_node_ids_[agent].second;
+
                 SpaceTimeAstar<N, AgentType> astar(start_node_id, target_node_id,
                                                    this->agents_heuristic_tables_[agent],
                                                    this->agent_sub_graphs_[agent],
@@ -58,8 +63,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //            std::cout << "-- generate root node " << std::endl;
             int count = 0;
             while (!cleanup_list.empty() && !solution_found) {
-                if(count >= 100) { break; }
-//                std::cout << "-- " << count << " iteration " << std::endl;
+                if(count >= 1000) { break; }
+                //std::cout << "-- " << count << " iteration, open size " << cleanup_list.size() << std::endl;
                 count ++;
                 // yz: select node with minimum heuristic value
                 auto curr = selectNode();
@@ -77,9 +82,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     }
                 }
 
-                // yz: reach terminate condition
-                if (terminate(curr))
-                    return solution_found;
 //                std::cout << "-- generate children node " << std::endl;
                 CBSNode *child[2] = {new CBSNode(), new CBSNode()};
                 // yz: pick conflict with the highest priority
@@ -180,15 +182,17 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
             size_t soc = getSOC();
             if ((int) soc != solution_cost) {
-                std::cout << "The solution cost is wrong!" << std::endl;
-                std::cout <<"soc = " << soc << " / solution_cost = " << solution_cost << std::endl;
+                std::cout << "-- The solution cost is wrong!" << std::endl;
+                std::cout <<"-- soc = " << soc << " / solution_cost = " << solution_cost << std::endl;
                 return false;
             }
+            std::cout << "-- find solution with SOC = " << soc << std::endl;
             return true;
         }
 
         // yz: check whether current hyper node reach terminate condition
         bool terminate(HighLvNode *curr) {
+            //std::cout << " terminate, have " << curr->unknownConf.size() << " conflict " << std::endl;
             // yz: if lower bound >= upper bound, terminate with no solution
             if (cost_lowerbound >= cost_upperbound) {
                 std::cout << " cost_lowerbound >= cost_upperbound " << std::endl;
@@ -203,6 +207,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 goal_node = curr;
                 solution_cost = goal_node->getFHatVal() - goal_node->cost_to_go;
                 auto conflicts = findConflicts(*curr);
+                std::cout << "--finish with node depth = " << curr->depth << std::endl;
                 if(!conflicts.empty()) {
                     std::cout << "Solution have conflict !!!" << std::endl;
                     exit(-1);
@@ -211,7 +216,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     std::cout << "Solution have wrong cost !!!" << std::endl;
                     exit(-1);
                 }
-                std::cout << "-- find solution with depth = " << curr->depth << std::endl;
                 return true;
             }
             // yz: if exceed time limit or number of high level node exceed limit

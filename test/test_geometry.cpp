@@ -57,10 +57,10 @@ TEST(circleAgentSubGraph, test) {
     canvas.setMouseCallBack(mouse_call_back);
 
     // fake instances
-    InstanceOrients<2> instances = {{{{6, 3}, 1}, {{23, 22},1} },
-                                    {{{6, 2}, 1}, {{22, 21}, 1}} };
+    InstanceOrients<2> instances = {{{{8, 3}, 1}, {{23, 22},1} },
+                                    {{{9, 2}, 1}, {{22, 23}, 1}} }; // 19
     CircleAgents<2> agents;
-    CircleAgent<2> a1(.5, 0), a2(.4, 1);
+    CircleAgent<2> a1(.7, 0), a2(.7, 1);
     agents.push_back(a1);
     agents.push_back(a2);
     LargeAgentCBS<2, CircleAgent<2> > lacbs(instances, agents, dim, is_occupied);

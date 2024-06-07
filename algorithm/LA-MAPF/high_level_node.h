@@ -60,16 +60,26 @@ public:
     // the following is used to comapre nodes in the CLEANUP list
     struct compare_node_by_f {
         bool operator()(const CBSNode *n1, const CBSNode *n2) const {
-            if (n1->g_val + n1->h_val == n2->g_val + n2->h_val) {
-                if (n1->distance_to_go == n2->distance_to_go) {
-                    if (n1->g_val + n1->cost_to_go == n2->g_val + n2->cost_to_go) {
-                        return n1->h_val >= n2->h_val;
-                    }
-                    return n1->g_val + n1->cost_to_go >= n2->g_val + n2->cost_to_go;
+//            if (n1->g_val + n1->h_val == n2->g_val + n2->h_val) {
+//                if (n1->distance_to_go == n2->distance_to_go) {
+//                    if (n1->g_val + n1->cost_to_go == n2->g_val + n2->cost_to_go) {
+//                        return n1->h_val >= n2->h_val;
+//                    }
+//                    return n1->g_val + n1->cost_to_go >= n2->g_val + n2->cost_to_go;
+//                }
+//                return n1->distance_to_go >= n2->distance_to_go;
+//            }
+//            return n1->g_val + n1->h_val >= n2->g_val + n2->h_val;
+            // below heuristic is faster but longer result
+            if(n1->unknownConf.size() + n1->conflicts.size() >= n2->unknownConf.size() + n2->conflicts.size()) {
+                if(n1->unknownConf.size() >= n2->unknownConf.size()) {
+                    return rand()%2 == 0;
+                } else {
+                    return true;
                 }
-                return n1->distance_to_go >= n2->distance_to_go;
+            } else {
+                return false;
             }
-            return n1->g_val + n1->h_val >= n2->g_val + n2->h_val;
         }
     };  // used by CLEANUP to compare nodes by f_val (top of the heap has min f_val)
 
