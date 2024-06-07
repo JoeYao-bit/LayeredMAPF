@@ -55,6 +55,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
 
         virtual bool solve(double time_limit, int cost_lowerbound = 0, int cost_upperbound = MAX_COST) override {
+            if(!this->solvable) {
+                std::cout << "-- unsolvable instance " << std::endl;
+                return false;
+            }
             this->cost_lowerbound = cost_lowerbound;
             this->cost_upperbound = cost_upperbound;
             this->time_limit = time_limit;
@@ -112,6 +116,24 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 //break;
             }  // end of while loop
             return solution_found;
+        }
+
+        size_t getMakeSpan() const {
+            if(!this->solvable) { return 0; }
+            size_t mk = 0;
+            for (size_t a1 = 0; a1 < this->instances_.size(); a1++) {
+                mk = std::max(solutions_[a1].size() - 1, mk); // yz: soc: sum of cost
+            }
+            return mk;
+        }
+
+        size_t getSOC() const {
+            if(!this->solvable) { return 0; }
+            size_t soc = 0;
+            for (size_t a1 = 0; a1 < this->instances_.size(); a1++) {
+                soc += solutions_[a1].size() - 1; // yz: soc: sum of cost
+            }
+            return soc;
         }
 
         std::vector<LAMAPF_Path> solutions_, initial_solutions_;
@@ -186,7 +208,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 std::cout <<"-- soc = " << soc << " / solution_cost = " << solution_cost << std::endl;
                 return false;
             }
-            std::cout << "-- find solution with SOC = " << soc << std::endl;
+            size_t makespan = getMakeSpan();
+            std::cout << "-- find solution with SOC/makespan = " << soc << " / " << makespan << std::endl;
             return true;
         }
 
@@ -207,7 +230,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 goal_node = curr;
                 solution_cost = goal_node->getFHatVal() - goal_node->cost_to_go;
                 auto conflicts = findConflicts(*curr);
-                std::cout << "--finish with node depth = " << curr->depth << std::endl;
+                std::cout << "-- finish with node depth = " << curr->depth << std::endl;
                 if(!conflicts.empty()) {
                     std::cout << "Solution have conflict !!!" << std::endl;
                     exit(-1);
@@ -474,14 +497,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             for (auto &node : allNodes_table)
                 delete node;
             allNodes_table.clear();
-        }
-
-        size_t getSOC() const {
-            size_t soc = 0;
-            for (size_t a1 = 0; a1 < this->instances_.size(); a1++) {
-                soc += solutions_[a1].size() - 1; // yz: soc: sum of cost
-            }
-            return soc;
         }
 
     };

@@ -58,14 +58,16 @@ TEST(circleAgentSubGraph, test) {
 
     // fake instances
     InstanceOrients<2> instances = {{{{8, 3}, 1}, {{23, 22},1} },
-                                    {{{9, 2}, 1}, {{22, 23}, 1}} }; // 19
+                                    {{{9, 2}, 1}, {{19, 23}, 1}} }; // 19
     CircleAgents<2> agents;
-    CircleAgent<2> a1(.7, 0), a2(.7, 1);
+    CircleAgent<2> a1(.7, 0), a2(.3, 1);
     agents.push_back(a1);
     agents.push_back(a2);
     LargeAgentCBS<2, CircleAgent<2> > lacbs(instances, agents, dim, is_occupied);
     bool solved = lacbs.solve(60, 0);
     std::cout << "find solution ? " << solved << std::endl;
+    size_t makespan = lacbs.getMakeSpan();
+    int time_index = 0;
     while(true) {
         canvas.resetCanvas();
         canvas.drawGridMap(dim, is_occupied);
@@ -78,7 +80,7 @@ TEST(circleAgentSubGraph, test) {
             for (int i = 0; i < current_subgraph.all_nodes_.size(); i++) {
                 const auto &node_ptr = current_subgraph.all_nodes_[i];
                 if (node_ptr != nullptr) {
-                    canvas.drawGrid(node_ptr->pt_[0], node_ptr->pt_[1], COLOR_TABLE[0]);
+                    canvas.drawGrid(node_ptr->pt_[0], node_ptr->pt_[1], COLOR_TABLE[(current_subgraph_id + 2)%30]);
                 }
             }
         }
@@ -99,11 +101,23 @@ TEST(circleAgentSubGraph, test) {
             }
         }
         if(draw_path) {
-            const auto& path = lacbs.solutions_[current_subgraph_id];
-            for (const auto &pose_id : path) {
-                canvas.drawGrid(lacbs.all_poses_[pose_id]->pt_[0],
-                                lacbs.all_poses_[pose_id]->pt_[1],
-                                COLOR_TABLE[(2+current_subgraph_id) % 30]);
+//            const auto& path = lacbs.solutions_[current_subgraph_id];
+//            for (const auto &pose_id : path) {
+//                canvas.drawGrid(lacbs.all_poses_[pose_id]->pt_[0],
+//                                lacbs.all_poses_[pose_id]->pt_[1],
+//                                COLOR_TABLE[(2+current_subgraph_id) % 30]);
+//            }
+            for(int i=0; i<lacbs.solutions_.size(); i++) {
+                const auto& path = lacbs.solutions_[i];
+                Pointi<2> pt;
+                if(time_index <= path.size() - 1) {
+                    pt = lacbs.all_poses_[path[time_index]]->pt_;
+                } else {
+                    pt = lacbs.all_poses_[path.back()]->pt_;
+                }
+                canvas.drawCircleInt(pt[0], pt[1], floor(lacbs.agents_[i].radius_*zoom_ratio),
+                                     true, 1,
+                                     COLOR_TABLE[(2+i) % 30]);
             }
         }
         if(draw_all_instance) {
@@ -139,22 +153,41 @@ TEST(circleAgentSubGraph, test) {
             }
         }
         char key = canvas.show();
-        if(key == 'w') {
-            current_subgraph_id ++;
-            current_subgraph_id = current_subgraph_id % instances.size();
-            std::cout << " switch to subgraph " << current_subgraph_id << std::endl;
-        } else if(key == 's') {
-            current_subgraph_id --;
-            current_subgraph_id = (current_subgraph_id + instances.size()) % instances.size();
-            std::cout << " switch to subgraph " << current_subgraph_id << std::endl;
-        } else if(key == 'a') {
-            draw_all_subgraph_node = !draw_all_subgraph_node;
-        } else if(key == 'i') {
-            draw_all_instance = !draw_all_instance;
-        } else if(key == 'h') {
-            draw_heuristic_table = !draw_heuristic_table;
-        } else if(key == 'p') {
-            draw_path = !draw_path;
+        switch (key) {
+            case 'w':
+                current_subgraph_id ++;
+                current_subgraph_id = current_subgraph_id % instances.size();
+                std::cout << "-- switch to subgraph " << current_subgraph_id << std::endl;
+                break;
+            case 's':
+                current_subgraph_id --;
+                current_subgraph_id = (current_subgraph_id + instances.size()) % instances.size();
+                std::cout << "-- switch to subgraph " << current_subgraph_id << std::endl;
+                break;
+            case 'a':
+                draw_all_subgraph_node = !draw_all_subgraph_node;
+                break;
+            case 'i':
+                draw_all_instance = !draw_all_instance;
+                break;
+            case 'h':
+                draw_heuristic_table = !draw_heuristic_table;
+                break;
+            case 'p':
+                draw_path = !draw_path;
+                break;
+            case 'q':
+                time_index = time_index + makespan - 1;
+                time_index = time_index % makespan;
+                std::cout << "-- switch to time index = " << time_index << std::endl;
+                break;
+            case 'e':
+                time_index ++;
+                time_index = time_index % makespan;
+                std::cout << "-- switch to time index = " << time_index << std::endl;
+                break;
+            default:
+                break;
         }
     }
 
