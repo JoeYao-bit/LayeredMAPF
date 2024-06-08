@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 #include <sstream>
 #include <string>
-#include "../algorithm/LA-MAPF/shaped_agent.h"
+#include "../algorithm/LA-MAPF/circle_shaped_agent.h"
 #include "../algorithm/LA-MAPF/large_agent_CBS.h"
 #include "../freeNav-base/visualization/canvas/canvas.h"
 #include "../freeNav-base/dependencies/2d_grid/text_map_loader.h"
@@ -57,8 +57,8 @@ TEST(circleAgentSubGraph, test) {
     canvas.setMouseCallBack(mouse_call_back);
 
     // fake instances
-    InstanceOrients<2> instances = {{{{8, 3}, 1}, {{23, 22},1} },
-                                    {{{9, 2}, 1}, {{19, 23}, 1}} }; // 19
+    InstanceOrients<2> instances = {{{{8, 3}, 0}, {{23, 22},0} },
+                                    {{{9, 2}, 0}, {{19, 23}, 0}} }; // 19
     CircleAgents<2> agents;
     CircleAgent<2> a1(.7, 0), a2(.3, 1);
     agents.push_back(a1);
@@ -110,14 +110,36 @@ TEST(circleAgentSubGraph, test) {
             for(int i=0; i<lacbs.solutions_.size(); i++) {
                 const auto& path = lacbs.solutions_[i];
                 Pointi<2> pt;
+                int orient = 0;
                 if(time_index <= path.size() - 1) {
-                    pt = lacbs.all_poses_[path[time_index]]->pt_;
+                    pt     = lacbs.all_poses_[path[time_index]]->pt_;
+                    orient = lacbs.all_poses_[path[time_index]]->orient_;
                 } else {
-                    pt = lacbs.all_poses_[path.back()]->pt_;
+                    pt     = lacbs.all_poses_[path.back()]->pt_;
+                    orient = lacbs.all_poses_[path.back()]->orient_;
                 }
                 canvas.drawCircleInt(pt[0], pt[1], floor(lacbs.agents_[i].radius_*zoom_ratio),
                                      true, 1,
                                      COLOR_TABLE[(2+i) % 30]);
+                double theta = 0;
+                switch (orient) {
+                    case 0:
+                        theta = 0;
+                        break;
+                    case 1:
+                        theta = M_PI;
+                        break;
+                    case 2:
+                        theta = 3*M_PI/2;
+                        break;
+                    case 3:
+                        theta = M_PI/2;
+                        break;
+                    default:
+                        break;
+                }
+                canvas.drawArrowInt(pt[0], pt[1], theta , zoom_ratio/2, zoom_ratio/10);
+
             }
         }
         if(draw_all_instance) {

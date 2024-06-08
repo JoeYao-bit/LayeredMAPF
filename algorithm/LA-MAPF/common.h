@@ -15,6 +15,10 @@
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
+#define MAX_TIMESTEP INT_MAX / 2
+#define MAX_COST INT_MAX / 2
+#define MAX_NODES INT_MAX / 2
+
     // <agent id, node from, node to, time range start, time range end>
     typedef std::tuple<int, size_t, size_t, int, int> Constraint;
 

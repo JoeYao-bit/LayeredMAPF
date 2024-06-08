@@ -5,7 +5,7 @@
 #ifndef LAYEREDMAPF_LARGE_AGENT_MAPF_H
 #define LAYEREDMAPF_LARGE_AGENT_MAPF_H
 
-#include "shaped_agent.h"
+#include "circle_shaped_agent.h"
 #include "constraint.h"
 #include <boost/heap/pairing_heap.hpp>
 
@@ -85,7 +85,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         virtual bool solve(double time_limit, int cost_lowerbound = 0, int cost_upperbound = MAX_COST) = 0;
 
         virtual std::vector<LAMAPF_Path> getSolution() const {
-            return solution_;
+            return solutions_;
         }
 
         SubGraphOfAgent<N> constructSubGraphOfAgent(const AgentType& agent) const {
@@ -214,8 +214,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<SubGraphOfAgent<N> > agent_sub_graphs_;
         std::vector<std::vector<int> > agents_heuristic_tables_;
 
-        // final solution
-        std::vector<LAMAPF_Path> solution_;
+        // solutions
+        std::vector<LAMAPF_Path> solutions_, initial_solutions_;
 
     };
 

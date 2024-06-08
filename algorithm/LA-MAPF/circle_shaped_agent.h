@@ -2,17 +2,11 @@
 // Created by yaozhuo on 2024/5/4.
 //
 
-#ifndef LAYEREDMAPF_SHAPED_AGENT_H
-#define LAYEREDMAPF_SHAPED_AGENT_H
+#ifndef LAYEREDMAPF_CIRCLE_SHAPED_AGENT_H
+#define LAYEREDMAPF_CIRCLE_SHAPED_AGENT_H
 #include "common.h"
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
-
-#define MAX_TIMESTEP INT_MAX / 2
-#define MAX_COST INT_MAX / 2
-#define MAX_NODES INT_MAX / 2
-
-
 
     template <Dimension N>
     struct CircleAgent : public Agent<N> {
@@ -24,9 +18,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                const IS_OCCUPIED_FUNC<N>& isoc,
                                const DistanceMapUpdater<N>& distance_table) const {
             if(isoc(pose.pt_)) { return true; }
-            if(radius_ < 0.5) {
-                return false;
-            }
+            // if the block is in a grid
+            if(radius_ < 0.5) { return false; }
             Id pt_id = PointiToId(pose.pt_, dim);
             if(distance_table.getClosestDistance(pt_id) <= radius_) {
                 return true;
@@ -34,6 +27,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return false;
         }
 
+        // assume have pass pose collide check
         // when add edges, assume agent can only change position or orientation, cannot change both of them
         // and orientation can only change 90 degree at one timestep, that means the offset between orient are 1, 2, 4, ... (2^0, 2^1, 2^2...)
 
@@ -44,29 +38,33 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                const DistanceMapUpdater<N>& distance_table) const {
             const Pointi<N> pt1 = edge_from.pt_, pt2 = edge_to.pt_;
             if(isoc(pt1) || isoc(pt2)) { return true; }
-            if(radius_ < 0.5) { return false; }
+            //if(radius_ < 0.5) { return false; }
             if(pt1 == pt2) {
-                // the angle of orientation change must be minus than 90 degree
+                // the angle of orientation change must be equal to 90 degree
                 if(edge_from.orient_ / 2 == edge_to.orient_ / 2) {
                     return true;
                 } else {
                     return false;
                 }
-            } // any orientation change are permit, as this is a circle
+            }
             if(edge_to.orient_ != edge_from.orient_) { return true; }; // if not the same position, can not change in orientation
-            assert((pt1 - pt2).Norm() <= 1); // limit range of move ?
+            assert((pt1 - pt2).Norm() <= 1); // TODO: limit range of move ?
             // can only move in current orient
             Pointi<N> mov_vector = pt2 - pt1;
 //            std::cout << "pt1/pt2 orient = " << pt1 << " " << pt2 << " " << edge_from.orient_ << std::endl;
 //            std::cout << "mov_vector[edge_to.orient_/2] " << mov_vector[edge_to.orient_/2] << std::endl;
 //            if(mov_vector[edge_to.orient_/2] == 0) { return true; }
-
+            // must move in current orientation
+            if(mov_vector[edge_to.orient_/2] == 0) { return true; }
+            // move forward
             if(edge_to.orient_ % 2 == 0) {
-                if(mov_vector[edge_to.orient_/2] != -1) { return true;}
-            } else {
                 if(mov_vector[edge_to.orient_/2] != 1) { return true;}
+            } else {
+                // move backward
+                if(mov_vector[edge_to.orient_/2] != -1) { return true;}
             }
 
+            // now do not considering any angle transformation
 //            Line<N> line(pt1, pt2);
 //            int check_step = line.step;
 //            Pointi<N> pt;
@@ -124,36 +122,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return isCollide(a2, s2, e2, a1, s1);
     }
 
-
-    template<Dimension N>
-    std::vector<std::shared_ptr<Conflict> > detectFirstConflictBetweenPaths(const LAMAPF_Path& p1, const LAMAPF_Path& p2,
-                                                          const CircleAgent<N>& a1, const CircleAgent<N>& a2,
-                                                          const std::vector<Pose<N>*>& all_nodes) {
-        int t1 = p1.size()-1, t2 = p2.size()-1;
-        const auto& longer_agent  = p1.size() > p2.size() ? a1 : a2;
-        const auto& shorter_agent = longer_agent.id_ == a1.id_ ? a2 : a1;
-        const auto& longer_path   = longer_agent.id_ == a1.id_ ? p1 : p2;
-        const auto& shorter_path  = longer_agent.id_ == a1.id_ ? p2 : p1;
-
-        int common_part = std::min(t1, t2);
-        for(int t=0; t<common_part-1; t++) {
-            if(isCollide(a1, *all_nodes[p1[t]], *all_nodes[p1[t+1]], a2, *all_nodes[p2[t]], *all_nodes[p2[t+1]])) {
-                auto c1 = std::make_shared<Constraint>(a1.id_, p1[t], p1[t+1], t, t+2);
-                auto c2 = std::make_shared<Constraint>(a2.id_, p1[t], p1[t+1], t, t+2);
-                auto cf = std::make_shared<Conflict>(a1.id_, a2.id_, Constraints{c1}, Constraints{c2});
-                return { cf };
-            }
-        }
-        for(int t=common_part-1; t<std::max(t1, t2) - 1; t++) {
-            if(isCollide(longer_agent, *all_nodes[longer_path[t]], *all_nodes[longer_path[t+1]], shorter_agent, *all_nodes[shorter_path.back()])) {
-                auto c1 = std::make_shared<Constraint>(longer_agent.id_,  longer_path[t], longer_path[t+1], t, t+2);
-                auto c2 = std::make_shared<Constraint>(shorter_agent.id_, shorter_path.back(), MAX_NODES,   0, t+2);
-                auto cf = std::make_shared<Conflict>(longer_agent.id_, shorter_agent.id_, Constraints{c1}, Constraints{c2});
-                return { cf };
-            }
-        }
-        return {};
-    }
 
     template<Dimension N>
     std::vector<std::shared_ptr<Conflict> > detectAllConflictBetweenPaths(const LAMAPF_Path& p1, const LAMAPF_Path& p2,
@@ -216,4 +184,4 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
 }
 
-#endif //LAYEREDMAPF_SHAPED_AGENT_H
+#endif //LAYEREDMAPF_CIRCLE_SHAPED_AGENT_H
