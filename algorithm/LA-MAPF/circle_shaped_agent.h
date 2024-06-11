@@ -38,7 +38,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                const DistanceMapUpdater<N>& distance_table) const {
             const Pointi<N> pt1 = edge_from.pt_, pt2 = edge_to.pt_;
             if(isoc(pt1) || isoc(pt2)) { return true; }
-            //if(radius_ < 0.5) { return false; }
+            // if(radius_ < 0.5) { return false; }
             if(pt1 == pt2) {
                 // the angle of orientation change must be equal to 90 degree
                 if(edge_from.orient_ / 2 == edge_to.orient_ / 2) {

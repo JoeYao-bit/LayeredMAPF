@@ -5,6 +5,8 @@
 #ifndef LAYEREDMAPF_COMMON_H
 #define LAYEREDMAPF_COMMON_H
 
+#include <limits>
+
 #include <boost/geometry.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/heap/pairing_heap.hpp>
@@ -98,6 +100,43 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     using Agents = std::vector<Agent<N> >;
 
     class HighLvNode;
+
+    /* [row][col] */
+    typedef std::vector<std::vector<int> > RotateMatrix;
+
+    typedef std::vector<RotateMatrix> RotateMatrixs;
+
+
+    RotateMatrix initializeRotateMatrix(const int& dim, const int& orient);
+
+    // for calculate rotate matrix about 2D and 3D maps
+    RotateMatrixs initializeRotateMatrixs(const int& dim);
+
+    std::vector<RotateMatrixs> initializeAllRotateMatrixs();
+
+    template<typename T, Dimension N>
+    Point<T, N> rotatePoint(const Point<T, N>& pt, const RotateMatrix& mt) {
+        Point<T, N> retv;
+        for(int row=0; row<N; row++) {
+            retv[row] = 0;
+            for(int col=0; col<N; col++) {
+                retv[row] = retv[row] + pt[col]*mt[col][row];
+            }
+        }
+        return retv;
+    }
+
+    // public static element
+    extern std::vector<RotateMatrixs> ROTATE_MATRIXS;
+
+    RotateMatrix initRotateMatrix_2D(const double& angle);
+
+    double orientToPi_2D(const int& orient);
+
+    Pointi<2> pointRotate_2D(const Pointi<2>& pt, const int& orient);
+
+    Pointi<2> pointTransfer_2D(const Pointi<2>& pt, const Pose<2>& pose);
+
 }
 
 #endif //LAYEREDMAPF_COMMON_H

@@ -6,6 +6,8 @@
 #include <sstream>
 #include <string>
 #include "../algorithm/LA-MAPF/circle_shaped_agent.h"
+#include "../algorithm/LA-MAPF/block_shaped_agent.h"
+
 #include "../algorithm/LA-MAPF/large_agent_CBS.h"
 #include "../freeNav-base/visualization/canvas/canvas.h"
 #include "../freeNav-base/dependencies/2d_grid/text_map_loader.h"
@@ -136,6 +138,8 @@ TEST(circleAgentSubGraph, test) {
                         theta = M_PI/2;
                         break;
                     default:
+                        std::cerr << "wrong 2D orient = " << orient << std::endl;
+                        exit(0);
                         break;
                 }
                 canvas.drawArrowInt(pt[0], pt[1], theta , zoom_ratio/2, zoom_ratio/10);
@@ -212,5 +216,107 @@ TEST(circleAgentSubGraph, test) {
                 break;
         }
     }
+}
 
+TEST(test, pointRotate_2D) {
+    Canvas canvas("BlockRotateCoverage", 10, 10, 20, 10);
+
+    Pointi<2> pt{4, 3}, pt1, pt2, pt3;
+    pt1 = pointRotate_2D(pt, 1);
+    pt2 = pointRotate_2D(pt, 2);
+    pt3 = pointRotate_2D(pt, 3);
+
+    std::cout << "after rotate 1 " << pt1 << std::endl;
+    std::cout << "after rotate 2 " << pt2 << std::endl;
+    std::cout << "after rotate 3 " << pt3 << std::endl;
+
+    while(true) {
+        canvas.resetCanvas();
+        canvas.drawGrid(5, 5);
+
+        canvas.drawGridLine(5, 5, pt[0]  + 5, pt[1]  + 5);
+        canvas.drawGridLine(5, 5, pt1[0] + 5, pt1[1] + 5);
+        canvas.drawGridLine(5, 5, pt2[0] + 5, pt2[1] + 5);
+        canvas.drawGridLine(5, 5, pt3[0] + 5, pt3[1] + 5);
+
+        canvas.drawGrid(pt[0]  + 5,  pt[1] + 5,  COLOR_TABLE[0]);
+        canvas.drawGrid(pt1[0] + 5, pt1[1] + 5, COLOR_TABLE[1]);
+        canvas.drawGrid(pt2[0] + 5, pt2[1] + 5, COLOR_TABLE[2]);
+        canvas.drawGrid(pt3[0] + 5, pt3[1] + 5, COLOR_TABLE[3]);
+
+
+        char key = canvas.show();
+
+    }
+}
+
+
+
+TEST(test, BlockRotateCoverage) {
+    BlockAgent_2D block({-150, -100}, {50, 100}, 0);
+    bool draw_front_coverage = true, draw_backward_coverage = true, draw_rotate = true;
+    int orient = 0;
+
+    Canvas canvas("BlockRotateCoverage", 1000, 700, 20, 1);
+
+    while(true) {
+        canvas.resetCanvas();
+        //canvas.drawArrowInt(0, (int)dim[1]/2, (int)dim[0], (int)dim[1]/2, 2, true, COLOR_TABLE[1]);
+//        canvas.drawArrow(-2.4, 0, 0, 4.8, 2);
+//        canvas.drawArrow(0, -2.4, M_PI/2, 4.8, 2);
+
+        canvas.drawAxis(50, 35, .2);
+        // draw block
+//        canvas.drawLine(block.min_pt_[0], block.min_pt_[1], block.max_pt_[0], block.min_pt_[1]);
+//        canvas.drawLine(block.min_pt_[0], block.max_pt_[1], block.max_pt_[0], block.max_pt_[1]);
+//
+//        canvas.drawLine(block.min_pt_[0], block.min_pt_[1], block.min_pt_[0], block.max_pt_[1]);
+//        canvas.drawLine(block.max_pt_[0], block.min_pt_[1], block.max_pt_[0], block.max_pt_[1]);
+
+        // draw coverage grids
+        if(draw_rotate) {
+            for (const auto &pt : block.grids_) {
+                canvas.drawGrid(pt[0] + 500, pt[1] + 350);
+            }
+            for (const auto &pt : block.grids_) {
+                Pointi<2> new_pt = pointRotate_2D(pt, 2);
+                canvas.drawGrid(new_pt[0] + 500, new_pt[1] + 350, COLOR_TABLE[0]);
+            }
+        }
+        // draw rotate grids
+        if(draw_front_coverage) {
+            for (const auto &pt : block.front_rotate_pts) {
+                canvas.drawGrid(pt[0] + 500, pt[1] + 350, COLOR_TABLE[1]);
+            }
+        }
+        if(draw_backward_coverage) {
+            for (const auto &pt : block.backward_rotate_pts) {
+                canvas.drawGrid(pt[0] + 500, pt[1] + 350, COLOR_TABLE[2]);
+            }
+        }
+        char key = canvas.show();
+        switch (key) {
+            case 'w':
+                orient += 1;
+                orient = orient % 4;
+                std::cout << "-- change orient to " << orient << std::endl;
+                break;
+            case 's':
+                orient += 3;
+                orient = orient % 4;
+                std::cout << "-- change orient to " << orient << std::endl;
+                break;
+            case 'f':
+                draw_front_coverage    = !draw_front_coverage;
+                break;
+            case 'b':
+                draw_backward_coverage = !draw_backward_coverage;
+                break;
+            case 'r':
+                draw_rotate = !draw_rotate;
+                break;
+            default:
+                break;
+        }
+    }
 }
