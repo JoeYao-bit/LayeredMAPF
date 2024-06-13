@@ -13,7 +13,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         CircleAgent(float radius, int id) : Agent<N>(radius, radius, id), radius_(radius) {}
 
-        virtual bool isCollide(const Pose<N>& pose,
+        virtual bool isCollide(const Pose<int, N>& pose,
                                DimensionLength* dim,
                                const IS_OCCUPIED_FUNC<N>& isoc,
                                const DistanceMapUpdater<N>& distance_table) const {
@@ -31,14 +31,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         // when add edges, assume agent can only change position or orientation, cannot change both of them
         // and orientation can only change 90 degree at one timestep, that means the offset between orient are 1, 2, 4, ... (2^0, 2^1, 2^2...)
 
-        virtual bool isCollide(const Pose<N>& edge_from,
-                               const Pose<N>& edge_to,
+        virtual bool isCollide(const Pose<int, N>& edge_from,
+                               const Pose<int, N>& edge_to,
                                DimensionLength* dim,
                                const IS_OCCUPIED_FUNC<N>& isoc,
                                const DistanceMapUpdater<N>& distance_table) const {
             const Pointi<N> pt1 = edge_from.pt_, pt2 = edge_to.pt_;
             if(isoc(pt1) || isoc(pt2)) { return true; }
-            // if(radius_ < 0.5) { return false; }
             if(pt1 == pt2) {
                 // the angle of orientation change must be equal to 90 degree
                 if(edge_from.orient_ / 2 == edge_to.orient_ / 2) {
@@ -88,8 +87,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     // detect collision between agents
 
     // check whether two moving circle are collide with each other
-    bool isCollide(const CircleAgent<2>& a1, const Pose<2>& s1, const Pose<2>& e1,
-                   const CircleAgent<2>& a2, const Pose<2>& s2, const Pose<2>& e2) {
+    bool isCollide(const CircleAgent<2>& a1, const Pose<int, 2>& s1, const Pose<int, 2>& e1,
+                   const CircleAgent<2>& a2, const Pose<int, 2>& s2, const Pose<int, 2>& e2) {
 
         namespace bg = boost::geometry;
         using bg_pt = bg::model::point<int, 2, bg::cs::cartesian>;
@@ -103,8 +102,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     }
 
     // check whether one moving circle are collide with one waiting circle
-    bool isCollide(const CircleAgent<2>& a1, const Pose<2>& s1, const Pose<2>& e1,
-                   const CircleAgent<2>& a2, const Pose<2>& s2) {
+    bool isCollide(const CircleAgent<2>& a1, const Pose<int, 2>& s1, const Pose<int, 2>& e1,
+                   const CircleAgent<2>& a2, const Pose<int, 2>& s2) {
 
         namespace bg = boost::geometry;
         using bg_pt = bg::model::point<int, 2, bg::cs::cartesian>;
@@ -117,8 +116,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return bg::distance(seg1, pt3) <= (a1.radius_ + a2.radius_);
     }
 
-    bool isCollide(const CircleAgent<2>& a1, const Pose<2>& s1,
-                   const CircleAgent<2>& a2, const Pose<2>& s2, const Pose<2>& e2) {
+    bool isCollide(const CircleAgent<2>& a1, const Pose<int, 2>& s1,
+                   const CircleAgent<2>& a2, const Pose<int, 2>& s2, const Pose<int, 2>& e2) {
         return isCollide(a2, s2, e2, a1, s1);
     }
 
@@ -126,7 +125,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     template<Dimension N>
     std::vector<std::shared_ptr<Conflict> > detectAllConflictBetweenPaths(const LAMAPF_Path& p1, const LAMAPF_Path& p2,
                                                         const CircleAgent<N>& a1, const CircleAgent<N>& a2,
-                                                        const std::vector<Pose<N>*>& all_nodes) {
+                                                        const std::vector<Pose<int, N>*>& all_nodes) {
         int t1 = p1.size()-1, t2 = p2.size()-1;
         const auto& longer_agent  = p1.size() > p2.size() ? a1 : a2;
         const auto& shorter_agent = longer_agent.id_ == a1.id_ ? a2 : a1;

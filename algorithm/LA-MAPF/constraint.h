@@ -19,7 +19,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         ConstraintTable(int agent_id,
                         const std::vector<AgentType>& agents,
-                        const std::vector<PosePtr<N> >& all_poses,
+                        const std::vector<PosePtr<int, N> >& all_poses,
                         DimensionLength* dim,
                         const IS_OCCUPIED_FUNC<N> & isoc) : agent_id_(agent_id), node_size_(all_poses.size()), agents_(agents), all_poses_(all_poses), dim_(dim), isoc_(isoc) {
             // get max excircle radius /  min incircle radius
@@ -117,7 +117,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         // get how many conflict the agent by transfer from node curr_id to next_id have
         // using collision check between agents, so need agent information
-        int getNumOfConflictsForStep(const PosePtr<N>& curr_ps, const PosePtr<N>& next_ps, int next_timestep) const {
+        int getNumOfConflictsForStep(const PosePtr<int, N>& curr_ps, const PosePtr<int, N>& next_ps, int next_timestep) const {
             int rst = 0;
             const float& agent_excircle_radius = agents_[agent_id_].excircle_radius_;
             if (!cat_.empty()) {
@@ -203,7 +203,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         const std::vector<AgentType>& agents_;
 
-        const std::vector<PosePtr<N> >& all_poses_;
+        const std::vector<PosePtr<int, N> >& all_poses_;
 
         float max_excircle_radius_ = 0;
 

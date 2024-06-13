@@ -20,8 +20,10 @@ using namespace freeNav::LayeredMAPF::LA_MAPF;
 CircleAgent<2> c1(2.5, 0);
 CircleAgent<2> c2(3.5, 1);
 
+int canvas_size_x = 1000, canvas_size_y = 700;
+
 TEST(circleAgentIsCollide, test) {
-    Pose<2> p1({1,1},0), p2({1,2}, 0), p3({1,3}, 0), p4({4,1}, 0);
+    Pose<int, 2> p1({1,1},0), p2({1,2}, 0), p3({1,3}, 0), p4({4,1}, 0);
     std::cout << "is collide" << isCollide(c1, p1, p2, c2, p3, p4) << std::endl;
 }
 
@@ -59,12 +61,16 @@ TEST(circleAgentSubGraph, test) {
     canvas.setMouseCallBack(mouse_call_back);
 
     // fake instances
-    InstanceOrients<2> instances = {{{{8, 3}, 0}, {{23, 22},0} },
-                                    {{{9, 2}, 0}, {{19, 23}, 0}} }; // 19
-    CircleAgents<2> agents;
-    CircleAgent<2> a1(.7, 0), a2(.3, 1);
-    agents.push_back(a1);
-    agents.push_back(a2);
+    InstanceOrients<2> instances = {
+            {{{8, 3}, 0}, {{23, 22},0} },
+            {{{9, 2}, 0}, {{5, 22}, 0}},
+            {{{2, 5}, 0}, {{17, 22}, 3}}
+    };
+    CircleAgents<2> agents({
+        CircleAgent<2>(.7, 0),
+        CircleAgent<2>(.7, 1),
+        CircleAgent<2>(.4, 2)
+    });
     LargeAgentCBS<2, CircleAgent<2> > lacbs(instances, agents, dim, is_occupied);
     bool solved = lacbs.solve(60, 0);
     std::cout << "find solution ? " << solved << std::endl;
@@ -219,7 +225,9 @@ TEST(circleAgentSubGraph, test) {
 }
 
 TEST(test, pointRotate_2D) {
-    Canvas canvas("BlockRotateCoverage", 10, 10, 20, 10);
+    canvas_size_x = 10, canvas_size_y = 10;
+
+    Canvas canvas("BlockRotateCoverage", canvas_size_x, canvas_size_y, 20, 10);
 
     Pointi<2> pt{4, 3}, pt1, pt2, pt3;
     pt1 = pointRotate_2D(pt, 1);
@@ -234,15 +242,15 @@ TEST(test, pointRotate_2D) {
         canvas.resetCanvas();
         canvas.drawGrid(5, 5);
 
-        canvas.drawGridLine(5, 5, pt[0]  + 5, pt[1]  + 5);
-        canvas.drawGridLine(5, 5, pt1[0] + 5, pt1[1] + 5);
-        canvas.drawGridLine(5, 5, pt2[0] + 5, pt2[1] + 5);
-        canvas.drawGridLine(5, 5, pt3[0] + 5, pt3[1] + 5);
+        canvas.drawGridLine(canvas_size_x/2, canvas_size_y/2, pt[0]  + canvas_size_x/2, pt[1]  + canvas_size_y/2);
+        canvas.drawGridLine(canvas_size_x/2, canvas_size_y/2, pt1[0] + canvas_size_x/2, pt1[1] + canvas_size_y/2);
+        canvas.drawGridLine(canvas_size_x/2, canvas_size_y/2, pt2[0] + canvas_size_x/2, pt2[1] + canvas_size_y/2);
+        canvas.drawGridLine(canvas_size_x/2, canvas_size_y/2, pt3[0] + canvas_size_x/2, pt3[1] + canvas_size_y/2);
 
-        canvas.drawGrid(pt[0]  + 5,  pt[1] + 5,  COLOR_TABLE[0]);
-        canvas.drawGrid(pt1[0] + 5, pt1[1] + 5, COLOR_TABLE[1]);
-        canvas.drawGrid(pt2[0] + 5, pt2[1] + 5, COLOR_TABLE[2]);
-        canvas.drawGrid(pt3[0] + 5, pt3[1] + 5, COLOR_TABLE[3]);
+        canvas.drawGrid(pt[0]  + canvas_size_x/2,  pt[1] + canvas_size_y/2,  COLOR_TABLE[0]);
+        canvas.drawGrid(pt1[0] + canvas_size_x/2, pt1[1] + canvas_size_y/2, COLOR_TABLE[1]);
+        canvas.drawGrid(pt2[0] + canvas_size_x/2, pt2[1] + canvas_size_y/2, COLOR_TABLE[2]);
+        canvas.drawGrid(pt3[0] + canvas_size_x/2, pt3[1] + canvas_size_y/2, COLOR_TABLE[3]);
 
 
         char key = canvas.show();
@@ -250,14 +258,14 @@ TEST(test, pointRotate_2D) {
     }
 }
 
-
-
 TEST(test, BlockRotateCoverage) {
-    BlockAgent_2D block({-150, -100}, {50, 100}, 0);
+    BlockAgent_2D block({-150, -100}, {200, 100}, 0, dim);
+    int orient_start = 1, orient_end = 3;
+    const auto& rotate_f_b = block.getRotateCoverage(orient_start, orient_end);
     bool draw_front_coverage = true, draw_backward_coverage = true, draw_rotate = true;
     int orient = 0;
-
-    Canvas canvas("BlockRotateCoverage", 1000, 700, 20, 1);
+    canvas_size_x = 1000, canvas_size_y = 700;
+    Canvas canvas("BlockRotateCoverage", canvas_size_x, canvas_size_y, 20, 1);
 
     while(true) {
         canvas.resetCanvas();
@@ -265,7 +273,7 @@ TEST(test, BlockRotateCoverage) {
 //        canvas.drawArrow(-2.4, 0, 0, 4.8, 2);
 //        canvas.drawArrow(0, -2.4, M_PI/2, 4.8, 2);
 
-        canvas.drawAxis(50, 35, .2);
+        canvas.drawAxis(canvas_size_x/2, canvas_size_y/2, .2);
         // draw block
 //        canvas.drawLine(block.min_pt_[0], block.min_pt_[1], block.max_pt_[0], block.min_pt_[1]);
 //        canvas.drawLine(block.min_pt_[0], block.max_pt_[1], block.max_pt_[0], block.max_pt_[1]);
@@ -275,23 +283,26 @@ TEST(test, BlockRotateCoverage) {
 
         // draw coverage grids
         if(draw_rotate) {
-            for (const auto &pt : block.grids_) {
-                canvas.drawGrid(pt[0] + 500, pt[1] + 350);
+//            for (const auto &pt : block.grids_) {
+//                canvas.drawGrid(pt[0] + canvas_size_x/2, pt[1] + canvas_size_y/2);
+//            }
+            for (const auto &pt : block.grids_[orient_start]) {
+                canvas.drawGrid(pt[0] + canvas_size_x/2, pt[1] + canvas_size_y/2, COLOR_TABLE[orient_start+4]);
             }
-            for (const auto &pt : block.grids_) {
-                Pointi<2> new_pt = pointRotate_2D(pt, 2);
-                canvas.drawGrid(new_pt[0] + 500, new_pt[1] + 350, COLOR_TABLE[0]);
+            for (const auto &pt : block.grids_[orient_end]) {
+                canvas.drawGrid(pt[0] + canvas_size_x/2, pt[1] + canvas_size_y/2, COLOR_TABLE[orient_end+4]);
             }
         }
+        const auto& draw_which = rotate_f_b; // block.front_rotate_pts, block.backward_rotate_pts
         // draw rotate grids
         if(draw_front_coverage) {
-            for (const auto &pt : block.front_rotate_pts) {
-                canvas.drawGrid(pt[0] + 500, pt[1] + 350, COLOR_TABLE[1]);
+            for (const auto &pt : draw_which.first) {
+                canvas.drawGrid(pt[0] + canvas_size_x/2, pt[1] + canvas_size_y/2, COLOR_TABLE[1]);
             }
         }
         if(draw_backward_coverage) {
-            for (const auto &pt : block.backward_rotate_pts) {
-                canvas.drawGrid(pt[0] + 500, pt[1] + 350, COLOR_TABLE[2]);
+            for (const auto &pt : rotate_f_b.second) {
+                canvas.drawGrid(pt[0] + canvas_size_x/2, pt[1] + canvas_size_y/2, COLOR_TABLE[2]);
             }
         }
         char key = canvas.show();

@@ -36,8 +36,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 if(solution.empty()) {
                     std::cerr << " agent " << agent << " search path failed " << std::endl;
                 } else {
-//                    printPath(agent, solution);
+                    printPath(agent, solution);
                     this->initial_solutions_.push_back(solution);
+                    this->solutions_.push_back(solution);
                 }
             }
             // 2, detect conflict
@@ -67,7 +68,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //            std::cout << "-- generate root node " << std::endl;
             int count = 0;
             while (!cleanup_list.empty() && !solution_found) {
-                if(count >= 1000) { break; }
+                if(count >= 3000) { break; }
                 //std::cout << "-- " << count << " iteration, open size " << cleanup_list.size() << std::endl;
                 count ++;
                 // yz: select node with minimum heuristic value

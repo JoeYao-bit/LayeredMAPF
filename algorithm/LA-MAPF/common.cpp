@@ -99,13 +99,4 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return theta;
     }
 
-    Pointi<2> pointRotate_2D(const Pointi<2>& pt, const int& orient) {
-        return rotatePoint<int, 2>(pt, ROTATE_MATRIXS[2][orient]);
-    }
-
-    Pointi<2> pointTransfer_2D(const Pointi<2>& pt, const Pose<2>& pose) {
-        return pointRotate_2D(pt + pose.pt_, pose.orient_);
-    }
-
-
 }

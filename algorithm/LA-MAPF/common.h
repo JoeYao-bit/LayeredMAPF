@@ -79,13 +79,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         explicit Agent(float excircle_radius, float incircle_radius, int id) : excircle_radius_(excircle_radius), incircle_radius_(incircle_radius),id_(id) {}
 
-        virtual bool isCollide(const Pose<N>& pose,
+        virtual bool isCollide(const Pose<int, N>& pose,
                                DimensionLength* dim,
                                const IS_OCCUPIED_FUNC<N>& isoc,
                                const DistanceMapUpdater<N>& distance_table) const = 0;
 
-        virtual bool isCollide(const Pose<N>& edge_from,
-                               const Pose<N>& edge_to,
+        virtual bool isCollide(const Pose<int, N>& edge_from,
+                               const Pose<int, N>& edge_to,
                                DimensionLength* dim,
                                const IS_OCCUPIED_FUNC<N>& isoc,
                                const DistanceMapUpdater<N>& distance_table) const = 0;
@@ -126,6 +126,45 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return retv;
     }
 
+    template <Dimension N>
+    bool isPointSetOverlap(const Pointis<N>& set1, const Pointis<N>& set2, DimensionLength* dim) {
+        IdSet ids;
+        for(const auto& pt : set1) {
+            ids.insert(PointiToId(pt, dim));
+        }
+        Id id;
+        for(const auto& pt : set2) {
+            id = PointiToId(pt, dim);
+            if(ids.find(id) != ids.end()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    template<typename T, Dimension N>
+    bool isRectangleOverlap(const Point<T, N>& r1_min, const Point<T, N>& r1_max,
+                            const Point<T, N>& r2_min, const Point<T, N>& r2_max) {
+        std::vector<bool> flag(N, false);
+        for(int dim=0; dim<N; dim++) {
+            // if in all dimension that two rectangle are overlaped, they are overlaped
+            if( (r2_max[dim] - r1_min[dim]) * (r2_max[dim] - r1_max[dim]) <= 0 ) { flag[dim] = true; continue; }
+            if( (r2_min[dim] - r1_min[dim]) * (r2_min[dim] - r1_max[dim]) <= 0 ) { flag[dim] = true; continue; }
+        }
+        return flag == std::vector<bool>(N, true);
+    }
+
+    template<typename T1, typename T2, Dimension N>
+    bool isPointInRectangle(const Point<T1, N>& r1_min, const Point<T1, N>& r1_max,
+                            const Point<T2, N>& pt) {
+        std::vector<bool> flag(N, false);
+        for(int dim=0; dim<N; dim++) {
+            // if in all dimension that two rectangle are overlaped, they are overlaped
+            if( (pt[dim] - r1_min[dim]) * (pt[dim] - r1_max[dim]) <= 0 ) { flag[dim] = true; }
+        }
+        return flag == std::vector<bool>(N, true);
+    }
+
     // public static element
     extern std::vector<RotateMatrixs> ROTATE_MATRIXS;
 
@@ -133,9 +172,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     double orientToPi_2D(const int& orient);
 
-    Pointi<2> pointRotate_2D(const Pointi<2>& pt, const int& orient);
+    template<typename T>
+    Point<T, 2> pointRotate_2D(const Point<T, 2>& pt, const int& orient) {
+        return rotatePoint<T, 2>(pt, ROTATE_MATRIXS[2][orient]);
+    }
 
-    Pointi<2> pointTransfer_2D(const Pointi<2>& pt, const Pose<2>& pose);
+    template<typename T>
+    Point<T, 2> pointTransfer_2D(const Point<T, 2>& pt, const Pose<int, 2>& pose) {
+        Point<T, 2> rotated_pt = pointRotate_2D(pt, pose.orient_);
+        rotated_pt[0] += pose.pt_[0];
+        rotated_pt[1] += pose.pt_[1];
+        return  rotated_pt;
+    }
 
 }
 

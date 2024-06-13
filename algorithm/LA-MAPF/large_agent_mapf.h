@@ -26,7 +26,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     template<Dimension N>
     struct SubGraphOfAgent {
-        std::vector<PosePtr<N> > all_nodes_;
+        std::vector<PosePtr<int, N> > all_nodes_;
         std::vector<std::vector<size_t> > all_edges_;
     };
 
@@ -48,7 +48,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                  pt = IdToPointi<N>(id, dim_);
                  if(!isoc_(pt)) {
                      for(int orient=0; orient<2*N; orient++) {
-                         PosePtr<N> pose_ptr = new Pose<N>(pt, orient);
+                         PosePtr<int, N> pose_ptr = new Pose<int, N>(pt, orient);
                          all_poses_[id*2*N + orient] = pose_ptr;
                      }
                  }
@@ -120,7 +120,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         new_pt = origin_pt + offset;
                         if(isOutOfBoundary(new_pt, dim_)) { continue; }
                         Id another_node_id = PointiToId<N>(new_pt, dim_)*2*N + origin_orient;
-                        PosePtr<N> another_node_ptr = sub_graph.all_nodes_[another_node_id];
+                        PosePtr<int, N> another_node_ptr = sub_graph.all_nodes_[another_node_id];
                         if(another_node_ptr == nullptr) { continue; }
                         if(!agent.isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, distance_map_updater_)) {
                             sub_graph.all_edges_[pose_id].push_back(another_node_id);
@@ -133,7 +133,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         if(node_ptr->orient_ == orient) { continue; }
                         // if another node in subgraph
                         size_t another_node_id = base_id + orient;
-                        PosePtr<N> another_node_ptr = sub_graph.all_nodes_[another_node_id];
+                        PosePtr<int, N> another_node_ptr = sub_graph.all_nodes_[another_node_id];
                         if(another_node_ptr == nullptr) { continue; }
                         // check whether can transfer to another node
                         if(!agent.isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, distance_map_updater_)) {
@@ -209,7 +209,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<std::pair<size_t, size_t> > instance_node_ids_;
 
         // intermediate variables
-        std::vector<PosePtr<N> > all_poses_;
+        std::vector<PosePtr<int, N> > all_poses_;
         DistanceMapUpdater<N> distance_map_updater_;
         std::vector<SubGraphOfAgent<N> > agent_sub_graphs_;
         std::vector<std::vector<int> > agents_heuristic_tables_;
