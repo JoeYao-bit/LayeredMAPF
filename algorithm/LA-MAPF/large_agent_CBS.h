@@ -35,6 +35,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 LAMAPF_Path solution = astar.solve();
                 if(solution.empty()) {
                     std::cerr << " agent " << agent << " search path failed " << std::endl;
+                    this->solvable = false;
                 } else {
                     printPath(agent, solution);
                     this->initial_solutions_.push_back(solution);
@@ -317,7 +318,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         // yz: add conflicts between a1's path and a2's path to curr
         Conflicts findConflicts(HighLvNode &curr, int a1, int a2) {
-            const auto& conflicts = detectAllConflictBetweenPaths<N>(
+            const auto& conflicts = detectAllConflictBetweenPaths(
                     this->solutions_[a1], this->solutions_[a2], this->agents_[a1], this->agents_[a2], this->all_poses_);
             for(const auto & conflict : conflicts) {
                 curr.unknownConf.push_front(conflict); // It's at least a semi conflict

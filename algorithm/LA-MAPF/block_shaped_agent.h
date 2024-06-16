@@ -15,8 +15,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         Pointi<N> min_pti, max_pti;
         DimensionLength dim[N];
         for(int i=0; i<N; i++) {
-            min_pti[i] = floor(min_pt[i]);
-            max_pti[i] = ceil(max_pt[i]);
+            min_pti[i] = round(min_pt[i]);
+            max_pti[i] = round(max_pt[i]);
             dim[i]     = max_pti[i] - min_pti[i] + 1;
         }
         Id total_index = getTotalIndexOfSpace<N>(dim);
@@ -82,6 +82,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return retv;
         }
 
+        // pass test
         bool isCollide(const Pose<int, 2>& pose,
                        DimensionLength* dim,
                        const IS_OCCUPIED_FUNC<2>& isoc,
@@ -91,7 +92,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             if(this->excircle_radius_ < 0.5) { return false; }
             Id pt_id = PointiToId(pose.pt_, dim);
             // if inner circle contain obstacle, is collide
-            if(distance_table.getClosestDistance(pt_id) <= this->incircle_radius_) {
+            if(this->incircle_radius_ >= .5 && distance_table.getClosestDistance(pt_id) <= this->incircle_radius_) {
                 return true;
             }
             // if outer circle contain no obstacle, is not collide
@@ -101,7 +102,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             // do grid by grid state check
             const Pointis<2> grids_in_range = getGridWithinPosedBlock(pose);
             for(const auto& grid : grids_in_range) {
-                if(isoc(grid)) { return true; }
+                if(isoc(grid)) {
+//                    std::cout << " pose.pt_ = " << pose.pt_ << std::endl;
+//                    std::cout << " grid = " << grid << std::endl;
+                    return true;
+                }
             }
             return false;
         }
@@ -119,7 +124,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     return true;
                 } else {
                     // rotate collision check
-                    if(isRotateCollideWithMap(pt1, edge_from.orient_, edge_to.orient_, isoc)) { return true; }
+                    if(edge_from.orient_ != edge_to.orient_ && isRotateCollideWithMap(pt1, edge_from.orient_, edge_to.orient_, isoc)) { return true; }
+                    else {
+                        return false;
+                    }
                 }
             }
             if(edge_to.orient_ != edge_from.orient_) { return true; }; // if not the same position, can not change in orientation
@@ -142,7 +150,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             // determine rotate matrix
             std::vector<std::vector<int> > rotate_matrix;
             // rotate grids
-            Pointis<2> retv;
+            Pointis<2> retv = {};
             for(const auto& grid : grids_[pose.orient_]) {
                 retv.push_back(grid + pose.pt_);
             }
@@ -151,8 +159,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         // there are four types of rotate coverage, rotate the default one to get other coverage
         std::pair<Pointis<2>, Pointis<2>> getRotateCoverage(const int& orient_start, const int& orient_end) const {
+            if(orient_start == orient_end) { return {{}, {}}; }
             int orient_1 = std::min(orient_start, orient_end);
             int orient_2 = std::max(orient_start, orient_end);
+            //std::cout << "orient_start, orient_end " << orient_start << ", " << orient_end << std::endl;
             assert(orient_1 == 0 || orient_1 == 1);
             assert(orient_2 == 2 || orient_2 == 3);
             bool x_reverse = false, y_reverse = false;
@@ -196,8 +206,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             if(reverse) { pt = Pointf<2>() - pt; }
             assert(pt[0] > 0 && pt[1] > 0);
             int arc = ceil(pt.Norm());
-            int min_x = -ceil(pt[1]), max_x = arc;
-            int min_y = -ceil(pt[1]), max_y = arc;
+            int min_x = -round(pt[1]), max_x = arc;
+            int min_y = -round(pt[1]), max_y = arc;
             int max_2 = pt[0]*pt[0] + pt[1]*pt[1];
 
             std::vector<Pointis<2> > retv(4);
@@ -249,6 +259,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::pair<Pointf<2>, Pointf<2> > getPosedRectangle(const Pose<int, 2>& pose) const {
             Pointf<2> new_min = pointTransfer_2D<float>(min_pt_, pose);
             Pointf<2> new_max = pointTransfer_2D<float>(max_pt_, pose);
+            //std::cout << "old_min, old_max = " << min_pt_ << " " << max_pt_ << std::endl;
+            //std::cout << "new_min, new_max = " << new_min << " " << new_max << std::endl;
             return {{std::min(new_min[0], new_max[0]), std::min(new_min[1], new_max[1])},
                     {std::max(new_min[0], new_max[0]), std::max(new_min[1], new_max[1])}};
         }
@@ -324,7 +336,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         auto rects1 = a1.getPosedRectangle(s1);
         auto recte1 = a1.getPosedRectangle(e1);
         auto rects2 = a1.getPosedRectangle(s2);
-        auto recte2 = a1.getPosedRectangle(s2);
+        auto recte2 = a1.getPosedRectangle(e2);
 
         if(isRectangleOverlap(rects1.first, rects1.second, rects2.first, rects2.second)) {
             return true;
@@ -460,6 +472,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
         return cfs;
     }
+
+    typedef std::vector<BlockAgent_2D> BlockAgents_2D;
 
 }
 

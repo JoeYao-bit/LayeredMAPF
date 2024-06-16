@@ -180,8 +180,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     template<typename T>
     Point<T, 2> pointTransfer_2D(const Point<T, 2>& pt, const Pose<int, 2>& pose) {
         Point<T, 2> rotated_pt = pointRotate_2D(pt, pose.orient_);
-        rotated_pt[0] += pose.pt_[0];
-        rotated_pt[1] += pose.pt_[1];
+        rotated_pt[0] = rotated_pt[0] + pose.pt_[0];
+        rotated_pt[1] = rotated_pt[1] + pose.pt_[1];
         return  rotated_pt;
     }
 
