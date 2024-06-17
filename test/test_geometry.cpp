@@ -49,7 +49,7 @@ bool draw_all_instance = false;
 bool draw_heuristic_table = false;
 bool draw_path = false;
 
-TEST(circleAgentSubGraph, test) {
+TEST(CircleAgentSubGraph, test) {
     Canvas canvas("circle agent", dim[0], dim[1], .1, zoom_ratio);
     auto mouse_call_back = [](int event, int x, int y, int flags, void *) {
         if(event == cv::EVENT_LBUTTONDOWN) {
@@ -67,9 +67,9 @@ TEST(circleAgentSubGraph, test) {
             {{{2, 5}, 0}, {{17, 22}, 3}}
     };
     CircleAgents<2> agents({
-        CircleAgent<2>(.7, 0),
+        CircleAgent<2>(.3, 0),
         CircleAgent<2>(.7, 1),
-        CircleAgent<2>(.4, 2)
+        CircleAgent<2>(.6, 2)
     });
     LargeAgentCBS<2, CircleAgent<2> > lacbs(instances, agents, dim, is_occupied);
     bool solved = lacbs.solve(60, 0);
@@ -128,7 +128,7 @@ TEST(circleAgentSubGraph, test) {
                     orient = lacbs.all_poses_[path.back()]->orient_;
                 }
                 canvas.drawCircleInt(pt[0], pt[1], floor(lacbs.agents_[i].radius_*zoom_ratio),
-                                     true, 2,
+                                     true, -1,
                                      COLOR_TABLE[(2+i) % 30]);
                 double theta = 0;
                 switch (orient) {
@@ -336,7 +336,7 @@ TEST(test, BlockRotateCoverage) {
 }
 
 
-TEST(blockAgentSubGraph, test) {
+TEST(BlockAgentSubGraph, test) {
     Canvas canvas("Block agent", dim[0], dim[1], .1, zoom_ratio);
     auto mouse_call_back = [](int event, int x, int y, int flags, void *) {
         if(event == cv::EVENT_LBUTTONDOWN) {
@@ -349,12 +349,12 @@ TEST(blockAgentSubGraph, test) {
 
     // fake instances
     InstanceOrients<2> instances = {
-            {{{8, 3}, 0}, {{23, 22},0} },
+            {{{5, 3}, 0}, {{23, 22},0} },
             {{{9, 2}, 0}, {{5, 22}, 0}},
             {{{2, 5}, 0}, {{17, 22}, 3}}
     };
     const Pointf<2> min_pt_0{-.4, -.4}, max_pt_0{.4, .4},
-                    min_pt_1{-.5, -.4}, max_pt_1{.6, .4},
+                    min_pt_1{-.6, -.4}, max_pt_1{1., .4},
                     min_pt_2{-.3, -1.2}, max_pt_2{1., 1.2};
     // NOTICE: initialize pt in constructor cause constant changed
     const BlockAgents_2D agents({
@@ -365,6 +365,7 @@ TEST(blockAgentSubGraph, test) {
     LargeAgentCBS<2, BlockAgent_2D > lacbs(instances, agents, dim, is_occupied);
     bool solved = lacbs.solve(60, 0);
     std::cout << "find solution ? " << solved << std::endl;
+    std::cout << "solution validation ? " << lacbs.solutionValidation() << std::endl;
     size_t makespan = lacbs.getMakeSpan();
     int time_index = 0;
     while(true) {
@@ -407,6 +408,7 @@ TEST(blockAgentSubGraph, test) {
 //                                lacbs.all_poses_[pose_id]->pt_[1],
 //                                COLOR_TABLE[(2+current_subgraph_id) % 30]);
 //            }
+            //std::cout << "draw path: " << std::endl;
             for(int i=0; i<lacbs.solutions_.size(); i++) {
                 const auto& path = lacbs.solutions_[i];
                 Pointi<2> pt;
@@ -419,18 +421,8 @@ TEST(blockAgentSubGraph, test) {
                     orient = lacbs.all_poses_[path.back()]->orient_;
                 }
                 const auto& rect = lacbs.agents_[i].getPosedRectangle({pt, orient}); // agents
-                //const auto& rect = agents[i].getPosedRectangle({pt, orient}); // agents
-                canvas.drawLineFloat(rect.first[0], rect.first[1], rect.second[0], rect.first[1],
-                                     true, zoom_ratio/4, COLOR_TABLE[(2+i) % 30]);
-
-                canvas.drawLineFloat(rect.first[0], rect.first[1], rect.first[0], rect.second[1],
-                                     true, zoom_ratio/4, COLOR_TABLE[(2+i) % 30]);
-
-                canvas.drawLineFloat(rect.second[0], rect.second[1], rect.second[0], rect.first[1],
-                                     true, zoom_ratio/4, COLOR_TABLE[(2+i) % 30]);
-
-                canvas.drawLineFloat(rect.second[0], rect.second[1], rect.first[0], rect.second[1],
-                                     true, zoom_ratio/4, COLOR_TABLE[(2+i) % 30]);
+                canvas.drawRectangleFloat(rect.first, rect.second, true, -1, COLOR_TABLE[(i) % 30]);
+                //std::cout << "rect " << rect.first << ", " << rect.second << std::endl;
 
                 double theta = 0;
                 switch (orient) {
@@ -525,4 +517,14 @@ TEST(blockAgentSubGraph, test) {
                 break;
         }
     }
+}
+
+TEST(RectangleOverlap, test) {
+    /*
+     * rect (3.6, 12.6), (4.4, 13.4)
+       rect (4.5, 21.6), (5.6, 22.4)
+       rect (1.8, 12.7), (4.2, 14)
+     * */
+    Pointf<2> p1{3.6, 12.6}, p2{4.4, 13.4}, p3{1.8, 12.7}, p4{4.2, 14};
+    std::cout << isRectangleOverlap<float, 2>(p1, p2, p3, p4) << std::endl;
 }

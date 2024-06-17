@@ -19,7 +19,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
 #define MAX_TIMESTEP INT_MAX / 2
 #define MAX_COST INT_MAX / 2
-#define MAX_NODES INT_MAX / 2
+#define MAX_NODES MAX<size_t> / 2
 
     // <agent id, node from, node to, time range start, time range end>
     typedef std::tuple<int, size_t, size_t, int, int> Constraint;
@@ -145,13 +145,17 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     template<typename T, Dimension N>
     bool isRectangleOverlap(const Point<T, N>& r1_min, const Point<T, N>& r1_max,
                             const Point<T, N>& r2_min, const Point<T, N>& r2_max) {
-        std::vector<bool> flag(N, false);
         for(int dim=0; dim<N; dim++) {
-            // if in all dimension that two rectangle are overlaped, they are overlaped
-            if( (r2_max[dim] - r1_min[dim]) * (r2_max[dim] - r1_max[dim]) <= 0 ) { flag[dim] = true; continue; }
-            if( (r2_min[dim] - r1_min[dim]) * (r2_min[dim] - r1_max[dim]) <= 0 ) { flag[dim] = true; continue; }
+            assert(r1_min[dim] < r1_max[dim]);
+            assert(r2_min[dim] < r2_max[dim]);
+            if(r1_max[dim] < r2_min[dim]) {
+                return false;
+            }
+            if(r1_min[dim] > r2_max[dim]) {
+                return false;
+            }
         }
-        return flag == std::vector<bool>(N, true);
+        return true;
     }
 
     template<typename T1, typename T2, Dimension N>

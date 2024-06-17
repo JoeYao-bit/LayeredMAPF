@@ -19,7 +19,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //            return conflict1.type > conflict2.type;
 //        }
 //        return conflict1.priority > conflict2.priority;
-         return conflict1.t1 > conflict2.t2;
+        if(conflict1.t1 <= conflict2.t1) {
+            if(conflict1.t1 == conflict2.t1) {
+                return rand()%2 == 0;
+            } else {
+                return true;
+            }
+        }
+        return false;
     }
 
     bool isSamePath(const std::vector<size_t>& path1, const std::vector<size_t>& path2) {

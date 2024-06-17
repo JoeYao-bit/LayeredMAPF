@@ -335,8 +335,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         // rectangle overlap check
         auto rects1 = a1.getPosedRectangle(s1);
         auto recte1 = a1.getPosedRectangle(e1);
-        auto rects2 = a1.getPosedRectangle(s2);
-        auto recte2 = a1.getPosedRectangle(e2);
+        auto rects2 = a2.getPosedRectangle(s2);
+        auto recte2 = a2.getPosedRectangle(e2);
 
         if(isRectangleOverlap(rects1.first, rects1.second, rects2.first, rects2.second)) {
             return true;
@@ -406,15 +406,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         // rectangle overlap check
         auto rects1 = a1.getPosedRectangle(s1);
         auto recte1 = a1.getPosedRectangle(e1);
-        auto rects2 = a1.getPosedRectangle(s2);
+        auto rects2 = a2.getPosedRectangle(s2);
         if(isRectangleOverlap(rects1.first, rects1.second, rects2.first, rects2.second)) {
             return true;
         }
         if(isRectangleOverlap(recte1.first, recte1.second, rects2.first, rects2.second)) {
             return true;
         }
+        // rotate in rectangle check
         if(s1.pt_ == e1.pt_) {
-            // rotate in rectangle check
             const auto& pt_pair = a1.getPosedRotateCoverage(s1.pt_, s1.orient_, e1.orient_);
             for(const auto& pt : pt_pair.first) {
                 if(isPointInRectangle<float, int, 2>(rects2.first, rects2.second, pt)) { return true; }
@@ -431,46 +431,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return isCollide(a2, s2, e2, a1, s1);
     }
 
-    std::vector<std::shared_ptr<Conflict> > detectAllConflictBetweenPaths(const LAMAPF_Path& p1,   const LAMAPF_Path& p2,
-                                                                          const BlockAgent_2D& a1, const BlockAgent_2D& a2,
-                                                                          const std::vector<Pose<int, 2>*>& all_nodes) {
-        int t1 = p1.size()-1, t2 = p2.size()-1;
-        const auto& longer_agent  = p1.size() > p2.size() ? a1 : a2;
-        const auto& shorter_agent = longer_agent.id_ == a1.id_ ? a2 : a1;
-        const auto& longer_path   = longer_agent.id_ == a1.id_ ? p1 : p2;
-        const auto& shorter_path  = longer_agent.id_ == a1.id_ ? p2 : p1;
-
-        int common_part = std::min(t1, t2);
-        std::vector<std::shared_ptr<Conflict> > cfs;
-        for(int t=0; t<common_part-1; t++) {
-            if(isCollide(a1, *all_nodes[p1[t]], *all_nodes[p1[t+1]], a2, *all_nodes[p2[t]], *all_nodes[p2[t+1]])) {
-
-                //                std::cout << "cs type 1 : " << *all_nodes[p1[t]] << "->" << *all_nodes[p1[t+1]] << ", "
-                //                                            << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t+1]]
-                //                                            << "/t:{" << t << "," << t+1 << "}" << std::endl;
-
-                auto c1 = std::make_shared<Constraint>(a1.id_, p1[t], p1[t+1], t, t+2);
-                auto c2 = std::make_shared<Constraint>(a2.id_, p2[t], p2[t+1], t, t+2);
-                auto cf = std::make_shared<Conflict>(a1.id_, a2.id_, Constraints{c1}, Constraints{c2});
-                cfs.push_back(cf);
-            }
+    bool isCollide(const BlockAgent_2D& a1, const Pose<int, 2>& s1,
+                   const BlockAgent_2D& a2, const Pose<int, 2>& s2) {
+        // rectangle overlap check
+        auto rects1 = a1.getPosedRectangle(s1);
+        auto rects2 = a2.getPosedRectangle(s2);
+        if(isRectangleOverlap(rects1.first, rects1.second, rects2.first, rects2.second)) {
+            return true;
         }
-        for(int t=common_part-1; t<std::max(t1, t2) - 1; t++) {
-            if(isCollide(longer_agent, *all_nodes[longer_path[t]], *all_nodes[longer_path[t+1]],
-                         shorter_agent, *all_nodes[shorter_path.back()])) {
-
-                //                std::cout << "cs type 2 : " << *all_nodes[longer_path[t]] << "->" << *all_nodes[longer_path[t+1]] << ", "
-                //                                            << *all_nodes[shorter_path.back()]
-                //                                            << "/t:{" << t << "," << t+1 << "}"
-                //                                            << std::endl;
-
-                auto c1 = std::make_shared<Constraint>(longer_agent.id_,  longer_path[t],      longer_path[t+1], t, t+2);
-                auto c2 = std::make_shared<Constraint>(shorter_agent.id_, shorter_path.back(), MAX_NODES,        0, t+2);
-                auto cf = std::make_shared<Conflict>(longer_agent.id_, shorter_agent.id_, Constraints{c1}, Constraints{c2});
-                cfs.push_back(cf);
-            }
-        }
-        return cfs;
+        return false;
     }
 
     typedef std::vector<BlockAgent_2D> BlockAgents_2D;

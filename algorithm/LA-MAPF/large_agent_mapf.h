@@ -40,6 +40,22 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                            distance_map_updater_(DistanceMapUpdater<N>(this->isoc_, this->dim_)) {
             assert(instances.size() == agents.size());
 
+            // 0, init and final state overlap check
+            for(int i=0; i<instances_.size(); i++) {
+                for(int j=i+1; j<instances_.size(); j++) {
+                    if(isCollide(agents_[i], instances_[i].first, agents_[j], instances_[j].first)) {
+                        std::cout << " agent " << i << ", " << j << "'s start overlap" << std::endl;
+                        solvable = false;
+                        break;
+                    }
+                    if(isCollide(agents_[i], instances_[i].second, agents_[j], instances_[j].second)) {
+                        std::cout << " agent " << i << ", " << j << "'s target overlap" << std::endl;
+                        solvable = false;
+                        break;
+                    }
+                }
+            }
+
             // 1, construct all possible poses
             Id total_index = getTotalIndexOfSpace<N>(dim_);
             all_poses_.resize(total_index*2*N, nullptr); // a position with 2*N orientation

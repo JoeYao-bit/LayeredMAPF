@@ -72,7 +72,7 @@ public:
 //            return n1->g_val + n1->h_val >= n2->g_val + n2->h_val;
             // below heuristic is faster but longer result
             if(n1->unknownConf.size() + n1->conflicts.size() >= n2->unknownConf.size() + n2->conflicts.size()) {
-                if(n1->unknownConf.size() >= n2->unknownConf.size()) {
+                if(n1->unknownConf.size() + n1->conflicts.size() == n2->unknownConf.size() + n2->conflicts.size()) {
                     return rand()%2 == 0;
                 } else {
                     return true;

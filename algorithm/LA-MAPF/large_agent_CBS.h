@@ -66,14 +66,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             this->time_limit = time_limit;
             // yz: generate a init node of CT
             generateRoot();
-//            std::cout << "-- generate root node " << std::endl;
+            std::cout << "-- generate root node " << std::endl;
             int count = 0;
             while (!cleanup_list.empty() && !solution_found) {
-                if(count >= 3000) { break; }
-                //std::cout << "-- " << count << " iteration, open size " << cleanup_list.size() << std::endl;
+                if(count >= 2000) { break; }
+//                std::cout << "-- " << count << " iteration, open size " << cleanup_list.size() << std::endl;
                 count ++;
                 // yz: select node with minimum heuristic value
                 auto curr = selectNode();
+//                std::cout << " select node with conflicts size = " << curr->conflicts.size() << " + " <<  curr->unknownConf.size() << std::endl;
 //                std::cout << " curr->g_val = " << curr->g_val << std::endl;
                 // yz: check whether reach terminate condition
                 if (terminate(curr)) {
@@ -92,29 +93,46 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 CBSNode *child[2] = {new CBSNode(), new CBSNode()};
                 // yz: pick conflict with the highest priority
                 curr->conflict = chooseConflict(*curr);
-                //printConflict(*curr->conflict);
+//                std::cout << " select conflict " << std::endl;
+//                printConflict(*curr->conflict);
                 // yz: child 1,2 inherit constraint from curr
                 addConstraints(curr, child[0], child[1]);
+//                bool has_target_conflict = false;
+//                if(std::get<3>(*child[0]->constraints.front()) == 0 || std::get<3>(*child[1]->constraints.front()) == 0) {
+//                    std::cout << " has_target_conflict " << std::endl;
+//                    has_target_conflict = true;
+//                }
                 bool solved[2] = {false, false};
                 std::vector<LAMAPF_Path> copy(this->solutions_);
+                std::vector<CBSNode*> children;
                 // yz: split to two branches
                 for (int i = 0; i < 2; i++) {
                     if (i > 0) {
                         this->solutions_ = copy;
                     }
+//                    if(has_target_conflict && std::get<3>(*child[i]->constraints.front()) != 0) {
+//                        delete (child[i]);
+//                        continue;
+//                    }
                     // yz: check whether child is legal, if legal, add to parent node
                     solved[i] = generateChild(child[i], curr);
                     if (!solved[i]) {
                         delete (child[i]);
                         continue;
+                    } else {
+                        children.push_back(child[i]);
                     }
                 }
-                for (int i = 0; i < 2; i++) {
-                    if (solved[i]) {
-                        pushNode(child[i]);
-                        curr->children.push_back(child[i]);
-                    }
+                for(const auto& temp_child : children) {
+                    pushNode(temp_child);
+                    curr->children.push_back(temp_child);
                 }
+//                for (int i = 0; i < 2; i++) {
+//                    if (solved[i]) {
+//                        pushNode(child[i]);
+//                        curr->children.push_back(child[i]);
+//                    }
+//                }
                 curr->clear();
                 //break;
             }  // end of while loop
@@ -139,6 +157,62 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return soc;
         }
 
+        bool solutionValidation() const {
+            for(int a1=0; a1<this->agents_.size(); a1++) {
+                for(int a2=a1+1; a2<this->agents_.size(); a2++) {
+                    const auto& conflicts = detectAllConflictBetweenPaths(
+                            this->solutions_[a1], this->solutions_[a2], this->agents_[a1], this->agents_[a2], this->all_poses_);
+                    if(!conflicts.empty()) {
+                        std::cout << "agent " << a1 << " and agent " << a2 << " have " << conflicts.size() << " conflicts " << std::endl;
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        Conflicts detectAllConflictBetweenPaths(const LAMAPF_Path& p1, const LAMAPF_Path& p2,
+                                                const AgentType& a1, const AgentType& a2,
+                                                const std::vector<Pose<int, N>*>& all_nodes) const {
+            int t1 = p1.size()-1, t2 = p2.size()-1;
+            const auto& longer_agent  = p1.size() > p2.size() ? a1 : a2;
+            const auto& shorter_agent = longer_agent.id_ == a1.id_ ? a2 : a1;
+            const auto& longer_path   = longer_agent.id_ == a1.id_ ? p1 : p2;
+            const auto& shorter_path  = longer_agent.id_ == a1.id_ ? p2 : p1;
+
+            int common_part = std::min(t1, t2);
+            std::vector<std::shared_ptr<Conflict> > cfs;
+            for(int t=0; t<common_part-1; t++) {
+                if(isCollide(a1, *all_nodes[p1[t]], *all_nodes[p1[t+1]],
+                             a2, *all_nodes[p2[t]], *all_nodes[p2[t+1]])) {
+
+//                std::cout << "cs type 1 : " << *all_nodes[p1[t]] << "->" << *all_nodes[p1[t+1]] << ", "
+//                                            << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t+1]]
+//                                            << "/t:{" << t << "," << t+1 << "}" << std::endl;
+
+                    auto c1 = std::make_shared<Constraint>(a1.id_, p1[t], p1[t+1], t, t+2);
+                    auto c2 = std::make_shared<Constraint>(a2.id_, p2[t], p2[t+1], t, t+2);
+                    auto cf = std::make_shared<Conflict>(a1.id_, a2.id_, Constraints{c1}, Constraints{c2});
+                    cfs.push_back(cf);
+                }
+            }
+            for(int t=common_part-1; t<std::max(t1, t2) - 1; t++) {
+                if(isCollide(longer_agent, *all_nodes[longer_path[t]], *all_nodes[longer_path[t+1]],
+                             shorter_agent, *all_nodes[shorter_path.back()])) {
+
+//                std::cout << "cs type 2 : " << *all_nodes[longer_path[t]] << "->" << *all_nodes[longer_path[t+1]] << ", "
+//                                            << *all_nodes[shorter_path.back()]
+//                                            << "/t:{" << t << "," << t+1 << "}"
+//                                            << std::endl;
+
+                    auto c1 = std::make_shared<Constraint>(longer_agent.id_,  longer_path[t],      longer_path[t+1], t, t+2);
+                    auto c2 = std::make_shared<Constraint>(shorter_agent.id_, shorter_path.back(), MAX_NODES,        t, t+2);
+                    auto cf = std::make_shared<Conflict>(longer_agent.id_, shorter_agent.id_, Constraints{c1}, Constraints{c2});
+                    cfs.push_back(cf);
+                }
+            }
+            return cfs;
+        }
 
     private:
 
@@ -323,8 +397,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             for(const auto & conflict : conflicts) {
                 curr.unknownConf.push_front(conflict); // It's at least a semi conflict
             }
-            return conflicts;
 //            std::cout << " get " << curr.unknownConf.size() << " conflicts between agent " << a1 << " and " << a2 << std::endl;
+            return conflicts;
         }
 
         Conflicts findConflicts(HighLvNode &curr) {
@@ -332,6 +406,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             if (curr.parent != nullptr) {
                 // Copy from parent
                 auto new_agents = curr.getReplannedAgents();
+//                std::cout << __FUNCTION__ << ": curr.parent != nullptr" << std::endl;
                 // yz: when agent is replanned, their conflicts are ignored
                 copyConflicts(curr.parent->conflicts, curr.conflicts, new_agents);
                 copyConflicts(curr.parent->unknownConf, curr.unknownConf, new_agents);
@@ -339,6 +414,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 // detect new conflicts between any pair of agent
                 // yz: detect conflict between agents that replanned paths and other agent
                 for (auto it = new_agents.begin(); it != new_agents.end(); ++it) {
+//                    std::cout << "new agent " << *it << std::endl;
                     int a1 = *it;
                     for (int a2 = 0; a2 < this->instances_.size(); a2++) {
                         if (a1 == a2)
@@ -352,6 +428,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                             }
                         }
                         if (!skip) {
+//                            std::cout << " a1/a2 path size " << this->solutions_[a1].size() << "/" << this->solutions_[a2].size() << std::endl;
                             auto retv1 = findConflicts(curr, a1, a2);
                             retv.insert(retv.end(), retv1.begin(), retv1.end());
                         }
@@ -366,6 +443,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     }
                 }
             }
+//            std::cout << " get " << curr.unknownConf.size() << " conflicts " << std::endl;
             return retv;
         }
 
@@ -433,9 +511,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             astar.lower_bound_ = lowerbound;
             LAMAPF_Path new_path = astar.solve();
             if (!new_path.empty()) {
-//                std::cout << " old path size = " << solutions_[agent].size() << std::endl;
-//                std::cout << "new path: size = " << new_path.size() << std::endl;
+//                std::cout << " old path size = " << this->solutions_[agent].size() << std::endl;
+//                std::cout << " new path: size = " << new_path.size() << std::endl;
 //                printPath(agent, new_path);
+//                if(this->solutions_[agent].size() > new_path.size()) {
+//                    std::cout << " new path short than old path" << std::endl;
+//                }
                 assert(!isSamePath(this->solutions_[agent], new_path));
                 node->paths.emplace_back(agent, new_path); // yz: add to replanned paths
                 // yz: update current node's total cost (time step) of paths
@@ -470,6 +551,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 if (!findPathForSingleAgent(node, agent, lowerbound)) {
                     return false;
                 }
+//                std::cout << __FUNCTION__ << " update path of agent " << agent << std::endl;
             }
             findConflicts(*node);
             return true;
@@ -481,9 +563,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             std::tie(a1, from1, to1, start_t1, end_t1) = *(cf.cs1.front());
             std::tie(a2, from2, to2, start_t2, end_t2) = *(cf.cs2.front());
 
-            std::cout << "cf agent: " << a1 << ", " << a2 << " | " << *this->all_poses_[from1] << "->" << *this->all_poses_[to1] << ", "
-                      << *this->all_poses_[from2] << "->" << *this->all_poses_[to2]
-                      << "/t:{" << start_t1 << "," << end_t1 << "}" << std::endl;
+            std::cout << "cf agent: " << a1 << ", " << a2 << " | "
+                      << *this->all_poses_[from1] << "->" << (to1 == MAX_NODES ? Pose<int, N>(Pointi<N>(), -1) : *this->all_poses_[to1])
+                      << "t:{" << start_t1 << "," << end_t1 << "}" << ", "
+                      << *this->all_poses_[from2] << "->" << (to2 == MAX_NODES ? Pose<int, N>(Pointi<N>(), -1) : *this->all_poses_[to2])
+                      << "t:{" << start_t2 << "," << end_t2 << "}" << std::endl;
+
         }
 
         void printConstraint(const Constraint & cs) {

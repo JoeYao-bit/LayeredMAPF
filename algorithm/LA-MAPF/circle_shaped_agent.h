@@ -121,65 +121,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return isCollide(a2, s2, e2, a1, s1);
     }
 
-
-    template<Dimension N>
-    std::vector<std::shared_ptr<Conflict> > detectAllConflictBetweenPaths(const LAMAPF_Path& p1, const LAMAPF_Path& p2,
-                                                        const CircleAgent<N>& a1, const CircleAgent<N>& a2,
-                                                        const std::vector<Pose<int, N>*>& all_nodes) {
-        int t1 = p1.size()-1, t2 = p2.size()-1;
-        const auto& longer_agent  = p1.size() > p2.size() ? a1 : a2;
-        const auto& shorter_agent = longer_agent.id_ == a1.id_ ? a2 : a1;
-        const auto& longer_path   = longer_agent.id_ == a1.id_ ? p1 : p2;
-        const auto& shorter_path  = longer_agent.id_ == a1.id_ ? p2 : p1;
-
-        int common_part = std::min(t1, t2);
-        std::vector<std::shared_ptr<Conflict> > cfs;
-        for(int t=0; t<common_part-1; t++) {
-            if(isCollide(a1, *all_nodes[p1[t]], *all_nodes[p1[t+1]],
-                         a2, *all_nodes[p2[t]], *all_nodes[p2[t+1]])) {
-
-//                std::cout << "cs type 1 : " << *all_nodes[p1[t]] << "->" << *all_nodes[p1[t+1]] << ", "
-//                                            << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t+1]]
-//                                            << "/t:{" << t << "," << t+1 << "}" << std::endl;
-
-                auto c1 = std::make_shared<Constraint>(a1.id_, p1[t], p1[t+1], t, t+2);
-                auto c2 = std::make_shared<Constraint>(a2.id_, p2[t], p2[t+1], t, t+2);
-                auto cf = std::make_shared<Conflict>(a1.id_, a2.id_, Constraints{c1}, Constraints{c2});
-                cfs.push_back(cf);
-            }
-        }
-        for(int t=common_part-1; t<std::max(t1, t2) - 1; t++) {
-            if(isCollide(longer_agent, *all_nodes[longer_path[t]], *all_nodes[longer_path[t+1]],
-                         shorter_agent, *all_nodes[shorter_path.back()])) {
-
-//                std::cout << "cs type 2 : " << *all_nodes[longer_path[t]] << "->" << *all_nodes[longer_path[t+1]] << ", "
-//                                            << *all_nodes[shorter_path.back()]
-//                                            << "/t:{" << t << "," << t+1 << "}"
-//                                            << std::endl;
-
-                auto c1 = std::make_shared<Constraint>(longer_agent.id_,  longer_path[t],      longer_path[t+1], t, t+2);
-                auto c2 = std::make_shared<Constraint>(shorter_agent.id_, shorter_path.back(), MAX_NODES,        0, t+2);
-                auto cf = std::make_shared<Conflict>(longer_agent.id_, shorter_agent.id_, Constraints{c1}, Constraints{c2});
-                cfs.push_back(cf);
-            }
-        }
-        return cfs;
+    bool isCollide(const CircleAgent<2>& a1, const Pose<int, 2>& s1,
+                   const CircleAgent<2>& a2, const Pose<int, 2>& s2) {
+        return (a1.radius_ + a2.radius_) >= (s1.pt_ - s2.pt_).Norm();
     }
-
-    // boost seems have no distance calculation about 3D segments, compile failed
-//    bool isCollide(const CircleAgent<3>& a1, const Pose<3>& s1, const Pose<3>& e1,
-//                   const CircleAgent<3>& a2, const Pose<3>& s2, const Pose<3>& e2) {
-//
-//        namespace bg = boost::geometry;
-//        using bg_pt = bg::model::point<int, 3, bg::cs::cartesian>;
-//        using bg_seg = bg::model::segment<bg_pt>;
-//        // calculate the shortest distance between two segments
-//        bg_pt pt1(s1.pt_[0], s1.pt_[1], s1.pt_[2]), pt2(e1.pt_[0], e1.pt_[1], e1.pt_[2]),
-//              pt3(s2.pt_[0], s2.pt_[1], s2.pt_[2]), pt4(e2.pt_[0], e2.pt_[1], e2.pt_[2]);
-//        bg_seg seg1(pt1, pt2), seg2(pt3, pt4);
-//        std::cout << " bg::distance(seg1, seg2) = " << bg::distance(seg1, seg2) << std::endl;
-//        return bg::distance(seg1, seg2) <= (a1.radius_ + a2.radius_);
-//    }
 
 }
 
