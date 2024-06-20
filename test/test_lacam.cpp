@@ -17,7 +17,7 @@
 // MAPFTestConfig_den520d
 // MAPFTestConfig_empty_32_32
 
-auto map_test_config = freeNav::LayeredMAPF::MAPFTestConfig_Paris_1_256;
+auto map_test_config = freeNav::LayeredMAPF::MAPFTestConfig_empty_16_16;
 
 
 using namespace LaCAM;

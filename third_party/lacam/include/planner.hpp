@@ -10,6 +10,8 @@
 namespace LaCAM {
 
 // low-level search node
+// yz: the size of constraint tree grow exponentially as number of agent increases, = pow(num_of_neighbor, num_of_agents)
+//     in the worst case
     struct Constraint {
         std::vector<int> who;
         Vertices where;
@@ -29,7 +31,7 @@ namespace LaCAM {
         // for low-level search
         std::vector<float> priorities;
         std::vector<int> order;
-        std::queue<Constraint *> search_tree;
+        std::queue<Constraint *> search_tree; // yz: first in, first out
 
         int t = 0; // yz: time index of current node
 
