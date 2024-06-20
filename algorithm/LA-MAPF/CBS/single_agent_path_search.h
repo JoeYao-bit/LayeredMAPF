@@ -5,14 +5,14 @@
 #ifndef LAYEREDMAPF_SINGLE_AGENT_PATH_SEARCH_H
 #define LAYEREDMAPF_SINGLE_AGENT_PATH_SEARCH_H
 
-#include "../freeNav-base/basic_elements/point.h"
+#include "../../../freeNav-base/basic_elements/point.h"
 #include "constraint.h"
-#include "large_agent_mapf.h"
+#include "../large_agent_mapf.h"
 #include <boost/heap/pairing_heap.hpp>
 #include <boost/unordered_set.hpp>
 #include <boost/unordered_map.hpp>
 
-namespace freeNav::LayeredMAPF::LA_MAPF {
+namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
     // yz: low level is for isolated single agent path planning
 

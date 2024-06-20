@@ -5,9 +5,9 @@
 #ifndef LAYEREDMAPF_CONSTRAINT_H
 #define LAYEREDMAPF_CONSTRAINT_H
 
-#include "common.h"
+#include "../common.h"
 
-namespace freeNav::LayeredMAPF::LA_MAPF {
+namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
     template<Dimension N, typename AgentType>
     struct ConstraintTable {

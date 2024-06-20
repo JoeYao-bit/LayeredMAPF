@@ -8,7 +8,7 @@
 #include "../algorithm/LA-MAPF/circle_shaped_agent.h"
 #include "../algorithm/LA-MAPF/block_shaped_agent.h"
 
-#include "../algorithm/LA-MAPF/large_agent_CBS.h"
+#include "../algorithm/LA-MAPF/CBS/large_agent_CBS.h"
 #include "../freeNav-base/visualization/canvas/canvas.h"
 #include "../freeNav-base/dependencies/2d_grid/text_map_loader.h"
 #include "test_data.h"
@@ -71,7 +71,7 @@ TEST(CircleAgentSubGraph, test) {
         CircleAgent<2>(.7, 1),
         CircleAgent<2>(.6, 2)
     });
-    LargeAgentCBS<2, CircleAgent<2> > lacbs(instances, agents, dim, is_occupied);
+    CBS::LargeAgentCBS<2, CircleAgent<2> > lacbs(instances, agents, dim, is_occupied);
     bool solved = lacbs.solve(60, 0);
     std::cout << "find solution ? " << solved << std::endl;
     size_t makespan = lacbs.getMakeSpan();
@@ -362,7 +362,7 @@ TEST(BlockAgentSubGraph, test) {
                                    BlockAgent_2D(min_pt_1, max_pt_1, 1, dim),
                                    BlockAgent_2D(min_pt_2, max_pt_2, 2, dim)
                            });
-    LargeAgentCBS<2, BlockAgent_2D > lacbs(instances, agents, dim, is_occupied);
+    CBS::LargeAgentCBS<2, BlockAgent_2D > lacbs(instances, agents, dim, is_occupied);
     bool solved = lacbs.solve(60, 0);
     std::cout << "find solution ? " << solved << std::endl;
     std::cout << "solution validation ? " << lacbs.solutionValidation() << std::endl;

@@ -5,8 +5,7 @@
 #ifndef LAYEREDMAPF_LARGE_AGENT_MAPF_H
 #define LAYEREDMAPF_LARGE_AGENT_MAPF_H
 
-#include "circle_shaped_agent.h"
-#include "constraint.h"
+#include "common.h"
 #include <boost/heap/pairing_heap.hpp>
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
@@ -201,6 +200,50 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }
             }
             return agent_heuristic;
+        }
+
+        bool solutionValidation() const {
+            for(int a1=0; a1<this->agents_.size(); a1++) {
+                for(int a2=a1+1; a2<this->agents_.size(); a2++) {
+//                    const auto& conflicts = detectAllConflictBetweenPaths(
+//                            this->solutions_[a1], this->solutions_[a2], this->agents_[a1], this->agents_[a2], this->all_poses_);
+//                    if(!conflicts.empty()) {
+//                        std::cout << "agent " << a1 << " and agent " << a2 << " have " << conflicts.size() << " conflicts " << std::endl;
+//                        return false;
+//                    }
+                    const auto& p1 = solutions_[a1], p2 = solutions_[a2];
+                    const auto& all_nodes = all_poses_;
+                    int t1 = p1.size()-1, t2 = p2.size()-1;
+                    const auto& longer_agent  = p1.size() > p2.size() ? agents_[a1] : agents_[a2];
+                    const auto& shorter_agent = longer_agent.id_ == agents_[a1].id_ ? agents_[a2] : agents_[a1];
+                    const auto& longer_path   = longer_agent.id_ == agents_[a1].id_ ? p1 : p2;
+                    const auto& shorter_path  = longer_agent.id_ == agents_[a1].id_ ? p2 : p1;
+
+                    int common_part = std::min(t1, t2);
+                    std::vector<std::shared_ptr<Conflict> > cfs;
+                    for(int t=0; t<common_part-1; t++) {
+                        if(isCollide(agents_[a1], *all_nodes[p1[t]], *all_nodes[p1[t+1]],
+                                     agents_[a2], *all_nodes[p2[t]], *all_nodes[p2[t+1]])) {
+                            return false;
+                        }
+                    }
+                    for(int t=common_part-1; t<std::max(t1, t2) - 1; t++) {
+                        if(isCollide(longer_agent, *all_nodes[longer_path[t]], *all_nodes[longer_path[t+1]],
+                                     shorter_agent, *all_nodes[shorter_path.back()])) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+        void printPath(int agent, const LAMAPF_Path& path) const {
+            std::cout << "agent " << agent << ": " <<  this->instances_[agent].first << "->" << this->instances_[agent].second << std::endl;
+            for(int t=0; t<path.size(); t++) {
+                std::cout << *(this->all_poses_[path[t]]) << "->";
+            }
+            std::cout << std::endl;
         }
 
         ~LargeAgentMAPF() {

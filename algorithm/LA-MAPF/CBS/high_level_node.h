@@ -5,9 +5,9 @@
 #ifndef LAYEREDMAPF_HIGH_LEVEL_NODE_H
 #define LAYEREDMAPF_HIGH_LEVEL_NODE_H
 
-#include "common.h"
+#include "../common.h"
 
-namespace freeNav::LayeredMAPF::LA_MAPF {
+namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
 class HighLvNode // a virtual base class for high-level node
 {

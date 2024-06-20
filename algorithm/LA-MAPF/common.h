@@ -11,15 +11,14 @@
 #include <boost/unordered_map.hpp>
 #include <boost/heap/pairing_heap.hpp>
 
+#include "../basic.h"
 #include "../freeNav-base/basic_elements/distance_map_update.h"
 #include "../../freeNav-base/basic_elements/point.h"
 #include "../freeNav-base/basic_elements/point.h"
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
-#define MAX_TIMESTEP INT_MAX / 2
-#define MAX_COST INT_MAX / 2
-#define MAX_NODES MAX<size_t> / 2
+
 
     // <agent id, node from, node to, time range start, time range end>
     typedef std::tuple<int, size_t, size_t, int, int> Constraint;
@@ -95,6 +94,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         int id_;
 
     };
+
 
     template <Dimension N>
     using Agents = std::vector<Agent<N> >;

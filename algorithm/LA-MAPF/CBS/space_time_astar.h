@@ -7,7 +7,7 @@
 
 #include "single_agent_path_search.h"
 
-namespace freeNav::LayeredMAPF::LA_MAPF {
+namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
     class AStarNode : public LowLvNode {
     public:

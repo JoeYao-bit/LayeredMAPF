@@ -36,7 +36,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                DimensionLength* dim,
                                const IS_OCCUPIED_FUNC<N>& isoc,
                                const DistanceMapUpdater<N>& distance_table) const {
-            const Pointi<N> pt1 = edge_from.pt_, pt2 = edge_to.pt_;
+            const Pointi<2> pt1 = edge_from.pt_, pt2 = edge_to.pt_;
             if(isoc(pt1) || isoc(pt2)) { return true; }
             if(pt1 == pt2) {
                 // the angle of orientation change must be equal to 90 degree
@@ -49,7 +49,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             if(edge_to.orient_ != edge_from.orient_) { return true; }; // if not the same position, can not change in orientation
             assert((pt1 - pt2).Norm() <= 1); // TODO: limit range of move ?
             // can only move in current orient
-            Pointi<N> mov_vector = pt2 - pt1;
+            Pointi<2> mov_vector = pt2 - pt1;
 //            std::cout << "pt1/pt2 orient = " << pt1 << " " << pt2 << " " << edge_from.orient_ << std::endl;
 //            std::cout << "mov_vector[edge_to.orient_/2] " << mov_vector[edge_to.orient_/2] << std::endl;
 //            if(mov_vector[edge_to.orient_/2] == 0) { return true; }
@@ -81,8 +81,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     };
 
-    template <Dimension N>
-    using CircleAgents = std::vector<CircleAgent<N> >;
 
     // detect collision between agents
 
@@ -95,7 +93,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         using bg_seg = bg::model::segment<bg_pt>;
         // calculate the shortest distance between two segments
         bg_pt pt1(s1.pt_[0], s1.pt_[1]), pt2(e1.pt_[0], e1.pt_[1]),
-              pt3(s2.pt_[0], s2.pt_[1]), pt4(e2.pt_[0], e2.pt_[1]);
+                pt3(s2.pt_[0], s2.pt_[1]), pt4(e2.pt_[0], e2.pt_[1]);
         bg_seg seg1(pt1, pt2), seg2(pt3, pt4);
         //std::cout << " bg::distance(seg1, seg2) = " << bg::distance(seg1, seg2) << std::endl;
         return bg::distance(seg1, seg2) <= (a1.radius_ + a2.radius_);
@@ -117,14 +115,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     }
 
     bool isCollide(const CircleAgent<2>& a1, const Pose<int, 2>& s1,
-                   const CircleAgent<2>& a2, const Pose<int, 2>& s2, const Pose<int, 2>& e2) {
-        return isCollide(a2, s2, e2, a1, s1);
-    }
-
-    bool isCollide(const CircleAgent<2>& a1, const Pose<int, 2>& s1,
                    const CircleAgent<2>& a2, const Pose<int, 2>& s2) {
         return (a1.radius_ + a2.radius_) >= (s1.pt_ - s2.pt_).Norm();
     }
+
+    template <Dimension N>
+    using CircleAgents = std::vector<CircleAgent<N> >;
 
 }
 

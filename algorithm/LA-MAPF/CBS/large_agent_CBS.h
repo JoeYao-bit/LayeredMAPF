@@ -5,11 +5,14 @@
 #ifndef LAYEREDMAPF_LA_CBS_H
 #define LAYEREDMAPF_LA_CBS_H
 
-#include "large_agent_mapf.h"
+#include "../large_agent_mapf.h"
 #include "space_time_astar.h"
 #include "high_level_node.h"
+#include "constraint.h"
+#include "../circle_shaped_agent.h"
+#include "../block_shaped_agent.h"
 
-namespace freeNav::LayeredMAPF::LA_MAPF {
+namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
     template <Dimension N, typename AgentType>
     class LargeAgentCBS : public LargeAgentMAPF<N, AgentType> {
@@ -37,7 +40,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     std::cerr << " agent " << agent << " search path failed " << std::endl;
                     this->solvable = false;
                 } else {
-                    printPath(agent, solution);
+                    this->printPath(agent, solution);
                     this->initial_solutions_.push_back(solution);
                     this->solutions_.push_back(solution);
                 }
@@ -157,20 +160,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return soc;
         }
 
-        bool solutionValidation() const {
-            for(int a1=0; a1<this->agents_.size(); a1++) {
-                for(int a2=a1+1; a2<this->agents_.size(); a2++) {
-                    const auto& conflicts = detectAllConflictBetweenPaths(
-                            this->solutions_[a1], this->solutions_[a2], this->agents_[a1], this->agents_[a2], this->all_poses_);
-                    if(!conflicts.empty()) {
-                        std::cout << "agent " << a1 << " and agent " << a2 << " have " << conflicts.size() << " conflicts " << std::endl;
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
-
         Conflicts detectAllConflictBetweenPaths(const LAMAPF_Path& p1, const LAMAPF_Path& p2,
                                                 const AgentType& a1, const AgentType& a2,
                                                 const std::vector<Pose<int, N>*>& all_nodes) const {
@@ -238,14 +227,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         boost::heap::pairing_heap<CBSNode *, boost::heap::compare<CBSNode::compare_node_by_inadmissible_f> > open_list; // this is used for EES
         boost::heap::pairing_heap<CBSNode *, boost::heap::compare<CBSNode::compare_node_by_d> > focal_list; // this is ued for both ECBS and EES
 
-        void printPath(int agent, const LAMAPF_Path& path) const {
-            std::cout << "agent " << agent << ": " <<  this->instances_[agent].first << "->" << this->instances_[agent].second << std::endl;
-            for(int t=0; t<path.size(); t++) {
-                std::cout << *(this->all_poses_[path[t]]) << "->";
-            }
-            std::cout << std::endl;
-        }
-
         // yz: child node inherit constraint from parent node
         void addConstraints(const HighLvNode *curr, HighLvNode *child1, HighLvNode *child2) const {
             {
@@ -287,7 +268,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             size_t makespan = getMakeSpan();
             std::cout << "-- find solution with SOC/makespan = " << soc << " / " << makespan << std::endl;
             for(int agent=0; agent<this->instances_.size(); agent++) {
-                printPath(agent, this->solutions_[agent]);
+                this->printPath(agent, this->solutions_[agent]);
             }
             return true;
         }

@@ -16,7 +16,7 @@ namespace freeNav::LayeredMAPF {
 
 #define MAX_TIMESTEP INT_MAX / 2
 #define MAX_COST INT_MAX / 2
-#define MAX_NODES INT_MAX / 2
+#define MAX_NODES MAX<size_t> / 2
 
     template <Dimension N, typename NODE>
     struct TreeNode {

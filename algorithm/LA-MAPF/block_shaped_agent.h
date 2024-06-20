@@ -278,6 +278,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return retv;
         }
 
+
+
 //        Pointfs<2> getPoseRotatedFans(const Pointi<2>& origin, const int& orient_start, const int& orient_end) const {
 //            Pointfs<2> pts = getRotatedFans(orient_start, orient_end), retv;
 //            Pointf<2> origin_f;
@@ -427,11 +429,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     }
 
     bool isCollide(const BlockAgent_2D& a1, const Pose<int, 2>& s1,
-                   const BlockAgent_2D& a2, const Pose<int, 2>& s2, const Pose<int, 2>& e2) {
-        return isCollide(a2, s2, e2, a1, s1);
-    }
-
-    bool isCollide(const BlockAgent_2D& a1, const Pose<int, 2>& s1,
                    const BlockAgent_2D& a2, const Pose<int, 2>& s2) {
         // rectangle overlap check
         auto rects1 = a1.getPosedRectangle(s1);
@@ -441,6 +438,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
         return false;
     }
+
 
     typedef std::vector<BlockAgent_2D> BlockAgents_2D;
 
