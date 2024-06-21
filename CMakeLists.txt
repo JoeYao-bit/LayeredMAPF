@@ -136,5 +136,8 @@ target_link_libraries(test_create_random_map_fr_mapf freeNav-base alg_lib)
 add_executable(test_qt_gui test/test_qt_gui.cpp test/visualization/qt_gui/resources/images.qrc)
 target_link_libraries(test_qt_gui freeNav-base alg_lib)
 
-add_executable(test_geometry test/test_geometry.cpp)
+add_executable(test_geometry test/test_lamapf_cbs.cpp)
 target_link_libraries(test_geometry freeNav-base alg_lib)
+
+add_executable(test_lamapf_lacam test/test_lamapf_lacam.cpp)
+target_link_libraries(test_lamapf_lacam freeNav-base alg_lib)

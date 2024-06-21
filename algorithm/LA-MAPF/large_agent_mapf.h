@@ -103,6 +103,27 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return solutions_;
         }
 
+        PosePaths<N> transferToPosePaths(const std::vector<LAMAPF_Path>& paths) const {
+            PosePaths<N> retv;
+            for(const auto& path : paths) {
+                retv.push_back(transferToPosePath(path));
+            }
+            return retv;
+        }
+
+        PosePath<N> transferToPosePath(const LAMAPF_Path& path) const {
+            PosePath<N> retv;
+            for(const auto& node_id : path) {
+                retv.push_back(transferToPose());
+            }
+            return retv;
+        }
+
+        Pose<int, N> transferToPose(const size_t& node_id) const {
+            assert(all_poses_[node_id] != nullptr);
+            return *all_poses_[node_id];
+        }
+
         SubGraphOfAgent<N> constructSubGraphOfAgent(const AgentType& agent) const {
             Id total_index = getTotalIndexOfSpace<N>(dim_);
             assert(all_poses_.size() == total_index*2*N);
@@ -244,6 +265,45 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 std::cout << *(this->all_poses_[path[t]]) << "->";
             }
             std::cout << std::endl;
+        }
+
+        size_t getMakeSpan() const {
+            if(!this->solvable) { return 0; }
+            size_t mk = 0;
+            for (size_t a1 = 0; a1 < this->instances_.size(); a1++) {
+                mk = std::max(this->solutions_[a1].size(), mk); // yz: soc: sum of cost
+            }
+            return mk;
+        }
+
+        size_t getSOC() const {
+            if(!this->solvable) { return 0; }
+            size_t soc = 0;
+            for (size_t a1 = 0; a1 < this->instances_.size(); a1++) {
+                soc += this->solutions_[a1].size() - 1; // yz: soc: sum of cost
+            }
+            return soc;
+        }
+
+        void removeStopAfterReachTarget(std::vector<LAMAPF_Path>& retv) const {
+            // yz: remove way point when agent is stop
+            for (int agent = 0; agent < this->instance_node_ids_.size(); agent++) {
+                const size_t & target = retv[agent].back();
+                auto &path = retv[agent];
+//            std::cout << "before prune" << path << std::endl;
+                for (auto iter = path.end(); iter != path.begin();) {
+                    if (*(iter - 2) == target) {
+                        iter = path.erase(iter - 1);
+                    } else {
+                        break;
+                    }
+                }
+//            std::cout << "target " << target << " instance_sat[agent].second " << instance_sat[agent].second << std::endl;
+//            std::cout << "start " << path.front() << " instance_sat[agent].first " << instance_sat[agent].first << std::endl;
+                assert(path.front() == this->instance_node_ids_[agent].first);
+                assert(path.back() == this->instance_node_ids_[agent].second);
+//            std::cout << "after prune" << path << std::endl;
+            }
         }
 
         ~LargeAgentMAPF() {

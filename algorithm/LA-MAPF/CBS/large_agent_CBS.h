@@ -142,24 +142,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             return solution_found;
         }
 
-        size_t getMakeSpan() const {
-            if(!this->solvable) { return 0; }
-            size_t mk = 0;
-            for (size_t a1 = 0; a1 < this->instances_.size(); a1++) {
-                mk = std::max(this->solutions_[a1].size(), mk); // yz: soc: sum of cost
-            }
-            return mk;
-        }
-
-        size_t getSOC() const {
-            if(!this->solvable) { return 0; }
-            size_t soc = 0;
-            for (size_t a1 = 0; a1 < this->instances_.size(); a1++) {
-                soc += this->solutions_[a1].size() - 1; // yz: soc: sum of cost
-            }
-            return soc;
-        }
-
         Conflicts detectAllConflictBetweenPaths(const LAMAPF_Path& p1, const LAMAPF_Path& p2,
                                                 const AgentType& a1, const AgentType& a2,
                                                 const std::vector<Pose<int, N>*>& all_nodes) const {
@@ -259,13 +241,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 std::cout << "Solution cost exceeds the sub-optimality bound!" << std::endl;
                 return false;
             }
-            size_t soc = getSOC();
+            size_t soc = this->getSOC();
             if ((int) soc != solution_cost) {
                 std::cout << "-- The solution cost is wrong!" << std::endl;
                 std::cout <<"-- soc = " << soc << " / solution_cost = " << solution_cost << std::endl;
                 return false;
             }
-            size_t makespan = getMakeSpan();
+            size_t makespan = this->getMakeSpan();
             std::cout << "-- find solution with SOC/makespan = " << soc << " / " << makespan << std::endl;
             for(int agent=0; agent<this->instances_.size(); agent++) {
                 this->printPath(agent, this->solutions_[agent]);

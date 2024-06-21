@@ -10,6 +10,7 @@
 #include <boost/geometry.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/heap/pairing_heap.hpp>
+#include <random>
 
 #include "../basic.h"
 #include "../freeNav-base/basic_elements/distance_map_update.h"
@@ -18,7 +19,11 @@
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
+    template<Dimension N>
+    using PosePath = std::vector<Pose<int, N> >;
 
+    template<Dimension N>
+    using PosePaths = std::vector<PosePath<N> >;
 
     // <agent id, node from, node to, time range start, time range end>
     typedef std::tuple<int, size_t, size_t, int, int> Constraint;
