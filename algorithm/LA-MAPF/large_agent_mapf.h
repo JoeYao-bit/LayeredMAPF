@@ -226,12 +226,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         bool solutionValidation() const {
             for(int a1=0; a1<this->agents_.size(); a1++) {
                 for(int a2=a1+1; a2<this->agents_.size(); a2++) {
-//                    const auto& conflicts = detectAllConflictBetweenPaths(
-//                            this->solutions_[a1], this->solutions_[a2], this->agents_[a1], this->agents_[a2], this->all_poses_);
-//                    if(!conflicts.empty()) {
-//                        std::cout << "agent " << a1 << " and agent " << a2 << " have " << conflicts.size() << " conflicts " << std::endl;
-//                        return false;
-//                    }
+
                     const auto& p1 = solutions_[a1], p2 = solutions_[a2];
                     const auto& all_nodes = all_poses_;
                     int t1 = p1.size()-1, t2 = p2.size()-1;

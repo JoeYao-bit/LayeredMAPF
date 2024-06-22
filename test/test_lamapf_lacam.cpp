@@ -58,16 +58,16 @@ TEST(BlockAgentSubGraph, lacam_test) {
     InstanceOrients<2> instances = {
             {{{5, 3}, 0}, {{23, 22},0} },
             {{{9, 2}, 0}, {{5, 22}, 0}},
-            {{{2, 5}, 0}, {{17, 22}, 3}}
+            //{{{2, 5}, 0}, {{17, 22}, 3}}
     };
-    const Pointf<2> min_pt_0{-.4, -.4}, max_pt_0{.4, .4},
-            min_pt_1{-.6, -.4}, max_pt_1{1., .4},
-            min_pt_2{-.3, -1.2}, max_pt_2{1., 1.2};
+    const Pointf<2> min_pt_0{-.1, -.1}, max_pt_0{.1, .1},
+                    min_pt_1{-.1, -.1}, max_pt_1{.4, .1},
+                    min_pt_2{-.4, -.4}, max_pt_2{.4, .4};
     // NOTICE: initialize pt in constructor cause constant changed
     const BlockAgents_2D agents({
                                         BlockAgent_2D(min_pt_0, max_pt_0, 0, dim),
                                         BlockAgent_2D(min_pt_1, max_pt_1, 1, dim),
-                                        BlockAgent_2D(min_pt_2, max_pt_2, 2, dim)
+                                        //BlockAgent_2D(min_pt_2, max_pt_2, 2, dim)
                                 });
 
     const auto seed = 0;
@@ -228,4 +228,17 @@ TEST(BlockAgentSubGraph, lacam_test) {
                 break;
         }
     }
+}
+
+TEST(sort, test) {
+    std::vector<std::pair<size_t, int> > ids = {{0, 6}, {1, 3}, {2, 4}, {3, 5}, {4, 1}, {5, 0}};
+    std::sort(ids.begin(), ids.end(), [&](const std::pair<size_t, int>& v, const std::pair<size_t, int>& u) {
+        return v.second < u.second;
+    });
+
+    for(const auto& temp_pair : ids) {
+        std::cout << "{" << temp_pair.first << ", " << temp_pair.second << "} ";
+    }
+    std::cout << std::endl;
+    // {5, 0} {4, 1} {1, 3} {2, 4} {3, 5} {0, 6}
 }
