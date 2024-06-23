@@ -19,12 +19,16 @@ using namespace freeNav;
 using namespace freeNav::LayeredMAPF;
 using namespace freeNav::LayeredMAPF::LA_MAPF;
 
+struct timezone tz;
+struct timeval tv_pre, tv_cur;
+struct timeval tv_after;
+
 CircleAgent<2> c1(2.5, 0);
 CircleAgent<2> c2(3.5, 1);
 
 int canvas_size_x = 1000, canvas_size_y = 700;
 
-TEST(circleAgentIsCollide, test) {
+TEST(circleAgentIsCollide, cbs_test) {
     Pose<int, 2> p1({1,1},0), p2({1,2}, 0), p3({1,3}, 0), p4({4,1}, 0);
     std::cout << "is collide" << isCollide(c1, p1, p2, c2, p3, p4) << std::endl;
 }
@@ -51,7 +55,7 @@ bool draw_all_instance = false;
 bool draw_heuristic_table = false;
 bool draw_path = false;
 
-TEST(CircleAgentSubGraph, test) {
+TEST(CircleAgentSubGraph, cbs_test) {
     Canvas canvas("circle agent", dim[0], dim[1], .1, zoom_ratio);
     auto mouse_call_back = [](int event, int x, int y, int flags, void *) {
         if(event == cv::EVENT_LBUTTONDOWN) {
@@ -73,9 +77,12 @@ TEST(CircleAgentSubGraph, test) {
         CircleAgent<2>(.7, 1),
         CircleAgent<2>(.6, 2)
     });
+    gettimeofday(&tv_pre, &tz);
     CBS::LargeAgentCBS<2, CircleAgent<2> > lacbs(instances, agents, dim, is_occupied);
     bool solved = lacbs.solve(60, 0);
-    std::cout << "find solution ? " << solved << std::endl;
+    gettimeofday(&tv_after, &tz);
+    double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
+    std::cout << "find solution ? " << solved << " in " << time_cost << "ms " << std::endl;
     size_t makespan = lacbs.getMakeSpan();
     int time_index = 0;
     while(true) {
@@ -338,7 +345,7 @@ TEST(test, BlockRotateCoverage) {
 }
 
 
-TEST(BlockAgentSubGraph, test) {
+TEST(BlockAgentSubGraph, cbs_test) {
     Canvas canvas("Block agent", dim[0], dim[1], .1, zoom_ratio);
     auto mouse_call_back = [](int event, int x, int y, int flags, void *) {
         if(event == cv::EVENT_LBUTTONDOWN) {
@@ -364,9 +371,12 @@ TEST(BlockAgentSubGraph, test) {
                                    BlockAgent_2D(min_pt_1, max_pt_1, 1, dim),
                                    BlockAgent_2D(min_pt_2, max_pt_2, 2, dim)
                            });
+    gettimeofday(&tv_pre, &tz);
     CBS::LargeAgentCBS<2, BlockAgent_2D > lacbs(instances, agents, dim, is_occupied);
     bool solved = lacbs.solve(60, 0);
-    std::cout << "find solution ? " << solved << std::endl;
+    gettimeofday(&tv_after, &tz);
+    double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
+    std::cout << "find solution ? " << solved << " in " << time_cost << "ms " << std::endl;
     std::cout << "solution validation ? " << lacbs.solutionValidation() << std::endl;
     size_t makespan = lacbs.getMakeSpan();
     int time_index = 0;

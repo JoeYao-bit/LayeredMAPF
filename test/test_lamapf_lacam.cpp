@@ -20,6 +20,9 @@ using namespace freeNav;
 using namespace freeNav::LayeredMAPF;
 using namespace freeNav::LayeredMAPF::LA_MAPF;
 
+struct timezone tz;
+struct timeval tv_pre, tv_cur;
+struct timeval tv_after;
 
 auto map_test_config = MAPFTestConfig_maze_32_32_4;
 
@@ -72,10 +75,12 @@ TEST(BlockAgentSubGraph, lacam_test) {
 
     const auto seed = 0;
     auto MT = std::mt19937(seed);
-
+    gettimeofday(&tv_pre, &tz);
     LaCAM::LargeAgentLaCAM<2, BlockAgent_2D > lacbs(instances, agents, dim, is_occupied, &MT);
     bool solved = lacbs.solve(60, 0);
-    std::cout << "find solution ? " << solved << std::endl;
+    gettimeofday(&tv_after, &tz);
+    double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
+    std::cout << "find solution ? " << solved << " in " << time_cost << "ms " << std::endl;
     std::cout << "solution validation ? " << lacbs.solutionValidation() << std::endl;
     size_t makespan = lacbs.getMakeSpan();
     int time_index = 0;

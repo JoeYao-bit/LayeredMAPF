@@ -23,7 +23,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
                         : LargeAgentMAPF<N, AgentType>(instances, agents, dim, isoc),
                           V_size(LargeAgentLaCAM<N, AgentType>::all_poses_.size()),
                           MT(_MT),
-                          C_next(Candidates(agents.size(), std::array<size_t , 5>())), // yz: 5 means 4 direction + 1 wait
+                          C_next(Candidates<N>(agents.size(), std::array<size_t , 2*N*2*N + 1>())), // yz: possible rotation multiple possible transition plus wait
                           tie_breakers(std::vector<float>(V_size, 0)),
                           A(Agents(agents.size(), nullptr)),
                           occupied_now(Agents(V_size, nullptr)),
@@ -170,8 +170,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
             return true;
         }
 
+        // TODO: add large agent constraint
         bool get_new_config(Node *S, Constraint *M) {
             // setup cache
+            // TODO：replace occupied_now and occupied_next with large agent constraint table
             for (auto a : A) {
                 // clear previous cache
                 if (a->v_now != -1 && occupied_now[a->v_now] == a) {
@@ -249,6 +251,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
                 // avoid vertex conflicts
                 if (occupied_next[u] != nullptr) continue;
 
+                // TODO: get neighbor agent in constraint table, which is only one step from collide with current agent
                 auto &ak = occupied_now[u]; // yz: who occupied this neighbor
 
                 // avoid swap conflicts with constraints
@@ -371,7 +374,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
         // solver utils
         const int V_size;
 //        DistTable D;
-        Candidates C_next;                // next location candidates
+        Candidates<N> C_next;                // next location candidates
         std::vector<float> tie_breakers;  // random values, used in PIBT
         Agents A;
         Agents occupied_now;   // for quick collision checking

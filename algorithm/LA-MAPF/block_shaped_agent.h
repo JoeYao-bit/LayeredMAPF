@@ -333,6 +333,21 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     // check whether two moving circle are collide with each other
     bool isCollide(const BlockAgent_2D& a1, const Pose<int, 2>& s1, const Pose<int, 2>& e1,
                    const BlockAgent_2D& a2, const Pose<int, 2>& s2, const Pose<int, 2>& e2) {
+        // use inner circle and out circle for accelerate
+        std::vector<double> dists = {(s1.pt_ - s2.pt_).Norm(), (s1.pt_ - e2.pt_).Norm(),
+                                     (e1.pt_ - s2.pt_).Norm(), (e1.pt_ - e2.pt_).Norm()};
+
+        std::sort(dists.begin(), dists.end(), [&](const double& v1, const double& v2) {
+            return v1 < v2;
+        });
+
+        if(dists.front() < a1.incircle_radius_ + a2.incircle_radius_) {
+            return true;
+        }
+
+        if(dists.back() > a1.excircle_radius_ + a2.excircle_radius_) {
+            return false;
+        }
 
         // rectangle overlap check
         auto rects1 = a1.getPosedRectangle(s1);
@@ -405,6 +420,21 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     // check whether one moving circle are collide with one waiting circle
     bool isCollide(const BlockAgent_2D& a1, const Pose<int, 2>& s1, const Pose<int, 2>& e1,
                    const BlockAgent_2D& a2, const Pose<int, 2>& s2) {
+        // use inner circle and out circle for accelerate
+        std::vector<double> dists = {(s1.pt_ - s2.pt_).Norm(), (s1.pt_ - s2.pt_).Norm()};
+
+        std::sort(dists.begin(), dists.end(), [&](const double& v1, const double& v2) {
+            return v1 < v2;
+        });
+
+        if(dists.front() < a1.incircle_radius_ + a2.incircle_radius_) {
+            return true;
+        }
+
+        if(dists.back() > a1.excircle_radius_ + a2.excircle_radius_) {
+            return false;
+        }
+
         // rectangle overlap check
         auto rects1 = a1.getPosedRectangle(s1);
         auto recte1 = a1.getPosedRectangle(e1);
