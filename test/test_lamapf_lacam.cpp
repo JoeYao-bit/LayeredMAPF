@@ -37,7 +37,7 @@ auto is_occupied = [](const Pointi<2> & pt) -> bool { return loader.isOccupied(p
 
 auto dim = loader.getDimensionInfo();
 
-int zoom_ratio = 20;
+int zoom_ratio = 40;
 
 Pointi<2> pt1;
 int current_subgraph_id = 0;
@@ -60,29 +60,30 @@ TEST(BlockAgentSubGraph, lacam_test) {
     // fake instances
     InstanceOrients<2> instances = {
             {{{5, 3}, 0}, {{23, 22},0} },
-            {{{9, 2}, 0}, {{5, 22}, 0}},
+            //{{{9, 2}, 0}, {{5, 22}, 0}},
             //{{{2, 5}, 0}, {{17, 22}, 3}}
     };
-    const Pointf<2> min_pt_0{-.1, -.1}, max_pt_0{.1, .1},
-                    min_pt_1{-.1, -.1}, max_pt_1{.4, .1},
+    const Pointf<2> min_pt_0{-.2, -.2}, max_pt_0{.2, .2},
+                    min_pt_1{-.2, -.2}, max_pt_1{.2, .2},
                     min_pt_2{-.4, -.4}, max_pt_2{.4, .4};
     // NOTICE: initialize pt in constructor cause constant changed
     const BlockAgents_2D agents({
                                         BlockAgent_2D(min_pt_0, max_pt_0, 0, dim),
-                                        BlockAgent_2D(min_pt_1, max_pt_1, 1, dim),
+                                        //BlockAgent_2D(min_pt_1, max_pt_1, 1, dim),
                                         //BlockAgent_2D(min_pt_2, max_pt_2, 2, dim)
                                 });
 
     const auto seed = 0;
     auto MT = std::mt19937(seed);
     gettimeofday(&tv_pre, &tz);
-    LaCAM::LargeAgentLaCAM<2, BlockAgent_2D > lacbs(instances, agents, dim, is_occupied, &MT);
-    bool solved = lacbs.solve(60, 0);
+    LaCAM::LargeAgentLaCAM<2, BlockAgent_2D > lacam(instances, agents, dim, is_occupied, &MT);
+    bool solved = lacam.solve(60, 0);
     gettimeofday(&tv_after, &tz);
     double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
     std::cout << "find solution ? " << solved << " in " << time_cost << "ms " << std::endl;
-    std::cout << "solution validation ? " << lacbs.solutionValidation() << std::endl;
-    size_t makespan = lacbs.getMakeSpan();
+    std::cout << "solution validation ? " << lacam.solutionValidation() << std::endl;
+    std::cout << "SOC / makespan = " << lacam.getSOC() << " / " <<  lacam.getMakeSpan() << std::endl;
+    size_t makespan = lacam.getMakeSpan();
     int time_index = 0;
     while(true) {
         canvas.resetCanvas();
@@ -91,7 +92,7 @@ TEST(BlockAgentSubGraph, lacam_test) {
 //        int r1 = a1.radius_*zoom_ratio, r2 = a2.radius_*zoom_ratio;
 //        canvas.drawCircleInt(instances[0].first[0], instances[0].first[1], r1);
 //        canvas.drawCircleInt(instances[1].first[0], instances[1].first[1], r2);
-        const auto& current_subgraph = lacbs.agent_sub_graphs_[current_subgraph_id];
+        const auto& current_subgraph = lacam.agent_sub_graphs_[current_subgraph_id];
 
         if(draw_all_subgraph_node) {
             for (int i = 0; i < current_subgraph.all_nodes_.size(); i++) {
@@ -125,18 +126,18 @@ TEST(BlockAgentSubGraph, lacam_test) {
 //                                COLOR_TABLE[(2+current_subgraph_id) % 30]);
 //            }
             //std::cout << "draw path: " << std::endl;
-            for(int i=0; i<lacbs.solutions_.size(); i++) {
-                const auto& path = lacbs.solutions_[i];
+            for(int i=0; i<lacam.solutions_.size(); i++) {
+                const auto& path = lacam.solutions_[i];
                 Pointi<2> pt;
                 int orient = 0;
                 if(time_index <= path.size() - 1) {
-                    pt     = lacbs.all_poses_[path[time_index]]->pt_;
-                    orient = lacbs.all_poses_[path[time_index]]->orient_;
+                    pt     = lacam.all_poses_[path[time_index]]->pt_;
+                    orient = lacam.all_poses_[path[time_index]]->orient_;
                 } else {
-                    pt     = lacbs.all_poses_[path.back()]->pt_;
-                    orient = lacbs.all_poses_[path.back()]->orient_;
+                    pt     = lacam.all_poses_[path.back()]->pt_;
+                    orient = lacam.all_poses_[path.back()]->orient_;
                 }
-                const auto& rect = lacbs.agents_[i].getPosedRectangle({pt, orient}); // agents
+                const auto& rect = lacam.agents_[i].getPosedRectangle({pt, orient}); // agents
                 canvas.drawRectangleFloat(rect.first, rect.second, true, -1, COLOR_TABLE[(i) % 30]);
                 //std::cout << "rect " << rect.first << ", " << rect.second << std::endl;
 
@@ -159,24 +160,24 @@ TEST(BlockAgentSubGraph, lacam_test) {
                         exit(0);
                         break;
                 }
-                canvas.drawArrowInt(pt[0], pt[1], theta , zoom_ratio/2, zoom_ratio/10);
+                canvas.drawArrowInt(pt[0], pt[1], theta , 1, zoom_ratio/10);
 
             }
         }
         if(draw_all_instance) {
             //for (int i=0; i<instances.size(); i++)
             {
-                const auto &instance = instances[current_subgraph_id];
+                const auto &instance = instances[current_subgraph_id]; // zoom_ratio/10
                 canvas.drawGrid(instance.first.pt_[0], instance.first.pt_[1], COLOR_TABLE[(2 + current_subgraph_id)%30]);
-                canvas.drawArrowInt(instance.first.pt_[0], instance.first.pt_[1], 0 , zoom_ratio, zoom_ratio/2);
+                canvas.drawArrowInt(instance.first.pt_[0], instance.first.pt_[1], 0 , 1, zoom_ratio/10);
 
                 canvas.drawGrid(instance.second.pt_[0], instance.second.pt_[1], COLOR_TABLE[(2 + current_subgraph_id)%30]);
-                canvas.drawArrowInt(instance.second.pt_[0], instance.second.pt_[1], 0 , zoom_ratio, zoom_ratio/2);
+                canvas.drawArrowInt(instance.second.pt_[0], instance.second.pt_[1], 0 , 1, zoom_ratio/10);
 
             }
         }
         if(draw_heuristic_table) {
-            const auto& heuristic_table = lacbs.agents_heuristic_tables_[current_subgraph_id];
+            const auto& heuristic_table = lacam.agents_heuristic_tables_[current_subgraph_id];
             Id total_index = getTotalIndexOfSpace<2>(dim);
             for(int i=0; i<total_index; i++) {
                 // pick minimum heuristic value in all direction
@@ -186,7 +187,7 @@ TEST(BlockAgentSubGraph, lacam_test) {
                         value = heuristic_table[i*4 + orient];
                     }
                 }
-                if(value != MAX<int> && value < 10
+                if(value != MAX<int> && value < 100
                         ) {
                     Pointi<2> position = IdToPointi<2>(i, dim);
                     std::stringstream ss;

@@ -458,6 +458,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return false;
     }
 
+    // check whether one moving circle are collide with one waiting circle
+    bool isCollide(const BlockAgent_2D& a1, const Pose<int, 2>& s1,
+                   const BlockAgent_2D& a2, const Pose<int, 2>& s2, const Pose<int, 2>& e2) {
+
+        return isCollide(a2, s2, e2, a1, s1);
+    }
+
     bool isCollide(const BlockAgent_2D& a1, const Pose<int, 2>& s1,
                    const BlockAgent_2D& a2, const Pose<int, 2>& s2) {
         // rectangle overlap check

@@ -114,6 +114,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return bg::distance(seg1, pt3) <= (a1.radius_ + a2.radius_);
     }
 
+    // check whether one moving circle are collide with one waiting circle
+    bool isCollide(const CircleAgent<2>& a1, const Pose<int, 2>& s1,
+                   const CircleAgent<2>& a2, const Pose<int, 2>& s2, const Pose<int, 2>& e2) {
+
+        return isCollide(a2, s2, e2, a1, s1);
+    }
+
     bool isCollide(const CircleAgent<2>& a1, const Pose<int, 2>& s1,
                    const CircleAgent<2>& a2, const Pose<int, 2>& s2) {
         return (a1.radius_ + a2.radius_) >= (s1.pt_ - s2.pt_).Norm();

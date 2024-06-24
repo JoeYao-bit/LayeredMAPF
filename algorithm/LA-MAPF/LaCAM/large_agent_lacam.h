@@ -9,6 +9,7 @@
 #include "../circle_shaped_agent.h"
 #include "../block_shaped_agent.h"
 #include "../large_agent_mapf.h"
+#include "large_agent_constraint.h"
 
 namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
 
@@ -176,36 +177,40 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
             // TODO：replace occupied_now and occupied_next with large agent constraint table
             for (auto a : A) {
                 // clear previous cache
-                if (a->v_now != -1 && occupied_now[a->v_now] == a) {
-                    occupied_now[a->v_now] = nullptr;
-                }
+//                if (a->v_now != -1 && occupied_now[a->v_now] == a) {
+//                    occupied_now[a->v_now] = nullptr;
+//                }
                 if (a->v_next != -1) {
-                    occupied_next[a->v_next] = nullptr;
+//                    occupied_next[a->v_next] = nullptr;
                     a->v_next = -1;
                 }
 
                 // set occupied now
                 a->v_now = S->C[a->id]; // yz: current config is saved in S->C
-                occupied_now[a->v_now] = a;
+//                occupied_now[a->v_now] = a;
             }
+
+            LargeAgentConstraints<N, AgentType> constraint_table(this->all_poses_, this->agents_, S->C);
 
             // add constraints
             // // yz: constraint determine next config without search, which is saved M
             for (auto k = 0; k < M->depth; ++k) {
                 const auto i = M->who[k];        // agent
                 const auto l = M->where[k];  // loc
-
-                // check vertex collision
-                if (occupied_next[l] != nullptr) return false;
-                // check swap collision
-                auto l_pre = S->C[i];
-                if (occupied_next[l_pre] != nullptr && occupied_now[l] != nullptr &&
-                    occupied_next[l_pre]->id == occupied_now[l]->id)
-                    return false;
+                // yz: check whether current constraint collide with other agent, if is, abandon current agent
+                if(constraint_table.hasCollide(i, A[i]->v_now, l)) { return false; }
+//                // check vertex collision
+//                if (occupied_next[l] != nullptr) return false;
+//                // check swap collision
+//                auto l_pre = S->C[i];
+//                if (occupied_next[l_pre] != nullptr && occupied_now[l] != nullptr &&
+//                    occupied_next[l_pre]->id == occupied_now[l]->id)
+//                    return false;
 
                 // set occupied_next
                 A[i]->v_next = M->where[k];
-                occupied_next[l] = A[i];
+                constraint_table.setOccupiedNext(i, A[i]->v_next);
+//                occupied_next[l] = A[i];
             }
 
             // perform PIBT
@@ -213,14 +218,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
             // yz: but as PIBT is recursive, the REAL of search path is not deterministic
             for (auto k : S->order) {
                 auto a = A[k];
-                if (a->v_next == -1 && !funcPIBT(a, S->t + 1)) {
+                if (a->v_next == -1 && !funcPIBT(a, S->t + 1, constraint_table)) {
                     return false;  // planning failure
                 }
             }
             return true;
         }
 
-        bool funcPIBT(Agent *ai, int next_t) {
+        bool funcPIBT(Agent *ai, int next_t, LargeAgentConstraints<N, AgentType>& constraint_table) {
             const auto i = ai->id;
             const auto& neighbor = this->agent_sub_graphs_[ai->id].all_edges_[ai->v_now];
             const auto K = neighbor.size();
@@ -237,43 +242,69 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
             // sort, note: K + 1 is sufficient
             // yz: randomize future locations candidates
 
+//            std::sort(C_next[i].begin(), C_next[i].begin() + K + 1,
+//                      [&](const size_t& v, const size_t& u) {
+//                          return this->agents_heuristic_tables_[i][v] + tie_breakers[v] <
+//                                 this->agents_heuristic_tables_[i][u] + tie_breakers[u];
+//                      });
+
+
             std::sort(C_next[i].begin(), C_next[i].begin() + K + 1,
                       [&](const size_t& v, const size_t& u) {
-                          return this->agents_heuristic_tables_[i][v] + tie_breakers[v] <
-                                 this->agents_heuristic_tables_[i][u] + tie_breakers[u];
+                          return this->agents_heuristic_tables_[i][v] <
+                                 this->agents_heuristic_tables_[i][u];
                       });
 
+//            for( : ) {
+//                //
+//            }
+
             // yz: for all current agent's neighbor and wait
-//            std::vector<std::pair<size_t, int> > candidates;
+            std::vector<std::pair<size_t, int> > candidates;
             for (size_t k = 0; k < K + 1; ++k) {
                 auto u = C_next[i][k];
 
                 // avoid vertex conflicts
-                if (occupied_next[u] != nullptr) continue;
+//                if (occupied_next[u] != nullptr) continue;
+                if(constraint_table.hasCollide(ai->id, ai->v_now, u)) {
+                    return false;
+                }
 
                 // TODO: get neighbor agent in constraint table, which is only one step from collide with current agent
-                auto &ak = occupied_now[u]; // yz: who occupied this neighbor
-
+                //auto &ak = occupied_now[u]; // yz: who occupied this neighbor
+                std::vector<int> collide_agents = constraint_table.collideWith(ai->id, u);
                 // avoid swap conflicts with constraints
                 // yz: avoid swap conflicts with neighbor agents
-                if (ak != nullptr && ak->v_next == ai->v_now) continue;
+//                if (ak != nullptr && ak->v_next == ai->v_now) continue;
+
 
 //                candidates.push_back({u, this->agents_heuristic_tables_[ai->id][u]});
 
                 // reserve next location
                 // yz: assume current agent can move to next location
-                occupied_next[u] = ai;
+//                occupied_next[u] = ai;
+                constraint_table.setOccupiedNext(ai->id, u);
                 ai->v_next = u;
 
                 // empty or stay
                 // yz: if not all neighbor are occupied or current agent just stay
-                if (ak == nullptr || u == ai->v_now) return true;
+//                if (ak == nullptr || u == ai->v_now) return true;
+                if (collide_agents.empty() || u == ai->v_now) return true;
 
                 // priority inheritance
                 // yz: if neighboring agent is not move yet
                 // yz: then try to move it
-                if (ak->v_next == -1 && !funcPIBT(ak, next_t)) continue;
-
+//                if (ak->v_next == -1 && !funcPIBT(ak, next_t)) continue;
+                int not_move_yet = -1;
+                for(const auto& agent_id : collide_agents) {
+                    if (A[agent_id]->v_next == -1) {
+                        not_move_yet = agent_id;
+                        break;
+                    }
+                }
+                if(!funcPIBT(A[not_move_yet], next_t, constraint_table)) {
+                    continue;
+                }
                 // success to plan next one step
                 return true;
             }
@@ -310,7 +341,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
 
             // failed to secure node
             // yz: when search new config failed,
-            occupied_next[ai->v_now] = ai;
+//            occupied_next[ai->v_now] = ai;
+            constraint_table.setOccupiedNext(ai->id, ai->v_now);
             ai->v_next = ai->v_now;
             return false;
         }
