@@ -53,7 +53,8 @@ int current_subgraph_id = 0;
 bool draw_all_subgraph_node = false;
 bool draw_all_instance = false;
 bool draw_heuristic_table = false;
-bool draw_path = false;
+bool draw_path = true;
+bool draw_full_path = true;
 
 TEST(CircleAgentSubGraph, cbs_test) {
     Canvas canvas("circle agent", dim[0], dim[1], .1, zoom_ratio);
@@ -69,13 +70,13 @@ TEST(CircleAgentSubGraph, cbs_test) {
     // fake instances
     InstanceOrients<2> instances = {
             {{{8, 3}, 0}, {{23, 22},0} },
-            {{{9, 2}, 0}, {{5, 22}, 0}},
-            {{{2, 5}, 0}, {{17, 22}, 3}}
+//            {{{9, 2}, 0}, {{5, 22}, 0}},
+//            {{{2, 5}, 0}, {{17, 22}, 3}}
     };
     CircleAgents<2> agents({
         CircleAgent<2>(.3, 0),
-        CircleAgent<2>(.7, 1),
-        CircleAgent<2>(.6, 2)
+//        CircleAgent<2>(.7, 1),
+//        CircleAgent<2>(.6, 2)
     });
     gettimeofday(&tv_pre, &tz);
     CBS::LargeAgentCBS<2, CircleAgent<2> > lacbs(instances, agents, dim, is_occupied);
@@ -115,6 +116,15 @@ TEST(CircleAgentSubGraph, cbs_test) {
                     canvas.drawGrid(current_subgraph.all_nodes_[edge_id]->pt_[0],
                                     current_subgraph.all_nodes_[edge_id]->pt_[1],
                                     COLOR_TABLE[2]);
+                }
+            }
+        }
+        if(draw_full_path) {
+            for(int i=0; i<lacbs.solutions_.size(); i++) {
+                const auto& path = lacbs.solutions_[i];
+                for(int t=0; t<path.size()-1; t++) {
+                    Pointi<2> pt1 = lacbs.all_poses_[path[t]]->pt_, pt2 = lacbs.all_poses_[path[t+1]]->pt_;
+                    canvas.drawLineInt(pt1[0], pt1[1], pt2[0], pt2[1], true, zoom_ratio/10, COLOR_TABLE[(i) % 30]);
                 }
             }
         }
@@ -158,7 +168,7 @@ TEST(CircleAgentSubGraph, cbs_test) {
                         exit(0);
                         break;
                 }
-                canvas.drawArrowInt(pt[0], pt[1], theta , zoom_ratio/2, zoom_ratio/10);
+                canvas.drawArrowInt(pt[0], pt[1], theta , 1, zoom_ratio/10);
 
             }
         }
@@ -167,10 +177,10 @@ TEST(CircleAgentSubGraph, cbs_test) {
             {
                 const auto &instance = instances[current_subgraph_id];
                 canvas.drawGrid(instance.first.pt_[0], instance.first.pt_[1], COLOR_TABLE[(2 + current_subgraph_id)%30]);
-                canvas.drawArrowInt(instance.first.pt_[0], instance.first.pt_[1], 0 , zoom_ratio, zoom_ratio/2);
+                canvas.drawArrowInt(instance.first.pt_[0], instance.first.pt_[1], 0 , 1, zoom_ratio/2);
 
                 canvas.drawGrid(instance.second.pt_[0], instance.second.pt_[1], COLOR_TABLE[(2 + current_subgraph_id)%30]);
-                canvas.drawArrowInt(instance.second.pt_[0], instance.second.pt_[1], 0 , zoom_ratio, zoom_ratio/2);
+                canvas.drawArrowInt(instance.second.pt_[0], instance.second.pt_[1], 0 , 1, zoom_ratio/2);
 
             }
         }
@@ -214,6 +224,9 @@ TEST(CircleAgentSubGraph, cbs_test) {
                 break;
             case 'h':
                 draw_heuristic_table = !draw_heuristic_table;
+                break;
+            case 'f':
+                draw_full_path = !draw_full_path;
                 break;
             case 'p':
                 draw_path = !draw_path;
@@ -362,8 +375,8 @@ TEST(BlockAgentSubGraph, cbs_test) {
             {{{9, 2}, 0}, {{5, 22}, 0}},
             {{{2, 5}, 0}, {{17, 22}, 3}}
     };
-    const Pointf<2> min_pt_0{-.4, -.4}, max_pt_0{.4, .4},
-                    min_pt_1{-.6, -.4}, max_pt_1{1., .4},
+    const Pointf<2> min_pt_0{-.4, -.4},  max_pt_0{.4, .4},
+                    min_pt_1{-.6, -.4},  max_pt_1{1., .4},
                     min_pt_2{-.3, -1.2}, max_pt_2{1., 1.2};
     // NOTICE: initialize pt in constructor cause constant changed
     const BlockAgents_2D agents({
@@ -413,6 +426,15 @@ TEST(BlockAgentSubGraph, cbs_test) {
                 }
             }
         }
+        if(draw_full_path) {
+            for(int i=0; i<lacbs.solutions_.size(); i++) {
+                const auto& path = lacbs.solutions_[i];
+                for(int t=0; t<path.size()-1; t++) {
+                    Pointi<2> pt1 = lacbs.all_poses_[path[t]]->pt_, pt2 = lacbs.all_poses_[path[t+1]]->pt_;
+                    canvas.drawLineInt(pt1[0], pt1[1], pt2[0], pt2[1], true, zoom_ratio/10, COLOR_TABLE[(i) % 30]);
+                }
+            }
+        }
         if(draw_path) {
 //            const auto& path = lacbs.solutions_[current_subgraph_id];
 //            for (const auto &pose_id : path) {
@@ -455,7 +477,7 @@ TEST(BlockAgentSubGraph, cbs_test) {
                         exit(0);
                         break;
                 }
-                canvas.drawArrowInt(pt[0], pt[1], theta , zoom_ratio/2, zoom_ratio/10);
+                canvas.drawArrowInt(pt[0], pt[1], theta , 1, zoom_ratio/10);
 
             }
         }
@@ -464,10 +486,10 @@ TEST(BlockAgentSubGraph, cbs_test) {
             {
                 const auto &instance = instances[current_subgraph_id];
                 canvas.drawGrid(instance.first.pt_[0], instance.first.pt_[1], COLOR_TABLE[(2 + current_subgraph_id)%30]);
-                canvas.drawArrowInt(instance.first.pt_[0], instance.first.pt_[1], 0 , zoom_ratio, zoom_ratio/2);
+                canvas.drawArrowInt(instance.first.pt_[0], instance.first.pt_[1], 0 , 1, zoom_ratio/2);
 
                 canvas.drawGrid(instance.second.pt_[0], instance.second.pt_[1], COLOR_TABLE[(2 + current_subgraph_id)%30]);
-                canvas.drawArrowInt(instance.second.pt_[0], instance.second.pt_[1], 0 , zoom_ratio, zoom_ratio/2);
+                canvas.drawArrowInt(instance.second.pt_[0], instance.second.pt_[1], 0 , 1, zoom_ratio/2);
 
             }
         }
@@ -514,6 +536,9 @@ TEST(BlockAgentSubGraph, cbs_test) {
                 break;
             case 'p':
                 draw_path = !draw_path;
+                break;
+            case 'f':
+                draw_full_path = !draw_full_path;
                 break;
             case 'q':
                 time_index = time_index + makespan - 1;

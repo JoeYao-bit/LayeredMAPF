@@ -27,6 +27,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     struct SubGraphOfAgent {
         std::vector<PosePtr<int, N> > all_nodes_;
         std::vector<std::vector<size_t> > all_edges_;
+        std::vector<std::vector<size_t> > all_backward_edges_;
     };
 
     template<Dimension N, typename AgentType>
@@ -144,6 +145,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             // when add edges, assume agent can only change position or orientation, cannot change both of them
             // and orientation can only change 90 degree at one timestep, that means the two orient must be orthogonal
             sub_graph.all_edges_.resize(total_index*2*N, {});
+            sub_graph.all_backward_edges_.resize(total_index*2*N, {});
             Pointis<N> neighbors = GetNearestOffsetGrids<N>();
             for(size_t pose_id=0; pose_id < sub_graph.all_nodes_.size(); pose_id++) {
                 const auto& node_ptr = sub_graph.all_nodes_[pose_id];
@@ -160,6 +162,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         if(another_node_ptr == nullptr) { continue; }
                         if(!agent.isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, distance_map_updater_)) {
                             sub_graph.all_edges_[pose_id].push_back(another_node_id);
+                            sub_graph.all_backward_edges_[another_node_id].push_back(pose_id);
                         }
                     }
                     // add edges about orientation changing
@@ -174,6 +177,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         // check whether can transfer to another node
                         if(!agent.isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, distance_map_updater_)) {
                             sub_graph.all_edges_[pose_id].push_back(another_node_id);
+                            sub_graph.all_backward_edges_[another_node_id].push_back(pose_id);
                         }
                     }
                 }
@@ -212,7 +216,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             while (!heap.empty()) {
                 Node curr = heap.top();
                 heap.pop();
-                for (int next_location : sub_graph.all_edges_[curr.node_id]) {
+                for (int next_location : sub_graph.all_backward_edges_[curr.node_id]) {
                     if (agent_heuristic[next_location] > curr.value + 1) {
                         agent_heuristic[next_location] = curr.value + 1;
                         Node next(next_location, curr.value + 1);

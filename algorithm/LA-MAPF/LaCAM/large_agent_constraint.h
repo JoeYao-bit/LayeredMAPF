@@ -26,7 +26,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
             for(int i=0; i<agents.size(); i++) {
                 if(i == id) { continue; }
                 if(occupied_next[i] == MAX<size_t>) {
-                    if(isCollide(agents[i], *all_nodes[occupied_now[i]],
+                    if(isCollide(agents[i],  *all_nodes[occupied_now[i]],
                                  agents[id], *all_nodes[pose])) {
                         retv.push_back(i);
                     }
