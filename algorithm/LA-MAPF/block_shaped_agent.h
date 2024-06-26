@@ -295,7 +295,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //            return retv;
 //        }
 
-        const Pointf<2>& min_pt_, max_pt_;
+        Pointf<2> min_pt_;
+        Pointf<2> max_pt_;
 
         // which grid current agent cover if it is in zero position, zero orient
         //Pointis<2> grids_;

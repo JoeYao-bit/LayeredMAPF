@@ -76,6 +76,24 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     typedef std::vector<size_t> LAMAPF_Path; // node id sequence
 
+    template<typename T>
+    int getSOC(const std::vector<std::vector<T> >& paths) {
+        size_t soc = 0;
+        for (size_t a1 = 0; a1 < paths.size(); a1++) {
+            soc += paths[a1].size() - 1; // yz: soc: sum of cost
+        }
+        return soc;
+    }
+
+    template<typename T>
+    int getMakeSpan(const std::vector<std::vector<T> >& paths) {
+        size_t mk = 0;
+        for (size_t a1 = 0; a1 < paths.size(); a1++) {
+            mk = std::max(paths[a1].size(), mk); // yz: soc: sum of cost
+        }
+        return mk;
+    }
+
     bool isSamePath(const std::vector<size_t>& path1, const std::vector<size_t>& path2);
 
     template <Dimension N>

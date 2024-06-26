@@ -77,7 +77,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return false;
         }
 
-        const float radius_ = 1.;
+        float radius_ = 1.;
 
     };
 

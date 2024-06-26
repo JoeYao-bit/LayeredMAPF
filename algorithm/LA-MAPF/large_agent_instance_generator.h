@@ -71,14 +71,17 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         for(int i=0; i<num_of_agents; i++) {
 
             min_x = getValueWithResolution<float>(min_min_x, max_min_x, resolution);
-            std::cout << "min x = " << min_x << " ";
+//            std::cout << "min x = " << min_x << " ";
             max_x = getValueWithResolution<float>(min_max_x, max_max_x, resolution);
-            std::cout << "max x = " << max_x << " ";
+//            std::cout << "max x = " << max_x << " ";
             width = getValueWithResolution<float>(min_width, max_width, resolution);
-            std::cout << "width = " << width << " ";
+//            std::cout << "width = " << width << " ";
 
-            std::cout << std::endl;
-            Pointf<2> min_pt{min_x, -width}, max_pt{max_x, width};
+//            std::cout << std::endl;
+
+            Pointf<2> min_pt, max_pt;
+            min_pt[0] = min_x, min_pt[1] = -width;
+            max_pt[0] = max_x, max_pt[1] = width;
             BlockAgent_2D agent(min_pt, max_pt, i, dim);
             agents.push_back(agent);
         }
@@ -124,8 +127,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
 
         // if agent failed to find legal instance, repick
-        InstanceOrients<N> getNewInstance() const {
-            InstanceOrients<N> new_instances;
+        std::vector< std::pair<InstanceOrient<N>, LAMAPF_Path> > getNewInstance() const {
+            std::vector< std::pair<InstanceOrient<N>, LAMAPF_Path> > new_instances;
             std::random_device rd;
             int count_of_pick = 0;
             for (int i=0; i<agents_.size(); i++) {
@@ -146,12 +149,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     for (int id = 0; id < new_instances.size(); id++) {
                         const auto &other_agent = agents_[id];
                         if (isCollide(agent, *all_poses_[start_id],
-                                      other_agent, new_instances[id].first)) {
+                                      other_agent, new_instances[id].first.first)) {
                             repick = true;
                             break;
                         }
                         if (isCollide(agent, *all_poses_[start_id],
-                                      other_agent, new_instances[id].second)) {
+                                      other_agent, new_instances[id].first.second)) {
                             repick = true;
                             break;
                         }
@@ -175,18 +178,21 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     if(agent_sub_graphs_[i].all_nodes_[target_id] == nullptr) {
                         continue;
                     }
+                    if(target_id == start_id) {
+                        continue;
+                    }
                     //std::cout << "pick agent " << i << "'s target " <<  std::endl;
                     // 2, if it has conflict with other agents, re-pick util no conflicts
                     bool repick = false;
                     for (int id = 0; id < new_instances.size(); id++) {
                         const auto &other_agent = agents_[id];
                         if (isCollide(agent, *all_poses_[target_id],
-                                      other_agent, new_instances[id].first)) {
+                                      other_agent, new_instances[id].first.first)) {
                             repick = true;
                             break;
                         }
                         if (isCollide(agent, *all_poses_[target_id],
-                                      other_agent, new_instances[id].second)) {
+                                      other_agent, new_instances[id].first.second)) {
                             repick = true;
                             break;
                         }
@@ -195,13 +201,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         continue;
                     }
                     // 3, check whether there is a path connect them, otherwise re-pick
-                    if(!hasConnectionBetweenNode(i, start_id, target_id)) {
+                    LAMAPF_Path path = getConnectionBetweenNode(i, start_id, target_id);
+                    if(path.empty()) {
                         //std::cout << "find no connection between start and target, repick target" << std::endl;
                         continue;
                     } else {
                         std::cout << "find agent " << i << "'s instance success" << std::endl;
                         // 4, insert as a success instance
-                        new_instances.push_back(std::make_pair(*all_poses_[start_id], *all_poses_[target_id]));
+                        new_instances.push_back({{*all_poses_[start_id], *all_poses_[target_id]}, path});
                         break;
                     }
                 }
@@ -213,11 +220,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return new_instances;
         }
 
-        bool hasConnectionBetweenNode(const int& agent_id, const size_t& start_id, const size_t& target_id) const {
+        LAMAPF_Path getConnectionBetweenNode(const int& agent_id, const size_t& start_id, const size_t& target_id) const {
+            LAMAPF_Path retv;
             const auto& sub_graph = agent_sub_graphs_[agent_id];
             assert(sub_graph.all_nodes_[start_id] != nullptr && sub_graph.all_nodes_[target_id] != nullptr);
-            std::vector<bool> visited(all_poses_.size(), false);
-            visited[start_id] = true;
+            std::vector<size_t> pre_visited(all_poses_.size(), MAX<size_t>);
+            pre_visited[start_id] = start_id;
             std::vector<size_t> current_nodes = {start_id}, next_nodes;
             bool reach_target = false;
             while (!current_nodes.empty()) {
@@ -225,17 +233,35 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 for(const auto& node : current_nodes) {
                     const auto& neighbors = sub_graph.all_edges_[node];
                     for(const auto& another_node : neighbors) {
-                        if(visited[another_node]) { continue; }
+                        if(pre_visited[another_node] != MAX<size_t>) { continue; }
                         if(another_node == target_id) {
-                            return true;
+                            pre_visited[another_node] = node;
+//                            std::cout << "find path " << std::endl;
+                            // retrieve path
+                            LAMAPF_Path path;
+                            size_t buffer_node = another_node;
+                            while (buffer_node != start_id) {
+//                                std::cout << "buffer_node " << buffer_node << std::endl;
+                                path.push_back(buffer_node);
+                                buffer_node = pre_visited[buffer_node];
+                            }
+                            path.push_back(start_id);
+                            std::reverse(path.begin(), path.end());
+//                            std::cout << "find path size = " << path.size() << std::endl;
+                            return path;
                         }
                         next_nodes.push_back(another_node);
-                        visited[another_node] = true;
+                        pre_visited[another_node] = node;
                     }
                 }
                 std::swap(current_nodes, next_nodes);
             }
-            return false;
+            return {};
+        }
+
+        const std::vector<PosePtr<int, N> >& getAllPoses() const
+        {
+                return all_poses_;
         }
 
     private:
