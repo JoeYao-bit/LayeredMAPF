@@ -194,6 +194,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return  rotated_pt;
     }
 
+    float get_random_float(std::mt19937 *MT, float from=0, float to=0);
+
 }
 
 #endif //LAYEREDMAPF_COMMON_H

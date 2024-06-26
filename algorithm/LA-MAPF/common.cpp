@@ -106,4 +106,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return theta;
     }
 
+    float get_random_float(std::mt19937 *MT, float from, float to) {
+        std::uniform_real_distribution<float> r(from, to);
+        return r(*MT);
+    }
+
 }

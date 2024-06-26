@@ -6,15 +6,15 @@
 #include <gtest/gtest.h>
 #include <sstream>
 #include <string>
-#include "../algorithm/LA-MAPF/circle_shaped_agent.h"
-#include "../algorithm/LA-MAPF/block_shaped_agent.h"
+#include "../../algorithm/LA-MAPF/circle_shaped_agent.h"
+#include "../../algorithm/LA-MAPF/block_shaped_agent.h"
 
-#include "../algorithm/LA-MAPF/LaCAM/large_agent_lacam.h"
-#include "../algorithm/LA-MAPF/LaCAM/large_agent_lacam.h"
+#include "../../algorithm/LA-MAPF/LaCAM/large_agent_lacam.h"
+#include "../../algorithm/LA-MAPF/LaCAM/large_agent_lacam.h"
 
-#include "../freeNav-base/visualization/canvas/canvas.h"
-#include "../freeNav-base/dependencies/2d_grid/text_map_loader.h"
-#include "test_data.h"
+#include "../../freeNav-base/visualization/canvas/canvas.h"
+#include "../../freeNav-base/dependencies/2d_grid/text_map_loader.h"
+#include "../test_data.h"
 
 using namespace freeNav;
 using namespace freeNav::LayeredMAPF;
@@ -61,21 +61,29 @@ TEST(BlockAgentSubGraph, lacam_test) {
 
     // fake instances
     InstanceOrients<2> instances = {
-            {{{5, 3}, 0}, {{23, 22},0} },
-            {{{9, 2}, 0}, {{5, 22}, 0}},
-            {{{2, 5}, 0}, {{17, 22}, 3}}
+            {{{5, 3}, 0},  {{23, 22},0} },
+            {{{9, 2}, 0},  {{5, 22}, 0}},
+            {{{2, 5}, 0},  {{17, 22}, 3}},
+            {{{5, 7}, 0},  {{20, 23}, 2}},
+            {{{30, 7}, 0}, {{2, 23}, 2}}
     };
 //    const Pointf<2> min_pt_0{-.2, -.2}, max_pt_0{.2, .2},
 //                    min_pt_1{-.2, -.2}, max_pt_1{.2, .2},
 //                    min_pt_2{-.4, -.4}, max_pt_2{.4, .4};
-    const Pointf<2> min_pt_0{-.4, -.4}, max_pt_0{.4, .4},
-            min_pt_1{-.6, -.4}, max_pt_1{1., .4},
-            min_pt_2{-.3, -1.2}, max_pt_2{1., 1.2};
-    // NOTICE: initialize pt in constructor cause constant changed
+    const Pointf<2> min_pt_0{-.4, -.4},  max_pt_0{.4, .4},
+                    min_pt_1{-.6, -.4},  max_pt_1{1., .4},
+                    min_pt_2{-.3, -1.2}, max_pt_2{1., 1.2},
+                    min_pt_3{-.3, -1.2}, max_pt_3{1., 1.2},
+                    min_pt_4{-.3, -.6},  max_pt_4{1.2, .6};
+
+    // NOTICE: initialize pt in constructor cause constant changed, unknown reason
     const BlockAgents_2D agents({
                                         BlockAgent_2D(min_pt_0, max_pt_0, 0, dim),
                                         BlockAgent_2D(min_pt_1, max_pt_1, 1, dim),
-                                        BlockAgent_2D(min_pt_2, max_pt_2, 2, dim)
+                                        BlockAgent_2D(min_pt_2, max_pt_2, 2, dim),
+                                        BlockAgent_2D(min_pt_3, max_pt_3, 3, dim),
+                                        BlockAgent_2D(min_pt_4, max_pt_4, 4, dim)
+
                                 });
 
     const auto seed = 0;

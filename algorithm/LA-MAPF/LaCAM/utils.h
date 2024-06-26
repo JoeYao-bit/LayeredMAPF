@@ -126,10 +126,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
     template <Dimension N>
     using Candidates = std::vector<std::array<size_t, 2*N*2*N + 1> >;
 
-    float get_random_float(std::mt19937 *MT, float from=0, float to=0) {
-        std::uniform_real_distribution<float> r(from, to);
-        return r(*MT);
-    }
 }
 
 
