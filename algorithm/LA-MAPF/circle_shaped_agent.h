@@ -5,6 +5,7 @@
 #ifndef LAYEREDMAPF_CIRCLE_SHAPED_AGENT_H
 #define LAYEREDMAPF_CIRCLE_SHAPED_AGENT_H
 #include "common.h"
+#include "../../freeNav-base/visualization/canvas/canvas.h"
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
@@ -128,6 +129,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     template <Dimension N>
     using CircleAgents = std::vector<CircleAgent<N> >;
+
+    void DrawOnCanvas(const CircleAgent<2>& circle, const Pose<int, 2>& pose,
+                      Canvas& canvas, const cv::Vec3b& color = cv::Vec3b::all(0)) {
+        canvas.drawCircleInt(pose.pt_[0], pose.pt_[1], floor(circle.radius_*canvas.zoom_ratio_),
+                             true, -1, color);
+    }
 
 }
 

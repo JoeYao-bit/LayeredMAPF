@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 #include <random>
 #include "../../algorithm/LA-MAPF/large_agent_instance_generator.h"
-
+#include "../../algorithm/LA-MAPF/instance_serialize_and_deserialize.h"
 #include "../../freeNav-base/visualization/canvas/canvas.h"
 #include "../../freeNav-base/dependencies/2d_grid/text_map_loader.h"
 #include "../test_data.h"
@@ -84,7 +84,7 @@ TEST(LargeAgentMAPF_InstanceGenerator, test) {
                                                             .2, 1.,
                                                             .1);
 #else
-    const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(5,
+    const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(8,
                                                                 -.4, -.2,
                                                                 .2, 1.2,
                                                                 .2, 1.2,

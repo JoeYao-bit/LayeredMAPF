@@ -5,6 +5,7 @@
 #ifndef LAYEREDMAPF_BLOCK_SHAPED_AGENT_H
 #define LAYEREDMAPF_BLOCK_SHAPED_AGENT_H
 #include "common.h"
+#include "../../freeNav-base/visualization/canvas/canvas.h"
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
@@ -479,6 +480,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
 
     typedef std::vector<BlockAgent_2D> BlockAgents_2D;
+
+    void DrawOnCanvas(const BlockAgent_2D& block, const Pose<int, 2>& pose,
+                      Canvas& canvas, const cv::Vec3b& color = cv::Vec3b::all(0)) {
+        const auto& rect = block.getPosedRectangle(pose); // agents
+        canvas.drawRectangleFloat(rect.first, rect.second, true, -1, color);
+    }
 
 }
 
