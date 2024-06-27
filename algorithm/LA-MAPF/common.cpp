@@ -53,9 +53,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     RotateMatrixs initializeRotateMatrixs(const int& dim) {
         assert(dim == 2);
         RotateMatrixs retv;
+        std::cout << __FUNCTION__ << "..." << std::endl;
         for(int orient=0; orient<2*dim; orient++) {
             double theta = orientToPi_2D(orient);
-            std::cout << " theta = " << theta << std::endl;
+//            std::cout << " theta = " << theta << std::endl;
             retv.push_back(initRotateMatrix_2D(theta));
         }
         return retv;

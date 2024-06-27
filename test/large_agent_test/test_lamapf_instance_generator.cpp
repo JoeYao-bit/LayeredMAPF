@@ -75,7 +75,112 @@ bool draw_all_instance = false;
 bool draw_path = true;
 bool draw_full_path = true;
 
-#define CIRCLE_AGENT 0
+template<typename AgentType>
+void InstanceVisualization(const std::vector<AgentType>& agents,
+                           const LargeAgentMAPF_InstanceGenerator<2, AgentType>& generator,
+                           const std::vector<InstanceOrient<2> >& instances,
+                           const std::vector<LAMAPF_Path>& solution) {
+
+    // visualize instance
+    Canvas canvas("LargeAgentMAPF InstanceGenerator", dim[0], dim[1], .1, zoom_ratio);
+    int time_index = 0;
+
+
+    size_t makespan = getMakeSpan(solution);
+
+    while(true) {
+        canvas.resetCanvas();
+        canvas.drawEmptyGrid();
+        canvas.drawGridMap(dim, is_occupied);
+
+        if(draw_full_path) {
+            const auto& all_poses = generator.getAllPoses();
+            for(int i=0; i<solution.size(); i++) {
+                const auto& path = solution[i];
+                for(int t=0; t<path.size()-1; t++) {
+                    Pointi<2> pt1 = all_poses[path[t]]->pt_,
+                            pt2 = all_poses[path[t+1]]->pt_;
+                    canvas.drawLineInt(pt1[0], pt1[1], pt2[0], pt2[1], true, zoom_ratio/10, COLOR_TABLE[(i) % 30]);
+                }
+            }
+        }
+        if(draw_all_instance) {
+            for (int i=0; i<instances.size(); i++)
+            {
+                //const auto &instance = instances[current_subgraph_id]; // zoom_ratio/10
+                const auto &instance = instances[i]; // zoom_ratio/10
+                DrawOnCanvas(agents[i], instance.first, canvas, COLOR_TABLE[i%30]);
+
+                DrawOnCanvas(agents[i], instance.second, canvas, COLOR_TABLE[i%30]);
+
+                canvas.drawArrowInt(instance.first.pt_[0], instance.first.pt_[1], -orientToPi_2D(instance.first.orient_), 1, zoom_ratio/10);
+                canvas.drawArrowInt(instance.second.pt_[0], instance.second.pt_[1], -orientToPi_2D(instance.second.orient_) , 1, zoom_ratio/10);
+
+            }
+        }
+        if(draw_path) {
+            const auto& all_poses = generator.getAllPoses();
+            for(int i=0; i<solution.size(); i++) {
+                const auto& path = solution[i];
+                Pointi<2> pt;
+                int orient = 0;
+                if(time_index <= path.size() - 1) {
+                    pt     = all_poses[path[time_index]]->pt_;
+                    orient = all_poses[path[time_index]]->orient_;
+                } else {
+                    pt     = all_poses[path.back()]->pt_;
+                    orient = all_poses[path.back()]->orient_;
+                }
+
+                DrawOnCanvas(agents[i], {pt, orient}, canvas, COLOR_TABLE[(i) % 30]);
+
+                canvas.drawArrowInt(pt[0], pt[1], -orientToPi_2D(orient), 1, zoom_ratio/10);
+
+            }
+        }
+        char key = canvas.show(1000);
+        switch (key) {
+            case 'i':
+                draw_all_instance = !draw_all_instance;
+                break;
+            case 'w':
+                current_subgraph_id ++;
+                current_subgraph_id = current_subgraph_id % instances.size();
+                std::cout << "-- switch to subgraph " << current_subgraph_id << std::endl;
+                break;
+            case 's':
+                current_subgraph_id --;
+                current_subgraph_id = (current_subgraph_id + instances.size()) % instances.size();
+                std::cout << "-- switch to subgraph " << current_subgraph_id << std::endl;
+                break;
+            case 'p':
+                draw_path = !draw_path;
+                break;
+            case 'f':
+                draw_full_path = !draw_full_path;
+                break;
+            case 'q':
+                if(makespan > 0) {
+                    time_index = time_index + makespan - 1;
+                    time_index = time_index % makespan;
+                    std::cout << "-- switch to time index = " << time_index << std::endl;
+                }
+                break;
+            case 'e':
+                if(makespan > 0) {
+                    time_index++;
+                    time_index = time_index % makespan;
+                    std::cout << "-- switch to time index = " << time_index << std::endl;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+
+#define CIRCLE_AGENT 1
 
 TEST(LargeAgentMAPF_InstanceGenerator, test) {
 
@@ -84,7 +189,7 @@ TEST(LargeAgentMAPF_InstanceGenerator, test) {
                                                             .2, 1.,
                                                             .1);
 #else
-    const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(8,
+    const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(5,
                                                                 -.4, -.2,
                                                                 .2, 1.2,
                                                                 .2, 1.2,
@@ -100,7 +205,7 @@ TEST(LargeAgentMAPF_InstanceGenerator, test) {
         std::cout << "CircleAgent " << i << ": "<< agent.radius_ << " " << std::endl;
     }
 #else
-    LargeAgentMAPF_InstanceGenerator<2, BlockAgent_2D > generator(agents, is_occupied, dim);
+    LargeAgentMAPF_InstanceGenerator<2, BlockAgent_2D > generator(agents, is_occupied, dim, 1e7);
     for(int i=0; i<agents.size(); i++) {
         const auto& agent = agents[i];
         std::cout << "BlockAgent " << i << ": " << agent.min_pt_ << " " << agent.max_pt_ << std::endl;
@@ -116,123 +221,73 @@ TEST(LargeAgentMAPF_InstanceGenerator, test) {
         return;
     }
 
+    InstanceOrients<2> instances;
+    for(int i=0; i<instances_and_path.size(); i++) {
+        instances.push_back(instances_and_path[i].first);
+    }
+
     std::vector<LAMAPF_Path> solution;
     for(int i=0; i<instances_and_path.size(); i++) {
         solution.push_back(instances_and_path[i].second);
     }
-    size_t makespan = getMakeSpan(solution);
 
-    // visualize instance
-    Canvas canvas("LargeAgentMAPF InstanceGenerator", dim[0], dim[1], .1, zoom_ratio);
-    int time_index = 0;
-    while(true) {
-        canvas.resetCanvas();
-        canvas.drawEmptyGrid();
-        canvas.drawGridMap(dim, is_occupied);
-        if(draw_all_instance) {
-            for (int i=0; i<instances_and_path.size(); i++)
-            {
-                //const auto &instance = instances[current_subgraph_id]; // zoom_ratio/10
-                const auto &instance = instances_and_path[i].first; // zoom_ratio/10
-                canvas.drawGrid(instance.first.pt_[0], instance.first.pt_[1], COLOR_TABLE[(2 + i)%30]);
-                canvas.drawArrowInt(instance.first.pt_[0], instance.first.pt_[1], 0 , 1, zoom_ratio/10);
-
-                canvas.drawGrid(instance.second.pt_[0], instance.second.pt_[1], COLOR_TABLE[(2 + i)%30]);
-                canvas.drawArrowInt(instance.second.pt_[0], instance.second.pt_[1], 0 , 1, zoom_ratio/10);
-
-            }
-        }
-        if(draw_full_path) {
-            const auto& all_poses = generator.getAllPoses();
-            for(int i=0; i<instances_and_path.size(); i++) {
-                const auto& path = instances_and_path[i].second;
-                for(int t=0; t<path.size()-1; t++) {
-                    Pointi<2> pt1 = all_poses[path[t]]->pt_,
-                              pt2 = all_poses[path[t+1]]->pt_;
-                    canvas.drawLineInt(pt1[0], pt1[1], pt2[0], pt2[1], true, zoom_ratio/10, COLOR_TABLE[(i) % 30]);
-                }
-            }
-        }
-        if(draw_path) {
-            const auto& all_poses = generator.getAllPoses();
-            for(int i=0; i<instances_and_path.size(); i++) {
-                const auto& path = instances_and_path[i].second;
-                Pointi<2> pt;
-                int orient = 0;
-                if(time_index <= path.size() - 1) {
-                    pt     = all_poses[path[time_index]]->pt_;
-                    orient = all_poses[path[time_index]]->orient_;
-                } else {
-                    pt     = all_poses[path.back()]->pt_;
-                    orient = all_poses[path.back()]->orient_;
-                }
-//                const auto& rect = lacam.agents_[i].getPosedRectangle({pt, orient}); // agents
-//                canvas.drawRectangleFloat(rect.first, rect.second, true, -1, COLOR_TABLE[(i) % 30]);
-//                //std::cout << "rect " << rect.first << ", " << rect.second << std::endl;
 #if CIRCLE_AGENT
-                canvas.drawCircleInt(pt[0], pt[1], floor(agents[i].radius_*zoom_ratio),
-                                     true, -1,
-                                     COLOR_TABLE[(2+i) % 30]);
+    InstanceSerializer<2, CircleAgent<2> > serializer(agents, instances);
+    auto file_path = map_test_config.at("crc_ins_path");
 #else
-                const auto& rect = agents[i].getPosedRectangle({pt, orient}); // agents
-                canvas.drawRectangleFloat(rect.first, rect.second, true, -1, COLOR_TABLE[(i) % 30]);
+    InstanceSerializer<2, BlockAgent_2D > serializer(agents, instances);
+    auto file_path = map_test_config.at("blk_ins_path");
 #endif
-                double theta = 0;
-                switch (orient) {
-                    case 0:
-                        theta = 0;
-                        break;
-                    case 1:
-                        theta = M_PI;
-                        break;
-                    case 2:
-                        theta = 3*M_PI/2;
-                        break;
-                    case 3:
-                        theta = M_PI/2;
-                        break;
-                    default:
-                        std::cerr << "wrong 2D orient = " << orient << std::endl;
-                        exit(0);
-                        break;
-                }
-                canvas.drawArrowInt(pt[0], pt[1], theta , 1, zoom_ratio/10);
 
-            }
-        }
-        char key = canvas.show(1000);
-        switch (key) {
-            case 'i':
-                draw_all_instance = !draw_all_instance;
-                break;
-            case 'w':
-                current_subgraph_id ++;
-                current_subgraph_id = current_subgraph_id % instances_and_path.size();
-                std::cout << "-- switch to subgraph " << current_subgraph_id << std::endl;
-                break;
-            case 's':
-                current_subgraph_id --;
-                current_subgraph_id = (current_subgraph_id + instances_and_path.size()) % instances_and_path.size();
-                std::cout << "-- switch to subgraph " << current_subgraph_id << std::endl;
-                break;
-            case 'p':
-                draw_path = !draw_path;
-                break;
-            case 'f':
-                draw_full_path = !draw_full_path;
-                break;
-            case 'q':
-                time_index = time_index + makespan - 1;
-                time_index = time_index % makespan;
-                std::cout << "-- switch to time index = " << time_index << std::endl;
-                break;
-            case 'e':
-                time_index ++;
-                time_index = time_index % makespan;
-                std::cout << "-- switch to time index = " << time_index << std::endl;
-                break;
-            default:
-                break;
-        }
+    if(serializer.saveToFile(file_path)) {
+        std::cout << "save to path " << file_path << " success" << std::endl;
+    } else {
+        std::cout << "save to path " << file_path << " failed" << std::endl;
     }
+
+#if CIRCLE_AGENT
+    InstanceVisualization<CircleAgent<2> >(agents, generator, instances, solution);
+#else
+    InstanceVisualization<BlockAgent_2D>(agents, generator, instances, solution);
+#endif
+
+}
+
+TEST(LargeAgentInstanceLoader, test) {
+
+#if CIRCLE_AGENT
+    auto file_path = map_test_config.at("crc_ins_path");
+#else
+    auto file_path = map_test_config.at("blk_ins_path");
+#endif
+
+#if CIRCLE_AGENT
+    InstanceDeserializer<2, CircleAgent<2> > deserializer;
+    if(deserializer.loadInstanceFromFile(file_path, dim)) {
+        std::cout << "load from path " << file_path << " success" << std::endl;
+    } else {
+        std::cout << "load from path " << file_path << " failed" << std::endl;
+        return;
+    }
+#else
+    InstanceDeserializer<2, BlockAgent_2D> deserializer;
+    if(deserializer.loadInstanceFromFile(file_path, dim)) {
+        std::cout << "load from path " << file_path << " success" << std::endl;
+    } else {
+        std::cout << "load from path " << file_path << " failed" << std::endl;
+        return;
+    }
+#endif
+
+#if CIRCLE_AGENT
+    LargeAgentMAPF_InstanceGenerator<2, CircleAgent<2> > generator(deserializer.getAgents(), is_occupied, dim);
+#else
+    LargeAgentMAPF_InstanceGenerator<2, BlockAgent_2D > generator(deserializer.getAgents(), is_occupied, dim);
+#endif
+
+#if CIRCLE_AGENT
+    InstanceVisualization<CircleAgent<2> >(deserializer.getAgents(), generator, deserializer.getInstances(), {});
+#else
+    InstanceVisualization<BlockAgent_2D>(deserializer.getAgents(), generator, deserializer.getInstances(), {});
+#endif
 }

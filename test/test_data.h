@@ -66,7 +66,9 @@ namespace freeNav::LayeredMAPF{
                     {"decomposition_output_path", "../test/test_data/decomposition/maze-32-32-4_de.txt"},
                     {"agent_num",    "240"},
                     {"cut_off_time", "200"},
-                    {"max_run_time", "60"} // in second
+                    {"max_run_time", "60"}, // in second
+                    {"crc_ins_path", "../test/test_data/large_agent_instance/maze-32-32-4_crc.txt"},
+                    {"blk_ins_path", "../test/test_data/large_agent_instance/maze-32-32-4_blk.txt"}
             };
 
     SingleMapTestConfig<2> MAPFTestConfig_Berlin_1_256 =

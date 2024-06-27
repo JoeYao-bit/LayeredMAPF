@@ -78,6 +78,40 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return false;
         }
 
+        // serialize as a mapf problem
+        std::string serialize(const Pose<int, N>& start_pose, const Pose<int, N>& target_pose) const {
+            std::stringstream ss;
+            ss << this->id_ << " "
+               << radius_ << " ";
+            for(int i=0; i<N; i++) {
+                ss << start_pose.pt_[i] << " ";
+            }
+            ss << start_pose.orient_ << " ";
+            for(int i=0; i<N; i++) {
+                ss << target_pose.pt_[i] << " ";
+            }
+            ss << target_pose.orient_;
+            return ss.str();
+        }
+
+        static std::pair<CircleAgent<N>, InstanceOrient<N> > deserialize(const std::string& string, DimensionLength* dim) {
+            std::vector<std::string> strs;
+            boost::split(strs, string, boost::is_any_of(" "), boost::token_compress_on);
+            assert(strs.size() == 4 + 2*N);
+            int id = atoi(strs[0].c_str());
+            Pointi<N> start_pt, target_pt;
+            for(int i=0; i<N; i++) {
+                start_pt[i]  = atoi(strs[i+2].c_str());
+                target_pt[i] = atoi(strs[i+2 + N+1].c_str());
+            }
+
+            Pose<int, N> start_pose (start_pt,  atoi(strs[2 + N].c_str()));
+            Pose<int, N> target_pose(target_pt, atoi(strs[3 + 2*N].c_str()));
+
+            CircleAgent<N> agent(atof(strs[1].c_str()), id);
+            return {agent, {start_pose, target_pose}};
+        }
+
         float radius_ = 1.;
 
     };
@@ -87,54 +121,24 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     // check whether two moving circle are collide with each other
     bool isCollide(const CircleAgent<2>& a1, const Pose<int, 2>& s1, const Pose<int, 2>& e1,
-                   const CircleAgent<2>& a2, const Pose<int, 2>& s2, const Pose<int, 2>& e2) {
-
-        namespace bg = boost::geometry;
-        using bg_pt = bg::model::point<int, 2, bg::cs::cartesian>;
-        using bg_seg = bg::model::segment<bg_pt>;
-        // calculate the shortest distance between two segments
-        bg_pt pt1(s1.pt_[0], s1.pt_[1]), pt2(e1.pt_[0], e1.pt_[1]),
-                pt3(s2.pt_[0], s2.pt_[1]), pt4(e2.pt_[0], e2.pt_[1]);
-        bg_seg seg1(pt1, pt2), seg2(pt3, pt4);
-        //std::cout << " bg::distance(seg1, seg2) = " << bg::distance(seg1, seg2) << std::endl;
-        return bg::distance(seg1, seg2) <= (a1.radius_ + a2.radius_);
-    }
+                   const CircleAgent<2>& a2, const Pose<int, 2>& s2, const Pose<int, 2>& e2);
 
     // check whether one moving circle are collide with one waiting circle
     bool isCollide(const CircleAgent<2>& a1, const Pose<int, 2>& s1, const Pose<int, 2>& e1,
-                   const CircleAgent<2>& a2, const Pose<int, 2>& s2) {
-
-        namespace bg = boost::geometry;
-        using bg_pt = bg::model::point<int, 2, bg::cs::cartesian>;
-        using bg_seg = bg::model::segment<bg_pt>;
-        // calculate the shortest distance between a point and a segment
-        bg_pt pt1(s1.pt_[0], s1.pt_[1]), pt2(e1.pt_[0], e1.pt_[1]),
-                pt3(s2.pt_[0], s2.pt_[1]);
-        bg_seg seg1(pt1, pt2);
-        //std::cout << " bg::distance(seg1, pt3) = " << bg::distance(seg1, pt3) << std::endl;
-        return bg::distance(seg1, pt3) <= (a1.radius_ + a2.radius_);
-    }
+                   const CircleAgent<2>& a2, const Pose<int, 2>& s2);
 
     // check whether one moving circle are collide with one waiting circle
     bool isCollide(const CircleAgent<2>& a1, const Pose<int, 2>& s1,
-                   const CircleAgent<2>& a2, const Pose<int, 2>& s2, const Pose<int, 2>& e2) {
-
-        return isCollide(a2, s2, e2, a1, s1);
-    }
+                   const CircleAgent<2>& a2, const Pose<int, 2>& s2, const Pose<int, 2>& e2);
 
     bool isCollide(const CircleAgent<2>& a1, const Pose<int, 2>& s1,
-                   const CircleAgent<2>& a2, const Pose<int, 2>& s2) {
-        return (a1.radius_ + a2.radius_) >= (s1.pt_ - s2.pt_).Norm();
-    }
+                   const CircleAgent<2>& a2, const Pose<int, 2>& s2);
 
     template <Dimension N>
     using CircleAgents = std::vector<CircleAgent<N> >;
 
     void DrawOnCanvas(const CircleAgent<2>& circle, const Pose<int, 2>& pose,
-                      Canvas& canvas, const cv::Vec3b& color = cv::Vec3b::all(0)) {
-        canvas.drawCircleInt(pose.pt_[0], pose.pt_[1], floor(circle.radius_*canvas.zoom_ratio_),
-                             true, -1, color);
-    }
+                      Canvas& canvas, const cv::Vec3b& color = cv::Vec3b::all(0));
 
 }
 

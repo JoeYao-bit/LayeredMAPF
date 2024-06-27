@@ -269,26 +269,7 @@ void startCBSTest(const std::vector<AgentType>& agents, const InstanceOrients<2>
                 //std::cout << "rect " << rect.first << ", " << rect.second << std::endl;
 
                 DrawOnCanvas(lacbs.agents_[i], {pt, orient}, canvas, COLOR_TABLE[(i) % 30]);
-                double theta = 0;
-                switch (orient) {
-                    case 0:
-                        theta = 0;
-                        break;
-                    case 1:
-                        theta = M_PI;
-                        break;
-                    case 2:
-                        theta = 3*M_PI/2;
-                        break;
-                    case 3:
-                        theta = M_PI/2;
-                        break;
-                    default:
-                        std::cerr << "wrong 2D orient = " << orient << std::endl;
-                        exit(0);
-                        break;
-                }
-                canvas.drawArrowInt(pt[0], pt[1], theta , 1, zoom_ratio/10);
+                canvas.drawArrowInt(pt[0], pt[1], -orientToPi_2D(orient) , 1, zoom_ratio/10);
 
             }
         }
@@ -296,11 +277,11 @@ void startCBSTest(const std::vector<AgentType>& agents, const InstanceOrients<2>
             //for (int i=0; i<instances.size(); i++)
             {
                 const auto &instance = instances[current_subgraph_id];
-                canvas.drawGrid(instance.first.pt_[0], instance.first.pt_[1], COLOR_TABLE[(2 + current_subgraph_id)%30]);
-                canvas.drawArrowInt(instance.first.pt_[0], instance.first.pt_[1], 0 , 1, zoom_ratio/2);
+                DrawOnCanvas(agents[current_subgraph_id], instance.first, canvas, COLOR_TABLE[current_subgraph_id%30]);
+                canvas.drawArrowInt(instance.first.pt_[0], instance.first.pt_[1], -orientToPi_2D(instance.first.orient_) , 1, zoom_ratio/10);
 
-                canvas.drawGrid(instance.second.pt_[0], instance.second.pt_[1], COLOR_TABLE[(2 + current_subgraph_id)%30]);
-                canvas.drawArrowInt(instance.second.pt_[0], instance.second.pt_[1], 0 , 1, zoom_ratio/2);
+                DrawOnCanvas(agents[current_subgraph_id], instance.second, canvas, COLOR_TABLE[current_subgraph_id%30]);
+                canvas.drawArrowInt(instance.second.pt_[0], instance.second.pt_[1], -orientToPi_2D(instance.second.orient_), 1, zoom_ratio/10);
 
             }
         }
