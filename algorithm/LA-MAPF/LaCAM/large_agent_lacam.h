@@ -10,7 +10,7 @@
 #include "../block_shaped_agent.h"
 #include "../large_agent_mapf.h"
 #include "large_agent_constraint.h"
-
+#include <random>
 namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
 
     template<Dimension N, typename AgentType>
@@ -19,11 +19,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
         LargeAgentLaCAM(const InstanceOrients<N> & instances,
                         const std::vector<AgentType>& agents,
                         DimensionLength* dim,
-                        const IS_OCCUPIED_FUNC<N> & isoc,
-                        std::mt19937 *_MT)
+                        const IS_OCCUPIED_FUNC<N> & isoc)
                         : LargeAgentMAPF<N, AgentType>(instances, agents, dim, isoc),
                           V_size(LargeAgentLaCAM<N, AgentType>::all_poses_.size()),
-                          MT(_MT),
                           C_next(Candidates<N>(agents.size(), std::array<size_t , 2*N*2*N + 1>())), // yz: possible rotation multiple possible transition plus wait
                           tie_breakers(std::vector<float>(V_size, 0)),
                           A(Agents(agents.size(), nullptr)),
@@ -36,6 +34,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
                 targets[agent] = this->instance_node_ids_[agent].second;
             }
             distance_to_target = calculateDistanceToTargetTables();
+            std::random_device rd;
+            const auto seed = rd();
+            MT = new std::mt19937(seed);
+        }
+
+        ~LargeAgentLaCAM() {
+            delete MT;
         }
 
         std::vector<LAMAPF_Path> transferToSerialPath(const Solution& solution) const {

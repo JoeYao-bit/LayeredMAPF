@@ -319,8 +319,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     //protected:
         // initial constant values
-        const InstanceOrients<N> instances_;
-        const std::vector<AgentType>& agents_;
+        InstanceOrients<N> instances_;
+        std::vector<AgentType> agents_;
         DimensionLength* dim_;
         const IS_OCCUPIED_FUNC<N>& isoc_;
 

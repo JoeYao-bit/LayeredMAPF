@@ -126,6 +126,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
         }
 
+        ~LargeAgentMAPF_InstanceGenerator() {
+            for(int i=0; i<all_poses_.size(); i++) {
+                if(all_poses_[i] != nullptr) {
+                    delete all_poses_[i];
+                    all_poses_[i] = nullptr;
+                }
+            }
+        }
+
         // if agent failed to find legal instance, repick
         std::vector< std::pair<InstanceOrient<N>, LAMAPF_Path> > getNewInstance() const {
             std::vector< std::pair<InstanceOrient<N>, LAMAPF_Path> > new_instances;

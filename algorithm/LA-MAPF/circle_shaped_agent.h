@@ -6,7 +6,7 @@
 #define LAYEREDMAPF_CIRCLE_SHAPED_AGENT_H
 #include "common.h"
 #include "../../freeNav-base/visualization/canvas/canvas.h"
-
+#include <ostream>
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
     template <Dimension N>
@@ -116,6 +116,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     };
 
+    template<Dimension N>
+    std::ostream& operator << (std::ostream& os, const CircleAgent<N>& circle) {
+        os << "CircleAgent " << circle.id_ << ": "<< circle.radius_ << " ";
+        return os;
+    }
 
     // detect collision between agents
 

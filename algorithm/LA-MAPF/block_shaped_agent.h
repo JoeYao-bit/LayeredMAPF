@@ -364,6 +364,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //        return false;
 //    }
 
+    std::ostream& operator << (std::ostream& os, const BlockAgent_2D& block);
+
     // check whether two moving circle are collide with each other
     bool isCollide(const BlockAgent_2D& a1, const Pose<int, 2>& s1, const Pose<int, 2>& e1,
                    const BlockAgent_2D& a2, const Pose<int, 2>& s2, const Pose<int, 2>& e2);

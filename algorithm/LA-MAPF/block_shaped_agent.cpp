@@ -160,4 +160,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         canvas.drawRectangleFloat(rect.first, rect.second, true, -1, color);
     }
 
+    std::ostream& operator << (std::ostream& os, const BlockAgent_2D& block) {
+        os << "BlockAgent_2D " << block.id_ << ": "<< block.min_pt_ << " " << block.max_pt_ << " ";
+        return os;
+    }
+
 }
