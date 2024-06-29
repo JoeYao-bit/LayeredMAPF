@@ -112,6 +112,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                const IS_OCCUPIED_FUNC<N>& isoc,
                                const DistanceMapUpdater<N>& distance_table) const = 0;
 
+//        virtual std::pair<Pointis<N>, Pointis<N>> getCoverageGridWithinPose(const Pose<int, N>& pose) const = 0;
+
         float excircle_radius_, incircle_radius_;
 
         int id_;
@@ -213,6 +215,22 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     }
 
     float get_random_float(std::mt19937 *MT, float from=0, float to=0);
+
+    // a N-dimensional grid have 2^N corner
+    template<Dimension N>
+    Pointfs<N> getAllCornerOfGrid() {
+        Pointf<N> ptf;
+        Pointfs<N> retv;
+        Pointis<N> offsets = GetNeightborOffsetGrids<N>(true);
+//        std::cout << "offsets " << offsets.size() << std::endl;
+        for(const auto& offset : offsets) {
+            for(int i=0; i<N; i++) {
+                ptf[i] = offset[i]/2.;
+            }
+            retv.push_back(ptf);
+        }
+        return retv;
+    }
 
 }
 

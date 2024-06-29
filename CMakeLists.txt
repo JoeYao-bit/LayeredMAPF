@@ -144,3 +144,6 @@ target_link_libraries(test_lamapf_lacam freeNav-base alg_lib)
 
 add_executable(test_lamapf_instance_generator test/large_agent_test/test_lamapf_instance_generator.cpp)
 target_link_libraries(test_lamapf_instance_generator freeNav-base alg_lib)
+
+add_executable(test_coverage_grid test/large_agent_test/test_coverage_grid.cpp)
+target_link_libraries(test_coverage_grid freeNav-base alg_lib)

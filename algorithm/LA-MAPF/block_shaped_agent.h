@@ -385,7 +385,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     typedef std::vector<BlockAgent_2D> BlockAgents_2D;
 
     void DrawOnCanvas(const BlockAgent_2D& block, const Pose<int, 2>& pose,
-                      Canvas& canvas, const cv::Vec3b& color = cv::Vec3b::all(0));
+                      Canvas& canvas, const cv::Vec3b& color = cv::Vec3b::all(0), bool fill = true);
 
     std::string serialize(const BlockAgent_2D& block, const Pose<int, 2>& pose);
 

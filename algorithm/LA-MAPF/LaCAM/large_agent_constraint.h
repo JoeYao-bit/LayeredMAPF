@@ -14,7 +14,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
     template<Dimension N, typename AgentType>
     struct LargeAgentConstraints {
     public:
-        explicit LargeAgentConstraints(const std::vector<PosePtr<int, N>>& all_nodes, const std::vector<AgentType>& agents, const std::vector<size_t>& occupied_now)
+        explicit LargeAgentConstraints(const std::vector<PosePtr<int, N>>& all_nodes,
+                                       const std::vector<AgentType>& agents,
+                                       const std::vector<size_t>& occupied_now)
         : agents(agents), all_nodes(all_nodes), occupied_now(occupied_now) {
             assert(occupied_now.size() == agents.size());
             occupied_next.resize(agents.size(), MAX<size_t>);
@@ -90,6 +92,47 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
         const std::vector<PosePtr<int, N>>& all_nodes;
         std::vector<size_t> occupied_now;
         std::vector<size_t> occupied_next;
+
+    };
+
+    // consider static grid map when construct sub graph
+    template<Dimension N, typename AgentType>
+    struct LargeAgentConstraintTable {
+    public:
+        explicit LargeAgentConstraintTable(const std::vector<PosePtr<int, N>>& all_nodes,
+                                           const std::vector<AgentType>& agents,
+                                           const std::vector<size_t>& occupied_now,
+                                           DimensionLength* dim)
+        : agents_(agents), all_nodes_(all_nodes), dim_(dim) {
+            assert(occupied_now.size() == agents.size());
+            Id total_index = getTotalIndexOfSpace<N>(dim);
+            occupied_grids_.resize(total_index);
+        }
+
+        void setAgentOccupied(const int& agent_id, const int& node_id) {
+//            const auto& grids = agents_[agent_id].getGridWithinPose(all_nodes_[node_id]);
+//            Id temp_id;
+//            for(const auto& pt : grids) {
+//                temp_id = PointiToId(pt, dim_);
+//            }
+        }
+
+
+
+        struct OccupiedGrid {
+            bool full_occupied_ = false;
+            std::vector<int> occ_ids_; // a grid may occupied by several agent partially, but can only be full occupied by one agent
+            // need check overlap between agent and agent if they both partially occupied the same grid
+        };
+
+    private:
+        const std::vector<AgentType>& agents_;
+
+        const std::vector<PosePtr<int, N> >& all_nodes_;
+
+        std::vector<OccupiedGrid> occupied_grids_;
+
+        DimensionLength* dim_;
 
     };
 

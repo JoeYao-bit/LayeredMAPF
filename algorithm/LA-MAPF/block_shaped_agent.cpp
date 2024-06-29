@@ -155,9 +155,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
 
     void DrawOnCanvas(const BlockAgent_2D& block, const Pose<int, 2>& pose,
-                      Canvas& canvas, const cv::Vec3b& color) {
+                      Canvas& canvas, const cv::Vec3b& color, bool fill) {
         const auto& rect = block.getPosedRectangle(pose); // agents
-        canvas.drawRectangleFloat(rect.first, rect.second, true, -1, color);
+        canvas.drawRectangleFloat(rect.first, rect.second, true, fill ? -1 : 1, color);
     }
 
     std::ostream& operator << (std::ostream& os, const BlockAgent_2D& block) {

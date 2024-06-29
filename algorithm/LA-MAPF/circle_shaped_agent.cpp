@@ -49,9 +49,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     }
 
     void DrawOnCanvas(const CircleAgent<2>& circle, const Pose<int, 2>& pose,
-                      Canvas& canvas, const cv::Vec3b& color) {
+                      Canvas& canvas, const cv::Vec3b& color, bool fill) {
         canvas.drawCircleInt(pose.pt_[0], pose.pt_[1], floor(circle.radius_*canvas.zoom_ratio_),
-                             true, -1, color);
+                             true, fill ? -1 : 1, color);
 
     }
 

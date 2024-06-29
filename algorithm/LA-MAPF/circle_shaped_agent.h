@@ -9,10 +9,66 @@
 #include <ostream>
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
+    template<Dimension N>
+    std::pair<Pointis<N>, Pointis<N> > getCircleCoverage(const float& radius) {
+        assert(radius > 0.);
+        Pointis<N> retv_full, retv_part;
+        DimensionLength dim[N];
+        Pointi<N> center_pt;
+        for(int i=0; i<N; i++) {
+            dim[i] = 2*ceil(radius) + 1;
+            center_pt[i] = ceil(radius);
+        }
+//        std::cout << "radius " << radius << std::endl;
+//        std::cout << "center_pt " << center_pt << std::endl;
+        Pointi<N> temp_pt;
+        Pointf<N> temp_ptf;
+        Id total_index = getTotalIndexOfSpace<N>(dim);
+        float temp_dist, max_dist, min_dist;
+        const auto& corners = getAllCornerOfGrid<N>();
+        for(int id=0; id<total_index; id++) {
+            temp_pt = IdToPointi<N>(id, dim);
+            temp_pt = temp_pt - center_pt;
+//            std::cout << "temp_pt " << temp_pt << std::endl;
+            max_dist = 0, min_dist = MAX<float>;
+            for(const auto& offset : corners) {
+                for(int i=0; i<N; i++) {
+                    temp_ptf[i] = offset[i] + temp_pt[i];
+                }
+                temp_dist = temp_ptf.Norm();
+                if(temp_dist > max_dist) {
+                    max_dist = temp_dist;
+                }
+                if(temp_dist < min_dist) {
+                    min_dist = temp_dist;
+                }
+            }
+//            std::cout << " max_dist " << max_dist << ", min_dist " << min_dist << std::endl;
+            if(min_dist > radius) {
+                if(temp_pt == Pointi<N>()) {
+                    // current agent may small than a grid, considering as part occupied
+                    retv_part.push_back(temp_pt);
+                }
+                continue;
+            }
+            if(max_dist < radius) {
+                retv_full.push_back(temp_pt);
+            } else {
+                retv_part.push_back(temp_pt);
+            }
+        }
+        return {retv_full, retv_part};
+    }
+
     template <Dimension N>
     struct CircleAgent : public Agent<N> {
 
-        CircleAgent(float radius, int id) : Agent<N>(radius, radius, id), radius_(radius) {}
+        CircleAgent(float radius, int id)
+        : Agent<N>(radius, radius, id), radius_(radius) {
+
+            occupied_grids_ = getCircleCoverage<N>(radius);
+
+        }
 
         virtual bool isCollide(const Pose<int, N>& pose,
                                DimensionLength* dim,
@@ -78,6 +134,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return false;
         }
 
+        std::pair<Pointis<N>, Pointis<N>> getCoverageGridWithinPose(const Pose<int, N>& pose) const {
+            // circle have no need to rotate
+            Pointis<2> retv_full = {}, retv_part = {};
+            for(const auto& grid : occupied_grids_.first) {
+                retv_full.push_back(grid + pose.pt_);
+            }
+            for(const auto& grid : occupied_grids_.second) {
+                retv_part.push_back(grid + pose.pt_);
+            }
+            return {retv_full, retv_part};
+        }
+
         // serialize as a mapf problem
         std::string serialize(const Pose<int, N>& start_pose, const Pose<int, N>& target_pose) const {
             std::stringstream ss;
@@ -114,6 +182,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         float radius_ = 1.;
 
+        // which grid the agent occupied, include full occupied and partially occupied
+        std::pair<Pointis<N>, Pointis<N> > occupied_grids_;
+
     };
 
     template<Dimension N>
@@ -143,7 +214,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     using CircleAgents = std::vector<CircleAgent<N> >;
 
     void DrawOnCanvas(const CircleAgent<2>& circle, const Pose<int, 2>& pose,
-                      Canvas& canvas, const cv::Vec3b& color = cv::Vec3b::all(0));
+                      Canvas& canvas, const cv::Vec3b& color = cv::Vec3b::all(0), bool fill = true);
 
 }
 
