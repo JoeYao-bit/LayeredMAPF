@@ -273,7 +273,7 @@ void loadInstanceAndPlanning(const std::string& file_path) {
     std::cout << "find solution ? " << solved << " in " << time_cost << "ms " << std::endl;
     std::cout << "solution validation ? " << method.solutionValidation() << std::endl;
 
-//    InstanceVisualization<AgentType>(deserializer.getAgents(), generator, deserializer.getInstances(), method.getSolution());
+    InstanceVisualization<AgentType>(deserializer.getAgents(), generator, deserializer.getInstances(), method.getSolution());
 
 }
 

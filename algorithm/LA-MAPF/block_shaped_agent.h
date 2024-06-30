@@ -13,8 +13,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
 
     template<Dimension N>
-    Pointis<N> getBlockCoverage(const Pointf<N>& min_pt, const Pointf<N>& max_pt) {
-        Pointis<N> retv;
+    std::pair<Pointis<N>, Pointis<N> > getBlockCoverage(const Pointf<N>& min_pt, const Pointf<N>& max_pt) {
+        Pointis<N> retv_full, retv_part;
         Pointi<N> min_pti, max_pti;
         DimensionLength dim[N];
         for(int i=0; i<N; i++) {
@@ -24,31 +24,38 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
         Id total_index = getTotalIndexOfSpace<N>(dim);
         Pointi<N> temp_pt;
+        bool full_occ = true;
         for(int id=0; id<total_index; id++) {
             temp_pt = min_pti + IdToPointi<N>(id, dim);
-            retv.push_back(temp_pt);
+            full_occ = true;
+            for(int i=0; i<N; i++) {
+                if(temp_pt[i] < min_pt[i] + 0.5 || temp_pt[i] > max_pt[i] - 0.5) {
+                    full_occ = false;
+                    break;
+                }
+            }
+            if(full_occ) {
+                retv_full.push_back(temp_pt);
+            } else {
+                retv_part.push_back(temp_pt);
+            }
         }
-        return retv;
+        return {retv_full, retv_part};
     }
 
     template<Dimension N>
     float getInnerRadiusOfBlock(const Pointf<N>& min, const Pointf<N>& max) {
-        Pointf<N> dim = max - min;
         float min_dim = MAX<float>;
         for(int i=0; i<N; i++) {
-            min_dim = std::min(min_dim, dim[i]);
+            min_dim = std::min(min_dim, fabs(max[i]));
+            min_dim = std::min(min_dim, fabs(min[i]));
         }
-        return min_dim/N;
+        return min_dim;
     }
 
     template<Dimension N>
     float getOuterRadiusOfBlock(const Pointf<N>& min, const Pointf<N>& max) {
-        Pointf<2> dim = max - min;
-        float square = 0;
-        for(int i=0; i<N; i++) {
-            square += dim[i]*dim[i];
-        }
-        return sqrt(square);
+        return std::max(min.Norm(), max.Norm());
     }
 
     struct BlockAgent_2D : public Agent<2> {
@@ -70,17 +77,22 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
 
         // pre-calculation coverage in all direction
-        std::vector<Pointis<2> > static getAllOrientCoverage_2D(const Pointis<2>& pts) {
-            std::vector<Pointis<2> > retv = {pts};
+        std::vector<std::pair<Pointis<2>, Pointis<2> > > static getAllOrientCoverage_2D(const std::pair<Pointis<2>, Pointis<2> >& pts_pair) {
+            std::vector<std::pair<Pointis<2>, Pointis<2> > > retv = {pts_pair};
             Pointi<2> new_pt;
             for(int orient=1; orient<4; orient++) {
-                Pointis<2> buff;
-                for(const auto& pt : pts) {
+                Pointis<2> buff_full, buff_part;
+                for(const auto& pt : pts_pair.first) {
                     new_pt = rotatePoint<int, 2>(pt,  ROTATE_MATRIXS[2][orient]);
-                    buff.push_back(new_pt);
+                    buff_full.push_back(new_pt);
                 }
-                buff.shrink_to_fit();
-                retv.push_back(buff);
+                for(const auto& pt : pts_pair.second) {
+                    new_pt = rotatePoint<int, 2>(pt,  ROTATE_MATRIXS[2][orient]);
+                    buff_part.push_back(new_pt);
+                }
+                buff_full.shrink_to_fit();
+                buff_part.shrink_to_fit();
+                retv.push_back({buff_full, buff_part});
             }
             return retv;
         }
@@ -103,8 +115,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 return false;
             }
             // do grid by grid state check
-            const Pointis<2> grids_in_range = getGridWithinPosedBlock(pose);
-            for(const auto& grid : grids_in_range) {
+            const std::pair<Pointis<2>, Pointis<2> > grids_in_range = getGridWithinPosedBlock(pose);
+            for(const auto& grid : grids_in_range.first) {
+                if(isoc(grid)) {
+//                    std::cout << " pose.pt_ = " << pose.pt_ << std::endl;
+//                    std::cout << " grid = " << grid << std::endl;
+                    return true;
+                }
+            }
+            for(const auto& grid : grids_in_range.second) {
                 if(isoc(grid)) {
 //                    std::cout << " pose.pt_ = " << pose.pt_ << std::endl;
 //                    std::cout << " grid = " << grid << std::endl;
@@ -149,19 +168,22 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return false;
         }
 
-        Pointis<2> getGridWithinPosedBlock(const Pose<int, 2>& pose) const {
+        std::pair<Pointis<2>, Pointis<2>> getGridWithinPosedBlock(const Pose<int, 2>& pose) const {
             // determine rotate matrix
             std::vector<std::vector<int> > rotate_matrix;
             // rotate grids
-            Pointis<2> retv = {};
-            for(const auto& grid : grids_[pose.orient_]) {
-                retv.push_back(grid + pose.pt_);
+            Pointis<2> retv_full = {}, retv_part = {};
+            for(const auto& grid : grids_[pose.orient_].first) {
+                retv_full.push_back(grid + pose.pt_);
             }
-            return retv;
+            for(const auto& grid : grids_[pose.orient_].second) {
+                retv_part.push_back(grid + pose.pt_);
+            }
+            return {retv_full, retv_part};
         }
 
         // there are four types of rotate coverage, rotate the default one to get other coverage
-        std::pair<Pointis<2>, Pointis<2>> getRotateCoverage(const int& orient_start, const int& orient_end) const {
+        std::pair<Pointis<2>, Pointis<2> > getRotateCoverage(const int& orient_start, const int& orient_end) const {
             if(orient_start == orient_end) { return {{}, {}}; }
             int orient_1 = std::min(orient_start, orient_end);
             int orient_2 = std::max(orient_start, orient_end);
@@ -172,7 +194,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             if(orient_1 == 1) { x_reverse = true; }
             if(orient_2 == 3) { y_reverse = true; }
             int flag = ( x_reverse ? 1 : 0) + (y_reverse ? 2 : 0);
-            return {front_rotate_pts_[flag], backward_rotate_pts_[flag]};
+            return rotate_pts_[flag];
         }
 
         std::pair<Pointis<2>, Pointis<2> > getPosedRotateCoverage(const Pointi<2>& offset, const int& orient_start, const int& orient_end) const {
@@ -180,7 +202,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             for(auto& pt : rotate_pair.first) {
                 pt = pt + offset;
             }
-            for(auto& pt : rotate_pair.first) {
+            for(auto& pt : rotate_pair.second) {
                 pt = pt + offset;
             }
             return rotate_pair;
@@ -205,19 +227,33 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
 
         // get half of the coverage (when x>= 0)
-        std::vector<Pointis<2>> getInitRotateCoverage(Pointf<2> pt, bool reverse = false) const {
+        std::vector<std::pair<Pointis<2>, Pointis<2> > > getInitRotateCoverage(Pointf<2> pt, bool reverse = false) const {
             if(reverse) { pt = Pointf<2>() - pt; }
             assert(pt[0] > 0 && pt[1] > 0);
-            int arc = ceil(pt.Norm());
+            double radius = pt.Norm(), temp_dist, max_dist = 0, min_dist = MAX<double>;
+            Pointi<2> pt_expand;
+            pt_expand[0] = ceil(pt[0]);
+            pt_expand[1] = ceil(pt[1]);
+
+            int arc = ceil(pt_expand.Norm());
             int min_x = -round(pt[1]), max_x = arc;
             int min_y = -round(pt[1]), max_y = arc;
-            int max_2 = pt[0]*pt[0] + pt[1]*pt[1];
+            double max_2 = pt_expand[0]*pt_expand[0] + pt_expand[1]*pt_expand[1];
 
-            std::vector<Pointis<2> > retv(4);
+            std::vector<std::pair<Pointis<2>, Pointis<2> > > retv(4);
             Pointi<2> local_pt;
             int dist_2;
 
             int max_width = std::max(pt[0], pt[1]);
+            bool full_coverage = true;
+            Pointfs<2> corners = getAllCornerOfGrid<2>();
+
+            Pointi<2> max_pti, min_pti;
+            max_pti[0] = floor(max_pt_[0]);
+            max_pti[1] = floor(max_pt_[1]);
+
+            min_pti[0] = ceil(min_pt_[0]);
+            min_pti[1] = ceil(min_pt_[1]);
 
             for(int x=min_x; x<= max_x; x++) {
                 for(int y=min_y; y<= max_y; y++) {
@@ -235,18 +271,78 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     if(dist_2 > max_2) { continue; }
 
                     local_pt[0] = x, local_pt[1] = y;
+                    max_dist = 0, min_dist = MAX<float>;
+                    full_coverage = true;
+                    for(const auto& offset : corners) {
+                        temp_dist = sqrt(pow((offset[0] + local_pt[0]), 2) + pow((offset[1] + local_pt[1]), 2));
+                        if(temp_dist > max_dist) { max_dist = temp_dist; }
+                        if(temp_dist < min_dist) { min_dist = temp_dist; }
+                    }
+
                     if(reverse) {
-                        local_pt = Pointi<2>()-local_pt;
+                        local_pt = Pointi<2>() - local_pt;
                     }
 
                     // cut overlap with the whole block's coverage check
-                    if (local_pt[0] >= min_pt_[0] && local_pt[0] <= max_pt_[0] && local_pt[1] >= -max_pt_[1] && local_pt[1] <= max_pt_[1]) { continue; }
-                    if (local_pt[1] >= min_pt_[0] && local_pt[1] <= max_pt_[0] && local_pt[0] >= -max_pt_[1] && local_pt[0] <= max_pt_[1]) { continue; }
+//                    if (local_pt[0] >= min_pt_[0] && local_pt[0] <= max_pt_[0] &&
+//                        local_pt[1] >= -max_pt_[1] && local_pt[1] <= max_pt_[1]) {
+//                        continue;
+//                    }
+//                    if (local_pt[1] >= min_pt_[0] && local_pt[1] <= max_pt_[0] &&
+//                        local_pt[0] >= -max_pt_[1] && local_pt[0] <= max_pt_[1]) {
+//                        continue;
+//                    }
 
-                    retv[0].push_back({ local_pt[0],  local_pt[1]});
-                    retv[1].push_back({-local_pt[0],  local_pt[1]});
-                    retv[2].push_back({ local_pt[0], -local_pt[1]});
-                    retv[3].push_back({-local_pt[0], -local_pt[1]});
+                    if (local_pt[0] > min_pti[0]  && local_pt[0] < max_pti[0] &&
+                        local_pt[1] > -max_pti[1] && local_pt[1] < max_pti[1]) {
+                        continue;
+                    }
+                    if (local_pt[1] > min_pti[0]  && local_pt[1] < max_pti[0] &&
+                        local_pt[0] > -max_pti[1] && local_pt[0] < max_pti[1]) {
+                        continue;
+                    }
+
+                    if(local_pt[0] == max_pti[1] && local_pt[1] < 0) {
+                        continue;
+                    }
+                    if(local_pt[0] == -max_pti[1] && local_pt[1] > 0) {
+                        continue;
+                    }
+
+                    if(local_pt[1] == max_pti[1] && local_pt[0] < 0) {
+                        continue;
+                    }
+                    if(local_pt[1] == -max_pti[1] && local_pt[0] > 0) {
+                        continue;
+                    }
+
+                    if(min_dist > radius) {
+                        if(local_pt == Pointi<2>()) {
+                            // current agent may small than a grid, considering as part occupied
+                            retv[0].second.push_back({ local_pt[0],  local_pt[1]});
+                            retv[1].second.push_back({-local_pt[0],  local_pt[1]});
+                            retv[2].second.push_back({ local_pt[0], -local_pt[1]});
+                            retv[3].second.push_back({-local_pt[0], -local_pt[1]});
+                        }
+                        continue;
+                    }
+                    if(max_dist < radius) {
+                        full_coverage = true;
+                    } else {
+                        full_coverage = false;
+                    }
+
+                    if(full_coverage) {
+                        retv[0].first.push_back({ local_pt[0],  local_pt[1]});
+                        retv[1].first.push_back({-local_pt[0],  local_pt[1]});
+                        retv[2].first.push_back({ local_pt[0], -local_pt[1]});
+                        retv[3].first.push_back({-local_pt[0], -local_pt[1]});
+                    } else {
+                        retv[0].second.push_back({ local_pt[0],  local_pt[1]});
+                        retv[1].second.push_back({-local_pt[0],  local_pt[1]});
+                        retv[2].second.push_back({ local_pt[0], -local_pt[1]});
+                        retv[3].second.push_back({-local_pt[0], -local_pt[1]});
+                    }
                 }
             }
             return retv;
@@ -254,9 +350,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         void initRotateCoverage() {
             // front rotate
-            front_rotate_pts_    = getInitRotateCoverage(max_pt_, false);
+            auto front_pair = getInitRotateCoverage(max_pt_, false);
             // backward rotate
-            backward_rotate_pts_ = getInitRotateCoverage(min_pt_, true);
+            auto back_pair  = getInitRotateCoverage(min_pt_, true);
+            for(int i=0; i<4; i++) {
+                front_pair[i].first. insert(front_pair[i].first.end(),  back_pair[i].first.begin(),  back_pair[i].first.end());
+                front_pair[i].second.insert(front_pair[i].second.end(), back_pair[i].second.begin(), back_pair[i].second.end());
+            }
+            rotate_pts_ = front_pair;
         }
 
         std::pair<Pointf<2>, Pointf<2> > getPosedRectangle(const Pose<int, 2>& pose) const {
@@ -334,11 +435,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         // which grid current agent cover if it is in zero position, zero orient
         //Pointis<2> grids_;
 
-        std::vector<Pointis<2> > grids_;
+        std::vector<std::pair<Pointis<2>, Pointis<2> > >  grids_;
 
         // grid covered when rotate, assume is 0 rotate to 1
-        std::vector<Pointis<2> > backward_rotate_pts_;
-        std::vector<Pointis<2> > front_rotate_pts_;
+//        std::vector<std::pair<Pointis<2>, Pointis<2> > > backward_rotate_pts_;
+//        std::vector<std::pair<Pointis<2>, Pointis<2> > > front_rotate_pts_;
+
+        std::vector<std::pair<Pointis<2>, Pointis<2> > > rotate_pts_;
 
         DimensionLength* dim_;
     };

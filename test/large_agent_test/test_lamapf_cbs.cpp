@@ -64,12 +64,12 @@ TEST(test, pointRotate_2D) {
 }
 
 TEST(test, BlockRotateCoverage) {
-    BlockAgent_2D block({-150, -100}, {200, 100}, 0, dim);
+    BlockAgent_2D block({-15, -10}, {20, 10}, 0, dim);
     int orient_start = 1, orient_end = 3;
     const auto& rotate_f_b = block.getRotateCoverage(orient_start, orient_end);
     bool draw_front_coverage = true, draw_backward_coverage = true, draw_rotate = true;
     int orient = 0;
-    canvas_size_x = 1000, canvas_size_y = 700;
+    canvas_size_x = 100, canvas_size_y = 70;
     Canvas canvas("BlockRotateCoverage", canvas_size_x, canvas_size_y, 20, 1);
 
     while(true) {
@@ -92,11 +92,17 @@ TEST(test, BlockRotateCoverage) {
 //            for (const auto &pt : block.grids_) {
 //                canvas.drawGrid(pt[0] + canvas_size_x/2, pt[1] + canvas_size_y/2);
 //            }
-            for (const auto &pt : block.grids_[orient_start]) {
+            for (const auto &pt : block.grids_[orient_start].first) {
                 canvas.drawGrid(pt[0] + canvas_size_x/2, pt[1] + canvas_size_y/2, COLOR_TABLE[orient_start+4]);
             }
-            for (const auto &pt : block.grids_[orient_end]) {
+            for (const auto &pt : block.grids_[orient_start].second) {
+                canvas.drawGrid(pt[0] + canvas_size_x/2, pt[1] + canvas_size_y/2, (COLOR_TABLE[orient_start+4] + cv::Vec3b::all(255))/2);
+            }
+            for (const auto &pt : block.grids_[orient_end].first) {
                 canvas.drawGrid(pt[0] + canvas_size_x/2, pt[1] + canvas_size_y/2, COLOR_TABLE[orient_end+4]);
+            }
+            for (const auto &pt : block.grids_[orient_end].second) {
+                canvas.drawGrid(pt[0] + canvas_size_x/2, pt[1] + canvas_size_y/2, (COLOR_TABLE[orient_start+4] + cv::Vec3b::all(255))/2);
             }
         }
         const auto& draw_which = rotate_f_b; // block.front_rotate_pts, block.backward_rotate_pts
