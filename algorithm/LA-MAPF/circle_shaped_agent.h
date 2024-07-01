@@ -54,7 +54,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             if(max_dist < radius) {
                 retv_full.push_back(temp_pt);
             } else {
-                retv_part.push_back(temp_pt);
+//                retv_part.push_back(temp_pt);
+                retv_full.push_back(temp_pt); // current considering all grid as full occupied, for simplification
             }
         }
         return {retv_full, retv_part};
@@ -63,8 +64,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     template <Dimension N>
     struct CircleAgent : public Agent<N> {
 
-        CircleAgent(float radius, int id)
-        : Agent<N>(radius, radius, id), radius_(radius) {
+        CircleAgent(float radius, int id, DimensionLength* dim)
+        : Agent<N>(radius, radius, id, dim), radius_(radius) {
 
             occupied_grids_ = getCircleCoverage<N>(radius);
 
@@ -134,7 +135,19 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return false;
         }
 
-        std::pair<Pointis<N>, Pointis<N>> getCoverageGridWithinPose(const Pose<int, N>& pose) const {
+        Pointis<N> getTransferOccupiedGrid(const Pose<int, N>& edge_from,
+                                           const Pose<int, N>& edge_to) const override {
+            if(edge_from.orient_ == edge_to.orient_) {
+                std::pair<Pointis<N>, Pointis<N>> pts1 = getPoseOccupiedGrid(edge_from),
+                                                  pts2 = getPoseOccupiedGrid(edge_to);
+                pts1.first.insert(pts1.first.end(), pts2.first.begin(), pts2.first.end());
+                return pts1.first;
+            } else {
+                return getPoseOccupiedGrid(edge_from).first;
+            }
+        }
+
+        std::pair<Pointis<N>, Pointis<N>> getPoseOccupiedGrid(const Pose<int, N>& pose) const override {
             // circle have no need to rotate
             Pointis<2> retv_full = {}, retv_part = {};
             for(const auto& grid : occupied_grids_.first) {
@@ -176,7 +189,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             Pose<int, N> start_pose (start_pt,  atoi(strs[2 + N].c_str()));
             Pose<int, N> target_pose(target_pt, atoi(strs[3 + 2*N].c_str()));
 
-            CircleAgent<N> agent(atof(strs[1].c_str()), id);
+            CircleAgent<N> agent(atof(strs[1].c_str()), id, dim);
             return {agent, {start_pose, target_pose}};
         }
 

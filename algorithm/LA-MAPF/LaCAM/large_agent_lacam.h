@@ -13,7 +13,7 @@
 #include <random>
 namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
 
-    template<Dimension N, typename AgentType>
+    template<Dimension N, typename AgentType, typename ConstraintTable>
     struct LargeAgentLaCAM : public LargeAgentMAPF<N, AgentType> {
 
         LargeAgentLaCAM(const InstanceOrients<N> & instances,
@@ -21,7 +21,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
                         DimensionLength* dim,
                         const IS_OCCUPIED_FUNC<N> & isoc)
                         : LargeAgentMAPF<N, AgentType>(instances, agents, dim, isoc),
-                          V_size(LargeAgentLaCAM<N, AgentType>::all_poses_.size()),
+                          V_size(LargeAgentLaCAM<N, AgentType, ConstraintTable>::all_poses_.size()),
                           C_next(Candidates<N>(agents.size(), std::array<size_t , 2*N*2*N + 1>())), // yz: possible rotation multiple possible transition plus wait
                           tie_breakers(std::vector<float>(V_size, 0)),
                           A(Agents(agents.size(), nullptr)),
@@ -288,7 +288,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
 //                occupied_now[a->v_now] = a;
             }
 
-            LargeAgentConstraints<N, AgentType> constraint_table(this->all_poses_, this->agents_, S->C);
+            // LargeAgentConstraintTable
+            // LargeAgentConstraints
+            //LargeAgentConstraintTable<N, AgentType>;
+            ConstraintTable constraint_table(this->all_poses_, this->agents_, S->C, this->dim_);
 
             // add constraints
             // // yz: constraint determine next config without search, which is saved M
@@ -325,7 +328,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
             return true;
         }
 
-        bool funcPIBT(Agent *ai, int next_t, LargeAgentConstraints<N, AgentType>& constraint_table) {
+        bool funcPIBT(Agent *ai, int next_t, ConstraintTable& constraint_table) {
             const auto i = ai->id;
             const auto& neighbor = this->agent_sub_graphs_[ai->id].all_edges_[ai->v_now];
             const auto K = neighbor.size();

@@ -37,7 +37,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             if(full_occ) {
                 retv_full.push_back(temp_pt);
             } else {
-                retv_part.push_back(temp_pt);
+//                retv_part.push_back(temp_pt);
+                retv_full.push_back(temp_pt); // current considering all grid as full occupied, for simplification
             }
         }
         return {retv_full, retv_part};
@@ -63,10 +64,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     public:
 
         BlockAgent_2D(const Pointf<2>& min_pt, const Pointf<2>& max_pt, int id, DimensionLength* dim)
-            :Agent<2>(getOuterRadiusOfBlock<2>(min_pt, max_pt), getInnerRadiusOfBlock<2>(min_pt, max_pt), id),
+            :Agent<2>(getOuterRadiusOfBlock<2>(min_pt, max_pt), getInnerRadiusOfBlock<2>(min_pt, max_pt), id, dim),
             min_pt_(min_pt), max_pt_(max_pt),
-            grids_(getAllOrientCoverage_2D(getBlockCoverage<2>(min_pt, max_pt))),
-            dim_(dim) {
+            grids_(getAllOrientCoverage_2D(getBlockCoverage<2>(min_pt, max_pt))) {
             // require the motion center of block are within the block
             for(int dim=0;dim<2; dim++) {
                 assert(min_pt_[dim] < 0);
@@ -97,7 +97,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return retv;
         }
 
-        // pass test
         bool isCollide(const Pose<int, 2>& pose,
                        DimensionLength* dim,
                        const IS_OCCUPIED_FUNC<2>& isoc,
@@ -115,7 +114,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 return false;
             }
             // do grid by grid state check
-            const std::pair<Pointis<2>, Pointis<2> > grids_in_range = getGridWithinPosedBlock(pose);
+            const std::pair<Pointis<2>, Pointis<2> > grids_in_range = getPoseOccupiedGrid(pose);
             for(const auto& grid : grids_in_range.first) {
                 if(isoc(grid)) {
 //                    std::cout << " pose.pt_ = " << pose.pt_ << std::endl;
@@ -168,7 +167,21 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return false;
         }
 
-        std::pair<Pointis<2>, Pointis<2>> getGridWithinPosedBlock(const Pose<int, 2>& pose) const {
+        Pointis<2> getTransferOccupiedGrid(const Pose<int, 2>& edge_from,
+                                           const Pose<int, 2>& edge_to) const override {
+            std::pair<Pointis<2>, Pointis<2>> pts1 = getPoseOccupiedGrid(edge_from),
+                                              pts2 = getPoseOccupiedGrid(edge_to);
+            pts1.first.insert(pts1.first.end(), pts2.first.begin(), pts2.first.end());
+            if(edge_from.orient_ == edge_to.orient_) {
+                return pts1.first;
+            } else {
+                std::pair<Pointis<2>, Pointis<2>> pts3 = getPosedRotateCoverage(edge_from.pt_, edge_from.orient_, edge_to.orient_);
+                pts1.first.insert(pts1.first.end(), pts3.first.begin(), pts3.first.end());
+                return pts1.first;
+            }
+        }
+
+        std::pair<Pointis<2>, Pointis<2>> getPoseOccupiedGrid(const Pose<int, 2>& pose) const override {
             // determine rotate matrix
             std::vector<std::vector<int> > rotate_matrix;
             // rotate grids
@@ -338,10 +351,16 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         retv[2].first.push_back({ local_pt[0], -local_pt[1]});
                         retv[3].first.push_back({-local_pt[0], -local_pt[1]});
                     } else {
-                        retv[0].second.push_back({ local_pt[0],  local_pt[1]});
-                        retv[1].second.push_back({-local_pt[0],  local_pt[1]});
-                        retv[2].second.push_back({ local_pt[0], -local_pt[1]});
-                        retv[3].second.push_back({-local_pt[0], -local_pt[1]});
+                        // current considering all grid as full occupied, for simplification
+                        retv[0].first. push_back({ local_pt[0],  local_pt[1]});
+                        retv[1].first. push_back({-local_pt[0],  local_pt[1]});
+                        retv[2].first. push_back({ local_pt[0], -local_pt[1]});
+                        retv[3].first. push_back({-local_pt[0], -local_pt[1]});
+
+//                        retv[0].second.push_back({ local_pt[0],  local_pt[1]});
+//                        retv[1].second.push_back({-local_pt[0],  local_pt[1]});
+//                        retv[2].second.push_back({ local_pt[0], -local_pt[1]});
+//                        retv[3].second.push_back({-local_pt[0], -local_pt[1]});
                     }
                 }
             }
@@ -443,7 +462,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         std::vector<std::pair<Pointis<2>, Pointis<2> > > rotate_pts_;
 
-        DimensionLength* dim_;
     };
 
     // all fan is default to 90 degree

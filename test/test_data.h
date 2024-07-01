@@ -82,7 +82,9 @@ namespace freeNav::LayeredMAPF{
                     {"decomposition_output_path", "../test/test_data/decomposition/Berlin_1_256_de.txt"},
                     {"agent_num",    "900"}, // 600
                     {"cut_off_time", "200"},
-                    {"max_run_time", "60"} // in second
+                    {"max_run_time", "60"}, // in second
+                    {"crc_ins_path", "../test/test_data/large_agent_instance/Berlin_1_256_crc.txt"},
+                    {"blk_ins_path", "../test/test_data/large_agent_instance/Berlin_1_256_blk.txt"}
             };
 
     SingleMapTestConfig<2> MAPFTestConfig_den520d =
@@ -110,7 +112,9 @@ namespace freeNav::LayeredMAPF{
                     {"decomposition_output_path", "../test/test_data/decomposition/Paris_1_256_de.txt"},
                     {"agent_num",    "1000"},
                     {"cut_off_time", "200"},
-                    {"max_run_time", "60"} // in second
+                    {"max_run_time", "60"}, // in second
+                    {"crc_ins_path", "../test/test_data/large_agent_instance/Paris_1_256_crc.txt"},
+                    {"blk_ins_path", "../test/test_data/large_agent_instance/Paris_1_256_blk.txt"}
             };
 
     SingleMapTestConfig<2> MAPFTestConfig_Boston_0_256 =
@@ -139,7 +143,9 @@ namespace freeNav::LayeredMAPF{
                     {"decomposition_output_path", "../test/test_data/decomposition/warehouse-10-20-10-2-1_de.txt"},
                     {"agent_num",    "800"},
                     {"cut_off_time", "200"},
-                    {"max_run_time", "60"} // in second
+                    {"max_run_time", "60"}, // in second
+                    {"crc_ins_path", "../test/test_data/large_agent_instance/warehouse-10-20-10-2-1_crc.txt"},
+                    {"blk_ins_path", "../test/test_data/large_agent_instance/warehouse-10-20-10-2-1_blk.txt"}
             };
 
     // empty-32-32

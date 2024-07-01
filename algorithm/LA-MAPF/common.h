@@ -99,7 +99,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     template <Dimension N>
     struct Agent {
 
-        explicit Agent(float excircle_radius, float incircle_radius, int id) : excircle_radius_(excircle_radius), incircle_radius_(incircle_radius),id_(id) {}
+        explicit Agent(float excircle_radius, float incircle_radius, int id, DimensionLength* dim)
+        : excircle_radius_(excircle_radius), incircle_radius_(incircle_radius),id_(id),dim_(dim) {}
 
         virtual bool isCollide(const Pose<int, N>& pose,
                                DimensionLength* dim,
@@ -112,11 +113,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                const IS_OCCUPIED_FUNC<N>& isoc,
                                const DistanceMapUpdater<N>& distance_table) const = 0;
 
+        virtual Pointis<N> getTransferOccupiedGrid(const Pose<int, N>& edge_from,
+                                                   const Pose<int, N>& edge_to) const = 0;
+
+        virtual std::pair<Pointis<N>, Pointis<N>> getPoseOccupiedGrid(const Pose<int, N>& pose) const = 0;
+
 //        virtual std::pair<Pointis<N>, Pointis<N>> getCoverageGridWithinPose(const Pose<int, N>& pose) const = 0;
 
         float excircle_radius_, incircle_radius_;
 
         int id_;
+
+        DimensionLength* dim_ = nullptr;
 
     };
 
@@ -155,10 +163,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     bool isPointSetOverlap(const Pointis<N>& set1, const Pointis<N>& set2, DimensionLength* dim) {
         IdSet ids;
         for(const auto& pt : set1) {
+            if(isOutOfBoundary(pt, dim)) { continue; }
             ids.insert(PointiToId(pt, dim));
         }
         Id id;
         for(const auto& pt : set2) {
+            if(isOutOfBoundary(pt, dim)) { continue; }
             id = PointiToId(pt, dim);
             if(ids.find(id) != ids.end()) {
                 return true;

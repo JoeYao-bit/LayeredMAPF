@@ -16,7 +16,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
     public:
         explicit LargeAgentConstraints(const std::vector<PosePtr<int, N>>& all_nodes,
                                        const std::vector<AgentType>& agents,
-                                       const std::vector<size_t>& occupied_now)
+                                       const std::vector<size_t>& occupied_now,
+                                       DimensionLength* dim)
         : agents(agents), all_nodes(all_nodes), occupied_now(occupied_now) {
             assert(occupied_now.size() == agents.size());
             occupied_next.resize(agents.size(), MAX<size_t>);
@@ -103,34 +104,91 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
                                            const std::vector<AgentType>& agents,
                                            const std::vector<size_t>& occupied_now,
                                            DimensionLength* dim)
-        : agents_(agents), all_nodes_(all_nodes), dim_(dim) {
+        : agents_(agents), all_nodes_(all_nodes), occupied_now_(occupied_now), dim_(dim) {
             assert(occupied_now.size() == agents.size());
             Id total_index = getTotalIndexOfSpace<N>(dim);
             occupied_grids_.resize(total_index);
+            occupied_next_.resize(agents.size(), MAX<size_t>);
+            for(int id=0; id<agents.size(); id++) {
+                setNowOccupied(id, occupied_now[id]);
+            }
         }
 
-        void setAgentOccupied(const int& agent_id, const int& node_id) {
-//            const auto& grids = agents_[agent_id].getGridWithinPose(all_nodes_[node_id]);
-//            Id temp_id;
-//            for(const auto& pt : grids) {
-//                temp_id = PointiToId(pt, dim_);
-//            }
+        // whether an agent has conflict at pose
+        bool hasCollide(const int& agent_id, const int& current_node, const int& next_node) {
+            Pointis<N> grids_full = agents_[agent_id].getTransferOccupiedGrid(*all_nodes_[current_node], *all_nodes_[next_node]);
+            Id temp_id;
+            for(const auto& pt : grids_full) {
+                temp_id = PointiToId(pt, dim_);
+                if(occupied_grids_[temp_id].occ_agent_ == agent_id) {
+                    continue;
+                }
+                // if is no agent occupied this grid
+                if(occupied_grids_[temp_id].occ_agent_ == MAX<int>) {
+                    continue;
+                }
+                return true;
+            }
+            return false;
         }
 
+        void setOccupiedNext(const int& agent_id, const size_t& next_node) {
+            occupied_next_[agent_id] = next_node;
+            Pointis<N> grids_full = agents_[agent_id].getTransferOccupiedGrid(*all_nodes_[occupied_now_[agent_id]],
+                                                                                   *all_nodes_[next_node]);
+            Id temp_id;
+            for(const auto& pt : grids_full) {
+                temp_id = PointiToId(pt, dim_);
+                occupied_grids_[temp_id].occ_agent_ = agent_id;
+            }
+        }
 
+        // check what agents are collide with current agent, at this pose
+        std::vector<int> collideWith(int agent_id, const size_t& next_node) const {
+            std::vector<int> retv;
+            Pointis<N> grids_full = agents_[agent_id].getTransferOccupiedGrid(*all_nodes_[occupied_now_[agent_id]],
+                                                                              *all_nodes_[next_node]);
+            Id temp_id;
+            for(const auto& pt : grids_full) {
+                temp_id = PointiToId(pt, dim_);
+                if(occupied_grids_[temp_id].occ_agent_ != MAX<int> && occupied_grids_[temp_id].occ_agent_ != agent_id) {
+                    retv.push_back(occupied_grids_[temp_id].occ_agent_ );
+                }
+            }
+            return retv;
+        }
+
+    private:
+
+        void setNowOccupied(const int& agent_id, const int& node_id) {
+            Pointis<N> grids_full = agents_[agent_id].getPoseOccupiedGrid(*all_nodes_[node_id]).first;
+            occupied_now_[agent_id] = node_id;
+            Id temp_id;
+            for(const auto& pt : grids_full) {
+                temp_id = PointiToId(pt, dim_);
+                occupied_grids_[temp_id].occ_agent_ = agent_id;
+            }
+        }
+
+        // if have collide, make no change, return false
+        // if success, update occupied_grids_
+        bool trySetNextOccupied(const int& agent_id, const int& node_id) {
+            occupied_next_[agent_id] = node_id;
+        }
 
         struct OccupiedGrid {
-            bool full_occupied_ = false;
-            std::vector<int> occ_ids_; // a grid may occupied by several agent partially, but can only be full occupied by one agent
+            int occ_agent_ = MAX<int>; // a grid may occupied by several agent partially, but can only be full occupied by one agent
             // need check overlap between agent and agent if they both partially occupied the same grid
         };
 
-    private:
         const std::vector<AgentType>& agents_;
 
         const std::vector<PosePtr<int, N> >& all_nodes_;
 
         std::vector<OccupiedGrid> occupied_grids_;
+
+        std::vector<size_t> occupied_now_;
+        std::vector<size_t> occupied_next_;
 
         DimensionLength* dim_;
 

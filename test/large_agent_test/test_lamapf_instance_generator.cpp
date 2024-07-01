@@ -28,7 +28,7 @@ TEST(CircleAgentTest, generator_test) {
 
     CircleAgents<2> agents = RandomCircleAgentsGenerator<2>(5,
                                                             .4, 2.3,
-                                                            .1);
+                                                            .1, nullptr);
     for(int i=0; i<agents.size(); i++) {
         const auto& agent = agents[i];
         std::cout << agent << std::endl;
@@ -53,8 +53,11 @@ TEST(Block2DAgentTest, generator_test) {
         std::cout << agent << std::endl;
     }
 }
-
-auto map_test_config = MAPFTestConfig_maze_32_32_4;
+// MAPFTestConfig_Berlin_1_256
+// MAPFTestConfig_maze_32_32_4
+// MAPFTestConfig_warehouse_10_20_10_2_1
+// MAPFTestConfig_Paris_1_256
+auto map_test_config = MAPFTestConfig_Paris_1_256;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -69,7 +72,7 @@ auto dim = loader.getDimensionInfo();
 
 int canvas_size_x = 1000, canvas_size_y = 700;
 
-int zoom_ratio = 20;
+int zoom_ratio = 5;
 
 Pointi<2> pt1;
 int current_subgraph_id = 0;
@@ -103,7 +106,7 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
                 for(int t=0; t<path.size()-1; t++) {
                     Pointi<2> pt1 = all_poses[path[t]]->pt_,
                             pt2 = all_poses[path[t+1]]->pt_;
-                    canvas.drawLineInt(pt1[0], pt1[1], pt2[0], pt2[1], true, zoom_ratio/10, COLOR_TABLE[(i) % 30]);
+                    canvas.drawLineInt(pt1[0], pt1[1], pt2[0], pt2[1], true, std::max(1, zoom_ratio/10), COLOR_TABLE[(i) % 30]);
                 }
             }
         }
@@ -116,8 +119,8 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
 
                 DrawOnCanvas(agents[i], instance.second, canvas, COLOR_TABLE[i%30]);
 
-                canvas.drawArrowInt(instance.first.pt_[0], instance.first.pt_[1], -orientToPi_2D(instance.first.orient_), 1, zoom_ratio/10);
-                canvas.drawArrowInt(instance.second.pt_[0], instance.second.pt_[1], -orientToPi_2D(instance.second.orient_) , 1, zoom_ratio/10);
+                canvas.drawArrowInt(instance.first.pt_[0], instance.first.pt_[1], -orientToPi_2D(instance.first.orient_), 1, std::max(1, zoom_ratio/10));
+                canvas.drawArrowInt(instance.second.pt_[0], instance.second.pt_[1], -orientToPi_2D(instance.second.orient_) , 1, std::max(1, zoom_ratio/10));
 
             }
         }
@@ -137,7 +140,7 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
 
                 DrawOnCanvas(agents[i], {pt, orient}, canvas, COLOR_TABLE[(i) % 30]);
 
-                canvas.drawArrowInt(pt[0], pt[1], -orientToPi_2D(orient), 1, zoom_ratio/10);
+                canvas.drawArrowInt(pt[0], pt[1], -orientToPi_2D(orient), 1, std::max(1, zoom_ratio/10));
 
             }
         }
@@ -182,22 +185,9 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
     }
 }
 
-
-
-
-TEST(LargeAgentInstanceLoader, test) {
-
-#if CIRCLE_AGENT
-    auto file_path = map_test_config.at("crc_ins_path");
-#else
-    auto file_path = map_test_config.at("blk_ins_path");
-#endif
-
-}
-
-
 template<typename AgentType>
-void generateInstance(const std::vector<AgentType>& agents) {
+void generateInstance(const std::vector<AgentType>& agents, const std::string& file_path) {
+    gettimeofday(&tv_pre, &tz);
     LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(agents, is_occupied, dim, 1e7);
     for(int i=0; i<agents.size(); i++) {
         const auto& agent = agents[i];
@@ -223,7 +213,6 @@ void generateInstance(const std::vector<AgentType>& agents) {
         solution.push_back(instances_and_path[i].second);
     }
     InstanceSerializer<2, AgentType> serializer(agents, instances);
-    auto file_path = map_test_config.at("blk_ins_path");
     if(serializer.saveToFile(file_path)) {
         std::cout << "save to path " << file_path << " success" << std::endl;
     } else {
@@ -234,25 +223,6 @@ void generateInstance(const std::vector<AgentType>& agents) {
 
 }
 
-TEST(GenerateCircleInstance, test)
-{
-    const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(8,
-                                                                   .2, 1.,
-                                                                   .1);
-    generateInstance<CircleAgent<2> >(agents);
-
-};
-
-TEST(GenerateBlock_2DInstance, test)
-{
-    const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(5,
-                                                                -.8, -.2,
-                                                                .2, 1.2,
-                                                                .2, 1.2,
-                                                                .1, nullptr);
-    generateInstance<BlockAgent_2D>(agents);
-
-};
 
 template<typename AgentType, typename MethodType>
 void loadInstanceAndPlanning(const std::string& file_path) {
@@ -270,21 +240,49 @@ void loadInstanceAndPlanning(const std::string& file_path) {
     bool solved = method.solve(60, 0);
     gettimeofday(&tv_after, &tz);
     double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
-    std::cout << "find solution ? " << solved << " in " << time_cost << "ms " << std::endl;
+    std::cout << "instance has " << deserializer.getAgents().size() << " agents, find solution ? " << solved << " in " << time_cost << "ms " << std::endl;
     std::cout << "solution validation ? " << method.solutionValidation() << std::endl;
 
     InstanceVisualization<AgentType>(deserializer.getAgents(), generator, deserializer.getInstances(), method.getSolution());
 
 }
 
+
+TEST(GenerateCircleInstance, test)
+{
+    const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(40,
+                                                                   .2, 1.4,
+                                                                   .1,
+                                                                   dim);
+    generateInstance<CircleAgent<2> >(agents, map_test_config.at("crc_ins_path"));
+
+};
+
+TEST(GenerateBlock_2DInstance, test)
+{
+    const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(5,
+                                                                -.4, -.2,
+                                                                .2, .4,
+                                                                .2, .4,
+                                                                .1, dim);
+    generateInstance<BlockAgent_2D>(agents, map_test_config.at("blk_ins_path"));
+
+};
+
 TEST(LoadCircleInstance, test)
 {
     const std::string file_path = map_test_config.at("crc_ins_path");
-    loadInstanceAndPlanning<CircleAgent<2>, LaCAM::LargeAgentLaCAM<2, CircleAgent<2> > >(file_path);
+//    loadInstanceAndPlanning<CircleAgent<2>,
+//                            LaCAM::LargeAgentLaCAM<2, CircleAgent<2>,
+//                            LaCAM::LargeAgentConstraintTable<2, CircleAgent<2> > > >(file_path);
+    loadInstanceAndPlanning<CircleAgent<2>,
+                            CBS::LargeAgentCBS<2, CircleAgent<2> > >(file_path);
 };
 
 TEST(LoadBlock_2DInstance, test)
 {
     const std::string file_path = map_test_config.at("blk_ins_path");
-    loadInstanceAndPlanning<BlockAgent_2D, LaCAM::LargeAgentLaCAM<2, BlockAgent_2D > >(file_path);
+    loadInstanceAndPlanning<BlockAgent_2D,
+                            LaCAM::LargeAgentLaCAM<2,
+                            BlockAgent_2D, LaCAM::LargeAgentConstraintTable<2, BlockAgent_2D > > >(file_path);
 };

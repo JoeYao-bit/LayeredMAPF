@@ -24,7 +24,6 @@ using namespace freeNav::LayeredMAPF::LA_MAPF;
 
 TEST(BlockAgentSubGraph, lacam_test) {
 
-
     // fake instances
     InstanceOrients<2> instances = {
             {{{5, 3}, 0},  {{23, 22},0} },
@@ -44,13 +43,15 @@ TEST(BlockAgentSubGraph, lacam_test) {
     const BlockAgents_2D agents({
                                         BlockAgent_2D({-.4, -.4},  {.4, .4}, 0, dim),
                                         BlockAgent_2D({-.6, -.4},  {1., .4}, 1, dim),
-                                        BlockAgent_2D({-.3, -1.2}, {1., 1.2}, 2, dim),
-                                        BlockAgent_2D({-.3, -1.2}, {1., 1.2}, 3, dim),
+                                        BlockAgent_2D({-.3, -.6}, {.8, .6}, 2, dim),
+                                        BlockAgent_2D({-.3, -.6}, {.8, .6}, 3, dim),
                                         BlockAgent_2D({-.3, -.6},  {1.2, .6}, 4, dim)
 
                                 });
 
-    startLargeAgentMAPFTest<BlockAgent_2D, LaCAM::LargeAgentLaCAM<2, BlockAgent_2D> >(agents, instances);
+    startLargeAgentMAPFTest<BlockAgent_2D,
+                            LaCAM::LargeAgentLaCAM<2, BlockAgent_2D,
+                            LaCAM::LargeAgentConstraints<2, BlockAgent_2D> > >(agents, instances);
 
 }
 
@@ -64,11 +65,13 @@ TEST(CircleAgentSubGraph, lacam_test) {
             {{{2, 5}, 0}, {{17, 22}, 3}}
     };
     CircleAgents<2> agents({
-                                   CircleAgent<2>(.3, 0),
-                                   CircleAgent<2>(.7, 1),
-                                   CircleAgent<2>(.6, 2)
+                                   CircleAgent<2>(.3, 0, dim),
+                                   CircleAgent<2>(.7, 1, dim),
+                                   CircleAgent<2>(.6, 2, dim)
                            });
-    startLargeAgentMAPFTest<CircleAgent<2>, LaCAM::LargeAgentLaCAM<2, CircleAgent<2>> >(agents, instances);
+    startLargeAgentMAPFTest<CircleAgent<2>,
+                            LaCAM::LargeAgentLaCAM<2, CircleAgent<2>,
+                            LaCAM::LargeAgentConstraints<2, CircleAgent<2> > > >(agents, instances);
 
 }
 

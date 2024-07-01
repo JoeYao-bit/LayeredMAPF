@@ -30,7 +30,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     CircleAgents<N> RandomCircleAgentsGenerator(const int& num_of_agents,
                                                 const float& min_radius,
                                                 const float& max_radius,
-                                                const float& resolution) {
+                                                const float& resolution,
+                                                DimensionLength* dim) {
         assert(min_radius <= max_radius);
 
         CircleAgents<N> agents;
@@ -39,7 +40,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         float radius;
         for(int i=0; i<num_of_agents; i++) {
             radius = getValueWithResolution<float>(min_radius, max_radius, resolution);
-            agents.push_back(CircleAgent<N>(radius, i));
+            agents.push_back(CircleAgent<N>(radius, i, dim));
         }
         agents.shrink_to_fit();
         return agents;

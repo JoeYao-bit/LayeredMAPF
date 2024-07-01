@@ -18,8 +18,8 @@
 
 
 
-CircleAgent<2> c1(2.5, 0);
-CircleAgent<2> c2(3.5, 1);
+CircleAgent<2> c1(2.5, 0, dim);
+CircleAgent<2> c2(3.5, 1, dim);
 
 int canvas_size_x = 1000, canvas_size_y = 700;
 
@@ -144,9 +144,6 @@ TEST(test, BlockRotateCoverage) {
     }
 }
 
-
-
-
 TEST(RectangleOverlap, test) {
     /*
      * rect (3.6, 12.6), (4.4, 13.4)
@@ -157,19 +154,35 @@ TEST(RectangleOverlap, test) {
     std::cout << isRectangleOverlap<float, 2>(p1, p2, p3, p4) << std::endl;
 }
 
+TEST(pointer, test) {
+    DimensionLength dim[2];
+    dim[0] = 1, dim[1] = 3;
+    DimensionLength* dim1 = dim;
+    std::cout << "dim  " << dim << std::endl;
+
+    std::cout << "dim1 " << dim1 << std::endl;
+    std::cout << "dim1 " << dim1[0] << ", " << dim1[1] << std::endl;
+
+}
+
 TEST(CircleAgentSubGraph, cbs_test) {
 
     // fake instances
     InstanceOrients<2> instances = {
             {{{8, 3}, 0}, {{23, 22},0} },
-//            {{{9, 2}, 0}, {{5, 22}, 0}},
-//            {{{2, 5}, 0}, {{17, 22}, 3}}
+            {{{9, 2}, 0}, {{5, 22}, 0}},
+            {{{2, 5}, 0}, {{17, 22}, 3}}
     };
     CircleAgents<2> agents({
-                                   CircleAgent<2>(.3, 0),
-//        CircleAgent<2>(.7, 1),
-//        CircleAgent<2>(.6, 2)
+                            CircleAgent<2>(.3, 0, dim),
+                            CircleAgent<2>(.7, 1, dim),
+                            CircleAgent<2>(.6, 2, dim)
                            });
+//    std::cout << "dim = " << dim << std::endl;
+//    for(const auto& agent : agents) {
+//        std::cout << "agent " << agent.id_ << ", dim = " << agent.dim_ << std::endl;
+//        std::cout << "agent " << agent.id_ << ", dim = " << agent.dim_[0] << ", " << agent.dim_[1] << std::endl;
+//    }
 
     startLargeAgentMAPFTest<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2>> >(agents, instances);
 }
@@ -187,8 +200,8 @@ TEST(BlockAgentSubGraph, cbs_test) {
     // NOTICE: initialize pt in constructor cause constant changed
     BlockAgents_2D agents({
                                         BlockAgent_2D({-.4, -.4}, {.4, .4}, 0, dim),
-                                        BlockAgent_2D({-.6, -.4}, {1., .4}, 1, dim),
-                                        BlockAgent_2D({-.3, -1.2},{1., 1.2}, 2, dim)
+                                        BlockAgent_2D({-.6, -.4}, {1.3, .4}, 1, dim),
+                                        BlockAgent_2D({-.3, -.8},{1., .8}, 2, dim)
                                 });
 
     startLargeAgentMAPFTest<BlockAgent_2D, CBS::LargeAgentCBS<2, BlockAgent_2D> >(agents, instances);
