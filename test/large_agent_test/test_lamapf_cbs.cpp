@@ -10,6 +10,7 @@
 
 #include "../../algorithm/LA-MAPF/CBS/large_agent_CBS.h"
 #include "../../algorithm/LA-MAPF/LaCAM/large_agent_lacam.h"
+#include "../../algorithm/LA-MAPF/CBS/constraint_avoidance_table.h"
 
 #include "../../freeNav-base/visualization/canvas/canvas.h"
 #include "../../freeNav-base/dependencies/2d_grid/text_map_loader.h"
@@ -205,4 +206,50 @@ TEST(BlockAgentSubGraph, cbs_test) {
                                 });
 
     startLargeAgentMAPFTest<BlockAgent_2D, CBS::LargeAgentCBS<2, BlockAgent_2D> >(agents, instances);
+}
+
+TEST(constraint_avoidance_table, test) {
+    // fake instances
+    InstanceOrients<2> instances = {
+            {{{5, 3}, 0}, {{23, 22},0} },
+            {{{9, 2}, 0}, {{5, 22}, 0}},
+            {{{2, 5}, 0}, {{17, 22}, 3}}
+    };
+    CircleAgents<2> agents({
+                                   CircleAgent<2>(.3, 0, dim),
+                                   CircleAgent<2>(.7, 1, dim),
+                                   CircleAgent<2>(.6, 2, dim)
+                           });
+
+    CBS::LargeAgentCBS<2, CircleAgent<2> > lacbs(instances, agents, dim, is_occupied);
+
+    if(!lacbs.solve(30)) {
+        std::cout << "failed to solve" << std::endl;
+    }
+    std::cout << "validation of solution " << lacbs.solutionValidation() << std::endl;
+    ConstraintAvoidanceTable<2, CircleAgent<2> > table(dim, lacbs.all_poses_);
+
+    table.insertAgentPathOccGrids(agents[0], lacbs.getSolution()[0]);
+    table.insertAgentPathOccGrids(agents[1], lacbs.getSolution()[1]);
+    table.insertAgentPathOccGrids(agents[2], lacbs.getSolution()[2]);
+
+    table.printOccTable();
+
+    int agent_id = 2;
+    LAMAPF_Path path = lacbs.getSolution()[agent_id];
+    for(int t=0; t<path.size()-1; t++) {
+        const auto& curr_node_id = path[t];
+        const auto& next_node_id = path[t+1];
+//        std::cout << " curr_node_id " << curr_node_id << ", next_node_id " << next_node_id << std::endl;
+//        std::cout << " curr_node_id node " << *lacbs.all_poses_[curr_node_id]
+//                  << ", next_node_id node " << *lacbs.all_poses_[next_node_id] << std::endl;
+
+        Pointis<2> occ_grids = agents[agent_id].getTransferOccupiedGrid(*lacbs.all_poses_[curr_node_id],
+                                                                        *lacbs.all_poses_[next_node_id]);
+
+        int num_of_conf = table.getNumOfConflictsForStep(occ_grids, 3, t);
+        std::cout << "t = " << t << " have " << num_of_conf << " conflicts " << std::endl;
+    }
+
+
 }

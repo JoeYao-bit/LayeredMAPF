@@ -9,6 +9,7 @@
 #include "../../freeNav-base/dependencies/2d_grid/text_map_loader.h"
 #include "../../algorithm/LA-MAPF/CBS/large_agent_CBS.h"
 #include "../../algorithm/LA-MAPF/LaCAM/large_agent_lacam.h"
+#include "../../algorithm/LA-MAPF/CBS/constraint_avoidance_table.h"
 
 #include "../test_data.h"
 
@@ -56,7 +57,14 @@ TEST(Block2DAgentTest, generator_test) {
 // MAPFTestConfig_Berlin_1_256
 // MAPFTestConfig_maze_32_32_4
 // MAPFTestConfig_warehouse_10_20_10_2_1
+// MAPFTestConfig_warehouse_10_20_10_2_2
 // MAPFTestConfig_Paris_1_256
+// MAPFTestConfig_simple
+// MAPFTestConfig_empty_48_48
+// MAPFTestConfig_warehouse_20_40_10_2_1
+// MAPFTestConfig_warehouse_20_40_10_2_2
+// MAPFTestConfig_room_32_32_4
+// MAPFTestConfig_room_64_64_8
 auto map_test_config = MAPFTestConfig_Paris_1_256;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
@@ -175,7 +183,10 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
             case 'e':
                 if(makespan > 0) {
                     time_index++;
-                    time_index = time_index % makespan;
+                    if(time_index > makespan) {
+                        time_index = makespan;
+                    }
+//                    time_index = time_index % makespan;
                     std::cout << "-- switch to time index = " << time_index << std::endl;
                 }
                 break;
@@ -185,7 +196,33 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
     }
 }
 
-template<typename AgentType>
+
+
+
+template<typename AgentType, typename MethodType>
+void loadInstanceAndPlanning(const std::string& file_path) {
+    InstanceDeserializer<2, AgentType> deserializer;
+    if(deserializer.loadInstanceFromFile(file_path, dim)) {
+        std::cout << "load from path " << file_path << " success" << std::endl;
+    } else {
+        std::cout << "load from path " << file_path << " failed" << std::endl;
+        return;
+    }
+    LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(deserializer.getAgents(), is_occupied, dim);
+
+    gettimeofday(&tv_pre, &tz);
+    MethodType method(deserializer.getInstances(), deserializer.getAgents(), dim, is_occupied);
+    bool solved = method.solve(60, 0);
+    gettimeofday(&tv_after, &tz);
+    double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
+    std::cout << "instance has " << deserializer.getAgents().size() << " agents, find solution ? " << solved << " in " << time_cost << "ms " << std::endl;
+    std::cout << "solution validation ? " << method.solutionValidation() << std::endl;
+
+    InstanceVisualization<AgentType>(deserializer.getAgents(), generator, deserializer.getInstances(), method.getSolution());
+
+}
+
+template<typename AgentType, typename MethodType>
 void generateInstance(const std::vector<AgentType>& agents, const std::string& file_path) {
     gettimeofday(&tv_pre, &tz);
     LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(agents, is_occupied, dim, 1e7);
@@ -217,55 +254,31 @@ void generateInstance(const std::vector<AgentType>& agents, const std::string& f
         std::cout << "save to path " << file_path << " success" << std::endl;
     } else {
         std::cout << "save to path " << file_path << " failed" << std::endl;
-    }
-
-    InstanceVisualization<AgentType>(agents, generator, instances, solution);
-
-}
-
-
-template<typename AgentType, typename MethodType>
-void loadInstanceAndPlanning(const std::string& file_path) {
-    InstanceDeserializer<2, AgentType> deserializer;
-    if(deserializer.loadInstanceFromFile(file_path, dim)) {
-        std::cout << "load from path " << file_path << " success" << std::endl;
-    } else {
-        std::cout << "load from path " << file_path << " failed" << std::endl;
         return;
     }
-    LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(deserializer.getAgents(), is_occupied, dim);
 
-    gettimeofday(&tv_pre, &tz);
-    MethodType method(deserializer.getInstances(), deserializer.getAgents(), dim, is_occupied);
-    bool solved = method.solve(60, 0);
-    gettimeofday(&tv_after, &tz);
-    double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
-    std::cout << "instance has " << deserializer.getAgents().size() << " agents, find solution ? " << solved << " in " << time_cost << "ms " << std::endl;
-    std::cout << "solution validation ? " << method.solutionValidation() << std::endl;
-
-    InstanceVisualization<AgentType>(deserializer.getAgents(), generator, deserializer.getInstances(), method.getSolution());
-
+//    InstanceVisualization<AgentType>(agents, generator, instances, solution);
+    loadInstanceAndPlanning<AgentType, MethodType>(file_path);
 }
-
 
 TEST(GenerateCircleInstance, test)
 {
-    const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(40,
+    const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(10,
                                                                    .2, 1.4,
                                                                    .1,
                                                                    dim);
-    generateInstance<CircleAgent<2> >(agents, map_test_config.at("crc_ins_path"));
+    generateInstance<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > > (agents, map_test_config.at("crc_ins_path"));
 
 };
 
 TEST(GenerateBlock_2DInstance, test)
 {
-    const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(5,
-                                                                -.4, -.2,
-                                                                .2, .4,
-                                                                .2, .4,
+    const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(10,
+                                                                -1.4, -.2,
+                                                                .2, 1.4,
+                                                                .2, 1.4,
                                                                 .1, dim);
-    generateInstance<BlockAgent_2D>(agents, map_test_config.at("blk_ins_path"));
+    generateInstance<BlockAgent_2D, CBS::LargeAgentCBS<2, BlockAgent_2D > >(agents, map_test_config.at("blk_ins_path"));
 
 };
 
@@ -282,7 +295,21 @@ TEST(LoadCircleInstance, test)
 TEST(LoadBlock_2DInstance, test)
 {
     const std::string file_path = map_test_config.at("blk_ins_path");
+//    loadInstanceAndPlanning<BlockAgent_2D,
+//                            LaCAM::LargeAgentLaCAM<2,
+//                            BlockAgent_2D, LaCAM::LargeAgentConstraintTable<2, BlockAgent_2D > > >(file_path);
     loadInstanceAndPlanning<BlockAgent_2D,
-                            LaCAM::LargeAgentLaCAM<2,
-                            BlockAgent_2D, LaCAM::LargeAgentConstraintTable<2, BlockAgent_2D > > >(file_path);
+            CBS::LargeAgentCBS<2, BlockAgent_2D > >(file_path);
 };
+
+TEST(resize, test)
+{
+    std::vector<int> values = {1, 2, 3};
+    values.resize(5, 10);
+    for(const auto& value : values) {
+        std::cout << value << " ";
+    }
+    std::cout << std::endl;
+    // 1 2 3 10 10
+}
+

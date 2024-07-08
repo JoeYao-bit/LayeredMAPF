@@ -189,10 +189,12 @@ namespace freeNav::LayeredMAPF{
                     {"decomposition_output_path", "../test/test_data/decomposition/empty-48-48_de.txt"},
                     {"agent_num",    "260"}, // 330
                     {"cut_off_time", "200"},
-                    {"max_run_time", "60"} // in second
+                    {"max_run_time", "60"}, // in second
+                    {"crc_ins_path", "../test/test_data/large_agent_instance/empty-48-48_crc.txt"},
+                    {"blk_ins_path", "../test/test_data/large_agent_instance/empty-48-48_blk.txt"}
             };
 
-    // empty-32-32
+    // simple
     SingleMapTestConfig<2> MAPFTestConfig_simple =
 
             {
@@ -204,7 +206,9 @@ namespace freeNav::LayeredMAPF{
                     {"decomposition_output_path", "../test/test_data/decomposition/simple_de.txt"},
                     {"agent_num",    "3"}, // 330
                     {"cut_off_time", "200"},
-                    {"max_run_time", "60"} // in second
+                    {"max_run_time", "60"}, // in second
+                    {"crc_ins_path", "../test/test_data/large_agent_instance/simple_crc.txt"},
+                    {"blk_ins_path", "../test/test_data/large_agent_instance/simple_blk.txt"}
             };
 
     //
@@ -324,7 +328,9 @@ namespace freeNav::LayeredMAPF{
                     {"decomposition_output_path", "../test/test_data/decomposition/room-64-64-8_de.txt"},
                     {"agent_num",    "200"}, // 330
                     {"cut_off_time", "200"},
-                    {"max_run_time", "60"} // in second
+                    {"max_run_time", "60"}, // in second
+                    {"crc_ins_path", "../test/test_data/large_agent_instance/room-64-64-8_crc.txt"},
+                    {"blk_ins_path", "../test/test_data/large_agent_instance/room-64-64-8_blk.txt"}
             };
 
     // room-32-32-4
@@ -339,7 +345,9 @@ namespace freeNav::LayeredMAPF{
                     {"decomposition_output_path", "../test/test_data/decomposition/room-32-32-4_de.txt"},
                     {"agent_num",    "330"}, // 330
                     {"cut_off_time", "200"},
-                    {"max_run_time", "60"} // in second
+                    {"max_run_time", "60"}, // in second
+                    {"crc_ins_path", "../test/test_data/large_agent_instance/room-32-32-4_crc.txt"},
+                    {"blk_ins_path", "../test/test_data/large_agent_instance/room-32-32-4_blk.txt"}
             };
 
     // warehouse-10-20-10-2-2
@@ -354,7 +362,9 @@ namespace freeNav::LayeredMAPF{
                     {"decomposition_output_path", "../test/test_data/decomposition/warehouse-10-20-10-2-2_de.txt"},
                     {"agent_num",    "1000"}, // 330
                     {"cut_off_time", "200"},
-                    {"max_run_time", "60"} // in second
+                    {"max_run_time", "60"}, // in second
+                    {"crc_ins_path", "../test/test_data/large_agent_instance/warehouse-10-20-10-2-2_crc.txt"},
+                    {"blk_ins_path", "../test/test_data/large_agent_instance/warehouse-10-20-10-2-2_blk.txt"}
             };
 
     // warehouse-20-40-10-2-1
@@ -369,7 +379,9 @@ namespace freeNav::LayeredMAPF{
                     {"decomposition_output_path", "../test/test_data/decomposition/warehouse-20-40-10-2-1_de.txt"},
                     {"agent_num",    "1000"}, // 330
                     {"cut_off_time", "200"},
-                    {"max_run_time", "60"} // in second
+                    {"max_run_time", "60"}, // in second
+                    {"crc_ins_path", "../test/test_data/large_agent_instance/warehouse-20-40-10-2-1_crc.txt"},
+                    {"blk_ins_path", "../test/test_data/large_agent_instance/warehouse-20-40-10-2-1_blk.txt"}
             };
 
     // warehouse-20-40-10-2-2
@@ -384,7 +396,9 @@ namespace freeNav::LayeredMAPF{
                     {"decomposition_output_path", "../test/test_data/decomposition/warehouse-20-40-10-2-2_de.txt"},
                     {"agent_num",    "1000"}, // 330
                     {"cut_off_time", "200"},
-                    {"max_run_time", "60"} // in second
+                    {"max_run_time", "60"}, // in second
+                    {"crc_ins_path", "../test/test_data/large_agent_instance/warehouse-20-40-10-2-2_crc.txt"},
+                    {"blk_ins_path", "../test/test_data/large_agent_instance/warehouse-20-40-10-2-2_blk.txt"}
             };
 
     // lt_gallowstemplar_n
