@@ -28,6 +28,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         int timestep = 0;
         int num_of_conflicts = 0;
         bool in_openlist = false;
+        bool in_focallist = false; // yz: add by me
         bool wait_at_goal; // the action is to wait at the goal vertex or not. This is used for >length constraints
         bool is_goal = false;
 
@@ -37,7 +38,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             bool operator()(const LowLvNode *n1, const LowLvNode *n2) const {
                 if (n1->g_val + n1->h_val == n2->g_val + n2->h_val) {
                     if (n1->h_val == n2->h_val) {
-                        return rand() % 2 == 0;   // break ties randomly
+                        return true;//rand() % 2 == 0;   // break ties randomly
                     }
                     return n1->h_val >= n2->h_val;  // break ties towards smaller h_vals (closer to goal location)
                 }
@@ -52,7 +53,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 if (n1->num_of_conflicts == n2->num_of_conflicts) {
                     if (n1->g_val + n1->h_val == n2->g_val + n2->h_val) {
                         if (n1->h_val == n2->h_val) {
-                            return rand() % 2 == 0;   // break ties randomly
+                            return true;//rand() % 2 == 0;   // break ties randomly
                         }
                         return n1->h_val >= n2->h_val;  // break ties towards smaller h_vals (closer to goal location)
                     }
