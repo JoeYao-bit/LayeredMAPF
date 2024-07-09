@@ -52,24 +52,25 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
 
         // an agent occupied at each time index
-        void insertOccGrids(const OccGridss& gridss) {
-            // resize will keep previous element
-            makespan_ = std::max(makespan_, gridss.size());
-            occ_table_.resize(makespan_, OccGridSet(OccGrid::compareGrid));
-            for(int t=0; t<gridss.size(); t++) {
-                // insert grids of each time index, an agent may occupied more than one agent
-                for(const auto& grid : gridss[t]) {
-                    occ_table_[t].insert(grid);
-                }
-            }
-        }
+//        void insertOccGrids(const OccGridss& gridss) {
+//            // resize will keep previous element
+//            makespan_ = std::max(makespan_, gridss.size());
+//            occ_table_.resize(makespan_, OccGridSet(OccGrid::compareGrid));
+//            for(int t=0; t<gridss.size(); t++) {
+//                // insert grids of each time index, an agent may occupied more than one agent
+//                for(const auto& grid : gridss[t]) {
+//                    occ_table_[t].insert(grid);
+//                }
+//            }
+//        }
 
         // get how many agent current agent collide with
         int getNumOfConflictsForStep(const Pointis<N>& pts, int agent_id,
                                      int timestep) const {
-            if(timestep > occ_table_.size() - 1) {
+            if(timestep + 1 > occ_table_.size()) {
                 return 0;
             }
+//            std::cout << "occ_table_.size() " << occ_table_.size() << std::endl;
             std::set<int> agent_ids;
             for(const auto& pt : pts) {
                 Id id = PointiToId(pt, dim_);
@@ -80,11 +81,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     }
                 }
             }
-            std::cout << " conf agent id: ";
-            for(const auto& id : agent_ids) {
-                std::cout << id << " ";
-            }
-            std::cout << std::endl;
+//            std::cout << " conf agent id: ";
+//            for(const auto& id : agent_ids) {
+//                std::cout << id << " ";
+//            }
+//            std::cout << std::endl;
             return agent_ids.size();
         }
 
@@ -98,6 +99,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 std::cout << std::endl;
             }
         }
+
+        //const AgentType& agent_;
 
     private:
 

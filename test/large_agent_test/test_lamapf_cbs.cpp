@@ -227,6 +227,8 @@ TEST(constraint_avoidance_table, test) {
         std::cout << "failed to solve" << std::endl;
     }
     std::cout << "validation of solution " << lacbs.solutionValidation() << std::endl;
+    int agent_id = 2;
+
     ConstraintAvoidanceTable<2, CircleAgent<2> > table(dim, lacbs.all_poses_);
 
     table.insertAgentPathOccGrids(agents[0], lacbs.getSolution()[0]);
@@ -235,7 +237,6 @@ TEST(constraint_avoidance_table, test) {
 
     table.printOccTable();
 
-    int agent_id = 2;
     LAMAPF_Path path = lacbs.getSolution()[agent_id];
     for(int t=0; t<path.size()-1; t++) {
         const auto& curr_node_id = path[t];

@@ -24,10 +24,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             // 1, initial paths
             for(int agent=0; agent<this->instance_node_ids_.size(); agent++) {
                 ConstraintTable<N, AgentType> constraint_table(agent, this->agents_, this->all_poses_, this->dim_, this->isoc_);
+
 //                for(int another_agent=0; another_agent<this->instance_node_ids_.size(); another_agent++) {
 //                    if(agent == another_agent) { continue; }
 //                    constraint_table.insert2CT(this->instance_node_ids_[agent].first, 0, MAX_TIMESTEP);
 //                }
+
                 const size_t& start_node_id = this->instance_node_ids_[agent].first,
                               target_node_id = this->instance_node_ids_[agent].second;
 
@@ -464,6 +466,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //                }
                 buffer_node = buffer_node->parent;
             }
+            constraint_table.insert2CAT(agent, this->solutions_);
+
             const size_t& start_node_id = this->instance_node_ids_[agent].first,
                     target_node_id = this->instance_node_ids_[agent].second;
 

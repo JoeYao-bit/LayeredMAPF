@@ -113,7 +113,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
         int min_f_val_; // minimal f value in OPEN
         int lower_bound_ = 0; // Threshold for FOCAL
-        double w_ = 1; // suboptimal bound
+        double w_ = 1.2; // suboptimal bound
         const ConstraintTable<N, AgentType>& constraint_table_;
 
         LAMAPF_Path solution_;

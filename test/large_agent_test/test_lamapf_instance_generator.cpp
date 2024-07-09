@@ -183,10 +183,10 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
             case 'e':
                 if(makespan > 0) {
                     time_index++;
-                    if(time_index > makespan) {
-                        time_index = makespan;
-                    }
-//                    time_index = time_index % makespan;
+//                    if(time_index > makespan) {
+//                        time_index = makespan;
+//                    }
+                    time_index = time_index % makespan;
                     std::cout << "-- switch to time index = " << time_index << std::endl;
                 }
                 break;
