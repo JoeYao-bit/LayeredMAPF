@@ -20,7 +20,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         LargeAgentCBS(const InstanceOrients<N> & instances,
                       const std::vector<AgentType>& agents,
                       DimensionLength* dim,
-                      const IS_OCCUPIED_FUNC<N> & isoc) : LargeAgentMAPF<N, AgentType>(instances, agents, dim, isoc) {
+                      const IS_OCCUPIED_FUNC<N> & isoc)
+                      : LargeAgentMAPF<N, AgentType>(instances, agents, dim, isoc),
+                        constraint_avoidance_table_(ConstraintAvoidanceTable<N, AgentType>(dim, this->all_poses_, agents.front())) {
             // 1, initial paths
             for(int agent=0; agent<this->instance_node_ids_.size(); agent++) {
                 ConstraintTable<N, AgentType> constraint_table(agent, this->agents_, this->all_poses_, this->dim_, this->isoc_);
@@ -36,7 +38,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 SpaceTimeAstar<N, AgentType> astar(start_node_id, target_node_id,
                                                    this->agents_heuristic_tables_[agent],
                                                    this->agent_sub_graphs_[agent],
-                                                   constraint_table);
+                                                   constraint_table,
+                                                   constraint_avoidance_table_);
                 LAMAPF_Path solution = astar.solve();
                 if(solution.empty()) {
                     std::cerr << " agent " << agent << " search path failed " << std::endl;
@@ -44,6 +47,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 } else {
                     this->printPath(agent, solution);
                     this->initial_solutions_.push_back(solution);
+                    init_agent_occ_grids.push_back(ConstraintAvoidanceTable<N, AgentType>::getAgentPathOccGrids(this->agents_[agent],
+                                                                                                                this->initial_solutions_[agent],
+                                                                                                                this->all_poses_,
+                                                                                                                this->dim_));
                     this->solutions_.push_back(solution);
                 }
             }
@@ -211,6 +218,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         boost::heap::pairing_heap<CBSNode *, boost::heap::compare<CBSNode::compare_node_by_inadmissible_f> > open_list; // this is used for EES
         boost::heap::pairing_heap<CBSNode *, boost::heap::compare<CBSNode::compare_node_by_d> > focal_list; // this is ued for both ECBS and EES
 
+        ConstraintAvoidanceTable<N, AgentType> constraint_avoidance_table_;
+
+        // store each agent's occupied grid at each time , update with this->solutions_
+//        std::vector< typename ConstraintAvoidanceTable<N, AgentType>::OccGridLevels > agent_occ_grids;
+
+        std::vector< typename ConstraintAvoidanceTable<N, AgentType>::OccGridLevels > init_agent_occ_grids;
+
+
         // yz: child node inherit constraint from parent node
         void addConstraints(const HighLvNode *curr, HighLvNode *child1, HighLvNode *child2) const {
             {
@@ -224,8 +239,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             auto root = new CBSNode();
             root->g_val = 0;
             this->solutions_.resize(this->instances_.size(), {});
+//            agent_occ_grids.clear();
+//            agent_occ_grids.resize(this->instances_.size(), {});
             for (int agent = 0; agent < this->instances_.size(); agent++) {
                 this->solutions_[agent] = this->initial_solutions_[agent];
+//                agent_occ_grids[agent]  = init_agent_occ_grids[agent];
                 root->makespan = std::max(root->makespan, this->solutions_[agent].size() - 1); // yz: makespan
                 root->g_val += (int) this->solutions_[agent].size() - 1; // yz: sum of all current path cost
             }
@@ -311,14 +329,21 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         // yz: set HLNode's newest path as solution, and update replanned path in hyper node
         // yz: update paths in CBS to paths under current hyper node constraint
         inline void updatePaths(HighLvNode *curr) {
-            for (int agent = 0; agent < this->instances_.size(); agent++)
+            constraint_avoidance_table_.clearAllExistingOccGrids();
+            constraint_avoidance_table_.setInitOccGrids(init_agent_occ_grids);
+            for (int agent = 0; agent < this->instances_.size(); agent++) {
                 this->solutions_[agent] = this->initial_solutions_[agent]; // yz: considering what if an agent that never have conflict with other agent
-
+            }
             std::vector<bool> updated(this->instances_.size(), false);  // initialized for false
             while (curr != nullptr) {
                 for (auto &path : curr->paths) {
                     if (!updated[path.first]) {
                         this->solutions_[path.first] = path.second;
+                        auto occ_grids = ConstraintAvoidanceTable<N, AgentType>::getAgentPathOccGrids(this->agents_[path.first],
+                                                                                                      path.second,
+                                                                                                      this->all_poses_,
+                                                                                                      this->dim_);
+                        constraint_avoidance_table_.updateAgentPathOccGrids(this->agents_[path.first], occ_grids);
                         updated[path.first] = true;
                     }
                 }
@@ -474,7 +499,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             SpaceTimeAstar<N, AgentType> astar(start_node_id, target_node_id,
                                                this->agents_heuristic_tables_[agent],
                                                this->agent_sub_graphs_[agent],
-                                               constraint_table);
+                                               constraint_table,
+                                               constraint_avoidance_table_);
             astar.lower_bound_ = lowerbound;
             LAMAPF_Path new_path = astar.solve();
             if (!new_path.empty()) {
@@ -491,6 +517,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //                std::cout << "old soc = " << getSOC() << std::endl;
                 node->g_val = node->g_val - (int) this->solutions_[agent].size() + (int) new_path.size();
                 this->solutions_[agent] = node->paths.back().second;
+
+                auto occ_grids = ConstraintAvoidanceTable<N, AgentType>::getAgentPathOccGrids(this->agents_[agent],
+                                                                                              node->paths.back().second,
+                                                                                              this->all_poses_,
+                                                                                              this->dim_);
+                constraint_avoidance_table_.updateAgentPathOccGrids(this->agents_[agent], occ_grids);
+
+
                 node->makespan = std::max(node->makespan, new_path.size() - 1);
 //                std::cout << "new node->g_val = " << node->g_val << std::endl;
 //                std::cout << "new soc = " << getSOC() << std::endl;
@@ -514,6 +548,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             assert(!agents.empty());
             for (auto agent : agents) {
                 int lowerbound = (int) this->solutions_[agent].size() - 1;
+                constraint_avoidance_table_.updateAgent(this->agents_[agent]);
                 // yz: if find no path meet current constraint, the child node is illegal
                 if (!findPathForSingleAgent(node, agent, lowerbound)) {
                     return false;

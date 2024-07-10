@@ -229,7 +229,7 @@ TEST(constraint_avoidance_table, test) {
     std::cout << "validation of solution " << lacbs.solutionValidation() << std::endl;
     int agent_id = 2;
 
-    ConstraintAvoidanceTable<2, CircleAgent<2> > table(dim, lacbs.all_poses_);
+    ConstraintAvoidanceTable<2, CircleAgent<2> > table(dim, lacbs.all_poses_, agents[0]);
 
     table.insertAgentPathOccGrids(agents[0], lacbs.getSolution()[0]);
     table.insertAgentPathOccGrids(agents[1], lacbs.getSolution()[1]);

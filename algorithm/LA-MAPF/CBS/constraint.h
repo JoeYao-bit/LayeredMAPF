@@ -24,7 +24,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                         DimensionLength* dim,
                         const IS_OCCUPIED_FUNC<N> & isoc)
                         : agent_id_(agent_id), node_size_(all_poses.size()), agents_(agents),
-                          all_poses_(all_poses), dim_(dim), isoc_(isoc), cat_(dim, all_poses)  {
+                          all_poses_(all_poses), dim_(dim), isoc_(isoc)  {
             // get max excircle radius /  min incircle radius
             for(const auto& agent : agents) {
                 if(agent.excircle_radius_ > max_excircle_radius_) {
@@ -102,15 +102,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
        // yz: set a path as soft constraint, avoid other have conflict with this path
         void insert2CAT(int agent_id, const LAMAPF_Path &path) {
             cat_max_timestep_ = std::max(cat_max_timestep_, (int) path.size() - 1);
-            cat_.insertAgentPathOccGrids(agents_[agent_id], path);
+//            cat_.insertAgentPathOccGrids(agents_[agent_id], path);
         }
 
         // get how many conflict the agent by transfer from node curr_id to next_id have
         // using collision check between agents, so need agent information
-        int getNumOfConflictsForStep(const PosePtr<int, N>& curr_ps, const PosePtr<int, N>& next_ps, int next_timestep) const {
-            Pointis<N> occ_grids = agents_[agent_id_].getTransferOccupiedGrid(*curr_ps, *next_ps);
-            return cat_.getNumOfConflictsForStep(occ_grids, agent_id_, next_timestep);
-        }
+//        int getNumOfConflictsForStep(const PosePtr<int, N>& curr_ps, const PosePtr<int, N>& next_ps, int next_timestep) const {
+//            Pointis<N> occ_grids = agents_[agent_id_].getTransferOccupiedGrid(*curr_ps, *next_ps);
+//            return cat_.getNumOfConflictsForStep(occ_grids, agent_id_, next_timestep);
+//        }
 
         // the earliest timestep that the agent can hold the location after earliest_timestep
         int getHoldingTime(const size_t& node_id, int earliest_timestep) const
@@ -162,8 +162,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         typedef boost::unordered_map<size_t, std::list<std::pair<int, int> > > CT; // constraint table
 
         CT ct_; // node -> time range, or edge -> time range
-
-        ConstraintAvoidanceTable<N, AgentType> cat_;
 
     };
 

@@ -263,7 +263,7 @@ void generateInstance(const std::vector<AgentType>& agents, const std::string& f
 
 TEST(GenerateCircleInstance, test)
 {
-    const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(30,
+    const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(60,
                                                                    .2, 1.4,
                                                                    .1,
                                                                    dim);
@@ -273,10 +273,10 @@ TEST(GenerateCircleInstance, test)
 
 TEST(GenerateBlock_2DInstance, test)
 {
-    const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(30,
+    const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(20,
                                                                 -1.4, -.2,
-                                                                .2, 1.4,
-                                                                .2, 1.4,
+                                                                .2, 2.4,
+                                                                .2, 2.4,
                                                                 .1, dim);
     generateInstance<BlockAgent_2D, CBS::LargeAgentCBS<2, BlockAgent_2D > >(agents, map_test_config.at("blk_ins_path"));
 

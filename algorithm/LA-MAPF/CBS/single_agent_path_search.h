@@ -96,10 +96,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                           const size_t& target_node_id,
                           const std::vector<int>& heuristic,
                           const SubGraphOfAgent<N>& sub_graph,
-                          const ConstraintTable<N, AgentType>& constraint_table
+                          const ConstraintTable<N, AgentType>& constraint_table,
+                          const ConstraintAvoidanceTable<N, AgentType>& constraint_avoidance_table
                           ) : start_node_id_(start_node_id), target_node_id_(target_node_id),
                           heuristic_(heuristic), sub_graph_(sub_graph),
-                          constraint_table_(constraint_table) {}
+                          constraint_table_(constraint_table),
+                          constraint_avoidance_table_(constraint_avoidance_table) {}
 
         virtual LAMAPF_Path solve() = 0;
 
@@ -116,6 +118,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         int lower_bound_ = 0; // Threshold for FOCAL
         double w_ = 1.2; // suboptimal bound
         const ConstraintTable<N, AgentType>& constraint_table_;
+        const ConstraintAvoidanceTable<N, AgentType>& constraint_avoidance_table_;
 
         LAMAPF_Path solution_;
 

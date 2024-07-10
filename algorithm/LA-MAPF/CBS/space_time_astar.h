@@ -58,15 +58,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                        const size_t& target_pose_id,
                        const std::vector<int>& heuristic,
                        const SubGraphOfAgent<N>& sub_graph,
-                       const ConstraintTable<N, AgentType>& constraint_table
-        ) : SingleAgentSolver<N, AgentType>(start_pose_id, target_pose_id, heuristic, sub_graph, constraint_table) {
+                       const ConstraintTable<N, AgentType>& constraint_table,
+                       const ConstraintAvoidanceTable<N, AgentType>& constraint_avoidance_table
+        ) : SingleAgentSolver<N, AgentType>(start_pose_id, target_pose_id, heuristic, sub_graph, constraint_table, constraint_avoidance_table) {
             //
         }
 
         virtual LAMAPF_Path solve() override {
 
             new_nodes_in_open.clear();
-            after_first = false;
             LAMAPF_Path path;
 
             // generate start and add it to the OPEN & FOCAL list
@@ -88,7 +88,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 updateFocalList(); // update FOCAL if min f-val increased
                 new_nodes_in_open.clear();
                 auto *curr = popNode();
-                after_first = true;
                 assert(curr->node_id >= 0);
                 // check if the popped node is a goal
                 if (curr->node_id == this->target_node_id_ && // arrive at the goal location
@@ -123,10 +122,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                     int next_h_val = std::max(this->lower_bound_ - next_g_val, this->heuristic_[next_node_id]);
                     if (next_g_val + next_h_val > this->constraint_table_.length_max_)
                         continue;
+
                     int next_internal_conflicts = curr->num_of_conflicts +
-                            this->constraint_table_.getNumOfConflictsForStep(this->sub_graph_.all_nodes_[curr->node_id],
-                                                                             this->sub_graph_.all_nodes_[next_node_id],
-                                                                             next_timestep);
+                            this->constraint_avoidance_table_.getNumOfConflictsForStep(*this->sub_graph_.all_nodes_[curr->node_id],
+                                                                                       *this->sub_graph_.all_nodes_[next_node_id],
+                                                                                       curr->timestep);
 
                     // generate (maybe temporary) node
                     auto next = new AStarNode(next_node_id, next_g_val, next_h_val,
@@ -250,8 +250,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         // define typedef for hash_map
         typedef boost::unordered_set<AStarNode *, AStarNode::NodeHasher, AStarNode::eqnode> hashtable_t;
         hashtable_t allNodes_table;
-
-        bool after_first = false;
 
         std::vector<AStarNode*> new_nodes_in_open;
 
