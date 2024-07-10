@@ -99,6 +99,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     occ_table_[t][occ_grid.grid_id] = OccGrid{MAX<Id>, 0};
                 }
             }
+            occ_grids_[agent_id].clear();
         }
 
         // for test only
@@ -107,18 +108,26 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             makespan_ = std::max(makespan_, (int)path.size());
             Id total_index = getTotalIndexOfSpace<N>(dim_);
             occ_table_.resize(makespan_, OccGridLevel(total_index));
+            if(agent.id_ >= occ_grids_.size()) { occ_grids_.resize(agent.id_ + 1); }
+            occ_grids_[agent.id_].clear();
             for(int t=0; t<path.size()-1; t++) {
                 Pointis<N> grids = agent.getTransferOccupiedGrid(*all_poses_[path[t]], *all_poses_[path[t+1]]);
+                OccGridLevel level;
                 for(const auto& grid : grids) {
                     Id id = PointiToId(grid, dim_);
                     occ_table_[t][id] = OccGrid{id, agent.id_};
+                    level.push_back(occ_table_[t][id]);
                 }
+                occ_grids_[agent.id_].push_back(level);
             }
             auto grid_pairs = agent.getPoseOccupiedGrid(*all_poses_[path.back()]);
+            OccGridLevel level;
             for(const auto& grid : grid_pairs.first) {
                 Id id = PointiToId(grid, dim_);
                 occ_table_[path.size()-1][id] = OccGrid{id, agent.id_};
+                level.push_back(occ_table_[path.size()-1][id]);
             }
+            occ_grids_[agent.id_].push_back(level);
         }
 
         static OccGridLevels getAgentPathOccGrids(const AgentType& agent,

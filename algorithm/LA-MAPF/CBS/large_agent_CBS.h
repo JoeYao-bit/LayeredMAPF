@@ -329,8 +329,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         // yz: set HLNode's newest path as solution, and update replanned path in hyper node
         // yz: update paths in CBS to paths under current hyper node constraint
         inline void updatePaths(HighLvNode *curr) {
-            constraint_avoidance_table_.clearAllExistingOccGrids();
-            constraint_avoidance_table_.setInitOccGrids(init_agent_occ_grids);
             for (int agent = 0; agent < this->instances_.size(); agent++) {
                 this->solutions_[agent] = this->initial_solutions_[agent]; // yz: considering what if an agent that never have conflict with other agent
             }
@@ -339,11 +337,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 for (auto &path : curr->paths) {
                     if (!updated[path.first]) {
                         this->solutions_[path.first] = path.second;
-                        auto occ_grids = ConstraintAvoidanceTable<N, AgentType>::getAgentPathOccGrids(this->agents_[path.first],
-                                                                                                      path.second,
-                                                                                                      this->all_poses_,
-                                                                                                      this->dim_);
-                        constraint_avoidance_table_.updateAgentPathOccGrids(this->agents_[path.first], occ_grids);
                         updated[path.first] = true;
                     }
                 }
@@ -496,6 +489,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             const size_t& start_node_id = this->instance_node_ids_[agent].first,
                     target_node_id = this->instance_node_ids_[agent].second;
 
+            constraint_avoidance_table_.clearAllExistingOccGrids();
+            for(int a=0; a<this->agents_.size(); a++) {
+                if(a == agent) { continue; }
+                constraint_avoidance_table_.insertAgentPathOccGrids(this->agents_[a], this->solutions_[a]);
+            }
+            constraint_avoidance_table_.updateAgent(this->agents_[agent]);
             SpaceTimeAstar<N, AgentType> astar(start_node_id, target_node_id,
                                                this->agents_heuristic_tables_[agent],
                                                this->agent_sub_graphs_[agent],
@@ -517,14 +516,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //                std::cout << "old soc = " << getSOC() << std::endl;
                 node->g_val = node->g_val - (int) this->solutions_[agent].size() + (int) new_path.size();
                 this->solutions_[agent] = node->paths.back().second;
-
-                auto occ_grids = ConstraintAvoidanceTable<N, AgentType>::getAgentPathOccGrids(this->agents_[agent],
-                                                                                              node->paths.back().second,
-                                                                                              this->all_poses_,
-                                                                                              this->dim_);
-                constraint_avoidance_table_.updateAgentPathOccGrids(this->agents_[agent], occ_grids);
-
-
                 node->makespan = std::max(node->makespan, new_path.size() - 1);
 //                std::cout << "new node->g_val = " << node->g_val << std::endl;
 //                std::cout << "new soc = " << getSOC() << std::endl;
@@ -548,7 +539,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             assert(!agents.empty());
             for (auto agent : agents) {
                 int lowerbound = (int) this->solutions_[agent].size() - 1;
-                constraint_avoidance_table_.updateAgent(this->agents_[agent]);
                 // yz: if find no path meet current constraint, the child node is illegal
                 if (!findPathForSingleAgent(node, agent, lowerbound)) {
                     return false;
