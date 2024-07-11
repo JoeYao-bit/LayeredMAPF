@@ -65,7 +65,13 @@ TEST(Block2DAgentTest, generator_test) {
 // MAPFTestConfig_warehouse_20_40_10_2_2
 // MAPFTestConfig_room_32_32_4
 // MAPFTestConfig_room_64_64_8
-auto map_test_config = MAPFTestConfig_Paris_1_256;
+// MAPFTestConfig_AR0011SR
+// MAPFTestConfig_AR0012SR
+// MAPFTestConfig_AR0013SR
+// MAPFTestConfig_AR0014SR
+// MAPFTestConfig_AR0015SR
+// MAPFTestConfig_AR0016SR
+auto map_test_config = MAPFTestConfig_AR0016SR;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -80,7 +86,7 @@ auto dim = loader.getDimensionInfo();
 
 int canvas_size_x = 1000, canvas_size_y = 700;
 
-int zoom_ratio = 5;
+int zoom_ratio = 2;
 
 Pointi<2> pt1;
 int current_subgraph_id = 0;
@@ -263,8 +269,8 @@ void generateInstance(const std::vector<AgentType>& agents, const std::string& f
 
 TEST(GenerateCircleInstance, test)
 {
-    const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(60,
-                                                                   .2, 1.4,
+    const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(20,
+                                                                   .2, 2.4,
                                                                    .1,
                                                                    dim);
     generateInstance<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > > (agents, map_test_config.at("crc_ins_path"));
@@ -274,9 +280,9 @@ TEST(GenerateCircleInstance, test)
 TEST(GenerateBlock_2DInstance, test)
 {
     const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(20,
-                                                                -1.4, -.2,
-                                                                .2, 2.4,
-                                                                .2, 2.4,
+                                                                -5.4, -.2,
+                                                                .2, 5.4,
+                                                                .2, 5.4,
                                                                 .1, dim);
     generateInstance<BlockAgent_2D, CBS::LargeAgentCBS<2, BlockAgent_2D > >(agents, map_test_config.at("blk_ins_path"));
 

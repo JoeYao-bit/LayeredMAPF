@@ -413,7 +413,9 @@ namespace freeNav::LayeredMAPF{
                     {"decomposition_output_path", "../test/test_data/decomposition/lt_gallowstemplar_n_de.txt"},
                     {"agent_num",    "1000"}, // 330
                     {"cut_off_time", "200"},
-                    {"max_run_time", "60"} // in second
+                    {"max_run_time", "60"}, // in second
+                    {"crc_ins_path", "../test/test_data/large_agent_instance/lt_gallowstemplar_n_crc.txt"},
+                    {"blk_ins_path", "../test/test_data/large_agent_instance/lt_gallowstemplar_n_blk.txt"}
             };
 
     // ost003d
@@ -430,6 +432,111 @@ namespace freeNav::LayeredMAPF{
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"} // in second
             };
+
+    // AR0011SR
+    SingleMapTestConfig<2> MAPFTestConfig_AR0011SR =
+
+            {
+                    {"map_name",     "AR0011SR"},
+                    {"map_path",     "../test/test_data/AR0011SR.map"},
+                    {"scene_path",   "../test/test_data/AR0011SR.scen"},
+                    {"ct_path",   "../test/test_data/AR0011SR.ct"},
+                    {"output_path", "../test/test_data/layered_mapf/AR0011SR.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/AR0011SR_de.txt"},
+                    {"agent_num",    "10"}, // 330
+                    {"cut_off_time", "200"},
+                    {"max_run_time", "60"}, // in second
+                    {"crc_ins_path", "../test/test_data/large_agent_instance/AR0011SR_crc.txt"},
+                    {"blk_ins_path", "../test/test_data/large_agent_instance/AR0011SR_blk.txt"}
+            };
+
+    // AR0012SR
+    SingleMapTestConfig<2> MAPFTestConfig_AR0012SR =
+
+            {
+                    {"map_name",     "AR0012SR"},
+                    {"map_path",     "../test/test_data/AR0012SR.map"},
+                    {"scene_path",   "../test/test_data/AR0012SR.scen"},
+                    {"ct_path",   "../test/test_data/AR0012SR.ct"},
+                    {"output_path", "../test/test_data/layered_mapf/AR0012SR.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/AR0012SR_de.txt"},
+                    {"agent_num",    "10"}, // 330
+                    {"cut_off_time", "200"},
+                    {"max_run_time", "60"}, // in second
+                    {"crc_ins_path", "../test/test_data/large_agent_instance/AR0012SR_crc.txt"},
+                    {"blk_ins_path", "../test/test_data/large_agent_instance/AR0012SR_blk.txt"}
+            };
+
+    // AR0013SR
+    SingleMapTestConfig<2> MAPFTestConfig_AR0013SR =
+
+            {
+                    {"map_name",     "AR0013SR"},
+                    {"map_path",     "../test/test_data/AR0013SR.map"},
+                    {"scene_path",   "../test/test_data/AR0013SR.scen"},
+                    {"ct_path",   "../test/test_data/AR0013SR.ct"},
+                    {"output_path", "../test/test_data/layered_mapf/AR0013SR.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/AR0013SR_de.txt"},
+                    {"agent_num",    "10"}, // 330
+                    {"cut_off_time", "200"},
+                    {"max_run_time", "60"}, // in second
+                    {"crc_ins_path", "../test/test_data/large_agent_instance/AR0013SR_crc.txt"},
+                    {"blk_ins_path", "../test/test_data/large_agent_instance/AR0013SR_blk.txt"}
+            };
+
+    // AR0014SR
+    SingleMapTestConfig<2> MAPFTestConfig_AR0014SR =
+
+            {
+                    {"map_name",     "AR0013SR"},
+                    {"map_path",     "../test/test_data/AR0014SR.map"},
+                    {"scene_path",   "../test/test_data/AR0014SR.scen"},
+                    {"ct_path",   "../test/test_data/AR0014SR.ct"},
+                    {"output_path", "../test/test_data/layered_mapf/AR0014SR.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/AR0014SR_de.txt"},
+                    {"agent_num",    "10"}, // 330
+                    {"cut_off_time", "200"},
+                    {"max_run_time", "60"}, // in second
+                    {"crc_ins_path", "../test/test_data/large_agent_instance/AR0014SR_crc.txt"},
+                    {"blk_ins_path", "../test/test_data/large_agent_instance/AR0014SR_blk.txt"}
+            };
+
+    // AR0015SR
+    SingleMapTestConfig<2> MAPFTestConfig_AR0015SR =
+
+            {
+                    {"map_name",     "AR0015SR"},
+                    {"map_path",     "../test/test_data/AR0015SR.map"},
+                    {"scene_path",   "../test/test_data/AR0015SR.scen"},
+                    {"ct_path",   "../test/test_data/AR0015SR.ct"},
+                    {"output_path", "../test/test_data/layered_mapf/AR0015SR.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/AR0015SR_de.txt"},
+                    {"agent_num",    "10"}, // 330
+                    {"cut_off_time", "200"},
+                    {"max_run_time", "60"}, // in second
+                    {"crc_ins_path", "../test/test_data/large_agent_instance/AR0015SR_crc.txt"},
+                    {"blk_ins_path", "../test/test_data/large_agent_instance/AR0015SR_blk.txt"}
+            };
+
+    // AR0016SR
+    SingleMapTestConfig<2> MAPFTestConfig_AR0016SR =
+
+            {
+                    {"map_name",     "AR0016SR"},
+                    {"map_path",     "../test/test_data/AR0016SR.map"},
+                    {"scene_path",   "../test/test_data/AR0016SR.scen"},
+                    {"ct_path",   "../test/test_data/AR0016SR.ct"},
+                    {"output_path", "../test/test_data/layered_mapf/AR0016SR.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/AR0016SR_de.txt"},
+                    {"agent_num",    "10"}, // 330
+                    {"cut_off_time", "200"},
+                    {"max_run_time", "60"}, // in second
+                    {"crc_ins_path", "../test/test_data/large_agent_instance/AR0016SR_crc.txt"},
+                    {"blk_ins_path", "../test/test_data/large_agent_instance/AR0016SR_blk.txt"}
+            };
+
+    // TODO: add map from Baldurs Gate II (published September, 2000), like AR0011SR.map
+
     struct MethodConfigs {
         std::vector<int> agent_configs_;
         std::string raw_name_;

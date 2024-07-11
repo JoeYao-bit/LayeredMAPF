@@ -18,116 +18,102 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             Id grid_id = MAX<Id>;
             int agent_id;
 
-//            static bool compareGrid(const OccGrid& g1, const OccGrid& g2) {
-//                return g1.grid_id < g2.grid_id;
-//            }
+            static bool compareGrid(const OccGrid& g1, const OccGrid& g2) {
+                return g1.grid_id < g2.grid_id;
+            }
 
-//            bool operator==(const OccGrid& other_grid) const
-//            {
-//                if (grid_id == other_grid.grid_id) return true;
-//                else return false;
-//            }
-//
-//            struct HashFunction
-//            {
-//                size_t operator()(const OccGrid& grid) const
-//                {
-//                    return std::hash<Id>()(grid.grid_id);
-//                }
-//            };
+            bool operator==(const OccGrid& other_grid) const
+            {
+                if (grid_id == other_grid.grid_id) return true;
+                else return false;
+            }
+
+            struct HashFunction
+            {
+                size_t operator()(const OccGrid& grid) const
+                {
+                    return std::hash<Id>()(grid.grid_id);
+                }
+            };
 
         };
 
 
-        typedef std::vector<OccGrid> OccGridLevel;
+        typedef std::vector<OccGrid> OccGridLevel; // efficient in time cost, but memory consuming
+
+        typedef std::vector<OccGridLevel> OccGridLevels; // efficient in time cost, but memory consuming
+
 
 //        typedef std::vector<OccGridLevel> OccGridss;
 
 //        typedef std::unordered_set<OccGrid, std::function<bool(const OccGrid& g1, const OccGrid& g2)> > OccGridSet;
         // HashFunction
-//        typedef std::unordered_set<OccGrid, typename OccGrid::HashFunction> OccGridSet;
+        typedef std::unordered_set<OccGrid, typename OccGrid::HashFunction> OccGridSet;
 
-        typedef std::vector<OccGridLevel> OccGridLevels;
+        typedef std::vector<OccGridSet> OccGridSets;
 
         explicit ConstraintAvoidanceTable(DimensionLength* dim, const std::vector<PosePtr<int, N> >& all_poses, const AgentType& agent)
         : dim_(dim), all_poses_(all_poses), agent_(agent) {
             //
         }
 
-        void setInitOccGrids(const std::vector<OccGridLevels>& init_occ_grids) {
-            occ_grids_ = init_occ_grids;
-            for(const auto& occ_grids : init_occ_grids) {
-                insertOccGrids(occ_grids);
-            }
-        }
-
         void updateAgent(const AgentType& agent) {
             agent_ = agent;
         }
 
-        void updateAgentPathOccGrids(const AgentType& agent, const OccGridLevels & new_occ_grids) {
-            Id total_index = getTotalIndexOfSpace<N>(dim_);
-            if(occ_table_.size() < new_occ_grids.size()) {
-                occ_table_.resize(new_occ_grids.size(), OccGridLevel(total_index));
-            }
-            // clear previous occ grids
-//            for(int t=0; t<occ_grids_[agent.id_].size(); t++) {
-//                for(const auto& occ_grid : occ_grids_[agent.id_][t]) {
-//                    occ_table_[t][occ_grid.grid_id_] = OccGrid(MAX<Id>, 0);
+//        void updateAgentPathOccGrids(const AgentType& agent, const OccGridLevels & new_occ_grids) {
+//            Id total_index = getTotalIndexOfSpace<N>(dim_);
+//            if(occ_table_.size() < new_occ_grids.size()) {
+//                occ_table_.resize(new_occ_grids.size(), OccGridLevel(total_index));
+//            }
+//            // clear previous occ grids
+//            clearExistingOccGrids(agent.id_);
+//            occ_grids_[agent.id_] = new_occ_grids;
+//            // set now occ grids
+//            for(int t=0; t<new_occ_grids.size(); t++) {
+//                for(const auto& occ_grid : new_occ_grids[t]) {
+//                    occ_table_[t][occ_grid.grid_id] = occ_grid;
 //                }
 //            }
-            clearExistingOccGrids(agent.id_);
-            occ_grids_[agent.id_] = new_occ_grids;
-            // set now occ grids
-            for(int t=0; t<new_occ_grids.size(); t++) {
-                for(const auto& occ_grid : new_occ_grids[t]) {
-                    occ_table_[t][occ_grid.grid_id] = occ_grid;
-                }
-            }
-        }
+//        }
 
         void clearAllExistingOccGrids() {
-            for(int agent=0; agent<occ_grids_.size(); agent++) {
-                clearExistingOccGrids(agent);
+//            for(int agent=0; agent<occ_grids_.size(); agent++) {
+//                clearExistingOccGrids(agent);
+//            }
+            for(int t=0; t<occ_table_.size(); t++) {
+                occ_table_[t].clear();
             }
         }
 
-        void clearExistingOccGrids(int agent_id) {
-            // clear previous occ grids
-            for(int t=0; t<occ_grids_[agent_id].size(); t++) {
-                for(const auto& occ_grid : occ_grids_[agent_id][t]) {
-                    occ_table_[t][occ_grid.grid_id] = OccGrid{MAX<Id>, 0};
-                }
-            }
-            occ_grids_[agent_id].clear();
-        }
+//        void clearExistingOccGrids(int agent_id) {
+//            // clear previous occ grids
+//            for(int t=0; t<occ_grids_[agent_id].size(); t++) {
+//                for(const auto& occ_grid : occ_grids_[agent_id][t]) {
+//                    occ_table_[t][occ_grid.grid_id] = OccGrid{MAX<Id>, 0};
+//                }
+//            }
+//            occ_grids_[agent_id].clear();
+//        }
 
         // for test only
         void insertAgentPathOccGrids(const AgentType& agent, const LAMAPF_Path& path) {
             // resize will keep previous element
             makespan_ = std::max(makespan_, (int)path.size());
             Id total_index = getTotalIndexOfSpace<N>(dim_);
-            occ_table_.resize(makespan_, OccGridLevel(total_index));
-            if(agent.id_ >= occ_grids_.size()) { occ_grids_.resize(agent.id_ + 1); }
-            occ_grids_[agent.id_].clear();
+            occ_table_.resize(makespan_);
             for(int t=0; t<path.size()-1; t++) {
                 Pointis<N> grids = agent.getTransferOccupiedGrid(*all_poses_[path[t]], *all_poses_[path[t+1]]);
-                OccGridLevel level;
                 for(const auto& grid : grids) {
                     Id id = PointiToId(grid, dim_);
-                    occ_table_[t][id] = OccGrid{id, agent.id_};
-                    level.push_back(occ_table_[t][id]);
+                    occ_table_[t].insert(OccGrid{id, agent.id_});
                 }
-                occ_grids_[agent.id_].push_back(level);
             }
             auto grid_pairs = agent.getPoseOccupiedGrid(*all_poses_[path.back()]);
-            OccGridLevel level;
             for(const auto& grid : grid_pairs.first) {
                 Id id = PointiToId(grid, dim_);
-                occ_table_[path.size()-1][id] = OccGrid{id, agent.id_};
-                level.push_back(occ_table_[path.size()-1][id]);
+                occ_table_[path.size()-1].insert(OccGrid{id, agent.id_});
             }
-            occ_grids_[agent.id_].push_back(level);
         }
 
         static OccGridLevels getAgentPathOccGrids(const AgentType& agent,
@@ -163,12 +149,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             std::set<int> agent_ids;
             for(const auto& pt : pts) {
                 Id id = PointiToId(pt, dim_);
-                auto occ_grid = occ_table_[timestep][id];
-                if(occ_grid.grid_id != MAX<Id>) {
-                    if(occ_grid.agent_id != agent_id) {
-                        agent_ids.insert(occ_grid.agent_id);
+                auto iter = occ_table_[timestep].find(OccGrid{id, 0});
+                if(iter != occ_table_[timestep].end()) {
+                    if(iter->agent_id != agent_id) {
+                        agent_ids.insert(iter->agent_id);
                     }
                 }
+
             }
 //            std::cout << " conf agent id: ";
 //            for(const auto& id : agent_ids) {
@@ -198,20 +185,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             // resize will keep previous element
             makespan_ = std::max(makespan_, int(gridss.size()));
             Id total_index = getTotalIndexOfSpace<N>(dim_);
-            occ_table_.resize(makespan_, OccGridLevel(total_index));
+            occ_table_.resize(makespan_);
             for(int t=0; t<gridss.size(); t++) {
                 // insert grids of each time index, an agent may occupied more than one agent
                 for(const auto& grid : gridss[t]) {
-                    occ_table_[t][grid.grid_id] = grid;
+                    occ_table_[t].insert(grid);
                 }
             }
         }
 
         const std::vector<PosePtr<int, N> >& all_poses_;
 
-        std::vector<OccGridLevels> occ_grids_;
-
-        OccGridLevels occ_table_;
+        OccGridSets occ_table_;
 
         int makespan_ = 0;
 
