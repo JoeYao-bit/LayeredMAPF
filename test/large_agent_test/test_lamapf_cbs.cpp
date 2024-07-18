@@ -170,14 +170,20 @@ TEST(CircleAgentSubGraph, cbs_test) {
 
     // fake instances
     InstanceOrients<2> instances = {
+//            {{{8, 3}, 0}, {{23, 22},0} },
+//            {{{9, 2}, 0}, {{5, 22}, 0}},
+//            {{{2, 5}, 0}, {{17, 22}, 3}}
             {{{8, 3}, 0}, {{23, 22},0} },
             {{{9, 2}, 0}, {{5, 22}, 0}},
             {{{2, 5}, 0}, {{17, 22}, 3}}
     };
     CircleAgents<2> agents({
-                            CircleAgent<2>(.3, 0, dim),
-                            CircleAgent<2>(.7, 1, dim),
-                            CircleAgent<2>(.6, 2, dim)
+//                            CircleAgent<2>(.3, 0, dim),
+//                            CircleAgent<2>(.7, 1, dim),
+//                            CircleAgent<2>(.6, 2, dim)
+                                   CircleAgent<2>(.4, 0, dim),
+                                   CircleAgent<2>(.4, 1, dim),
+                                   CircleAgent<2>(.4, 2, dim)
                            });
 //    std::cout << "dim = " << dim << std::endl;
 //    for(const auto& agent : agents) {

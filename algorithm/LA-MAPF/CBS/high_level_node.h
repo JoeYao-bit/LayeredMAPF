@@ -134,7 +134,39 @@ public:
             rst.push_back(path.first);
         return rst;
     }
+
+    template<Dimension N>
+    std::string toString(const std::vector<PosePtr<int, N> >& all_poses) const {
+        std::stringstream ss;
+        ss << " ptr = " << this << ", parent " << parent << " \n";
+        ss << " g_val = " << g_val << ", parent " << parent << " \n";
+        ss << " cf = " << this->conflicts.size() << " \n";
+        for(const auto& constraint : constraints) {
+            int agent_id = std::get<0>(*constraint);
+            ss << " cs: ag" << agent_id;
+            Pointi<N> node_from = all_poses[std::get<1>(*constraint)]->pt_;
+            ss << ", node_from = " << node_from;
+            if(std::get<2>(*constraint) != MAX_NODES) {
+                Pointi<N> node_to   = all_poses[std::get<2>(*constraint)]->pt_;
+                ss << ", node_to = " << node_to ;
+            }
+            int time_start      = std::get<3>(*constraint);
+            ss << ", ts = " << time_start;
+
+            int time_end        = std::get<4>(*constraint);
+            ss << ", te = " << time_end << " \n";
+        }
+        for(const auto& path : paths) {
+            ss << "ag: " << path.first << ", path = ";
+            for(const auto& wp : path.second) {
+                ss << *all_poses[wp] << "->";
+            }
+        }
+        return ss.str();
+    }
+
 };
+
 
 }
 

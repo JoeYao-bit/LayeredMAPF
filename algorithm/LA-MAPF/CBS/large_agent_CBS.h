@@ -252,6 +252,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             root->h_computed = true;
             findConflicts(*root);
             pushNode(root);
+//            std::cout << "root node = " << root->toString(this->all_poses_) << "\n";
         }
 
         // yz: check whether current result paths is legal
@@ -546,6 +547,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //                std::cout << __FUNCTION__ << " update path of agent " << agent << std::endl;
             }
             findConflicts(*node);
+//            std::cout << "new node = " << node->toString(this->all_poses_) << "\n";
             return true;
         }
 

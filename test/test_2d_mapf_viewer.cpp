@@ -51,7 +51,8 @@ GridPtr<3> sg1 = std::make_shared<Grid<3>>(),
 // MAPFTestConfig_empty_32_32 2872.3 ms
 // MAPFTestConfig_ht_chantry
 // MAPFTestConfig_lak303d
-auto map_test_config = MAPFTestConfig_lak303d;
+// MAPFTestConfig_simple
+auto map_test_config = MAPFTestConfig_simple;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -95,29 +96,29 @@ int main(int argc, char** argv) {
     memory_recorder.clear();
     float base_usage = memory_recorder.getCurrentMemoryUsage();
     auto MAPF_func = CBS_Li::eecbs_MAPF;
-    gettimeofday(&tv_pre, &tz);
-
-    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_func, CBS_Li::eecbs_MAPF, true, 30);
-    gettimeofday(&tv_after, &tz);
-    double layered_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
-    std::cout << multiple_paths.size() << " agents " << std::endl;
-    std::cout << "-- layered mapf end in " << layered_cost << "ms" << std::endl << std::endl;
-    std::cout << " is solution valid ? " << validateSolution<2>(multiple_paths) << std::endl;
-    sleep(1);
-    float maximal_usage = memory_recorder.getMaximalMemoryUsage();
-    {
-        std::cout << "layered mapf maximal usage = " << maximal_usage - base_usage << " MB" << std::endl;
-    }
-
-    int total_cost = 0, maximum_single_cost = 0;
-    for(const auto& path : multiple_paths) {
-        //std::cout << path << std::endl;
-        total_cost += path.size();
-        maximum_single_cost = std::max(maximum_single_cost, (int)path.size());
-    }
-    std::cout << "layered total cost          = " << total_cost << std::endl;
-    std::cout << "layered maximum_single_cost = " << maximum_single_cost << std::endl;
-    std::cout << std::endl;
+//    gettimeofday(&tv_pre, &tz);
+//
+//    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_func, CBS_Li::eecbs_MAPF, true, 30);
+//    gettimeofday(&tv_after, &tz);
+//    double layered_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
+//    std::cout << multiple_paths.size() << " agents " << std::endl;
+//    std::cout << "-- layered mapf end in " << layered_cost << "ms" << std::endl << std::endl;
+//    std::cout << " is solution valid ? " << validateSolution<2>(multiple_paths) << std::endl;
+//    sleep(1);
+//    float maximal_usage = memory_recorder.getMaximalMemoryUsage();
+//    {
+//        std::cout << "layered mapf maximal usage = " << maximal_usage - base_usage << " MB" << std::endl;
+//    }
+//
+//    int total_cost = 0, maximum_single_cost = 0;
+//    for(const auto& path : multiple_paths) {
+//        //std::cout << path << std::endl;
+//        total_cost += path.size();
+//        maximum_single_cost = std::max(maximum_single_cost, (int)path.size());
+//    }
+//    std::cout << "layered total cost          = " << total_cost << std::endl;
+//    std::cout << "layered maximum_single_cost = " << maximum_single_cost << std::endl;
+//    std::cout << std::endl;
     memory_recorder.clear();
     sleep(1);
     base_usage = memory_recorder.getCurrentMemoryUsage();
@@ -133,19 +134,18 @@ int main(int argc, char** argv) {
 
     std::cout << "--variation of memory " << memory_recorder.getCurrentMemoryUsage() - base_usage << " MB" << std::endl;
     sleep(1);
-    maximal_usage = memory_recorder.getMaximalMemoryUsage();
+    float maximal_usage2 = memory_recorder.getMaximalMemoryUsage();
     {
-        std::cout << "--raw mapf maximal usage = " << maximal_usage - base_usage << " MB" << std::endl;
+        std::cout << "--raw mapf maximal usage = " << maximal_usage2 - base_usage << " MB" << std::endl;
     }
-    total_cost = 0;
-    maximum_single_cost = 0;
+    int total_cost1 = 0, maximum_single_cost1 = 0;
     for(const auto& path : multiple_paths) {
         //std::cout << path << std::endl;
-        total_cost += path.size();
-        maximum_single_cost = std::max(maximum_single_cost, (int)path.size());
+        total_cost1 += path.size();
+        maximum_single_cost1 = std::max(maximum_single_cost1, (int)path.size());
     }
-    std::cout << "total cost          = " << total_cost << std::endl;
-    std::cout << "maximum_single_cost = " << maximum_single_cost << std::endl;
+    std::cout << "total cost          = " << total_cost1 << std::endl;
+    std::cout << "maximum_single_cost = " << maximum_single_cost1 << std::endl;
 
     ThreadPool tp(1);
 

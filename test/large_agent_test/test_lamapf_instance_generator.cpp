@@ -71,7 +71,7 @@ TEST(Block2DAgentTest, generator_test) {
 // MAPFTestConfig_AR0014SR
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
-auto map_test_config = MAPFTestConfig_AR0016SR;
+auto map_test_config = MAPFTestConfig_simple;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -86,7 +86,7 @@ auto dim = loader.getDimensionInfo();
 
 int canvas_size_x = 1000, canvas_size_y = 700;
 
-int zoom_ratio = 2;
+int zoom_ratio = 100;
 
 Pointi<2> pt1;
 int current_subgraph_id = 0;
@@ -154,7 +154,7 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
 
                 DrawOnCanvas(agents[i], {pt, orient}, canvas, COLOR_TABLE[(i) % 30]);
 
-                canvas.drawArrowInt(pt[0], pt[1], -orientToPi_2D(orient), 1, std::max(1, zoom_ratio/10));
+//                canvas.drawArrowInt(pt[0], pt[1], -orientToPi_2D(orient), 1, std::max(1, zoom_ratio/10));
 
             }
         }
@@ -269,8 +269,8 @@ void generateInstance(const std::vector<AgentType>& agents, const std::string& f
 
 TEST(GenerateCircleInstance, test)
 {
-    const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(20,
-                                                                   .2, 2.4,
+    const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(3,
+                                                                   .4, .41,
                                                                    .1,
                                                                    dim);
     generateInstance<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > > (agents, map_test_config.at("crc_ins_path"));
@@ -288,14 +288,13 @@ TEST(GenerateBlock_2DInstance, test)
 
 };
 
+bool use_circle_agent = true;
+
 TEST(LoadCircleInstance, test)
 {
     const std::string file_path = map_test_config.at("crc_ins_path");
-//    loadInstanceAndPlanning<CircleAgent<2>,
-//                            LaCAM::LargeAgentLaCAM<2, CircleAgent<2>,
-//                            LaCAM::LargeAgentConstraintTable<2, CircleAgent<2> > > >(file_path);
     loadInstanceAndPlanning<CircleAgent<2>,
-                            CBS::LargeAgentCBS<2, CircleAgent<2> > >(file_path);
+            CBS::LargeAgentCBS<2, CircleAgent<2> > >(file_path);
 };
 
 TEST(LoadBlock_2DInstance, test)
