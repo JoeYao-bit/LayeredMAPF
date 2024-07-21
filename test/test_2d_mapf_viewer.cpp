@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
     sleep(1);
     memory_recorder.clear();
     float base_usage = memory_recorder.getCurrentMemoryUsage();
-    auto MAPF_func = CBS_Li::eecbs_MAPF;
+    auto MAPF_func = PBS_Li::pbs_MAPF;//CBS_Li::eecbs_MAPF;
 //    gettimeofday(&tv_pre, &tz);
 //
 //    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_func, CBS_Li::eecbs_MAPF, true, 30);
