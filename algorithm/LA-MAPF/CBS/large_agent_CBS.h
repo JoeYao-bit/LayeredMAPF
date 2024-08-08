@@ -45,7 +45,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                     std::cerr << " agent " << agent << " search path failed " << std::endl;
                     this->solvable = false;
                 } else {
-                    this->printPath(agent, solution);
+//                    this->printPath(agent, solution);
                     this->initial_solutions_.push_back(solution);
                     init_agent_occ_grids.push_back(ConstraintAvoidanceTable<N, AgentType>::getAgentPathOccGrids(this->agents_[agent],
                                                                                                                 this->initial_solutions_[agent],

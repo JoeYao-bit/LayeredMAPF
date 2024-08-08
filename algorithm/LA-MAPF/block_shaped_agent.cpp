@@ -162,13 +162,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return isPointSetOverlap(pts1, pts2, a1.dim_);
     }
 
-
-    void DrawOnCanvas(const BlockAgent_2D& block, const Pose<int, 2>& pose,
-                      Canvas& canvas, const cv::Vec3b& color, bool fill) {
-        const auto& rect = block.getPosedRectangle(pose); // agents
-        canvas.drawRectangleFloat(rect.first, rect.second, true, fill ? -1 : 1, color);
-    }
-
     std::ostream& operator << (std::ostream& os, const BlockAgent_2D& block) {
         os << "BlockAgent_2D " << block.id_ << ": "<< block.min_pt_ << " " << block.max_pt_ << " ";
         return os;

@@ -193,6 +193,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return {agent, {start_pose, target_pose}};
         }
 
+        void drawOnCanvas(const Pose<int, 2>& pose,
+                          Canvas& canvas, const cv::Vec3b& color, bool fill=true) const {
+            canvas.drawCircleInt(pose.pt_[0], pose.pt_[1], floor(radius_*canvas.zoom_ratio_),
+                             true, fill ? -1 : 1, color);
+        }
+
         float radius_ = 1.;
 
         // which grid the agent occupied, include full occupied and partially occupied
@@ -226,8 +232,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     template <Dimension N>
     using CircleAgents = std::vector<CircleAgent<N> >;
 
-    void DrawOnCanvas(const CircleAgent<2>& circle, const Pose<int, 2>& pose,
-                      Canvas& canvas, const cv::Vec3b& color = cv::Vec3b::all(0), bool fill = true);
 
 }
 

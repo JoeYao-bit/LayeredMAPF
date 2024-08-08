@@ -54,7 +54,7 @@ void visualizeAgentCoverage(const AgentType& agent, const std::pair<Pointis<2>, 
             }
         }
         if(draw_agent) {
-            DrawOnCanvas(agent, Pose<int, 2>(Pointi<2>{half_x, half_y}, 0), canvas, COLOR_TABLE[0], false);
+            agent.drawOnCanvas(Pose<int, 2>(Pointi<2>{half_x, half_y}, 0), canvas, COLOR_TABLE[0], false);
         }
         char key = canvas.show(100);
         switch (key) {
@@ -142,8 +142,8 @@ TEST(BlockRotateCoverageGrid, test) {
             canvas.drawCircleInt(half_x, half_y, max_radius*zoom_ratio, true, 1, COLOR_TABLE[0]);
         }
         if(draw_agent) {
-            DrawOnCanvas(agent, Pose<int, 2>(Pointi<2>{half_x, half_y}, 0), canvas, COLOR_TABLE[0], false);
-            DrawOnCanvas(agent, Pose<int, 2>(Pointi<2>{half_x, half_y}, 2), canvas, COLOR_TABLE[0], false);
+            agent.drawOnCanvas(Pose<int, 2>(Pointi<2>{half_x, half_y}, 0), canvas, COLOR_TABLE[0], false);
+            agent.drawOnCanvas(Pose<int, 2>(Pointi<2>{half_x, half_y}, 2), canvas, COLOR_TABLE[0], false);
         }
         char key = canvas.show(100);
         switch (key) {

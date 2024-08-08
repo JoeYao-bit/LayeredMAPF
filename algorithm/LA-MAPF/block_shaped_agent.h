@@ -239,6 +239,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return false;
         }
 
+        void drawOnCanvas(const Pose<int, 2>& pose,
+                          Canvas& canvas, const cv::Vec3b& color, bool fill=true) const {
+            const auto& rect = getPosedRectangle(pose); // agents
+            canvas.drawRectangleFloat(rect.first, rect.second, true, fill ? -1 : 1, color);
+        }
+
         // get half of the coverage (when x>= 0)
         std::vector<std::pair<Pointis<2>, Pointis<2> > > getInitRotateCoverage(Pointf<2> pt, bool reverse = false) const {
             if(reverse) { pt = Pointf<2>() - pt; }
@@ -505,8 +511,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     typedef std::vector<BlockAgent_2D> BlockAgents_2D;
 
-    void DrawOnCanvas(const BlockAgent_2D& block, const Pose<int, 2>& pose,
-                      Canvas& canvas, const cv::Vec3b& color = cv::Vec3b::all(0), bool fill = true);
 
     std::string serialize(const BlockAgent_2D& block, const Pose<int, 2>& pose);
 
