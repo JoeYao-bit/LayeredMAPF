@@ -100,8 +100,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 }
 
                 auto next_locations = this->sub_graph_.all_edges_[curr->node_id];//instance.getNeighbors(curr->location);
-
                 next_locations.emplace_back(curr->node_id); // considering wait
+                std::random_shuffle(next_locations.begin(), next_locations.end()); // shuffle to make agent move in all direction equally
+
                 for (const size_t& next_node_id : next_locations) {
                     int next_timestep = curr->timestep + 1;
                     if (static_timestep <
@@ -123,10 +124,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                     if (next_g_val + next_h_val > this->constraint_table_.length_max_)
                         continue;
 
-                    int next_internal_conflicts = curr->num_of_conflicts +
-                            this->constraint_avoidance_table_.getNumOfConflictsForStep(*this->sub_graph_.all_nodes_[curr->node_id],
-                                                                                       *this->sub_graph_.all_nodes_[next_node_id],
-                                                                                       curr->timestep);
+                    // getNumOfConflictsForStep is very time consuming for large agents
+                    // resulting no getNumOfConflictsForStep might be faster than use it
+                    int next_internal_conflicts = curr->num_of_conflicts + 0;
+//                            this->constraint_avoidance_table_.getNumOfConflictsForStep(*this->sub_graph_.all_nodes_[curr->node_id],
+//                                                                                       *this->sub_graph_.all_nodes_[next_node_id],
+//                                                                                       curr->timestep);
 
                     // generate (maybe temporary) node
                     auto next = new AStarNode(next_node_id, next_g_val, next_h_val,

@@ -490,12 +490,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             const size_t& start_node_id = this->instance_node_ids_[agent].first,
                     target_node_id = this->instance_node_ids_[agent].second;
 
-            constraint_avoidance_table_.clearAllExistingOccGrids();
-            for(int a=0; a<this->agents_.size(); a++) {
-                if(a == agent) { continue; }
-                constraint_avoidance_table_.insertAgentPathOccGrids(this->agents_[a], this->solutions_[a]);
-            }
-            constraint_avoidance_table_.updateAgent(this->agents_[agent]);
+//            constraint_avoidance_table_.clearAllExistingOccGrids();
+//            for(int a=0; a<this->agents_.size(); a++) {
+//                if(a == agent) { continue; }
+//                constraint_avoidance_table_.insertAgentPathOccGrids(this->agents_[a], this->solutions_[a]);
+//            }
+//            constraint_avoidance_table_.updateAgent(this->agents_[agent]);
             SpaceTimeAstar<N, AgentType> astar(start_node_id, target_node_id,
                                                this->agents_heuristic_tables_[agent],
                                                this->agent_sub_graphs_[agent],

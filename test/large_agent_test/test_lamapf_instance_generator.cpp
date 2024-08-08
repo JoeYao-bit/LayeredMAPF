@@ -56,17 +56,22 @@ int canvas_size_x = 1000, canvas_size_y = 700;
 
 TEST(GenerateCircleInstance, test)
 {
-    const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(3,
-                                                                   .4, .41,
+    const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(10,
+                                                                   .4, 9.4,
                                                                    .1,
                                                                    dim);
-    generateInstance<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > > (agents, map_test_config.at("crc_ins_path"));
+
+//    generateInstance<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > > (agents, map_test_config.at("crc_ins_path"));
+
+    generateInstance<CircleAgent<2>,
+        LaCAM::LargeAgentLaCAM<2, CircleAgent<2>, LaCAM::LargeAgentConstraintTable<2, CircleAgent<2> > > >
+        (agents, map_test_config.at("crc_ins_path"));
 
 };
 
 TEST(GenerateBlock_2DInstance, test)
 {
-    const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(10,
+    const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(12,
                                                                 -2.4, -.2,
                                                                 .2, 2.4,
                                                                 .2, 2.4,
@@ -80,8 +85,16 @@ bool use_circle_agent = true;
 TEST(LoadCircleInstance, test)
 {
     const std::string file_path = map_test_config.at("crc_ins_path");
+
+//    generateInstance<CircleAgent<2>,
+//            LaCAM::LargeAgentLaCAM<2, CircleAgent<2>, LaCAM::LargeAgentConstraintTable<2, CircleAgent<2> > > >
+//            (agents, map_test_config.at("crc_ins_path"));
+
     loadInstanceAndPlanning<CircleAgent<2>,
-            CBS::LargeAgentCBS<2, CircleAgent<2> > >(file_path);
+            LaCAM::LargeAgentLaCAM<2, CircleAgent<2>, LaCAM::LargeAgentConstraintTable<2, CircleAgent<2> > > >(file_path);
+
+//    loadInstanceAndPlanning<CircleAgent<2>,
+//            CBS::LargeAgentCBS<2, CircleAgent<2> > >(file_path);
 };
 
 TEST(LoadBlock_2DInstance, test)

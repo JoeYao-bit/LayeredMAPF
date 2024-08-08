@@ -29,7 +29,7 @@ struct timezone tz;
 struct timeval tv_pre, tv_cur;
 struct timeval tv_after;
 
-int zoom_ratio = 10;
+int zoom_ratio = 5;
 
 Pointi<2> pt1;
 int current_subgraph_id = 0;
@@ -57,7 +57,7 @@ bool draw_full_path = true;
 // MAPFTestConfig_AR0014SR
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
-auto map_test_config = MAPFTestConfig_Berlin_1_256;
+auto map_test_config = MAPFTestConfig_AR0011SR;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -73,6 +73,8 @@ auto dim = loader.getDimensionInfo();
 
 template<typename AgentType, class Method>
 void startLargeAgentMAPFTest(const std::vector<AgentType>& agents, const InstanceOrients<2>& instances) {
+    zoom_ratio = std::min(2560/dim[0], 1600/dim[1]);
+
     Canvas canvas("Large Agent MAPF Test", dim[0], dim[1], .1, zoom_ratio);
     auto mouse_call_back = [](int event, int x, int y, int flags, void *) {
         if(event == cv::EVENT_LBUTTONDOWN) {
@@ -244,6 +246,7 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
                            const LargeAgentMAPF_InstanceGenerator<2, AgentType>& generator,
                            const std::vector<InstanceOrient<2> >& instances,
                            const std::vector<LAMAPF_Path>& solution) {
+    zoom_ratio = std::min(2560/dim[0], 1600/dim[1]);
 
     // visualize instance
     Canvas canvas("LargeAgentMAPF InstanceGenerator", dim[0], dim[1], .1, zoom_ratio);
@@ -273,9 +276,9 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
             {
                 //const auto &instance = instances[current_subgraph_id]; // zoom_ratio/10
                 const auto &instance = instances[i]; // zoom_ratio/10
-                DrawOnCanvas(agents[i], instance.first, canvas, COLOR_TABLE[i%30]);
+                agents[i].drawOnCanvas(instance.first, canvas, COLOR_TABLE[i%30]);
 
-                DrawOnCanvas(agents[i], instance.second, canvas, COLOR_TABLE[i%30]);
+                agents[i].drawOnCanvas(instance.second, canvas, COLOR_TABLE[i%30]);
 
                 canvas.drawArrowInt(instance.first.pt_[0], instance.first.pt_[1], -orientToPi_2D(instance.first.orient_), 1, std::max(1, zoom_ratio/10));
                 canvas.drawArrowInt(instance.second.pt_[0], instance.second.pt_[1], -orientToPi_2D(instance.second.orient_) , 1, std::max(1, zoom_ratio/10));
@@ -296,7 +299,7 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
                     orient = all_poses[path.back()]->orient_;
                 }
 
-                DrawOnCanvas(agents[i], {pt, orient}, canvas, COLOR_TABLE[(i) % 30]);
+                agents[i].drawOnCanvas({pt, orient}, canvas, COLOR_TABLE[(i) % 30]);
 
                 canvas.drawArrowInt(pt[0], pt[1], -orientToPi_2D(orient), 1, std::max(1, zoom_ratio/10));
 
@@ -365,7 +368,7 @@ void loadInstanceAndPlanning(const std::string& file_path) {
     std::cout << "instance has " << deserializer.getAgents().size() << " agents, find solution ? " << solved << " in " << time_cost << "ms " << std::endl;
     std::cout << "solution validation ? " << method.solutionValidation() << std::endl;
 
-//    LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(deserializer.getAgents(), is_occupied, dim);
+    LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(deserializer.getAgents(), is_occupied, dim);
 //    InstanceVisualization<AgentType>(deserializer.getAgents(), generator, deserializer.getInstances(), method.getSolution());
 
 }
