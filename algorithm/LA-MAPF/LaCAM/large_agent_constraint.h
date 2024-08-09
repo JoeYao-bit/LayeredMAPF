@@ -97,6 +97,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
     };
 
     // consider static grid map when construct sub graph
+    // 24-0809: lots of small agent should project into a map while a few large agent need agent-by-agent
     template<Dimension N, typename AgentType>
     struct LargeAgentConstraintTable {
     public:
@@ -186,6 +187,80 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
         const std::vector<PosePtr<int, N> >& all_nodes_;
 
         std::vector<OccupiedGrid> occupied_grids_;
+
+        std::vector<size_t> occupied_now_;
+        std::vector<size_t> occupied_next_;
+
+        DimensionLength* dim_;
+
+    };
+
+    // consider static grid map when construct sub graph
+    // heck each pair of agent to see if they have conflict
+    template<Dimension N, typename AgentType>
+    struct LargeAgentConstraintTableForLarge {
+    public:
+        explicit LargeAgentConstraintTableForLarge(const std::vector<PosePtr<int, N>>& all_nodes,
+                                                   const std::vector<AgentType>& agents,
+                                                   const std::vector<size_t>& occupied_now,
+                                                   DimensionLength* dim)
+        : agents_(agents), all_nodes_(all_nodes), occupied_now_(occupied_now), dim_(dim) {
+            assert(occupied_now.size() == agents.size());
+            Id total_index = getTotalIndexOfSpace<N>(dim);
+            occupied_next_.resize(agents.size(), MAX<size_t>);
+            for(int id=0; id<agents.size(); id++) {
+                setNowOccupied(id, occupied_now[id]);
+            }
+        }
+
+        // whether an agent has conflict at pose
+        bool hasCollide(const int& agent_id, const int& current_node, const int& next_node) {
+            for(int id=0; id<agents_.size(); id++) {
+                if(id == agent_id) { continue; }
+                if(occupied_next_[id] == MAX<size_t>) {
+                    if(isCollide(agents_[id], *all_nodes_[occupied_now_[id]],
+                                 agents_[agent_id], *all_nodes_[occupied_now_[agent_id]], *all_nodes_[next_node])) { return true; }
+                } else {
+                    if(isCollide(agents_[id], *all_nodes_[occupied_now_[id]], *all_nodes_[occupied_next_[id]],
+                                 agents_[agent_id], *all_nodes_[occupied_now_[agent_id]], *all_nodes_[next_node])) { return true; }
+                }
+            }
+            return false;
+        }
+
+        void setOccupiedNext(const int& agent_id, const size_t& next_node) {
+            occupied_next_[agent_id] = next_node;
+        }
+
+        // check what agents are collide with current agent, at this pose
+        std::vector<int> collideWith(int agent_id, const size_t& next_node) const {
+            std::vector<int> retv; // agent id
+            for(int id=0; id<agents_.size(); id++) {
+                if(id == agent_id) { continue; }
+                if(occupied_next_[id] == MAX<size_t>) {
+                    if(isCollide(agents_[id], *all_nodes_[occupied_now_[id]],
+                                 agents_[agent_id], *all_nodes_[occupied_now_[agent_id]], *all_nodes_[next_node])) {
+                        retv.push_back(id);
+                    }
+                } else {
+                    if(isCollide(agents_[id], *all_nodes_[occupied_now_[id]], *all_nodes_[occupied_next_[id]],
+                                 agents_[agent_id], *all_nodes_[occupied_now_[agent_id]], *all_nodes_[next_node])) {
+                        retv.push_back(id);
+                    }
+                }
+            }
+            return retv;
+        }
+
+    private:
+
+        void setNowOccupied(const int& agent_id, const int& node_id) {
+            occupied_now_[agent_id] = node_id;
+        }
+
+        const std::vector<AgentType>& agents_;
+
+        const std::vector<PosePtr<int, N> >& all_nodes_;
 
         std::vector<size_t> occupied_now_;
         std::vector<size_t> occupied_next_;

@@ -33,17 +33,13 @@ TEST(CircleAgentTest, generator_test) {
 }
 
 TEST(Block2DAgentTest, generator_test) {
-//    std::cout << getValueWithInterval<float>(-.5, -.1, .1) << std::endl;
 
     const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(5,
                                                           -.4, -.2,
                                                           .2, 2.,
                                                           .2, 1.4,
                                                           .1, nullptr);
-    // NOTICE: must declared then print, otherwise value will be change
-    //         even declared, the first print not change but following print change
-    //         (-0.2, -0.2) (1.8, 1)
-    //         (0, 1.4013e-45) (1.8, 1)
+
 
     for(int i=0; i<agents.size(); i++) {
         const auto& agent = agents[i];
@@ -56,16 +52,16 @@ int canvas_size_x = 1000, canvas_size_y = 700;
 
 TEST(GenerateCircleInstance, test)
 {
-    const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(10,
-                                                                   .4, 9.4,
+    const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(20,
+                                                                   .4, 2.4,
                                                                    .1,
                                                                    dim);
 
-//    generateInstance<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > > (agents, map_test_config.at("crc_ins_path"));
+    generateInstance<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > > (agents, map_test_config.at("crc_ins_path"));
 
-    generateInstance<CircleAgent<2>,
-        LaCAM::LargeAgentLaCAM<2, CircleAgent<2>, LaCAM::LargeAgentConstraintTable<2, CircleAgent<2> > > >
-        (agents, map_test_config.at("crc_ins_path"));
+//    generateInstance<CircleAgent<2>,
+//        LaCAM::LargeAgentLaCAM<2, CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >
+//        (agents, map_test_config.at("crc_ins_path"));
 
 };
 
@@ -86,15 +82,14 @@ TEST(LoadCircleInstance, test)
 {
     const std::string file_path = map_test_config.at("crc_ins_path");
 
-//    generateInstance<CircleAgent<2>,
-//            LaCAM::LargeAgentLaCAM<2, CircleAgent<2>, LaCAM::LargeAgentConstraintTable<2, CircleAgent<2> > > >
-//            (agents, map_test_config.at("crc_ins_path"));
-
-    loadInstanceAndPlanning<CircleAgent<2>,
-            LaCAM::LargeAgentLaCAM<2, CircleAgent<2>, LaCAM::LargeAgentConstraintTable<2, CircleAgent<2> > > >(file_path);
-
 //    loadInstanceAndPlanning<CircleAgent<2>,
-//            CBS::LargeAgentCBS<2, CircleAgent<2> > >(file_path);
+//                            LaCAM::LargeAgentLaCAM<2,
+//                            CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >(file_path);
+
+    // LargeAgentConstraintTableForLarge
+    // LargeAgentConstraintTable
+
+    loadInstanceAndPlanning<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > >(file_path);
 };
 
 TEST(LoadBlock_2DInstance, test)

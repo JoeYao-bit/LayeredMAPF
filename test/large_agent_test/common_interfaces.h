@@ -359,7 +359,7 @@ void loadInstanceAndPlanning(const std::string& file_path) {
         std::cout << "load from path " << file_path << " failed" << std::endl;
         return;
     }
-
+    std::cout << " map scale " << dim[0] << "*" << dim[1] << std::endl;
     gettimeofday(&tv_pre, &tz);
     MethodType method(deserializer.getInstances(), deserializer.getAgents(), dim, is_occupied);
     bool solved = method.solve(60, 0);
@@ -369,8 +369,7 @@ void loadInstanceAndPlanning(const std::string& file_path) {
     std::cout << "solution validation ? " << method.solutionValidation() << std::endl;
 
     LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(deserializer.getAgents(), is_occupied, dim);
-//    InstanceVisualization<AgentType>(deserializer.getAgents(), generator, deserializer.getInstances(), method.getSolution());
-
+    InstanceVisualization<AgentType>(deserializer.getAgents(), generator, deserializer.getInstances(), method.getSolution());
 }
 
 
