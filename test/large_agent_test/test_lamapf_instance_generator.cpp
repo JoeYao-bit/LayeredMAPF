@@ -82,14 +82,14 @@ TEST(LoadCircleInstance, test)
 {
     const std::string file_path = map_test_config.at("crc_ins_path");
 
-//    loadInstanceAndPlanning<CircleAgent<2>,
-//                            LaCAM::LargeAgentLaCAM<2,
-//                            CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >(file_path);
+    loadInstanceAndPlanning<CircleAgent<2>,
+                            LaCAM::LargeAgentLaCAM<2,
+                            CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >(file_path);
 
     // LargeAgentConstraintTableForLarge
     // LargeAgentConstraintTable
 
-    loadInstanceAndPlanning<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > >(file_path);
+    //loadInstanceAndPlanning<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > >(file_path);
 };
 
 TEST(LoadBlock_2DInstance, test)

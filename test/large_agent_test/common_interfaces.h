@@ -57,7 +57,7 @@ bool draw_full_path = true;
 // MAPFTestConfig_AR0014SR
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
-auto map_test_config = MAPFTestConfig_AR0011SR;
+auto map_test_config = MAPFTestConfig_Berlin_1_256;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
