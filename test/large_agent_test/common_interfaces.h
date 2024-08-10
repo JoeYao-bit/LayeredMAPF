@@ -57,7 +57,7 @@ bool draw_full_path = true;
 // MAPFTestConfig_AR0014SR
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
-auto map_test_config = MAPFTestConfig_Berlin_1_256;
+auto map_test_config = MAPFTestConfig_simple;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -73,7 +73,7 @@ auto dim = loader.getDimensionInfo();
 
 template<typename AgentType, class Method>
 void startLargeAgentMAPFTest(const std::vector<AgentType>& agents, const InstanceOrients<2>& instances) {
-    zoom_ratio = std::min(2560/dim[0], 1600/dim[1]);
+    zoom_ratio = std::min(2560/dim[0], 1400/dim[1]);
 
     Canvas canvas("Large Agent MAPF Test", dim[0], dim[1], .1, zoom_ratio);
     auto mouse_call_back = [](int event, int x, int y, int flags, void *) {

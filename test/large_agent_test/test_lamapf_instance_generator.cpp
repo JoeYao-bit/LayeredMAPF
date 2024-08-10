@@ -52,8 +52,8 @@ int canvas_size_x = 1000, canvas_size_y = 700;
 
 TEST(GenerateCircleInstance, test)
 {
-    const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(20,
-                                                                   .4, 2.4,
+    const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(6,
+                                                                   .4, 1.4,
                                                                    .1,
                                                                    dim);
 
