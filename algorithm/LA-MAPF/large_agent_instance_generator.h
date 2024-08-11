@@ -188,6 +188,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     if(agent_sub_graphs_[i].all_nodes_[target_id] == nullptr) {
                         continue;
                     }
+                    if(start_id/(2*N) == target_id/(2*N)) {
+                        continue;
+                    }
                     if(target_id == start_id) {
                         continue;
                     }

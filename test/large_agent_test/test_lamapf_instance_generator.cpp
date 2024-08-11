@@ -52,8 +52,8 @@ int canvas_size_x = 1000, canvas_size_y = 700;
 
 TEST(GenerateCircleInstance, test)
 {
-    const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(6,
-                                                                   .4, 1.4,
+    const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(4,
+                                                                   .4, .8,
                                                                    .1,
                                                                    dim);
 
@@ -82,14 +82,14 @@ TEST(LoadCircleInstance, test)
 {
     const std::string file_path = map_test_config.at("crc_ins_path");
 
-    loadInstanceAndPlanning<CircleAgent<2>,
-                            LaCAM::LargeAgentLaCAM<2,
-                            CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >(file_path);
+//    loadInstanceAndPlanning<CircleAgent<2>,
+//                            LaCAM::LargeAgentLaCAM<2,
+//                            CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >(file_path);
 
     // LargeAgentConstraintTableForLarge
     // LargeAgentConstraintTable
 
-    //loadInstanceAndPlanning<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > >(file_path);
+    loadInstanceAndPlanning<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > >(file_path);
 };
 
 TEST(LoadBlock_2DInstance, test)
