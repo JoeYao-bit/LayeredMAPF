@@ -193,14 +193,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }
             }
             // print for debug
-            std::cout << "agent_id " << agent_id << "'s hyper" << std::endl;
-            for(int hyper_node_id=0; hyper_node_id<current_hyper_node_id; hyper_node_id++) {
-                std::cout << "hyper_node " << hyper_node_id << " visible to: ";
-                for(const int& another_hyper_id : graph.all_edges_vec_[hyper_node_id]) {
-                    std::cout << another_hyper_id << " ";
-                }
-                std::cout << std::endl;
-            }
+//            std::cout << "agent_id " << agent_id << "'s hyper" << std::endl;
+//            for(int hyper_node_id=0; hyper_node_id<current_hyper_node_id; hyper_node_id++) {
+//                std::cout << "hyper_node " << hyper_node_id << " visible to: ";
+//                for(const int& another_hyper_id : graph.all_edges_vec_[hyper_node_id]) {
+//                    std::cout << another_hyper_id << " ";
+//                }
+//                std::cout << std::endl;
+//            }
             return graph;
         }
 

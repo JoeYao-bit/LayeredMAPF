@@ -29,7 +29,7 @@ void InstanceDecompositionVisualization(const LargeAgentMAPFInstanceDecompositio
         if(draw_all_instance) {
             const auto& instances = decomposer.instances_;
             const auto& agents    = decomposer.agents_;
-//            for (int current_subgraph_id=0; current_subgraph_id<instances.size(); current_subgraph_id++)
+            for (int current_subgraph_id=0; current_subgraph_id<instances.size(); current_subgraph_id++)
             {
                 const auto &instance = instances[current_subgraph_id];
                 agents[current_subgraph_id].drawOnCanvas(instance.first, canvas, COLOR_TABLE[current_subgraph_id%30]);
@@ -81,8 +81,8 @@ void InstanceDecompositionVisualization(const LargeAgentMAPFInstanceDecompositio
                         hyper_nodes.insert(hyper_graph.hyper_node_id_map_[node_id]);
                     }
                 }
-//                const auto& subgraph = decomposer.agent_sub_graphs_[current_subgraph_id];
-//                if(subgraph.all_nodes_[node_id] == nullptr) { continue; }
+                const auto& subgraph = decomposer.agent_sub_graphs_[current_subgraph_id];
+                if(subgraph.all_nodes_[node_id] == nullptr) { continue; }
                 std::stringstream ss;
                 ss << "h: ";
                 for(const int& related_agent : hyper_nodes) {
