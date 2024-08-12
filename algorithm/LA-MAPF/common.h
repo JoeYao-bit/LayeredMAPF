@@ -242,6 +242,34 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return retv;
     }
 
+    // due to each agent may have different shape, each agent have their own connectivity graph
+    struct ConnectivityGraph {
+
+        explicit ConnectivityGraph(int total_nodes) {
+            hyper_node_id_map_.resize(total_nodes, MAX<size_t>);
+            related_agents_map_.resize(total_nodes, {});
+        }
+
+        std::vector<std::vector<int> > related_agents_map_; // store each pose collide with what agents' start(2*id) or target(2*id+1)
+
+        // store each node's hyper node id, default to MAX<size_t>
+        // may be disposed after we construct ConnectivityGraph
+        std::vector<size_t> hyper_node_id_map_;
+
+        // store what agent current hyper node associate with
+        // a hyper node may associate with no agent may also associate with multiple agent
+        std::vector<std::vector<int> > hyper_node_with_agents_;
+
+        std::vector<std::vector<size_t> > all_edges_vec_; // each hyper node's connecting node, store in vector
+
+        std::vector<std::set<size_t> > all_edges_set_; // each hyper node's connecting node, store in set
+
+        size_t start_hyper_node_; // where is start in the hyper graph
+
+        size_t target_hyper_node_; // where is target in the hyper graph
+
+    };
+
 }
 
 #endif //LAYEREDMAPF_COMMON_H

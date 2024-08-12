@@ -21,10 +21,18 @@ void InstanceDecompositionVisualization(const LargeAgentMAPFInstanceDecompositio
 
     bool draw_related_agents_map = false;
     bool draw_hyper_node_id = false;
+    bool draw_heuristic_table = false;
+    int total_index = getTotalIndexOfSpace<2>(dim);
+    std::vector<std::vector<std::string> > grid_strs(total_index);
+
+    Pointi<2> pt;
+    size_t node_id;
     while(true) {
         canvas.resetCanvas();
         canvas.drawEmptyGrid();
         canvas.drawGridMap(dim, is_occupied);
+
+        grid_strs = std::vector<std::vector<std::string> >(total_index);
 
         if(draw_all_instance) {
             const auto& instances = decomposer.instances_;
@@ -44,9 +52,6 @@ void InstanceDecompositionVisualization(const LargeAgentMAPFInstanceDecompositio
         }
         if(draw_related_agents_map) {
 //            std::cout << " draw_related_agents_map " << std::endl;
-            int total_index = getTotalIndexOfSpace<2>(dim);
-            Pointi<2> pt;
-            size_t node_id;
             const auto& hyper_graph = decomposer.connect_graphs_[current_subgraph_id];
             for(int i=0; i<total_index; i++) {
                 pt = IdToPointi<2>(i, dim);
@@ -64,13 +69,10 @@ void InstanceDecompositionVisualization(const LargeAgentMAPFInstanceDecompositio
                 for(const int& related_agent : related_agents) {
                     ss << related_agent << " ";
                 }
-                canvas.drawTextInt(pt[0], pt[1], ss.str().c_str(), cv::Vec3b::all(0), 1.0);
+                grid_strs[i].push_back(ss.str());
             }
         }
         if(draw_hyper_node_id) {
-            int total_index = getTotalIndexOfSpace<2>(dim);
-            Pointi<2> pt;
-            size_t node_id;
             const auto& hyper_graph = decomposer.connect_graphs_[current_subgraph_id];
             for(int i=0; i<total_index; i++) {
                 pt = IdToPointi<2>(i, dim);
@@ -84,13 +86,44 @@ void InstanceDecompositionVisualization(const LargeAgentMAPFInstanceDecompositio
                 const auto& subgraph = decomposer.agent_sub_graphs_[current_subgraph_id];
                 if(subgraph.all_nodes_[node_id] == nullptr) { continue; }
                 std::stringstream ss;
-                ss << "h: ";
+                ss << "n: ";
                 for(const int& related_agent : hyper_nodes) {
                     ss << related_agent << " ";
                 }
-                canvas.drawTextInt(pt[0], pt[1], ss.str().c_str(), cv::Vec3b::all(0), 1.0);
+                grid_strs[i].push_back(ss.str());
             }
         }
+        if(draw_heuristic_table) {
+            const auto& hyper_graph = decomposer.connect_graphs_[current_subgraph_id];
+            const auto& heuristic_table = decomposer.heuristic_tables_[current_subgraph_id];
+            const auto& subgraph = decomposer.agent_sub_graphs_[current_subgraph_id];
+
+            for(int i=0; i<total_index; i++) {
+                pt = IdToPointi<2>(i, dim);
+                std::set<int> heuristic_values; // a point have four direction, may be more than one
+                for(int orient=0; orient<4; orient++) {
+                    node_id = i*4  + orient;
+                    if(subgraph.all_nodes_[node_id] == nullptr) { continue; }
+                    if(hyper_graph.hyper_node_id_map_[node_id] == MAX<size_t>) { continue; }
+                    if(heuristic_table[hyper_graph.hyper_node_id_map_[node_id]] != MAX<int>) {
+                        heuristic_values.insert(heuristic_table[hyper_graph.hyper_node_id_map_[node_id]]);
+                    }
+                }
+                if(heuristic_values.empty()) { continue; }
+                std::stringstream ss;
+                ss << "h: ";
+                for(const int& value : heuristic_values) {
+                    ss << value << " ";
+                }
+                grid_strs[i].push_back(ss.str());
+            }
+        }
+
+        for(int i=0; i<total_index; i++) {
+            pt = IdToPointi<2>(i, dim);
+            canvas.drawMultiTextInt(pt[0], pt[1], grid_strs[i], cv::Vec3b::all(0), 1.0);
+        }
+
         char key = canvas.show(100);
         switch (key) {
             case 'i':
@@ -99,8 +132,11 @@ void InstanceDecompositionVisualization(const LargeAgentMAPFInstanceDecompositio
             case 'r':
                 draw_related_agents_map = !draw_related_agents_map;
                 break;
-            case 'h':
+            case 'n':
                 draw_hyper_node_id = !draw_hyper_node_id;
+                break;
+            case 'h':
+                draw_heuristic_table = !draw_heuristic_table;
                 break;
             case 'w':
                 current_subgraph_id = current_subgraph_id+1;
@@ -130,6 +166,12 @@ void loadInstanceAndDecomposition(const std::string& file_path) {
     LargeAgentMAPFInstanceDecomposition<2, AgentType> decomposer(deserializer.getInstances(),
                                                                  deserializer.getAgents(),
                                                                  dim, is_occupied);
+    gettimeofday(&tv_after, &tz);
+
+    double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
+    std::cout << "finish decomposition " << " in " << time_cost << "ms " << std::endl;
+//    std::cout << "solution validation ? " << lacbs.solutionValidation() << std::endl;
+
     InstanceDecompositionVisualization<AgentType>(decomposer);
 }
 

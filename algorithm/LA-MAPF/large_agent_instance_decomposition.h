@@ -6,51 +6,27 @@
 #define LAYEREDMAPF_LARGE_AGENT_INSTANCE_DECOMPOSITION_H
 
 #include "large_agent_mapf.h"
+#include "large_agent_dependency_path_search.h"
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
-
-
+    // inherit LargeAgentMAPF to avoid
     template<Dimension N, typename AgentType>
     class LargeAgentMAPFInstanceDecomposition : public LargeAgentMAPF<N, AgentType> {
     public:
-
-        // due to each agent may have different shape, each agent have their own connectivity graph
-        struct ConnectivityGraph {
-
-            explicit ConnectivityGraph(int total_nodes) {
-                hyper_node_id_map_.resize(total_nodes, MAX<size_t>);
-                related_agents_map_.resize(total_nodes, {});
-            }
-
-            std::vector<std::vector<int> > related_agents_map_; // store each pose collide with what agents' start(2*id) or target(2*id+1)
-
-            // store each node's hyper node id, default to MAX<size_t>
-            // may be disposed after we construct ConnectivityGraph
-            std::vector<size_t> hyper_node_id_map_;
-
-            // store what agent current hyper node associate with
-            // a hyper node may associate with no agent may also associate with multiple agent
-            std::vector<std::vector<int> > hyper_node_with_agents_;
-
-            std::vector<std::vector<size_t> > all_edges_vec_; // each hyper node's connecting node, store in vector
-
-            std::vector<std::set<size_t> > all_edges_set_; // each hyper node's connecting node, store in set
-
-            size_t start_hyper_node_; // where is start in the hyper graph
-
-            size_t target_hyper_node_; // where is target in the hyper graph
-
-        };
 
         LargeAgentMAPFInstanceDecomposition(const InstanceOrients<N> & instances,
                                             const std::vector<AgentType>& agents,
                                             DimensionLength* dim,
                                             const IS_OCCUPIED_FUNC<N> & isoc)
                                             : LargeAgentMAPF<N, AgentType>(instances, agents, dim, isoc) {
-#           // 1, construct each agent's connectivity graph
+            // 1, construct each agent's connectivity graph
             for(int i=0; i<agents.size(); i++) {
                 connect_graphs_.push_back(getAgentConnectivityGraph(i));
+            }
+            // 2, calculate heuristic table for each connectivity graph
+            for(int i=0; i<agents.size(); i++) {
+                heuristic_tables_.push_back(calculateLargeAgentHyperGraphStaticHeuristic<N>(this->dim_, connect_graphs_[i]));
             }
         }
 
@@ -136,7 +112,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }
             }
             // 2, construct connectivity graph and record boundary (where different hyper node converge)
-            int current_hyper_node_id = 0;
+            int max_hyper_node_id = 0;
             std::vector<size_t> boundary_nodes;
             for(size_t i=0; i<current_subgraph.all_nodes_.size(); i++) {
                 const auto& current_pose_ptr = current_subgraph.all_nodes_[i];
@@ -152,7 +128,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                 if (graph.hyper_node_id_map_[neighbor_node_id] != MAX<size_t>) {
                                     continue;
                                 }
-                                graph.hyper_node_id_map_[neighbor_node_id] = current_hyper_node_id;
+                                graph.hyper_node_id_map_[neighbor_node_id] = max_hyper_node_id;
                                 next_buffer.push_back(neighbor_node_id);
                             } else {
                                 if (graph.hyper_node_id_map_[neighbor_node_id] != MAX<size_t>) {
@@ -164,19 +140,19 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     }
                     std::swap(nodes_buffer, next_buffer);
                 }
-                current_hyper_node_id ++;
+                max_hyper_node_id ++;
             }
-            graph.all_edges_set_.resize(current_hyper_node_id);
-            graph.all_edges_vec_.resize(current_hyper_node_id);
+            graph.all_edges_set_.resize(max_hyper_node_id);
+            graph.all_edges_vec_.resize(max_hyper_node_id);
             // 3, get start hyper node id and target hyper node id
             graph.start_hyper_node_  = graph.hyper_node_id_map_[this->instance_node_ids_[agent_id].first];
             graph.target_hyper_node_ = graph.hyper_node_id_map_[this->instance_node_ids_[agent_id].second];
             // 4, get connections between hyper graph nodes
-            graph.hyper_node_with_agents_.resize(current_hyper_node_id);
+            graph.hyper_node_with_agents_.resize(max_hyper_node_id);
             for(const auto& node_id : boundary_nodes) {
                 const auto& cur_hyper_node_id = graph.hyper_node_id_map_[node_id];
-                if(graph.hyper_node_with_agents_[current_hyper_node_id].empty()) {
-                    graph.hyper_node_with_agents_[current_hyper_node_id] = graph.related_agents_map_[node_id];
+                if(graph.hyper_node_with_agents_[cur_hyper_node_id].empty()) {
+                    graph.hyper_node_with_agents_[cur_hyper_node_id] = graph.related_agents_map_[node_id];
                 }
                 for(const auto& nearby_node_id : current_subgraph.all_edges_[node_id]) {
                     const auto& next_hyper_node_id = graph.hyper_node_id_map_[nearby_node_id];
@@ -193,14 +169,19 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }
             }
             // print for debug
-//            std::cout << "agent_id " << agent_id << "'s hyper" << std::endl;
-//            for(int hyper_node_id=0; hyper_node_id<current_hyper_node_id; hyper_node_id++) {
-//                std::cout << "hyper_node " << hyper_node_id << " visible to: ";
-//                for(const int& another_hyper_id : graph.all_edges_vec_[hyper_node_id]) {
-//                    std::cout << another_hyper_id << " ";
-//                }
-//                std::cout << std::endl;
-//            }
+            std::cout << "agent_id " << agent_id << "'s hyper" << std::endl;
+            for(int hyper_node_id=0; hyper_node_id < max_hyper_node_id; hyper_node_id++) {
+                std::cout << "hyper_node " << hyper_node_id << " visible to: ";
+                for(const int& another_hyper_id : graph.all_edges_vec_[hyper_node_id]) {
+                    std::cout << another_hyper_id << " ";
+                }
+                //std::cout << std::endl;
+                std::cout << ", relared to agent: ";
+                for(const int& related_agent : graph.hyper_node_with_agents_[hyper_node_id]) {
+                    std::cout << related_agent << " ";
+                }
+                std::cout << std::endl;
+            }
             return graph;
         }
 
@@ -209,6 +190,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
 
         std::vector<ConnectivityGraph> connect_graphs_;
+
+        std::vector<std::vector<int> > heuristic_tables_;
 
     };
 
