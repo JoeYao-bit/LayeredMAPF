@@ -7,6 +7,7 @@
 
 #include "large_agent_mapf.h"
 #include "large_agent_dependency_path_search.h"
+#include "../../freeNav-base/basic_elements/point.h"
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
@@ -30,10 +31,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
             // 2, calculate heuristic table for each connectivity graph
             for(int i=0; i<agents.size(); i++) {
-                heuristic_tables_.push_back(calculateLargeAgentHyperGraphStaticHeuristic<N>(this->dim_, connect_graphs_[i]));
+                heuristic_tables_.push_back(calculateLargeAgentHyperGraphStaticHeuristic<N>(i, this->dim_, connect_graphs_[i], false));
+                heuristic_tables_sat_.push_back(calculateLargeAgentHyperGraphStaticHeuristic<N>(i, this->dim_, connect_graphs_[i], true));
             }
             // 3, decompose all instances into multiple cluster
             instanceDecomposition();
+
+//            clusterDecomposition();
 
             /* print details of decomposition */
             int total_count = 0;
@@ -43,7 +47,37 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 if(all_clusters_[i].size() > max_cluster_size) { max_cluster_size = all_clusters_[i].size(); }
             }
             assert(total_count == this->instances_.size());
+            std::cout << "-- Decomposition completeness ? " << decompositionValidCheck(all_clusters_) << std::endl;
             std::cout << " max/total size " << max_cluster_size << " / " << this->instances_.size() << std::endl;
+        }
+
+        bool decompositionValidCheck(const std::vector<std::set<int> >& all_levels) const {
+            for(int i=0; i<all_levels.size(); i++) {
+//                std::cout << " level " << i << " valid check ... " << std::endl;
+                std::vector<bool> avoid_sats(2*this->instances_.size(), false);
+                for(int j=0; j<all_levels.size(); j++) {
+                    if(i == j) { continue; }
+                    if(i > j) {
+                        for(const int& pre_agent : all_levels[j]) {
+                            avoid_sats[2*pre_agent + 1] = true;
+//                            std::cout << "set " << pre_agent << " target to occupied" << std::endl;
+                        }
+                    } else {
+                        for(const int& after_agent : all_levels[j]) {
+                            avoid_sats[2*after_agent] = true;
+//                            std::cout << "set " << after_agent << " start to occupied" << std::endl;
+                        }
+                    }
+                }
+                for(const int& agent : all_levels[i]) {
+                    auto passing_agents = searchAgent(agent, avoid_sats, {}, true);
+                    if(passing_agents.empty()) {
+                        std::cout << "ERROR: cluster " << i << ", agent " << agent << " is im-complete" << std::endl;
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
 
         ConnectivityGraph getAgentConnectivityGraph(const int& agent_id) const {
@@ -51,7 +85,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             SubGraphOfAgent<N> current_subgraph = this->agent_sub_graphs_[agent_id];
             // 1, get each pose's relation with other agent
             for(int i=0; i<this->agents_.size(); i++) {
-                if(i == agent_id) { continue; }
+                //if(i == agent_id) { continue; }
                 const auto& agent = this->agents_[agent_id];
                 const auto& another_agent = this->agents_[i];
 //                std::cout << "agent/another = " << agent_id << ", " << i << std::endl;
@@ -208,7 +242,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                   const std::vector<bool>& passing_agents,
                                   bool distinguish_sat = false,
                                   const std::vector<bool>& ignore_cost_set = {}) const {
-            assert(!heuristic_tables_.empty());
+            assert(!heuristic_tables_.empty() && !heuristic_tables_sat_.empty());
             DependencyPathSearch<N> search_machine;
             /*
              * DependencyPathSearch::search(int agent_id,
@@ -224,7 +258,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
              * */
             return search_machine.search(agent_id, connect_graphs_[agent_id].start_hyper_node_,
                                          this->agent_sub_graphs_[agent_id], this->connect_graphs_[agent_id],
-                                         avoid_agents, passing_agents, heuristic_tables_[agent_id], distinguish_sat, ignore_cost_set);
+                                         avoid_agents, passing_agents,
+                                         distinguish_sat ? heuristic_tables_sat_[agent_id] : heuristic_tables_[agent_id],
+                                         distinguish_sat, ignore_cost_set);
         }
 
         // transform agents' id to 2*id and 2*id + 1
@@ -250,17 +286,213 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             std::vector<bool> buffer_sat = AgentIdsToSATID(buffer_agents);
             for(const int& agent_id : buffer_agents) {
                 auto passing_agents = searchAgent(agent_id, {}, buffer_sat); // pass test
+                std::cout << "--agent " << agent_id << "'s dependency path = ";
+                for(const auto& passing_agent : passing_agents) {
+                    std::cout << passing_agent << " ";
+                }
+                std::cout << std::endl; // ok till here
                 all_agents_path.insert({agent_id, passing_agents});
             }
             all_passing_agent_ = all_agents_path;
             // get each agent's dependence agents
             std::map<int, std::set<int> > all_related_agent = updateRelatedGraphFromPassingGraph(all_agents_path);
-            //
+            // for debug
+            std::cout << "print instanceDecomposition related_graph: " << std::endl;
+            for(const auto& related_pair : all_related_agent) {
+                std::cout << related_pair.first << ": ";
+                for(const auto& other_agent : related_pair.second) {
+                    std::cout << other_agent << " ";
+                }
+                std::cout << std::endl;
+            }
             std::map<int, std::set<int> > cluster_of_agents = clusterAgents(all_related_agent);
             all_clusters_.clear();
             for(const auto& iter : cluster_of_agents) {
                 all_clusters_.push_back(iter.second);
             }
+        }
+
+        // select the largest cluster and merge remaining agent into one cluster and return
+        std::pair<std::set<int>, std::set<int> > splitPartitionCluster(const std::map<int, std::set<int> >& clusters) const {
+            std::set<int> max_cluster;
+            std::set<int> remaining_clusters;
+            for(const auto& cluster : clusters) {
+                if(max_cluster.size() < cluster.second.size()) {
+                    remaining_clusters.insert(max_cluster.begin(), max_cluster.end());
+                    max_cluster = cluster.second;
+                } else {
+                    remaining_clusters.insert(cluster.second.begin(), cluster.second.end());
+                }
+            }
+            return {max_cluster, remaining_clusters};
+        }
+
+        // search what agents is unavoidable for each agent
+        // any legal pass agents graph contain all unavoidable agent
+        // input: instance_id_set: all agent in current cluster
+        //        all_passing_agent: all path of current cluster
+        std::map<int, std::set<int> > searchUnAvoidAgentForEachAgent(
+                const std::map<int, std::set<int> >& all_passing_agent, const std::set<int>& instance_id_set, bool distinguish_sat = false) const {
+            std::map<int, std::set<int> > all_unavoidable_agent;
+            std::vector<bool> within_set = AgentIdsToSATID(instance_id_set);
+            for(const auto& id_agent_pair : all_passing_agent) {
+                const int& agent_id = id_agent_pair.first;
+                const std::set<int>& agent_path = id_agent_pair.second;
+                for(const int& other_agent : agent_path) {
+
+                    if(all_unavoidable_agent.find(agent_id) == all_unavoidable_agent.end()) {
+                        all_unavoidable_agent.insert(std::pair<int, std::set<int> >(agent_id, {}));
+                    }
+                    std::vector<bool> avoid_list(2*this->instances_.size(), false);
+                    avoid_list[other_agent*2] = true, avoid_list[other_agent*2 + 1] = true;
+                    if((searchAgent(agent_id, avoid_list, within_set, distinguish_sat)).empty()) {
+                        all_unavoidable_agent.at(agent_id).insert(other_agent);
+                    }
+                }
+            }
+            return all_unavoidable_agent;
+        }
+
+        // check whether current set is self-relevant, the first is self-relevant, the second is which agent depend external agent
+        std::pair<std::set<int>, std::set<int>> clusterIndependentCheck(const std::set<int>& instance_id_set, const std::set<int>& specific_agents = {}) {
+            std::set<int> success_in_set, failed_in_set;
+            auto set_need_check = specific_agents.empty() ? instance_id_set : specific_agents;
+            std::vector<bool> buffer_sat = AgentIdsToSATID(instance_id_set);
+            for (const auto &unavoid_agent : set_need_check) {
+                auto passing_agents = searchAgent(unavoid_agent, {}, buffer_sat); // pass test
+                if (passing_agents.empty()) {
+                    // failed always caused by cluster in remaining set that block the whole way
+                    failed_in_set.insert(unavoid_agent);
+                } else {
+                    success_in_set.insert(unavoid_agent);
+                }
+            }
+            return {success_in_set, failed_in_set};
+        }
+
+        bool isClusterIndependent(const std::set<int>& instance_id_set, const std::set<int>& specific_agents = {}) {
+            auto set_need_check = specific_agents.empty() ? instance_id_set : specific_agents;
+            std::vector<bool> buffer_sat = AgentIdsToSATID(instance_id_set);
+            for (const auto &unavoid_agent : set_need_check) {
+                auto passing_agents = searchAgent(unavoid_agent, {}, buffer_sat); // pass test
+                if (passing_agents.empty()) {
+                    // failed always caused by cluster in remaining set that block the whole way
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // 1, the input agent set must be solvable
+        // 2, split current instance set into to a set (based on largest unavoidable agent's cluster), and remaining agents as the other set
+
+        // 1, divide current instance into unavoidable cluster, in other words, what agents must be MAPF together
+        // 2, pick the largest unavoidable cluster as base, check it and remaining cluster whether belong to two separating
+        // 3, if can, return to step 1 and input remaining agents
+        // 4, if can't, move agents from remaining to the largest unavoidable cluster, until it can
+        std::pair<std::set<int>, std::set<int> > biPartitionCluster(const std::set<int>& agents) {
+            // upper bound of cluster size
+            std::map<int, std::set<int> > all_agents_path;
+            std::vector<bool> buffer_sat = AgentIdsToSATID(agents);
+            for(const int& agent_id : agents) {
+                auto passing_agents = searchAgent(agent_id, {}, buffer_sat); // pass test
+                all_agents_path.insert({agent_id, passing_agents});
+            }
+            // determine agent's unavoidable agent
+            std::map<int, std::set<int> > all_unavoidable_agent = searchUnAvoidAgentForEachAgent(all_agents_path, agents);
+
+            // lower bound of cluster size
+            // determine each agent's related agent (unavoidable)
+            std::map<int, std::set<int> > all_unavoidable_related_agent = updateRelatedGraphFromPassingGraph(all_unavoidable_agent);
+            //
+            std::map<int, std::set<int> > cluster_of_unavoidable_agents = clusterAgents(all_unavoidable_related_agent);
+
+            // get the largest cluster and merge the remaining into a secondary set
+            auto cluster_pair = splitPartitionCluster(cluster_of_unavoidable_agents);
+
+            int count_of_phase = 0;
+            while(1) {
+                while (1) {
+                    auto retv = clusterIndependentCheck(cluster_pair.second);
+                    std::set<int> keep_in_remaining = retv.first, move_to_unavoid = retv.second;
+                    // move agent that cannot stay in remaining set to unavoidable set
+                    for (const int &moved_agent_id : move_to_unavoid) {
+                        cluster_pair.first.insert(moved_agent_id);
+                        cluster_pair.second.erase(moved_agent_id);
+                    }
+                    // move agent to remaining set to unavoidable cluster
+                    if (move_to_unavoid.empty()) { break; }
+                }
+                // till here, the remaining set is independent, it related no external agent to keep completeness
+                std::set<int> specific_set_unavoidable = {};
+                while (1) {
+                    // when add new agent to unavoidable set, only check new added agent, to save time cost
+                    auto retv = clusterIndependentCheck(cluster_pair.first, specific_set_unavoidable);
+                    specific_set_unavoidable.clear();
+                    std::set<int> success_in_unavoid = retv.first, failed_in_unavoid = retv.second;
+                    if (failed_in_unavoid.empty()) {
+                        break;
+                    }
+                    // pick the shortest failed path's agent
+                    int failed_shortest_agent_id;
+                    int shortest_path_size = MAX<int>;
+                    for (const int &failed_agent : failed_in_unavoid) {
+                        if (shortest_path_size > all_agents_path.at(failed_agent).size()) {
+                            shortest_path_size = all_agents_path.at(failed_agent).size();
+                            failed_shortest_agent_id = failed_agent;
+                        }
+                    }
+                    // add all related agent of the shortest (containing fewer agents) path into unavoidable set
+                    // there are multiple solution path, pick one with least modification to unavoid set, i.e., involve less new agent
+                    //const auto& alternative_path = searchAgent(failed_shortest_agent_id, {}, AgentIdsToSATID(agents), false, AgentIdsToSATID(cluster_pair.first));
+                    const auto& alternative_path = all_agents_path.at(failed_shortest_agent_id);
+                    for (const int &new_agent_to_unavoid : alternative_path) {
+                        if(cluster_pair.first.find(new_agent_to_unavoid) == cluster_pair.first.end()) {
+                            cluster_pair.first.insert(new_agent_to_unavoid);
+                            cluster_pair.second.erase(new_agent_to_unavoid);
+                            specific_set_unavoidable.insert(new_agent_to_unavoid);
+                        }
+                    }
+                }
+
+                bool unavoid_independent = isClusterIndependent(cluster_pair.first, specific_set_unavoidable),
+                        remaining_independent = isClusterIndependent(cluster_pair.second);
+                count_of_phase ++;
+                // if both remaining set and unavoid set is independent, we find a legal bi-partition
+                if(unavoid_independent && remaining_independent) {
+                    break;
+                }
+
+            }
+            return cluster_pair;
+        }
+
+        void clusterDecomposition() {
+            std::vector<std::set<int> > all_clusters;
+            auto cluster_of_agents = all_clusters_;
+            int count_top_cluster = 0;
+            std::set<int> buffer_agents;
+            for(const auto& top_cluster : cluster_of_agents) {
+                if(top_cluster.size() < 2) {
+                    // add small clusters at this stage to all_clusters, no need to join further bi-partition
+                    all_clusters.push_back(top_cluster);
+                } else {
+                    count_top_cluster ++;
+                    int count = 0;
+                    buffer_agents = top_cluster;
+                    // bi-partition until can not bi-partition
+                    while (buffer_agents.size() > 1) {
+                        auto agents_pair = biPartitionCluster(buffer_agents);
+                        std::swap(buffer_agents, agents_pair.second);
+                        all_clusters.push_back(agents_pair.first);
+                        count++;
+                    }
+                    if (!buffer_agents.empty()) {
+                        all_clusters.push_back(buffer_agents);
+                    }
+                }
+            }
+            all_clusters_ = all_clusters;
         }
 
         // when try to split one cluster into multiple sub-clusters,
@@ -336,7 +568,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         std::vector<ConnectivityGraph> connect_graphs_;
 
-        std::vector<std::vector<int> > heuristic_tables_;
+        std::vector<std::vector<int> > heuristic_tables_sat_; // distinguish_sat = true
+
+        std::vector<std::vector<int> > heuristic_tables_; // distinguish_sat = false
+
 
         std::set<int> instance_id_set_; // set of all agent's id
 

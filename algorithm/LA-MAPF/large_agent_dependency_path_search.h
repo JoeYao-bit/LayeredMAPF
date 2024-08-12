@@ -33,6 +33,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     if(!ignore_cost_agent_ids.empty() && ignore_cost_agent_ids[agent_id]) { continue; }
                     visited_agent_.insert(distinguish_sat ? agent_id : agent_id/2);
                 }
+//                std::cout << "visited_agent_ size = " << visited_agent_.size() << std::endl;
             }
         }
 
@@ -95,7 +96,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     // calculate static heuristic table, using BFS, dist to target = 0
     // dist is defined like g_val and h_val, how many agent need to cross to reach target
     template <Dimension N>
-    std::vector<int> calculateLargeAgentHyperGraphStaticHeuristic(DimensionLength* dim, const ConnectivityGraph& graph) {
+    std::vector<int> calculateLargeAgentHyperGraphStaticHeuristic(int agent_id, DimensionLength* dim, const ConnectivityGraph& graph, bool distinguish_sat = false) {
 //        std::cout << "call " << __FUNCTION__ << std::endl;
         // the two table update simultaneously
         int total_index = getTotalIndexOfSpace<N>(dim);
@@ -105,12 +106,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<HyperGraphNodeDataPtr<N> > current_set, all_ptr_set;
 
         HyperGraphNodeDataPtr<N> init_node_ptr = new HyperGraphNodeData<N>(graph.target_hyper_node_, nullptr, graph);
+        init_node_ptr->visited_agent_ = { distinguish_sat ? 2*agent_id + 1 : agent_id };
 
         current_set.push_back(init_node_ptr);
 
         all_ptr_set.push_back(init_node_ptr);
 
-        heuristic_table[init_node_ptr->current_node_] = 0; // in target, dist to target = 0
+        heuristic_table[init_node_ptr->current_node_] = init_node_ptr->visited_agent_.size(); // in target, related agent is itself, so heuristic_table = 1
 
         int current_h, next_h;
 
@@ -124,7 +126,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
                 for(const auto& neighbor_node_id : graph.all_edges_vec_[node_ptr->current_node_]) {
 
-                    HyperGraphNodeDataPtr<N> next_node_data_ptr = new HyperGraphNodeData<N>(neighbor_node_id, node_ptr, graph);
+                    HyperGraphNodeDataPtr<N> next_node_data_ptr = new HyperGraphNodeData<N>(neighbor_node_id, node_ptr, graph, distinguish_sat);
                     all_ptr_set.push_back(next_node_data_ptr);
 
                     next_h = next_node_data_ptr->visited_agent_.size();
@@ -155,22 +157,23 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         explicit DependencyPathSearch() {}
 
         // unordered_set
-        std::set<int> getPassingAgents(const HyperGraphNodeDataPtr<N>& node_ptr, bool distinguish_sat = false) {
-            std::set<int> retv;
-            HyperGraphNodeDataPtr<N> buffer = node_ptr;
-            while(buffer != nullptr) {
-
-                std::set<int> raw_agent_ids = buffer->visited_agent_;
-                for(const auto& raw_agent_id : raw_agent_ids) {
-                    if(distinguish_sat) {
-                        retv.insert(raw_agent_id);
-                    } else {
-                        retv.insert(raw_agent_id / 2);
-                    }
-                }
-                buffer = buffer->pa_;
-            }
-            return retv;
+        std::set<int> getPassingAgents(const HyperGraphNodeDataPtr<N>& node_ptr) {
+//            std::set<int> retv;
+//            HyperGraphNodeDataPtr<N> buffer = node_ptr;
+//            while(buffer != nullptr) {
+//
+//                std::set<int> raw_agent_ids = buffer->visited_agent_;
+//                for(const auto& raw_agent_id : raw_agent_ids) {
+//                    if(distinguish_sat) {
+//                        retv.insert(raw_agent_id);
+//                    } else {
+//                        retv.insert(raw_agent_id / 2);
+//                    }
+//                }
+//                buffer = buffer->pa_;
+//            }
+//            return retv;
+            return node_ptr->visited_agent_;
         }
 
         /* determine the path for a agent in the hyper graph, considering avoidance for other agents */
@@ -193,27 +196,30 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             assert(start_node_id != MAX<size_t>);
 
             // check whether avoid specific agents
-            if(!avoid_agents.empty() && avoid_agents[agent_id]) { return {}; }
+            if(!avoid_agents.empty() && (avoid_agents[2*agent_id] || avoid_agents[2*agent_id+1]) ) { return {}; }
             // check whether passing specific agents, if passing_agents_ == empty, ignore this constraint
-            if(!passing_agents.empty() && passing_agents[agent_id] == false) { return {}; }
+            if(!passing_agents.empty() && (!passing_agents[2*agent_id] || !passing_agents[2*agent_id+1])) { return {}; }
 
             HyperGraphNodeDataPtr<N> start_node = new HyperGraphNodeData<N>(start_hyper_node_id, nullptr, con_graph);
 
 //            std::cout << "start_node cur and pre " << start_node << " / " << start_node->pa_ << std::endl;
             start_node->h_val_ = heuristic_table[start_hyper_node_id];
-            start_node->open_handle_ = open_list_.push(start_node);
             start_node->in_openlist_ = true;
+            start_node->visited_agent_ = { distinguish_sat ? 2*agent_id : agent_id };
+
+            start_node->open_handle_ = open_list_.push(start_node);
             allNodes_table_.insert(start_node); // yz: visited vertex
 
             int count = 0;
             while (!open_list_.empty()) // yz: focal may be empty and this is legal !
             {
+//                std::cout << "count = " << count << std::endl;
                 count ++;
                 auto curr_node = popNode();
                 // check if the popped node is a goal
                 if(curr_node->current_node_ == con_graph.target_hyper_node_) // if current node is belong to an agent
                 {
-                    auto passed_agents = getPassingAgents(curr_node, distinguish_sat);//curr_node->passed_agents_;
+                    auto passed_agents = getPassingAgents(curr_node);//curr_node->passed_agents_;
                     releaseNodes();
                     return passed_agents;
                 }
@@ -269,6 +275,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }  // end for loop that generates successors
             }  // end while loop
             releaseNodes();
+            std::cout << " search failed " << std::endl;
             return {};
         }
 
