@@ -20,16 +20,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     template<Dimension N>
     struct HyperGraphNodeData : public TreeNode<N, HyperGraphNodeDataPtr<N> > {
 
-    explicit HyperGraphNodeData(const size_t & current_node, const HyperGraphNodeDataPtr<N>& parent,
-                                const ConnectivityGraph& graph, bool ignore_cost = false) :
+    explicit HyperGraphNodeData(const size_t & current_node,
+                                const HyperGraphNodeDataPtr<N>& parent,
+                                const ConnectivityGraph& graph,
+                                bool distinguish_sat = false,
+                                const std::vector<bool>& ignore_cost_agent_ids = {}) :
             current_node_(current_node), graph_(graph), TreeNode<N, HyperGraphNodeDataPtr<N>>(parent) {
             if(parent != nullptr) {
                 visited_agent_ = parent->visited_agent_;
                 // if is a agent node, rather than a free group node
-                if(!ignore_cost) {
-                    for(const int& agent_id : graph_.hyper_node_with_agents_[current_node_]) {
-                        visited_agent_.insert(agent_id);
-                    }
+                for(const int& agent_id : graph_.hyper_node_with_agents_[current_node_]) {
+                    if(!ignore_cost_agent_ids.empty() && ignore_cost_agent_ids[agent_id]) { continue; }
+                    visited_agent_.insert(distinguish_sat ? agent_id : agent_id/2);
                 }
             }
         }
@@ -62,14 +64,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         struct compare_node {
             // returns true if n1 > n2 (note -- this gives us *min*-heap).
             bool operator()(const HyperGraphNodeDataPtr<N> &n1, const HyperGraphNodeDataPtr<N> &n2) const {
-                return n1->g_val_ + n1->h_val_ >= n2->g_val_ + n2->h_val_;
+                return n1->visited_agent_.size() + n1->h_val_ >= n2->visited_agent_.size() + n2->h_val_;
             }
         };
 
         struct equal_node {
             // returns true if n1 > n2 (note -- this gives us *min*-heap).
             bool operator()(const HyperGraphNodeDataPtr<N> &n1, const HyperGraphNodeDataPtr<N> &n2) const {
-                return n1->current_node_ptr_->hyper_node_id_ == n2->current_node_ptr_->hyper_node_id_;
+                return n1->current_node_ == n2->current_node_;
             }
         };
 
@@ -77,7 +79,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         {
             size_t operator() (const HyperGraphNodeDataPtr<N>& n) const
             {
-                return std::hash<int>()(n->current_node_ptr_->hyper_node_id_); // yz: 按位异或
+                return std::hash<int>()(n->current_node_); // yz: 按位异或
             }
         };
 
@@ -146,6 +148,159 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         // use BFS to calculate heuristic value for all free grid, and obstacle heuristic
         return heuristic_table;
     }
+
+    template<Dimension N>
+    struct DependencyPathSearch {
+
+        explicit DependencyPathSearch() {}
+
+        // unordered_set
+        std::set<int> getPassingAgents(const HyperGraphNodeDataPtr<N>& node_ptr, bool distinguish_sat = false) {
+            std::set<int> retv;
+            HyperGraphNodeDataPtr<N> buffer = node_ptr;
+            while(buffer != nullptr) {
+
+                std::set<int> raw_agent_ids = buffer->visited_agent_;
+                for(const auto& raw_agent_id : raw_agent_ids) {
+                    if(distinguish_sat) {
+                        retv.insert(raw_agent_id);
+                    } else {
+                        retv.insert(raw_agent_id / 2);
+                    }
+                }
+                buffer = buffer->pa_;
+            }
+            return retv;
+        }
+
+        /* determine the path for a agent in the hyper graph, considering avoidance for other agents */
+        // search in a Best-First way or Breadth-First-way ? I prefer Best-First way
+        // how to set heuristic value ? only considering the last agent node rather than free group node
+        // agent in ignore_cost_set is not considered in cost accumulation
+        // assume all start node is id of agent, as well as id in avoid_agents
+        // return all agent involve in the path, if return empty set, considering as find no result
+        // distinguish_sat means whether considering
+        std::set<int> search(int agent_id,
+                             int start_hyper_node_id,
+                             const SubGraphOfAgent<N>& sub_graph,
+                             const ConnectivityGraph& con_graph,
+                             const std::vector<bool> &avoid_agents,
+                             const std::vector<bool> &passing_agents,
+                             const std::vector<int> heuristic_table,
+                             bool distinguish_sat = false,
+                             const std::vector<bool> & ignore_cost_set = {}) {
+            const auto &start_node_id = con_graph.start_hyper_node_;
+            assert(start_node_id != MAX<size_t>);
+
+            // check whether avoid specific agents
+            if(!avoid_agents.empty() && avoid_agents[agent_id]) { return {}; }
+            // check whether passing specific agents, if passing_agents_ == empty, ignore this constraint
+            if(!passing_agents.empty() && passing_agents[agent_id] == false) { return {}; }
+
+            HyperGraphNodeDataPtr<N> start_node = new HyperGraphNodeData<N>(start_hyper_node_id, nullptr, con_graph);
+
+//            std::cout << "start_node cur and pre " << start_node << " / " << start_node->pa_ << std::endl;
+            start_node->h_val_ = heuristic_table[start_hyper_node_id];
+            start_node->open_handle_ = open_list_.push(start_node);
+            start_node->in_openlist_ = true;
+            allNodes_table_.insert(start_node); // yz: visited vertex
+
+            int count = 0;
+            while (!open_list_.empty()) // yz: focal may be empty and this is legal !
+            {
+                count ++;
+                auto curr_node = popNode();
+                // check if the popped node is a goal
+                if(curr_node->current_node_ == con_graph.target_hyper_node_) // if current node is belong to an agent
+                {
+                    auto passed_agents = getPassingAgents(curr_node, distinguish_sat);//curr_node->passed_agents_;
+                    releaseNodes();
+                    return passed_agents;
+                }
+
+                for(const auto& neighbor_node_id : con_graph.all_edges_vec_[curr_node->current_node_])
+                {
+
+                    bool avoid_failed = false, passing_failed = false;
+                    for(const int& agent_id : con_graph.hyper_node_with_agents_[neighbor_node_id]) {
+                        // check whether avoid specific agents
+                        if(!avoid_agents.empty() && avoid_agents[agent_id]) { avoid_failed = true; }
+                        // check whether passing specific agents, if passing_agents_ == empty, ignore this constraint
+                        if(!passing_agents.empty() && passing_agents[agent_id] == false) { passing_failed = true; }
+                    }
+
+                    if(avoid_failed || passing_failed) { continue; }
+
+                    auto next_node = new HyperGraphNodeData<N>(neighbor_node_id, curr_node, con_graph, distinguish_sat, ignore_cost_set);
+                    next_node->h_val_ = heuristic_table[neighbor_node_id];
+                    bool is_new_node = true;
+                    // try to retrieve it from the hash table
+                    auto it = allNodes_table_.find(next_node);
+                    if (it == allNodes_table_.end())
+                    {
+                        pushNode(next_node);
+                        allNodes_table_.insert(next_node); // yz: add to hash table
+                        continue;
+                    } else {
+                        is_new_node = false;
+                    }
+                    // update existing node's if needed (only in the open_list)
+                    auto existing_next = *it;
+
+                    if (existing_next->getFVal() > next_node->getFVal())// if f-val decreased through this new path
+                        // or it remains the same but there's fewer conflicts
+                    {
+                        if (!existing_next->in_openlist_) // if it is in the closed list (reopen)
+                        {
+                            existing_next->copy(*next_node);
+                            pushNode(existing_next);
+                        } else {
+                            bool update_open = false;
+                            if (existing_next->getFVal() > next_node->getFVal())
+                                update_open = true;
+                            existing_next->copy(*next_node);	// update existing node
+                            if (update_open)
+                                open_list_.increase(existing_next->open_handle_);  // increase because f-val improved
+                        }
+                    }
+                    if(!is_new_node) {
+                        delete next_node;
+                    }
+                }  // end for loop that generates successors
+            }  // end while loop
+            releaseNodes();
+            return {};
+        }
+
+        inline HyperGraphNodeDataPtr<N> popNode() {
+            auto node = open_list_.top(); open_list_.pop();
+            node->in_openlist_ = false;
+            return node;
+        }
+
+        inline void pushNode(const HyperGraphNodeDataPtr<N>& node) {
+            node->open_handle_ = open_list_.push(node);
+            node->in_openlist_ = true;
+        }
+
+        typedef boost::heap::pairing_heap<HyperGraphNodeDataPtr <N>, boost::heap::compare<typename HyperGraphNodeData<N>::compare_node> > heap_open_t;
+        heap_open_t open_list_;
+
+        // how about considering grid distance of path as focal list ?
+
+        typedef boost::unordered_set<HyperGraphNodeDataPtr<N>, typename HyperGraphNodeData<N>::NodeHasher, typename HyperGraphNodeData<N>::equal_node> hashtable_t;
+        hashtable_t allNodes_table_;
+
+        void releaseNodes() {
+            for(auto it = allNodes_table_.begin();it!=allNodes_table_.end();it++) {
+                delete *it;
+            }
+            open_list_.clear();
+            allNodes_table_.clear();
+        }
+
+    };
+
 
 }
 

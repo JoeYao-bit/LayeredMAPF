@@ -20,6 +20,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                             DimensionLength* dim,
                                             const IS_OCCUPIED_FUNC<N> & isoc)
                                             : LargeAgentMAPF<N, AgentType>(instances, agents, dim, isoc) {
+            for(int i=0; i<instances.size(); i++) {
+                instance_id_set_.insert(i);
+            }
+
             // 1, construct each agent's connectivity graph
             for(int i=0; i<agents.size(); i++) {
                 connect_graphs_.push_back(getAgentConnectivityGraph(i));
@@ -28,6 +32,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             for(int i=0; i<agents.size(); i++) {
                 heuristic_tables_.push_back(calculateLargeAgentHyperGraphStaticHeuristic<N>(this->dim_, connect_graphs_[i]));
             }
+            // 3, decompose all instances into multiple cluster
+            instanceDecomposition();
+
+            /* print details of decomposition */
+            int total_count = 0;
+            int max_cluster_size = 0;
+            for(int i=0; i<all_clusters_.size(); i++) {
+                total_count += all_clusters_[i].size();
+                if(all_clusters_[i].size() > max_cluster_size) { max_cluster_size = all_clusters_[i].size(); }
+            }
+            assert(total_count == this->instances_.size());
+            std::cout << " max/total size " << max_cluster_size << " / " << this->instances_.size() << std::endl;
         }
 
         ConnectivityGraph getAgentConnectivityGraph(const int& agent_id) const {
@@ -169,20 +185,149 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }
             }
             // print for debug
-            std::cout << "agent_id " << agent_id << "'s hyper" << std::endl;
-            for(int hyper_node_id=0; hyper_node_id < max_hyper_node_id; hyper_node_id++) {
-                std::cout << "hyper_node " << hyper_node_id << " visible to: ";
-                for(const int& another_hyper_id : graph.all_edges_vec_[hyper_node_id]) {
-                    std::cout << another_hyper_id << " ";
-                }
-                //std::cout << std::endl;
-                std::cout << ", relared to agent: ";
-                for(const int& related_agent : graph.hyper_node_with_agents_[hyper_node_id]) {
-                    std::cout << related_agent << " ";
-                }
-                std::cout << std::endl;
-            }
+//            std::cout << "agent_id " << agent_id << "'s hyper" << std::endl;
+//            for(int hyper_node_id=0; hyper_node_id < max_hyper_node_id; hyper_node_id++) {
+//                std::cout << "hyper_node " << hyper_node_id << " visible to: ";
+//                for(const int& another_hyper_id : graph.all_edges_vec_[hyper_node_id]) {
+//                    std::cout << another_hyper_id << " ";
+//                }
+//                //std::cout << std::endl;
+//                std::cout << ", relared to agent: ";
+//                for(const int& related_agent : graph.hyper_node_with_agents_[hyper_node_id]) {
+//                    std::cout << related_agent << " ";
+//                }
+//                std::cout << std::endl;
+//            }
             return graph;
+        }
+
+        // return path that consists of agents
+        // distinguish_sat whether consider start and target as one in calculate cost
+        std::set<int> searchAgent(int agent_id,
+                                  const std::vector<bool>& avoid_agents,
+                                  const std::vector<bool>& passing_agents,
+                                  bool distinguish_sat = false,
+                                  const std::vector<bool>& ignore_cost_set = {}) const {
+            assert(!heuristic_tables_.empty());
+            DependencyPathSearch<N> search_machine;
+            /*
+             * DependencyPathSearch::search(int agent_id,
+                                            int start_hyper_node_id,
+                                            const SubGraphOfAgent<N>& sub_graph,
+                                            const ConnectivityGraph& con_graph,
+                                            const std::vector<bool> &avoid_agents,
+                                            const std::vector<bool> &passing_agents,
+                                            const std::vector<int> heuristic_table,
+                                            bool distinguish_sat = false,
+                                            const std::vector<int> & ignore_cost_set = {}
+                                             )
+             * */
+            return search_machine.search(agent_id, connect_graphs_[agent_id].start_hyper_node_,
+                                         this->agent_sub_graphs_[agent_id], this->connect_graphs_[agent_id],
+                                         avoid_agents, passing_agents, heuristic_tables_[agent_id], distinguish_sat, ignore_cost_set);
+        }
+
+        // transform agents' id to 2*id and 2*id + 1
+        std::vector<bool> AgentIdsToSATID(const std::set<int>& agent_ids) const {
+            std::vector<bool> retv(2*this->instances_.size(), false);
+            for(const int& agent_id : agent_ids) {
+                retv[2*agent_id] = true;
+                retv[2*agent_id + 1] = true;
+            }
+            return retv;
+        }
+
+        // an instance is split into multiple un-realted cluster
+        void instanceDecomposition() {
+
+            // decompose the whole instance to multiple unrelated cluster
+
+            std::set<int> buffer_agents = instance_id_set_;
+            std::vector<std::set<int> > all_clusters;
+
+            // get top level isolated clusters
+            std::map<int, std::set<int> > all_agents_path;
+            std::vector<bool> buffer_sat = AgentIdsToSATID(buffer_agents);
+            for(const int& agent_id : buffer_agents) {
+                auto passing_agents = searchAgent(agent_id, {}, buffer_sat); // pass test
+                all_agents_path.insert({agent_id, passing_agents});
+            }
+            all_passing_agent_ = all_agents_path;
+            // get each agent's dependence agents
+            std::map<int, std::set<int> > all_related_agent = updateRelatedGraphFromPassingGraph(all_agents_path);
+            //
+            std::map<int, std::set<int> > cluster_of_agents = clusterAgents(all_related_agent);
+            all_clusters_.clear();
+            for(const auto& iter : cluster_of_agents) {
+                all_clusters_.push_back(iter.second);
+            }
+        }
+
+        // when try to split one cluster into multiple sub-clusters,
+        // considering all other cluster's agent as avoidance, avoid increases of queue size involve other agent
+        // pick out the largest cluster to decompose (decrease agent in the cluster), if success, repeat
+        // otherwise pick the second largest cluster to decompose, until there is no cluster can be decompose
+        // # the size of clusters is in a power law (幂律分布), the biggest one have lots of agents, while the end have a few agents
+        // # select which edge (relation of two agents) to break (candidate), is generated by graph partitioning (edge partitioning)
+        // # graph partitioning try to split a graph into multiple same size sub-graph, meets the requirement of efficient MAPF
+        // find multiple sub-graph that connect only by one edge and try to break it
+
+        // get each agent's related agents
+        std::map<int, std::set<int> > updateRelatedGraphFromPassingGraph(const std::map<int, std::set<int> >& ref) const {
+            std::map<int, std::set<int> > red_related;
+            red_related = ref;
+            for(const auto& agent : ref) {
+                for(const auto& other_agent : ref) {
+                    if(agent.first == other_agent.first) {
+                        continue;
+                    }
+                    // if agent j cross agent i
+                    if(ref.at(other_agent.first).find(agent.first) != ref.at(other_agent.first).end()) {
+                        red_related.at(agent.first).insert(other_agent.first);
+                    }
+                }
+            }
+            return red_related;
+        }
+
+        std::map<int, std::set<int> > clusterAgents(const std::map<int, std::set<int> >& ref_related) const {
+            std::map<int, std::set<int> > cluster_of_agents;// multiple cluster
+            std::map<int, int> cluster_id_of_agents; // cluster id of each agent
+            for(const auto& pair: ref_related) {
+                cluster_id_of_agents.insert({pair.first, MAX<int>});
+            }
+            for(const auto& pair : ref_related) {
+                if(cluster_id_of_agents[pair.first] != MAX<int>) {
+                    continue;
+                }
+                // while loop exit when current cluster have no new member
+                std::set<int> current_set = {pair.first};
+                std::set<int> buffer_set  = {pair.first}, next_buffer_set;
+                cluster_id_of_agents.at(pair.first)   = cluster_of_agents.size();
+                while(!buffer_set.empty()) {
+                    next_buffer_set.clear();
+                    for(const int& new_agent_id : buffer_set) {
+                        std::set<int> relative_agents = ref_related.at(new_agent_id);
+                        for(const int& depended_agent_id : relative_agents) {
+                            if(cluster_id_of_agents.at(depended_agent_id) != MAX<int>) {
+                                if(cluster_id_of_agents.at(depended_agent_id) != cluster_of_agents.size()) {
+                                    // what belong is an error condition
+                                    std::cerr << " different cluster intersect " <<
+                                              cluster_id_of_agents.at(depended_agent_id) << " and " << cluster_of_agents.size()
+                                              << std::endl;
+                                }
+                            } else{
+                                cluster_id_of_agents.at(depended_agent_id) = cluster_of_agents.size();
+                                current_set.insert(depended_agent_id);
+                                next_buffer_set.insert(depended_agent_id);
+                            }
+                        }
+                    }
+                    std::swap(buffer_set, next_buffer_set);
+                }
+                cluster_of_agents.insert({cluster_of_agents.size(), current_set});
+            }
+            return cluster_of_agents;
         }
 
         bool solve(double time_limit, int cost_lowerbound = 0, int cost_upperbound = MAX_COST) {
@@ -192,6 +337,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<ConnectivityGraph> connect_graphs_;
 
         std::vector<std::vector<int> > heuristic_tables_;
+
+        std::set<int> instance_id_set_; // set of all agent's id
+
+        std::vector<std::set<int> > all_clusters_;
+
+        // store which agents current agent passing, may change after method
+        // NOTICE: the goal of the method is to partition this matrix into lots of small block, thus MAPF is more efficient
+        std::map<int, std::set<int> > all_passing_agent_;
 
     };
 
