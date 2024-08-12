@@ -297,18 +297,20 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             // get each agent's dependence agents
             std::map<int, std::set<int> > all_related_agent = updateRelatedGraphFromPassingGraph(all_agents_path);
             // for debug
-            std::cout << "print instanceDecomposition related_graph: " << std::endl;
-            for(const auto& related_pair : all_related_agent) {
-                std::cout << related_pair.first << ": ";
-                for(const auto& other_agent : related_pair.second) {
-                    std::cout << other_agent << " ";
-                }
-                std::cout << std::endl;
-            }
+//            std::cout << "print instanceDecomposition related_graph: " << std::endl;
+//            for(const auto& related_pair : all_related_agent) {
+//                std::cout << related_pair.first << ": ";
+//                for(const auto& other_agent : related_pair.second) {
+//                    std::cout << other_agent << " ";
+//                }
+//                std::cout << std::endl;
+//            }
             std::map<int, std::set<int> > cluster_of_agents = clusterAgents(all_related_agent);
             all_clusters_.clear();
+            std::cout << "print instance decomposition result: " << std::endl;
             for(const auto& iter : cluster_of_agents) {
                 all_clusters_.push_back(iter.second);
+                std::cout << iter.first << ": " << iter.second << std::endl;
             }
         }
 
