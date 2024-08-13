@@ -63,7 +63,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 gettimeofday(&tv_after, &tz);
                 instance_decomposition_time_cost_ =
                         (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
-                printAllSubProblem(std::string("instance decomposition"));
+                //printAllSubProblem(std::string("instance decomposition"));
             }
 
             // 4，bi-partition clusters till cannot bi-partition
@@ -73,7 +73,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 gettimeofday(&tv_after, &tz);
                 cluster_bipartition_time_cost_ =
                         (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
-                printAllSubProblem(std::string("cluster bi-partition"));
+                //printAllSubProblem(std::string("cluster bi-partition"));
             }
 
             // 5, level sorting
@@ -83,8 +83,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 gettimeofday(&tv_after, &tz);
                 level_sorting_time_cost_ =
                         (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
-                printAllSubProblem(std::string("level sorting"));
+                //printAllSubProblem(std::string("level sorting"));
             }
+            // initialize_time_cost_
+            std::cout << "-- initialize_time_cost_             (ms) = " << initialize_time_cost_ << std::endl;
             std::cout << "-- instance_decomposition_time_cost_ (ms) = " << instance_decomposition_time_cost_ << std::endl;
             std::cout << "-- cluster_bipartition_time_cost_    (ms) = " << cluster_bipartition_time_cost_ << std::endl;
             std::cout << "-- level_sorting_time_cost_          (ms) = " << level_sorting_time_cost_ << std::endl;

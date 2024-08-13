@@ -169,7 +169,7 @@ void loadInstanceAndDecomposition(const std::string& file_path) {
     gettimeofday(&tv_after, &tz);
 
     double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
-    std::cout << "finish decomposition " << " in " << time_cost << "ms " << std::endl;
+    std::cout << "finish decomposition in " << time_cost << "ms " << std::endl;
 //    std::cout << "solution validation ? " << lacbs.solutionValidation() << std::endl;
 
     InstanceDecompositionVisualization<AgentType>(decomposer);
