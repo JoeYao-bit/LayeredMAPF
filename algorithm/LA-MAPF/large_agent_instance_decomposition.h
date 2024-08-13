@@ -9,6 +9,14 @@
 #include "large_agent_dependency_path_search.h"
 #include "../../freeNav-base/basic_elements/point.h"
 
+#include <sys/time.h>
+#include <boost/graph/subgraph.hpp>
+#include <boost/graph/adjacency_list.hpp>
+
+#include <boost/config.hpp>
+#include <boost/graph/connected_components.hpp>
+#include <boost/graph/strong_components.hpp>
+
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
     // inherit LargeAgentMAPF to avoid
@@ -19,8 +27,17 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         LargeAgentMAPFInstanceDecomposition(const InstanceOrients<N> & instances,
                                             const std::vector<AgentType>& agents,
                                             DimensionLength* dim,
-                                            const IS_OCCUPIED_FUNC<N> & isoc)
+                                            const IS_OCCUPIED_FUNC<N> & isoc,
+                                            int decompose_level=3)
                                             : LargeAgentMAPF<N, AgentType>(instances, agents, dim, isoc) {
+
+            assert(decompose_level >= 0 && decompose_level <= 3);
+
+            struct timezone tz;
+            struct timeval  tv_pre;
+            struct timeval  tv_after;
+            gettimeofday(&tv_pre, &tz);
+
             for(int i=0; i<instances.size(); i++) {
                 instance_id_set_.insert(i);
             }
@@ -34,10 +51,43 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 heuristic_tables_.push_back(calculateLargeAgentHyperGraphStaticHeuristic<N>(i, this->dim_, connect_graphs_[i], false));
                 heuristic_tables_sat_.push_back(calculateLargeAgentHyperGraphStaticHeuristic<N>(i, this->dim_, connect_graphs_[i], true));
             }
-            // 3, decompose all instances into multiple cluster
-            instanceDecomposition();
 
-//            clusterDecomposition();
+            gettimeofday(&tv_after, &tz);
+            initialize_time_cost_ =
+                    (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
+
+            // 3, decompose all instances into multiple cluster
+            if(decompose_level >= 1) {
+                gettimeofday(&tv_pre, &tz);
+                instanceDecomposition();
+                gettimeofday(&tv_after, &tz);
+                instance_decomposition_time_cost_ =
+                        (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
+                printAllSubProblem(std::string("instance decomposition"));
+            }
+
+            // 4，bi-partition clusters till cannot bi-partition
+            if(decompose_level >= 2) {
+                gettimeofday(&tv_pre, &tz);
+                clusterDecomposition();
+                gettimeofday(&tv_after, &tz);
+                cluster_bipartition_time_cost_ =
+                        (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
+                printAllSubProblem(std::string("cluster bi-partition"));
+            }
+
+            // 5, level sorting
+            if(decompose_level >= 1) {
+                gettimeofday(&tv_pre, &tz);
+                levelSorting();
+                gettimeofday(&tv_after, &tz);
+                level_sorting_time_cost_ =
+                        (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
+                printAllSubProblem(std::string("level sorting"));
+            }
+            std::cout << "-- instance_decomposition_time_cost_ (ms) = " << instance_decomposition_time_cost_ << std::endl;
+            std::cout << "-- cluster_bipartition_time_cost_    (ms) = " << cluster_bipartition_time_cost_ << std::endl;
+            std::cout << "-- level_sorting_time_cost_          (ms) = " << level_sorting_time_cost_ << std::endl;
 
             /* print details of decomposition */
             int total_count = 0;
@@ -286,11 +336,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             std::vector<bool> buffer_sat = AgentIdsToSATID(buffer_agents);
             for(const int& agent_id : buffer_agents) {
                 auto passing_agents = searchAgent(agent_id, {}, buffer_sat); // pass test
-                std::cout << "--agent " << agent_id << "'s dependency path = ";
-                for(const auto& passing_agent : passing_agents) {
-                    std::cout << passing_agent << " ";
-                }
-                std::cout << std::endl; // ok till here
+//                std::cout << "--agent " << agent_id << "'s dependency path = ";
+//                for(const auto& passing_agent : passing_agents) {
+//                    std::cout << passing_agent << " ";
+//                }
+//                std::cout << std::endl; // ok till here
                 all_agents_path.insert({agent_id, passing_agents});
             }
             all_passing_agent_ = all_agents_path;
@@ -307,10 +357,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //            }
             std::map<int, std::set<int> > cluster_of_agents = clusterAgents(all_related_agent);
             all_clusters_.clear();
-            std::cout << "print instance decomposition result: " << std::endl;
             for(const auto& iter : cluster_of_agents) {
                 all_clusters_.push_back(iter.second);
-                std::cout << iter.first << ": " << iter.second << std::endl;
             }
         }
 
@@ -495,6 +543,251 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }
             }
             all_clusters_ = all_clusters;
+
+        }
+
+        // a cluster is split into multiple time indexed level
+        // each level may have one or multiple agent
+        // by update sat path of agents
+        std::vector<std::set<int> >  clusterDecomposeToLevel(const std::set<int>& cluster, bool active_loop_avoidance = false) const {
+            // 1, get each agent's sat path
+            std::map<int, std::set<int> > all_agents_path;
+            // search path which length is in an increasing order
+            // provide more room to avoid large loops
+            std::vector<std::pair<int, int>> sat_path_length_and_agent;
+
+            std::vector<bool> cluster_sat = AgentIdsToSATID(cluster);
+            for(const int& agent_id : cluster) {
+                auto passing_sats = searchAgent(agent_id, {}, cluster_sat, true); // pass test
+                assert(!passing_sats.empty());
+                //std::cout << agent_id << " agent passing_sats " << passing_sats << std::endl;
+                sat_path_length_and_agent.push_back({agent_id, passing_sats.size()});
+            }
+
+            // if >, path is in decrease order, if <, path length in increase order
+            // TODO: it's still un clear that which way is better, massive test is need ...
+            std::sort(sat_path_length_and_agent.begin(), sat_path_length_and_agent.end(),
+                      [=](std::pair<int, int>& a, std::pair<int, int>& b) { return a.second > b.second; });
+
+#define SORTED 1
+#if SORTED
+            for(const auto& temp_pair : sat_path_length_and_agent) {
+                const int& agent_id = temp_pair.first;
+#else
+                for(const auto& agent_id : cluster) {
+#endif
+                auto passing_sats = searchAgent(agent_id, {}, cluster_sat, true); // pass test
+                assert(!passing_sats.empty());
+
+                // add agent's sat path in an incremental way
+                all_agents_path.insert({agent_id, passing_sats});
+            }
+
+            // 2, get all strong components
+            auto ahead_and_later_sequence = getAheadAndLaterSequence(all_agents_path);
+
+            const auto& ahead_sequence  = ahead_and_later_sequence.first;
+            const auto& later_sequence = ahead_and_later_sequence.second;
+            const auto& retv = getStrongComponentFromAheadSequence(ahead_sequence);
+            std::vector<std::set<int> > all_strong_components = retv.first;
+            std::map<int, int> agent_and_sub_graph = retv.second;
+
+            // 3, get sorted level from all strong components, after all strong components are determined
+            const auto& sorted_level = getSortedLevelFromStrongComponent(all_strong_components, ahead_sequence, later_sequence);
+
+            return sorted_level;
+        }
+
+        std::vector<std::set<int> > getSortedLevelFromStrongComponent(const std::vector<std::set<int> >& all_strong_components,
+                                                                      const std::map<int, std::set<int> >& ahead_sequence,
+                                                                      const std::map<int, std::set<int> >& later_sequence) const {
+
+            // the order get by by depth first traversal of all sub-graphs
+            // store the sub-graph id of each node
+            std::map<int, int> node_sub_graph_id;
+            for(int i=0; i<all_strong_components.size(); i++) {
+                for(const int& agent : all_strong_components[i]) {
+                    node_sub_graph_id.insert({agent, i});
+                }
+            }
+            // pick the root sub-graph from all sub-graph, which is not later than any external sub-graph
+
+            std::vector<bool> sub_graph_root_check(all_strong_components.size(), true);
+            for(int i=0; i<all_strong_components.size(); i++) {
+                for(const int& agent : all_strong_components[i]) {
+                    // if a level have a agent that not later than any other agent, it is a root level
+                    for(const int& later_agent : later_sequence.at(agent)) {
+                        if(all_strong_components[i].find(later_agent) == all_strong_components[i].end()) {
+                            sub_graph_root_check[i] = false;
+                            break;
+                        }
+                    }
+                    // if have proof current level is a root level, no need to check further
+                    if(sub_graph_root_check[i] == false) { break; }
+                }
+            }
+            // set all root level as seeds, to traversal all level in a BFS mode
+            std::set<int> root_sub_graphs;
+            for(int i=0; i<sub_graph_root_check.size(); i++) {
+                if(sub_graph_root_check[i]) { root_sub_graphs.insert(i); }
+            }
+            // storage each level's index
+            std::vector<int> sub_graphs_level(all_strong_components.size(), 0);
+            // start from root sub graph, get the order to traversal all sub-graph
+            std::set<int> buffer_sub_graphs = root_sub_graphs;
+            int max_level = 0;
+            while(!buffer_sub_graphs.empty()) {
+                std::set<int> next_sub_graphs;
+                for(const int& current_sub_graph : buffer_sub_graphs) {
+                    //std::cout << " sub_graph " << current_sub_graph << std::endl;
+                    const std::set<int> current_sub_graph_agents = all_strong_components[current_sub_graph];
+                    // traversal all agent current sub-graph
+                    for(const int& agent : current_sub_graph_agents) {
+                        // traversal all agent that later than this agent
+                        for(const int& next_agent : ahead_sequence.at(agent)) {
+                            // if belong to the same sub-graph, no need to update
+
+                            if(node_sub_graph_id[agent] == node_sub_graph_id[next_agent]) { continue; }
+                            //std::cout << "new sub_graph " << node_sub_graph_id[next_agent] << std::endl;
+
+                            if(sub_graphs_level[current_sub_graph] >= sub_graphs_level[node_sub_graph_id[next_agent]]) {
+                                // if current sub-graph find un-visited sub-graph
+                                next_sub_graphs.insert(node_sub_graph_id[next_agent]);
+
+                                sub_graphs_level[node_sub_graph_id[next_agent]] = sub_graphs_level[current_sub_graph] + 1;
+
+                                max_level = std::max(max_level, sub_graphs_level[current_sub_graph] + 1);
+                            }
+                        }
+                    }
+                }
+                if(!next_sub_graphs.empty()) {
+                    //sorted_sub_graphs.push_back(next_sub_graphs);
+                    std::swap(next_sub_graphs, buffer_sub_graphs);
+                } else { break; }
+            }
+
+            std::vector<std::vector<std::set<int> > > sorted_sub_graphs(max_level + 1);
+            for(int i=0; i<sub_graphs_level.size(); i++) {
+                sorted_sub_graphs[ sub_graphs_level[i] ].push_back(all_strong_components[i]);
+            }
+            std::vector<std::set<int> > sorted_levels;
+            sorted_levels.reserve(all_strong_components.size());
+            for(const auto& levels : sorted_sub_graphs) {
+                for(const auto& level : levels) {
+                    sorted_levels.push_back(level);
+                }
+            }
+            assert(all_strong_components.size() == sorted_levels.size());
+
+            return sorted_levels; // sorted levels
+        }
+
+        typedef boost::subgraph< boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS,
+                boost::property< boost::vertex_color_t, int>, boost::property< boost::edge_index_t, int> > > Graph;
+
+        typedef boost::graph_traits<Graph>::vertex_iterator vertex_iter;
+
+        std::pair<std::vector<std::set<int> >, std::map<int, int>>
+        getStrongComponentFromAheadSequence(const std::map<int, std::set<int> >& ahead_sequence) const {
+            // 1, transform all nodes in ahead_sequence to continuous int sequence
+            std::vector<int> id_to_node_table;
+            std::map<int, int> node_to_id_table;
+            for(const auto& temp_pair : ahead_sequence) {
+                node_to_id_table.insert({temp_pair.first, id_to_node_table.size()});
+                id_to_node_table.push_back(temp_pair.first);
+            }
+            // 2, get all strong component in the graph
+            Graph g;
+            int count_of_node = 0;
+            for(const auto& temp_pair : ahead_sequence) {
+                const int& node = temp_pair.first;
+                count_of_node ++;
+                if(temp_pair.second.empty()) {
+                    //std::cerr << " empty node " << node_to_id_table[node] << std::endl;
+                } else {
+                    for (const int &next_node : temp_pair.second) {
+                        boost::add_edge(node_to_id_table[node], node_to_id_table[next_node], g);
+                    }
+                }
+            }
+            //std::cout << " count_of_node : " << count_of_node << std::endl;
+            std::vector<int> comp(num_vertices(g));
+
+            int num = boost::strong_components(g, comp.data());
+
+            std::vector<Graph *> comps(num);
+            for (size_t i = 0; i < num; ++i) {
+                comps[i] = &g.create_subgraph();
+            }
+
+            std::map<int, int> agent_and_sub_graph; // agent and it's sub-graph id
+            for (size_t i = 0; i < num_vertices(g); ++i) {
+                //cout << "add vertex " << i << " to sub graph " << comp[i] << endl;
+                add_vertex(i, *comps[comp[i]]);
+                agent_and_sub_graph.insert({id_to_node_table[i], comp[i]});
+            }
+
+            // 3, transform to multiple level, but unsorted
+            std::vector<std::set<int> > retv;
+            for (size_t i = 0; i < num; i++) {
+                std::set<int> sub_graph;
+                std::pair<vertex_iter, vertex_iter> lvip;
+                lvip = vertices(*comps[i]);
+                for (vertex_iter vi = lvip.first; vi != lvip.second; ++vi) {
+                    sub_graph.insert(id_to_node_table[ (*comps[i]).local_to_global(*vi) ]);
+                }
+                retv.push_back(sub_graph);
+            }
+            return {retv, agent_and_sub_graph};
+        }
+
+
+        // ahead_sequence store agent > another agent
+        // later_sequence agent < another agent
+        std::pair<std::map<int, std::set<int> >, std::map<int, std::set<int> > >
+            getAheadAndLaterSequence(const std::map<int, std::set<int> >& all_agents_path) const {
+            // 1, construct the graph about the early and later relationship between agents
+            // ahead_sequence: first: agent / second: which agent is later than this
+            // later_sequence: first: agent / second: which agent is earlier than this
+            std::map<int, std::set<int> > ahead_sequence, later_sequence;
+
+            for(const auto& temp_pair : all_agents_path) {
+                const int& agent_id = temp_pair.first;
+                const std::set<int>& related_sat = temp_pair.second;
+                for(const int& sat : related_sat) {
+                    // filter edge that connect itself
+                    //if(agent_id == sat/2) { continue; }
+                    if(ahead_sequence.find(agent_id) == ahead_sequence.end()) { ahead_sequence.insert({agent_id, {}}); }
+                    if(ahead_sequence.find(sat/2) == ahead_sequence.end()) { ahead_sequence.insert({sat/2, {}}); }
+                    if(later_sequence.find(agent_id) == later_sequence.end()) { later_sequence.insert({agent_id, {}}); }
+                    if(later_sequence.find(sat/2) == later_sequence.end()) { later_sequence.insert({sat/2, {}}); }
+
+                    if(sat%2 == 0) { // sat is a start
+                        ahead_sequence[sat/2].insert(agent_id);
+                        later_sequence[agent_id].insert(sat/2);
+                    } else { // sat is a target
+                        ahead_sequence[agent_id].insert(sat/2);
+                        later_sequence[sat/2].insert(agent_id);
+                    }
+                }
+            }
+            return {ahead_sequence, later_sequence};
+        }
+
+        void levelSorting() {
+            // decompose each cluster into multiple time indexed sequence
+            // cluster decomposition into level
+            std::vector<std::set<int> > all_levels_;
+            for(const auto& cluster : all_clusters_) {
+                if(cluster.size() > 1) {
+                    auto current_levels = clusterDecomposeToLevel(cluster);
+                    all_levels_.insert(all_levels_.end(), current_levels.begin(), current_levels.end());
+                } else {
+                    all_levels_.push_back(cluster);
+                }
+            }
+            all_clusters_ = all_levels_;
         }
 
         // when try to split one cluster into multiple sub-clusters,
@@ -568,6 +861,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return false;
         }
 
+        void printAllSubProblem(const std::string& str) const {
+            std::cout << str.c_str() << " decomposition result: " << std::endl;
+            for(int i=0; i<all_clusters_.size(); i++) {
+                std::cout << i << ": " << all_clusters_[i] << std::endl;
+            }
+        }
+
         std::vector<ConnectivityGraph> connect_graphs_;
 
         std::vector<std::vector<int> > heuristic_tables_sat_; // distinguish_sat = true
@@ -582,6 +882,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         // store which agents current agent passing, may change after method
         // NOTICE: the goal of the method is to partition this matrix into lots of small block, thus MAPF is more efficient
         std::map<int, std::set<int> > all_passing_agent_;
+
+        float initialize_time_cost_             = 0;
+        float instance_decomposition_time_cost_ = 0;
+        float cluster_bipartition_time_cost_    = 0;
+        float level_sorting_time_cost_          = 0;
 
     };
 

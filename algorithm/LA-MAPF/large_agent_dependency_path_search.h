@@ -275,7 +275,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }  // end for loop that generates successors
             }  // end while loop
             releaseNodes();
-            std::cout << " search failed " << std::endl;
+//            std::cout << " search failed " << std::endl;
             return {};
         }
 
