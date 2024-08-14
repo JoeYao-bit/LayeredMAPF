@@ -59,8 +59,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                        const std::vector<int>& heuristic,
                        const SubGraphOfAgent<N>& sub_graph,
                        const ConstraintTable<N, AgentType>& constraint_table,
-                       const ConstraintAvoidanceTable<N, AgentType>& constraint_avoidance_table
-        ) : SingleAgentSolver<N, AgentType>(start_pose_id, target_pose_id, heuristic, sub_graph, constraint_table, constraint_avoidance_table) {
+                       const ConstraintAvoidanceTablePtr<N, AgentType>& constraint_avoidance_table,
+                       const LargeAgentPathConstraintTablePtr<N, AgentType>& path_constraint
+        ) : SingleAgentSolver<N, AgentType>(start_pose_id, target_pose_id, heuristic, sub_graph,
+                                            constraint_table, constraint_avoidance_table, path_constraint) {
             //
         }
 
@@ -118,6 +120,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                             this->constraint_table_.constrained(curr->node_id, next_node_id, next_timestep))
                         continue;
 
+                    // avoid conflict with external paths
+                    if(this->path_constraint_ != nullptr &&
+                        this->path_constraint_->hasCollide(this->sub_graph_.agent_id_, curr->timestep,
+                                                          curr->node_id, next_node_id)) {
+                        continue;
+                    }
+
                     // compute cost to next_id via curr node
                     int next_g_val = curr->g_val + 1;
                     int next_h_val = std::max(this->lower_bound_ - next_g_val, this->heuristic_[next_node_id]);
@@ -126,10 +135,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
                     // getNumOfConflictsForStep is very time consuming for large agents
                     // resulting no getNumOfConflictsForStep might be faster than use it
-                    int next_internal_conflicts = curr->num_of_conflicts + 0;
-//                            this->constraint_avoidance_table_.getNumOfConflictsForStep(*this->sub_graph_.all_nodes_[curr->node_id],
-//                                                                                       *this->sub_graph_.all_nodes_[next_node_id],
-//                                                                                       curr->timestep);
+                    int next_internal_conflicts = curr->num_of_conflicts + (this->constraint_avoidance_table_ == nullptr ?
+                            0 : this->constraint_avoidance_table_->getNumOfConflictsForStep(
+                                    *this->sub_graph_.all_nodes_[curr->node_id],
+                                    *this->sub_graph_.all_nodes_[next_node_id],
+                                    curr->timestep));
 
                     // generate (maybe temporary) node
                     auto next = new AStarNode(next_node_id, next_g_val, next_h_val,

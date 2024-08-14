@@ -96,12 +96,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                           const size_t& target_node_id,
                           const std::vector<int>& heuristic,
                           const SubGraphOfAgent<N>& sub_graph,
-                          const ConstraintTable<N, AgentType>& constraint_table,
-                          const ConstraintAvoidanceTable<N, AgentType>& constraint_avoidance_table
+                          const ConstraintTable<N, AgentType>& constraint_table = nullptr,
+                          const ConstraintAvoidanceTablePtr<N, AgentType>& constraint_avoidance_table = nullptr,
+                          const LargeAgentPathConstraintTablePtr<N, AgentType>& path_constraint = nullptr
                           ) : start_node_id_(start_node_id), target_node_id_(target_node_id),
                           heuristic_(heuristic), sub_graph_(sub_graph),
                           constraint_table_(constraint_table),
-                          constraint_avoidance_table_(constraint_avoidance_table) {}
+                          constraint_avoidance_table_(constraint_avoidance_table),
+                          path_constraint_(path_constraint) {}
 
         virtual LAMAPF_Path solve() = 0;
 
@@ -117,10 +119,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         int min_f_val_; // minimal f value in OPEN
         int lower_bound_ = 0; // Threshold for FOCAL
         double w_ = 1.2; // suboptimal bound
-        const ConstraintTable<N, AgentType>& constraint_table_;
-        const ConstraintAvoidanceTable<N, AgentType>& constraint_avoidance_table_;
 
         LAMAPF_Path solution_;
+
+        const ConstraintTable<N, AgentType>& constraint_table_; // vertex and edge constraint, hard constraint
+
+        const ConstraintAvoidanceTablePtr<N, AgentType>& constraint_avoidance_table_; // try to avoid, take as soft constraint
+
+        const LargeAgentPathConstraintTablePtr<N, AgentType>& path_constraint_; // take external path as obstacles, hard constraints
 
     };
 

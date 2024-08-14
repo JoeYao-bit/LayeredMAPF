@@ -866,7 +866,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         void printAllSubProblem(const std::string& str) const {
             std::cout << str.c_str() << " decomposition result: " << std::endl;
             for(int i=0; i<all_clusters_.size(); i++) {
-                std::cout << i << ": " << all_clusters_[i] << std::endl;
+                std::cout << i << ": ";
+                for(const auto& id : all_clusters_[i]) {
+                    std::cout << id << " ";
+                }
+                std::cout << std::endl;
             }
         }
 

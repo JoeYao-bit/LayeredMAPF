@@ -8,6 +8,7 @@
 #include "../common.h"
 #include <unordered_set>
 #include <functional>
+#include <memory>
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
@@ -202,6 +203,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         DimensionLength * dim_;
     };
+
+    template<Dimension N, typename AgentType>
+    using ConstraintAvoidanceTablePtr = std::shared_ptr<ConstraintAvoidanceTable<N, AgentType> >;
 
 }
 

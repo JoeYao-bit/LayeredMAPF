@@ -270,6 +270,83 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     };
 
+    // consider static grid map when construct sub graph
+    // heck each pair of agent to see if they have conflict
+    template<Dimension N, typename AgentType>
+    struct LargeAgentPathConstraintTable {
+    public:
+        explicit LargeAgentPathConstraintTable(const std::vector<PosePtr<int, N>>& all_nodes,
+                                               const std::vector<AgentType>& agents,
+                                               DimensionLength* dim)
+                : agents_(agents), all_nodes_(all_nodes), dim_(dim) {
+
+        }
+
+        void insertPaths(const std::vector<std::pair<int, LAMAPF_Path> >& agent_paths) {
+            for(const auto& agent_path : agent_paths) {
+                insertPath(agent_path);
+            }
+        }
+
+        void insertPath(const std::pair<int, LAMAPF_Path>& agent_path) {
+            if(constraint_table_.find(agent_path.first) == constraint_table_.end()) {
+                constraint_table_.insert(agent_path);
+            } else {
+                constraint_table_[agent_path.first] = agent_path.second;
+            }
+        }
+
+        // whether an agent has conflict at pose
+        bool hasCollide(const int& agent_id, int time_index, const size_t & current_node, const size_t & next_node) const {
+            for(const auto& agent_path : constraint_table_) {
+                const auto& other_agent_id = agent_path.first;
+                const auto& other_path = agent_path.second;
+                if(agent_id == other_agent_id) { continue; }
+                if(agent_path.second.size() - 1 <= time_index) {
+                    if(isCollide(agents_[agent_id], *all_nodes_[current_node], *all_nodes_[next_node],
+                                 agents_[other_agent_id], *all_nodes_[other_path.back()])) {
+                        return true;
+                    }
+                } else {
+                    if(isCollide(agents_[agent_id], *all_nodes_[current_node], *all_nodes_[next_node],
+                                 agents_[other_agent_id], *all_nodes_[other_path[time_index]], *all_nodes_[other_path[time_index+1]])) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+    private:
+
+        const std::vector<AgentType>& agents_;
+
+        const std::vector<PosePtr<int, N> >& all_nodes_;
+
+        // time index / agent id :
+//        std::vector<std::vector<size_t> > constraint_table_;
+
+        std::map<int, LAMAPF_Path> constraint_table_;
+
+//        std::set<int> contained_agents_; // agents in constraint table
+
+        DimensionLength* dim_;
+
+    };
+
+    template<Dimension N, typename AgentType>
+    using LargeAgentPathConstraintTablePtr = std::shared_ptr<LargeAgentPathConstraintTable<N, AgentType> >;
+
+    // input: static occupancy map / current solving problem / previous path as constraints
+    // output: what path was found, or empty is failed
+    template<Dimension N, typename AgentType>
+    using LA_MAPF_FUNC = std::function<std::vector<LAMAPF_Path>(const InstanceOrients<N> &,
+                                                                const std::vector<AgentType>&,
+                                                                DimensionLength* dim,
+                                                                const IS_OCCUPIED_FUNC<N> &,
+                                                                const LargeAgentPathConstraintTablePtr<N, AgentType>&,
+                                                                int)>;
+
 }
 
 #endif //LAYEREDMAPF_COMMON_H

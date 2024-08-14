@@ -20,9 +20,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         LargeAgentCBS(const InstanceOrients<N> & instances,
                       const std::vector<AgentType>& agents,
                       DimensionLength* dim,
-                      const IS_OCCUPIED_FUNC<N> & isoc)
+                      const IS_OCCUPIED_FUNC<N> & isoc,
+                      const LargeAgentPathConstraintTablePtr<N, AgentType>& path_constraint = nullptr)
                       : LargeAgentMAPF<N, AgentType>(instances, agents, dim, isoc),
-                        constraint_avoidance_table_(ConstraintAvoidanceTable<N, AgentType>(dim, this->all_poses_, agents.front())) {
+                        constraint_avoidance_table_(nullptr), //ConstraintAvoidanceTable<N, AgentType>(dim, this->all_poses_, agents.front())),
+                        path_constraint_(path_constraint){
             // 1, initial paths
             for(int agent=0; agent<this->instance_node_ids_.size(); agent++) {
                 ConstraintTable<N, AgentType> constraint_table(agent, this->agents_, this->all_poses_, this->dim_, this->isoc_);
@@ -39,7 +41,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                                                    this->agents_heuristic_tables_[agent],
                                                    this->agent_sub_graphs_[agent],
                                                    constraint_table,
-                                                   constraint_avoidance_table_);
+                                                   constraint_avoidance_table_,
+                                                   path_constraint_);
                 LAMAPF_Path solution = astar.solve();
                 if(solution.empty()) {
                     std::cerr << " agent " << agent << " search path failed " << std::endl;
@@ -218,7 +221,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         boost::heap::pairing_heap<CBSNode *, boost::heap::compare<CBSNode::compare_node_by_inadmissible_f> > open_list; // this is used for EES
         boost::heap::pairing_heap<CBSNode *, boost::heap::compare<CBSNode::compare_node_by_d> > focal_list; // this is ued for both ECBS and EES
 
-        ConstraintAvoidanceTable<N, AgentType> constraint_avoidance_table_;
+        ConstraintAvoidanceTablePtr<N, AgentType> constraint_avoidance_table_;
+
+        const LargeAgentPathConstraintTablePtr<N, AgentType>& path_constraint_; // take external path as obstacles
 
         // store each agent's occupied grid at each time , update with this->solutions_
 //        std::vector< typename ConstraintAvoidanceTable<N, AgentType>::OccGridLevels > agent_occ_grids;
@@ -500,7 +505,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                                                this->agents_heuristic_tables_[agent],
                                                this->agent_sub_graphs_[agent],
                                                constraint_table,
-                                               constraint_avoidance_table_);
+                                               nullptr,
+                                               path_constraint_);
             astar.lower_bound_ = lowerbound;
             LAMAPF_Path new_path = astar.solve();
             if (!new_path.empty()) {

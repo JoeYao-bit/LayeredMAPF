@@ -25,6 +25,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     template<Dimension N>
     struct SubGraphOfAgent {
+        int agent_id_;
         std::vector<PosePtr<int, N> > all_nodes_;
         std::vector<std::vector<size_t> > all_edges_;
         std::vector<std::vector<size_t> > all_backward_edges_;
@@ -72,8 +73,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             // 2, construct each agents subgraph (vertex: where it can stay, edges: whether can it move from one vertex to another)
             agent_sub_graphs_.reserve(instances_.size());
-            for(const auto& agent : agents) {
-                agent_sub_graphs_.push_back(constructSubGraphOfAgent(agent));
+            for(int id=0; id<agents.size(); id++) {
+                agent_sub_graphs_.push_back(constructSubGraphOfAgent(id));
             }
             // 3, construct each agent's heuristic table, i.e., distance from each node to target
             agents_heuristic_tables_.reserve(instances_.size());
@@ -125,10 +126,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return *all_poses_[node_id];
         }
 
-        SubGraphOfAgent<N> constructSubGraphOfAgent(const AgentType& agent) const {
+        SubGraphOfAgent<N> constructSubGraphOfAgent(int agent_id) const {
+            const AgentType& agent = agents_[agent_id];
             Id total_index = getTotalIndexOfSpace<N>(dim_);
             assert(all_poses_.size() == total_index*2*N);
             SubGraphOfAgent<N> sub_graph;
+            sub_graph.agent_id_ = agent_id;
             sub_graph.all_nodes_.resize(total_index * 2 * N, nullptr);
             // initial nodes in subgraph
             for(size_t id=0; id<total_index; id++) {

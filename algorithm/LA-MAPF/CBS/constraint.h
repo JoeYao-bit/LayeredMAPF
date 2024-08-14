@@ -165,6 +165,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
     };
 
+    template<Dimension N, typename AgentType>
+    using ConstraintTablePtr = std::shared_ptr<ConstraintTable<N, AgentType> >;
+
 }
 
 #endif //LAYEREDMAPF_CONSTRAINT_H
