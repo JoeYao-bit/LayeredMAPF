@@ -287,6 +287,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return soc;
         }
 
+        std::vector<PosePtr<int, N> > getAllPoses() const {
+            return all_poses_;
+        }
+
         void removeStopAfterReachTarget(std::vector<LAMAPF_Path>& retv) const {
             // yz: remove way point when agent is stop
             for (int agent = 0; agent < this->instance_node_ids_.size(); agent++) {

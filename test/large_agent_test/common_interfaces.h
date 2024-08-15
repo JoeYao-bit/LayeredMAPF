@@ -16,6 +16,7 @@
 
 #include "../../algorithm/LA-MAPF/large_agent_instance_generator.h"
 #include "../../algorithm/LA-MAPF/instance_serialize_and_deserialize.h"
+#include "../../algorithm/LA-MAPF/large_agent_instance_decomposition.h"
 
 #include "../../freeNav-base/visualization/canvas/canvas.h"
 #include "../../freeNav-base/dependencies/2d_grid/text_map_loader.h"
@@ -57,7 +58,7 @@ bool draw_full_path = true;
 // MAPFTestConfig_AR0014SR
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
-auto map_test_config = MAPFTestConfig_Paris_1_256;//MAPFTestConfig_Berlin_1_256;//MAPFTestConfig_simple;
+auto map_test_config = MAPFTestConfig_maze_32_32_4;//MAPFTestConfig_Berlin_1_256;//MAPFTestConfig_simple;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -243,10 +244,10 @@ void startLargeAgentMAPFTest(const std::vector<AgentType>& agents, const Instanc
 
 template<typename AgentType>
 void InstanceVisualization(const std::vector<AgentType>& agents,
-                           const LargeAgentMAPF_InstanceGenerator<2, AgentType>& generator,
+                           const std::vector<PosePtr<int, 2> >& all_poses,
                            const std::vector<InstanceOrient<2> >& instances,
                            const std::vector<LAMAPF_Path>& solution) {
-    zoom_ratio = std::min(2560/dim[0], 1600/dim[1]);
+    zoom_ratio = std::min(2560/dim[0], 1400/dim[1]);
 
     // visualize instance
     Canvas canvas("LargeAgentMAPF InstanceGenerator", dim[0], dim[1], .1, zoom_ratio);
@@ -261,9 +262,9 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
         canvas.drawGridMap(dim, is_occupied);
 
         if(draw_full_path) {
-            const auto& all_poses = generator.getAllPoses();
             for(int i=0; i<solution.size(); i++) {
                 const auto& path = solution[i];
+                if(path.empty()) { continue; }
                 for(int t=0; t<path.size()-1; t++) {
                     Pointi<2> pt1 = all_poses[path[t]]->pt_,
                             pt2 = all_poses[path[t+1]]->pt_;
@@ -286,9 +287,9 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
             }
         }
         if(draw_path) {
-            const auto& all_poses = generator.getAllPoses();
             for(int i=0; i<solution.size(); i++) {
                 const auto& path = solution[i];
+                if(path.empty()) { continue; }
                 Pointi<2> pt;
                 int orient = 0;
                 if(time_index <= path.size() - 1) {
@@ -369,7 +370,7 @@ void loadInstanceAndPlanning(const std::string& file_path) {
     std::cout << "solution validation ? " << method.solutionValidation() << std::endl;
 
     LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(deserializer.getAgents(), is_occupied, dim);
-    InstanceVisualization<AgentType>(deserializer.getAgents(), generator, deserializer.getInstances(), method.getSolution());
+    InstanceVisualization<AgentType>(deserializer.getAgents(), generator.getAllPoses(), deserializer.getInstances(), method.getSolution());
 }
 
 
@@ -410,6 +411,169 @@ void generateInstance(const std::vector<AgentType>& agents, const std::string& f
 
 //    InstanceVisualization<AgentType>(agents, generator, instances, solution);
     loadInstanceAndPlanning<AgentType, MethodType>(file_path);
+}
+
+template<typename AgentType>
+void InstanceDecompositionVisualization(const LargeAgentMAPFInstanceDecomposition<2, AgentType>& decomposer) {
+    zoom_ratio = std::min(2560/dim[0], 1400/dim[1]);
+
+    // visualize instance
+    Canvas canvas("LargeAgentMAPF Decomposition", dim[0], dim[1], .1, zoom_ratio);
+
+    bool draw_related_agents_map = false;
+    bool draw_hyper_node_id = false;
+    bool draw_heuristic_table = false;
+    int total_index = getTotalIndexOfSpace<2>(dim);
+    std::vector<std::vector<std::string> > grid_strs(total_index);
+
+    Pointi<2> pt;
+    size_t node_id;
+    while(true) {
+        canvas.resetCanvas();
+        canvas.drawEmptyGrid();
+        canvas.drawGridMap(dim, is_occupied);
+
+        grid_strs = std::vector<std::vector<std::string> >(total_index);
+
+        if(draw_all_instance) {
+            const auto& instances = decomposer.instances_;
+            const auto& agents    = decomposer.agents_;
+            for (int current_subgraph_id=0; current_subgraph_id<instances.size(); current_subgraph_id++)
+            {
+                const auto &instance = instances[current_subgraph_id];
+                agents[current_subgraph_id].drawOnCanvas(instance.first, canvas, COLOR_TABLE[current_subgraph_id%30]);
+                canvas.drawArrowInt(instance.first.pt_[0], instance.first.pt_[1], -orientToPi_2D(instance.first.orient_) ,
+                                    1, std::max(1,zoom_ratio/10));
+
+                agents[current_subgraph_id].drawOnCanvas(instance.second, canvas, COLOR_TABLE[current_subgraph_id%30]);
+                canvas.drawArrowInt(instance.second.pt_[0], instance.second.pt_[1], -orientToPi_2D(instance.second.orient_),
+                                    1, std::max(1,zoom_ratio/10));
+
+            }
+        }
+        if(draw_related_agents_map) {
+//            std::cout << " draw_related_agents_map " << std::endl;
+            const auto& hyper_graph = decomposer.connect_graphs_[current_subgraph_id];
+            for(int i=0; i<total_index; i++) {
+                pt = IdToPointi<2>(i, dim);
+                std::set<int> related_agents;
+                for(int orient=0; orient<4; orient++) {
+                    node_id = i*4  + orient;
+                    for(const int& related_agent : hyper_graph.related_agents_map_[node_id]) {
+                        related_agents.insert(related_agent);
+                    }
+                }
+                const auto& subgraph = decomposer.agent_sub_graphs_[current_subgraph_id];
+                if(subgraph.all_nodes_[node_id] == nullptr) { continue; }
+                std::stringstream ss;
+                ss << "r: ";
+                for(const int& related_agent : related_agents) {
+                    ss << related_agent << " ";
+                }
+                grid_strs[i].push_back(ss.str());
+            }
+        }
+        if(draw_hyper_node_id) {
+            const auto& hyper_graph = decomposer.connect_graphs_[current_subgraph_id];
+            for(int i=0; i<total_index; i++) {
+                pt = IdToPointi<2>(i, dim);
+                std::set<int> hyper_nodes; // a point have four direction, may be more than one
+                for(int orient=0; orient<4; orient++) {
+                    node_id = i*4  + orient;
+                    if(hyper_graph.hyper_node_id_map_[node_id] != MAX<size_t>) {
+                        hyper_nodes.insert(hyper_graph.hyper_node_id_map_[node_id]);
+                    }
+                }
+                const auto& subgraph = decomposer.agent_sub_graphs_[current_subgraph_id];
+                if(subgraph.all_nodes_[node_id] == nullptr) { continue; }
+                std::stringstream ss;
+                ss << "n: ";
+                for(const int& related_agent : hyper_nodes) {
+                    ss << related_agent << " ";
+                }
+                grid_strs[i].push_back(ss.str());
+            }
+        }
+        if(draw_heuristic_table) {
+            const auto& hyper_graph = decomposer.connect_graphs_[current_subgraph_id];
+            const auto& heuristic_table = decomposer.heuristic_tables_[current_subgraph_id];
+            const auto& subgraph = decomposer.agent_sub_graphs_[current_subgraph_id];
+
+            for(int i=0; i<total_index; i++) {
+                pt = IdToPointi<2>(i, dim);
+                std::set<int> heuristic_values; // a point have four direction, may be more than one
+                for(int orient=0; orient<4; orient++) {
+                    node_id = i*4  + orient;
+                    if(subgraph.all_nodes_[node_id] == nullptr) { continue; }
+                    if(hyper_graph.hyper_node_id_map_[node_id] == MAX<size_t>) { continue; }
+                    if(heuristic_table[hyper_graph.hyper_node_id_map_[node_id]] != MAX<int>) {
+                        heuristic_values.insert(heuristic_table[hyper_graph.hyper_node_id_map_[node_id]]);
+                    }
+                }
+                if(heuristic_values.empty()) { continue; }
+                std::stringstream ss;
+                ss << "h: ";
+                for(const int& value : heuristic_values) {
+                    ss << value << " ";
+                }
+                grid_strs[i].push_back(ss.str());
+            }
+        }
+
+        for(int i=0; i<total_index; i++) {
+            pt = IdToPointi<2>(i, dim);
+            canvas.drawMultiTextInt(pt[0], pt[1], grid_strs[i], cv::Vec3b::all(0), 1.0);
+        }
+
+        char key = canvas.show(100);
+        switch (key) {
+            case 'i':
+                draw_all_instance = !draw_all_instance;
+                break;
+            case 'r':
+                draw_related_agents_map = !draw_related_agents_map;
+                break;
+            case 'n':
+                draw_hyper_node_id = !draw_hyper_node_id;
+                break;
+            case 'h':
+                draw_heuristic_table = !draw_heuristic_table;
+                break;
+            case 'w':
+                current_subgraph_id = current_subgraph_id+1;
+                current_subgraph_id = current_subgraph_id % decomposer.agents_.size();
+                break;
+            case 's':
+                current_subgraph_id = current_subgraph_id + decomposer.agents_.size() - 1;
+                current_subgraph_id = current_subgraph_id % decomposer.agents_.size();
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+template<typename AgentType>
+void loadInstanceAndDecomposition(const std::string& file_path) {
+    InstanceDeserializer<2, AgentType> deserializer;
+    if (deserializer.loadInstanceFromFile(file_path, dim)) {
+        std::cout << "load from path " << file_path << " success" << std::endl;
+    } else {
+        std::cout << "load from path " << file_path << " failed" << std::endl;
+        return;
+    }
+    std::cout << "map scale = " << dim[0] << "*" << dim[1] << std::endl;
+    gettimeofday(&tv_pre, &tz);
+    LargeAgentMAPFInstanceDecomposition<2, AgentType> decomposer(deserializer.getInstances(),
+                                                                 deserializer.getAgents(),
+                                                                 dim, is_occupied);
+    gettimeofday(&tv_after, &tz);
+
+    double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
+    std::cout << "finish decomposition in " << time_cost << "ms " << std::endl;
+//    std::cout << "solution validation ? " << lacbs.solutionValidation() << std::endl;
+
+    InstanceDecompositionVisualization<AgentType>(decomposer);
 }
 
 #endif //LAYEREDMAPF_COMMON_INTERFACES_H

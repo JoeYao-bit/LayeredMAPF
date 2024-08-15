@@ -45,7 +45,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                                                    path_constraint_);
                 LAMAPF_Path solution = astar.solve();
                 if(solution.empty()) {
-                    std::cerr << " agent " << agent << " search path failed " << std::endl;
+                    std::cout << " agent " << agent << " search path failed " << std::endl;
                     this->solvable = false;
                 } else {
 //                    this->printPath(agent, solution);
@@ -276,7 +276,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             size_t makespan = this->getMakeSpan();
             std::cout << "-- find solution with SOC/makespan = " << soc << " / " << makespan << std::endl;
             for(int agent=0; agent<this->instances_.size(); agent++) {
-                this->printPath(agent, this->solutions_[agent]);
+//                this->printPath(agent, this->solutions_[agent]);
             }
             return true;
         }

@@ -85,6 +85,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
                 //printAllSubProblem(std::string("level sorting"));
             }
+
+            printAllSubProblem(std::string("final"));
+
             // initialize_time_cost_
             std::cout << "-- initialize_time_cost_             (ms) = " << initialize_time_cost_ << std::endl;
             std::cout << "-- instance_decomposition_time_cost_ (ms) = " << instance_decomposition_time_cost_ << std::endl;
@@ -896,6 +899,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     };
 
+    template<Dimension N, typename AgentType>
+    using LargeAgentMAPFInstanceDecompositionPtr = std::shared_ptr<LargeAgentMAPFInstanceDecomposition<N, AgentType> >;
 
 }
 #endif //LAYEREDMAPF_LARGE_AGENT_INSTANCE_DECOMPOSITION_H
