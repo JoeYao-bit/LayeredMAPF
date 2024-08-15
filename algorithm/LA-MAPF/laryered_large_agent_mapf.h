@@ -51,10 +51,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         for(int i=0; i<decomposer->all_clusters_.size(); i++) {
             // instance_decompose->all_clusters_[i] to instances
             std::set<int> current_id_set = decomposer->all_clusters_[i];
-            InstanceOrients<2> ists;
-            for(const int& id : current_id_set) {
-                ists.push_back({instances[id].first, instances[id].second});
-            }
+
             // insert previous path as static constraint
             if (!pathss.empty()) {
                 layered_cts->insertPaths(pathss.back());
@@ -63,7 +60,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             for(int j = i+1; j<decomposer->all_clusters_.size(); j++)
             {
-                if(j == i) continue;
+                if(j == i) { continue; }
                 const auto& current_cluster = decomposer->all_clusters_[j];
                 for(const int& agent_id : current_cluster) {
 //                    avoid_locs[instances[agent_id].first[1]][instances[agent_id].first[0]] = true;
@@ -73,7 +70,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             double remaining_time = cutoff_time - (tv_after.tv_sec - tv_pre.tv_sec) + (tv_after.tv_usec - tv_pre.tv_usec)/1e6;
             if(remaining_time < 0) {
-                return retv;
+                return {};//retv;
             }
 
             InstanceOrients<N> cluster_instances;
@@ -94,16 +91,24 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     std::cout << id << " ";
                 }
                 std::cout << std::endl;
-                return retv;
+                return {};//retv;
+            }
+            // debug: path constraint check
+            if(layered_cts != nullptr) {
+                for (int k = 0; k < current_id_vec.size(); k++) {
+                    for (int t = 0; t < next_paths[k].size() - 1; t++) {
+                        if (layered_cts->hasCollide(cluster_agents[k], t, next_paths[k][t], next_paths[k][t + 1])) {
+                            std::cout << "FATAL: " << current_id_vec[k] << " collide with previous path when t = " << t << std::endl;
+                            return {};//retv;
+                        }
+                    }
+                }
             }
             assert(next_paths.size() == current_id_set.size());
             std::vector<std::pair<int, LAMAPF_Path> > next_paths_with_id;
             for(int k=0; k<current_id_vec.size(); k++) {
                 next_paths_with_id.push_back({current_id_vec[k], next_paths[k]});
                 retv[current_id_vec[k]] = next_paths[k];
-//                for(const auto& pose_id : next_paths[k]) {
-//                    retv[current_id_vec[k]].push_back(*decomposer->all_poses_[pose_id]);
-//                }
             }
             pathss.push_back(next_paths_with_id);
         }

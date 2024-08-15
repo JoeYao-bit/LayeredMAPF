@@ -289,6 +289,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
 
         void insertPath(const std::pair<int, LAMAPF_Path>& agent_path) {
+//            std::cout << "insert agent " << agents_[agent_path.first] << "'s path size = " << agent_path.second.size()
+//                      << " as constraint " << std::endl;
             if(constraint_table_.find(agent_path.first) == constraint_table_.end()) {
                 constraint_table_.insert(agent_path);
             } else {
@@ -297,20 +299,36 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
 
         // whether an agent has conflict at pose
-        bool hasCollide(const int& agent_id, int time_index, const size_t & current_node, const size_t & next_node) const {
+        bool hasCollide(const AgentType& agent, int time_index, const size_t & current_node, const size_t & next_node) const {
             for(const auto& agent_path : constraint_table_) {
                 const auto& other_agent_id = agent_path.first;
                 const auto& other_path = agent_path.second;
-                if(agent_id == other_agent_id) { continue; }
-                if(agent_path.second.size() - 1 <= time_index) {
-                    if(isCollide(agents_[agent_id], *all_nodes_[current_node], *all_nodes_[next_node],
+                if(agent.id_ == agents_[other_agent_id].id_) { continue; }
+                if(other_path.size() - 1 <= time_index) {
+                    if(isCollide(agent, *all_nodes_[current_node], *all_nodes_[next_node],
                                  agents_[other_agent_id], *all_nodes_[other_path.back()])) {
+//                        std::cout << "t=" << time_index << " " << agent << " at " << *all_nodes_[current_node] << "->" << *all_nodes_[next_node]
+//                                  << " and " << agents_[other_agent_id] << " at " << *all_nodes_[other_path.back()]
+//                                  << " have conflict" << std::endl;
                         return true;
+                    } else {
+//                        std::cout << "t=" << time_index << " " << agent << " at " << *all_nodes_[current_node] << "->" << *all_nodes_[next_node]
+//                                  << " and " << agents_[other_agent_id] << " at " << *all_nodes_[other_path.back()]
+//                                  << " have no conflict" << std::endl;
                     }
                 } else {
-                    if(isCollide(agents_[agent_id], *all_nodes_[current_node], *all_nodes_[next_node],
+                    if(isCollide(agent, *all_nodes_[current_node], *all_nodes_[next_node],
                                  agents_[other_agent_id], *all_nodes_[other_path[time_index]], *all_nodes_[other_path[time_index+1]])) {
+//                        std::cout << "t=" << time_index << " " << agent << " at " << *all_nodes_[current_node] << "->" << *all_nodes_[next_node]
+//                                  << " and " << agents_[other_agent_id] << " at " << *all_nodes_[other_path[time_index]]
+//                                  << "->" << *all_nodes_[other_path[time_index+1]]
+//                                  << " have conflict" << std::endl;
                         return true;
+                    } else {
+//                        std::cout << "t=" << time_index << " " << agent << " at " << *all_nodes_[current_node] << "->" << *all_nodes_[next_node]
+//                                  << " and " << agents_[other_agent_id] << " at " << *all_nodes_[other_path[time_index]]
+//                                  << "->" << *all_nodes_[other_path[time_index+1]]
+//                                  << " have no conflict" << std::endl;
                     }
                 }
             }

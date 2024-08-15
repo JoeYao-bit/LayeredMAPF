@@ -42,7 +42,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                                                    this->agent_sub_graphs_[agent],
                                                    constraint_table,
                                                    constraint_avoidance_table_,
-                                                   path_constraint_);
+                                                   path_constraint_,
+                                                   this->agents_);
                 LAMAPF_Path solution = astar.solve();
                 if(solution.empty()) {
                     std::cout << " agent " << agent << " search path failed " << std::endl;
@@ -81,7 +82,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             this->time_limit = time_limit;
             // yz: generate a init node of CT
             generateRoot();
-            std::cout << "-- generate root node " << std::endl;
+//            std::cout << "-- generate root node " << std::endl;
             int count = 0;
             while (!cleanup_list.empty() && !solution_found) {
                 if(count >= 2000) { break; }
@@ -93,7 +94,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //                std::cout << " curr->g_val = " << curr->g_val << std::endl;
                 // yz: check whether reach terminate condition
                 if (terminate(curr)) {
-                    std::cout << "-- finish after " << count << " iteration" << std::endl;
+//                    std::cout << "-- Layered CBS finish after " << count << " iteration" << std::endl;
                     return solution_found;
                 }
                 if (!curr->h_computed)  // heuristics has not been computed yet
@@ -274,7 +275,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 return false;
             }
             size_t makespan = this->getMakeSpan();
-            std::cout << "-- find solution with SOC/makespan = " << soc << " / " << makespan << std::endl;
+//            std::cout << "-- find solution with SOC/makespan = " << soc << " / " << makespan << std::endl;
             for(int agent=0; agent<this->instances_.size(); agent++) {
 //                this->printPath(agent, this->solutions_[agent]);
             }
@@ -298,7 +299,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 goal_node = curr;
                 solution_cost = goal_node->getFHatVal() - goal_node->cost_to_go;
                 auto conflicts = findConflicts(*curr);
-                std::cout << "-- finish with node depth = " << curr->depth << std::endl;
+//                std::cout << "-- finish with node depth = " << curr->depth << std::endl;
                 if(!conflicts.empty()) {
                     std::cout << "Solution have conflict !!!" << std::endl;
                     exit(-1);
@@ -506,7 +507,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                                                this->agent_sub_graphs_[agent],
                                                constraint_table,
                                                nullptr,
-                                               path_constraint_);
+                                               path_constraint_,
+                                               this->agents_);
             astar.lower_bound_ = lowerbound;
             LAMAPF_Path new_path = astar.solve();
             if (!new_path.empty()) {

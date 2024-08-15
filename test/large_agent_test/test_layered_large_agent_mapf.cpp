@@ -28,27 +28,30 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
 
     gettimeofday(&tv_pre, &tz);
 
-    double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
     LargeAgentMAPFInstanceDecompositionPtr<2, AgentType> decomposer_ptr = nullptr;
     auto layered_paths = layeredLargeAgentMAPF<2, AgentType>(deserializer.getInstances(), deserializer.getAgents(),
                                      dim, is_occupied, CBS::LargeAgentCBS_func<2, CircleAgent<2> >, 60, decomposer_ptr);
 
     gettimeofday(&tv_after, &tz);
-    std::cout << (layered_paths.size() != deserializer.getAgents().size() ? "success" : "failed")
+
+    double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
+
+    std::cout << (layered_paths.size() == deserializer.getAgents().size() ? "success" : "failed")
               << " layered large agent mapf in " << time_cost << "ms " << std::endl;
     std::cout << std::endl;
-    gettimeofday(&tv_pre, &tz);
 
-    CBS::LargeAgentCBS<2, CircleAgent<2> > solver(deserializer.getInstances(), deserializer.getAgents(),
-                                                  dim, is_occupied);
-    gettimeofday(&tv_after, &tz);
-    time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
-    std::vector<LAMAPF_Path> raw_path;
-    if(solver.solve(60)) {
-        raw_path = solver.getSolution();
-    }
-    std::cout << (raw_path.size() == deserializer.getAgents().size() ? "success" : "failed")
-              << " raw large agent mapf in " << time_cost << "ms " << std::endl;
+//    gettimeofday(&tv_pre, &tz);
+//    CBS::LargeAgentCBS<2, CircleAgent<2> > solver(deserializer.getInstances(), deserializer.getAgents(),
+//                                                  dim, is_occupied);
+//    gettimeofday(&tv_after, &tz);
+//    time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
+//    std::vector<LAMAPF_Path> raw_path;
+//    if(solver.solve(60)) {
+//        raw_path = solver.getSolution();
+//    }
+//    std::cout << (raw_path.size() == deserializer.getAgents().size() ? "success" : "failed")
+//              << " raw large agent mapf in " << time_cost << "ms " << std::endl;
+
     InstanceVisualization<AgentType>(deserializer.getAgents(), decomposer_ptr->getAllPoses(), deserializer.getInstances(), layered_paths);//layered_paths);
 }
 

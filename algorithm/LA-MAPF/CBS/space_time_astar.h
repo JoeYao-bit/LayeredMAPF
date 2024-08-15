@@ -60,10 +60,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                        const SubGraphOfAgent<N>& sub_graph,
                        const ConstraintTable<N, AgentType>& constraint_table,
                        const ConstraintAvoidanceTablePtr<N, AgentType>& constraint_avoidance_table,
-                       const LargeAgentPathConstraintTablePtr<N, AgentType>& path_constraint
-        ) : SingleAgentSolver<N, AgentType>(start_pose_id, target_pose_id, heuristic, sub_graph,
-                                            constraint_table, constraint_avoidance_table, path_constraint) {
+                       const LargeAgentPathConstraintTablePtr<N, AgentType>& path_constraint,
+                       const std::vector<AgentType>& agents
+        ) : agents_(agents),
+        SingleAgentSolver<N, AgentType>(start_pose_id, target_pose_id, heuristic, sub_graph,
+                                        constraint_table, constraint_avoidance_table, path_constraint) {
             //
+//            std::cout << "space time search agent " <<  agents[this->sub_graph_.agent_id_] << std::endl;
         }
 
         virtual LAMAPF_Path solve() override {
@@ -107,23 +110,27 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
                 for (const size_t& next_node_id : next_locations) {
                     int next_timestep = curr->timestep + 1;
-                    if (static_timestep <
-                        next_timestep) { // now everything is static, so switch to space A* where we always use the same timestep
-                        // yz: no need to wait after no constraint is applied
-                        if (next_node_id == curr->node_id) {
-                            continue;
-                        }
-                        next_timestep--;
-                    }
+//                    if (static_timestep <
+//                        next_timestep) { // now everything is static, so switch to space A* where we always use the same timestep
+//                        // yz: no need to wait after no constraint is applied
+//                        if (next_node_id == curr->node_id) {
+//                            continue;
+//                        }
+//                        next_timestep--;
+//                    }
                     // yz: check whether satisfied all constraint, including vertex constraint and edge constraint
                     if (this->constraint_table_.constrained(next_node_id, next_timestep) ||
                             this->constraint_table_.constrained(curr->node_id, next_node_id, next_timestep))
                         continue;
 
+//                    if(this->path_constraint_ == nullptr) {
+//                        std::cout << "this->path_constraint_ == nullptr" << std::endl;
+//                    }
+
                     // avoid conflict with external paths
                     if(this->path_constraint_ != nullptr &&
-                        this->path_constraint_->hasCollide(this->sub_graph_.agent_id_, curr->timestep,
-                                                          curr->node_id, next_node_id)) {
+                        this->path_constraint_->hasCollide(agents_[this->sub_graph_.agent_id_], curr->timestep,
+                                                           curr->node_id, next_node_id)) {
                         continue;
                     }
 
@@ -266,7 +273,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
         std::vector<AStarNode*> new_nodes_in_open;
 
-
+        const std::vector<AgentType>& agents_;
     };
 
 }

@@ -6,7 +6,9 @@
 #define LAYEREDMAPF_LARGE_AGENT_MAPF_H
 
 #include "common.h"
+
 #include <boost/heap/pairing_heap.hpp>
+#include <sys/time.h>
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
@@ -40,6 +42,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                        const IS_OCCUPIED_FUNC<N> & isoc) : instances_(instances), agents_(agents), dim_(dim), isoc_(isoc),
                                                            distance_map_updater_(DistanceMapUpdater<N>(this->isoc_, this->dim_)) {
             assert(instances.size() == agents.size());
+
+            struct timezone tz;
+            struct timeval  tv_pre;
+            struct timeval  tv_after;
+            gettimeofday(&tv_pre, &tz);
 
             // 0, init and final state overlap check
             for(int i=0; i<instances_.size(); i++) {
@@ -97,6 +104,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 instance_node_ids_.push_back(std::make_pair(start_node_id, target_node_id));
                 agents_heuristic_tables_.push_back(constructHeuristicTable(agent_sub_graphs_[agent], target_node_id));
             }
+
+            gettimeofday(&tv_after, &tz);
+            subgraph_and_heuristic_time_cost_ =
+                    (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
+            std::cout << "-- construct subgraph and heuristic table in " << subgraph_and_heuristic_time_cost_ << "ms" << std::endl;
         }
 
         virtual bool solve(double time_limit, int cost_lowerbound = 0, int cost_upperbound = MAX_COST) = 0;
@@ -341,6 +353,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         // solutions
         std::vector<LAMAPF_Path> solutions_, initial_solutions_;
+
+        double subgraph_and_heuristic_time_cost_ = 0; // time cost of get subgraph and heuristic table for each agent
 
     };
 
