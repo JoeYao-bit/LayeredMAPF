@@ -39,7 +39,7 @@ bool draw_all_instance = false;
 bool draw_heuristic_table = false;
 bool draw_path = true;
 bool draw_full_path = true;
-
+bool draw_visit_grid_table = false;
 
 // MAPFTestConfig_Berlin_1_256
 // MAPFTestConfig_maze_32_32_4
@@ -58,7 +58,7 @@ bool draw_full_path = true;
 // MAPFTestConfig_AR0014SR
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
-auto map_test_config = MAPFTestConfig_AR0011SR;//MAPFTestConfig_maze_32_32_4;//MAPFTestConfig_Berlin_1_256;//MAPFTestConfig_simple;
+auto map_test_config = MAPFTestConfig_Berlin_1_256;//MAPFTestConfig_maze_32_32_4;//MAPFTestConfig_Berlin_1_256;//MAPFTestConfig_simple;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -246,7 +246,8 @@ template<typename AgentType>
 void InstanceVisualization(const std::vector<AgentType>& agents,
                            const std::vector<PosePtr<int, 2> >& all_poses,
                            const std::vector<InstanceOrient<2> >& instances,
-                           const std::vector<LAMAPF_Path>& solution) {
+                           const std::vector<LAMAPF_Path>& solution,
+                           const std::vector<std::vector<int> >& grid_visit_count_table = {}) {
     zoom_ratio = std::min(2560/dim[0], 1400/dim[1]);
 
     // visualize instance
@@ -262,7 +263,9 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
         canvas.drawGridMap(dim, is_occupied);
 
         if(draw_full_path) {
-            for(int i=0; i<solution.size(); i++) {
+            int i = current_subgraph_id;
+            //for(int i=0; i<solution.size(); i++)
+            {
                 const auto& path = solution[i];
                 if(path.empty()) { continue; }
                 for(int t=0; t<path.size()-1; t++) {
@@ -287,7 +290,9 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
             }
         }
         if(draw_path) {
-            for(int i=0; i<solution.size(); i++) {
+            int i = current_subgraph_id;
+            //for(int i=0; i<solution.size(); i++)
+            {
                 const auto& path = solution[i];
                 if(path.empty()) { continue; }
                 Pointi<2> pt;
@@ -304,6 +309,19 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
 
                 canvas.drawArrowInt(pt[0], pt[1], -orientToPi_2D(orient), 1, std::max(1, zoom_ratio/10));
 
+            }
+        }
+        if(draw_visit_grid_table) {
+            const auto& local_grid_visit_count_table = grid_visit_count_table[current_subgraph_id];
+            Id total_index = getTotalIndexOfSpace<2>(dim);
+            for(int i=0; i<total_index; i++) {
+                Pointi<2> position = IdToPointi<2>(i, dim);
+                int value = local_grid_visit_count_table[i];
+                if(value != 0) {
+                    std::stringstream ss;
+                    ss << value;
+                    canvas.drawTextInt(position[0], position[1], ss.str().c_str(), cv::Vec3b::all(0), .5);
+                }
             }
         }
         char key = canvas.show(1000);
@@ -327,6 +345,8 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
             case 'f':
                 draw_full_path = !draw_full_path;
                 break;
+            case 'g':
+                draw_visit_grid_table = !draw_visit_grid_table;
             case 'q':
                 if(makespan > 0) {
                     time_index = time_index + makespan - 1;

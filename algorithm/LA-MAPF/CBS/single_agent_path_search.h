@@ -25,6 +25,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         size_t node_id;
         int g_val;
         int h_val = 0;
+        int h_val_second = 0;
         int timestep = 0;
         int num_of_conflicts = 0;
         bool in_openlist = false;
@@ -38,7 +39,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             bool operator()(const LowLvNode *n1, const LowLvNode *n2) const {
                 if (n1->g_val + n1->h_val == n2->g_val + n2->h_val) {
                     if (n1->h_val == n2->h_val) {
-                        return true;//rand() % 2 == 0;   // break ties randomly
+                        //if(n1->h_val_second == n2->h_val_second) {
+                            return rand() % 2 == 0;   // break ties randomly
+                        //}
+                        //return n1->h_val_second >= n2->h_val_second;
                     }
                     return n1->h_val >= n2->h_val;  // break ties towards smaller h_vals (closer to goal location)
                 }
@@ -53,7 +57,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 if (n1->num_of_conflicts == n2->num_of_conflicts) {
                     if (n1->g_val + n1->h_val == n2->g_val + n2->h_val) {
                         if (n1->h_val == n2->h_val) {
-                            return true;//rand() % 2 == 0;   // break ties randomly
+                            return rand() % 2 == 0;   // break ties randomly
                         }
                         return n1->h_val >= n2->h_val;  // break ties towards smaller h_vals (closer to goal location)
                     }
@@ -68,9 +72,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         LowLvNode() : node_id(0), g_val(0), h_val(0), parent(nullptr), timestep(0), num_of_conflicts(0),
                    in_openlist(false), wait_at_goal(false) {}
 
-        LowLvNode(size_t location, int g_val, int h_val, LowLvNode *parent, int timestep, int num_of_conflicts = 0,
+        LowLvNode(size_t location, int g_val, int h_val, int h_val_second, LowLvNode *parent, int timestep, int num_of_conflicts = 0,
                bool in_openlist = false) :
-                node_id(location), g_val(g_val), h_val(h_val), parent(parent), timestep(timestep),
+                node_id(location), g_val(g_val), h_val(h_val), h_val_second(h_val_second), parent(parent), timestep(timestep),
                 num_of_conflicts(num_of_conflicts), in_openlist(in_openlist), wait_at_goal(false) {}
 
         inline int getFVal() const { return g_val + h_val; }
@@ -95,12 +99,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         SingleAgentSolver(const size_t& start_node_id,
                           const size_t& target_node_id,
                           const std::vector<int>& heuristic,
+                          const std::vector<int>& heuristic_ignore_rotate,
                           const SubGraphOfAgent<N>& sub_graph,
                           const ConstraintTable<N, AgentType>& constraint_table = nullptr,
                           const ConstraintAvoidanceTablePtr<N, AgentType>& constraint_avoidance_table = nullptr,
                           const LargeAgentPathConstraintTablePtr<N, AgentType>& path_constraint = nullptr
                           ) : start_node_id_(start_node_id), target_node_id_(target_node_id),
-                          heuristic_(heuristic), sub_graph_(sub_graph),
+                          heuristic_(heuristic),
+                          heuristic_ignore_rotate_(heuristic_ignore_rotate),
+                          sub_graph_(sub_graph),
                           constraint_table_(constraint_table),
                           constraint_avoidance_table_(constraint_avoidance_table),
                           path_constraint_(path_constraint) {}
@@ -112,6 +119,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         const size_t& start_node_id_;
         const size_t& target_node_id_;
         const std::vector<int>& heuristic_;  // this is the precomputed heuristic for this agent
+        const std::vector<int>& heuristic_ignore_rotate_;  // this is the precomputed heuristic for this agent
         const SubGraphOfAgent<N>& sub_graph_;
 
     //protected:

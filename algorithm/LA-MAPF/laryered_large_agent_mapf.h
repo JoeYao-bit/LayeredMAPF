@@ -19,6 +19,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                        DimensionLength* dim,
                                        const IS_OCCUPIED_FUNC<N> & isoc,
                                        const LA_MAPF_FUNC<N, AgentType> & mapf_func,
+                                       std::vector<std::vector<int> >& grid_visit_count_table,
                                        int cutoff_time = 60,
                                        LargeAgentMAPFInstanceDecompositionPtr<2, AgentType>& decomposer_copy = nullptr
                                        ) {
@@ -47,8 +48,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         std::vector<std::vector<std::pair<int, LAMAPF_Path> > > pathss;
         std::vector<LAMAPF_Path> retv(instances.size());
+        grid_visit_count_table.resize(instances.size());
 
         for(int i=0; i<decomposer->all_clusters_.size(); i++) {
+            gettimeofday(&tv_pre, &tz);
             // instance_decompose->all_clusters_[i] to instances
             std::set<int> current_id_set = decomposer->all_clusters_[i];
 
@@ -68,6 +71,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }
             }
 
+
             double remaining_time = cutoff_time - (tv_after.tv_sec - tv_pre.tv_sec) + (tv_after.tv_usec - tv_pre.tv_usec)/1e6;
             if(remaining_time < 0) {
                 return {};//retv;
@@ -77,14 +81,29 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             std::vector<AgentType> cluster_agents;
 
             std::vector<int> current_id_vec;
+            std::vector<size_t> target_node_ids;
             for(const auto& current_id : current_id_set) {
                 current_id_vec.push_back(current_id);
                 cluster_instances.push_back(instances[current_id]);
                 cluster_agents.push_back(agents[current_id]);
+                target_node_ids.push_back(decomposer->instance_node_ids_[current_id].second);
             }
 
+            layered_cts->updateEarliestArriveTimeForAgents(cluster_agents, target_node_ids);
             gettimeofday(&tv_after, &tz);
-            std::vector<LAMAPF_Path> next_paths = mapf_func(cluster_instances, cluster_agents, dim, isoc, layered_cts, remaining_time);
+            double update_path_constraint_time_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
+            std::cout << "-- " << i << " th cluster update path constraint take " << update_path_constraint_time_cost << "ms" << std::endl;
+
+
+            gettimeofday(&tv_pre, &tz);
+            std::vector<std::vector<int> > grid_visit_count_table_local;
+            std::vector<LAMAPF_Path> next_paths = mapf_func(cluster_instances, cluster_agents, dim, isoc, layered_cts,
+                                                            grid_visit_count_table_local, remaining_time);
+            gettimeofday(&tv_after, &tz);
+
+            double mapf_func_time_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
+            std::cout << "-- " << i << " th cluster mapf func take " << mapf_func_time_cost << "ms" << std::endl << std::endl;
+
             if(next_paths.empty()) {
                 std::cout << " layered MAPF failed " << i << " th cluster: ";
                 for(const auto& id : current_id_set) {
@@ -94,26 +113,38 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 return {};//retv;
             }
             // debug: path constraint check
-            if(layered_cts != nullptr) {
-                for (int k = 0; k < current_id_vec.size(); k++) {
-                    for (int t = 0; t < next_paths[k].size() - 1; t++) {
-                        if (layered_cts->hasCollide(cluster_agents[k], t, next_paths[k][t], next_paths[k][t + 1])) {
-                            std::cout << "FATAL: " << current_id_vec[k] << " collide with previous path when t = " << t << std::endl;
-                            return {};//retv;
-                        }
-                    }
-                }
-            }
+//            if(layered_cts != nullptr) {
+//                for (int k = 0; k < current_id_vec.size(); k++) {
+//                    for (int t = 0; t < next_paths[k].size() - 1; t++) {
+//                        if (layered_cts->hasCollide(cluster_agents[k], t, next_paths[k][t], next_paths[k][t + 1])) {
+//                            std::cout << "FATAL: " << current_id_vec[k] << " collide with previous path when t = " << t << std::endl;
+//                            return {};//retv;
+//                        }
+//                    }
+//                }
+//            }
             assert(next_paths.size() == current_id_set.size());
             std::vector<std::pair<int, LAMAPF_Path> > next_paths_with_id;
             for(int k=0; k<current_id_vec.size(); k++) {
                 next_paths_with_id.push_back({current_id_vec[k], next_paths[k]});
                 retv[current_id_vec[k]] = next_paths[k];
+                grid_visit_count_table[current_id_vec[k]] = grid_visit_count_table_local[k];
             }
             pathss.push_back(next_paths_with_id);
         }
-
+        // debug
         assert(instances.size() == retv.size());
+//        for(int i=0; i<instances.size(); i++) {
+//            for(int j=i+1; j<instances.size(); j++) {
+//                auto conflicts = detectAllConflictBetweenPaths(retv[i], retv[j], agents[i], agents[j], decomposer->all_poses_);
+//                if(!conflicts.empty()) {
+//                    std::cout << "FATAL: detect conflicts between agent "
+//                    << agents[i] << "path_size(" << retv[i].size() << ")" << " and "
+//                    << agents[j] << "path_size(" << retv[j].size() << ")"
+//                    << ", at t = " << conflicts.front()->t1 << std::endl;
+//                }
+//            }
+//        }
 //        if(!use_path_constraint) { retv = multiLayerCompress(dim, pathss); }
         std::cout << " layered large agent mapf success " << !retv.empty() << std::endl;
         return retv;

@@ -85,6 +85,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
             // 3, construct each agent's heuristic table, i.e., distance from each node to target
             agents_heuristic_tables_.reserve(instances_.size());
+            agents_heuristic_tables_ignore_rotate_.reserve(instances_.size());
             instance_node_ids_.reserve(instances_.size());
             for(int agent=0; agent<instances_.size(); agent++) {
                 // check start
@@ -103,6 +104,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }
                 instance_node_ids_.push_back(std::make_pair(start_node_id, target_node_id));
                 agents_heuristic_tables_.push_back(constructHeuristicTable(agent_sub_graphs_[agent], target_node_id));
+                agents_heuristic_tables_ignore_rotate_.push_back(constructHeuristicTable(agent_sub_graphs_[agent], target_node_id, true));
             }
 
             gettimeofday(&tv_after, &tz);
@@ -200,7 +202,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return sub_graph;
         }
 
-        std::vector<int> constructHeuristicTable(const SubGraphOfAgent<N>& sub_graph, const size_t& goal_id) const {
+        std::vector<int> constructHeuristicTable(const SubGraphOfAgent<N>& sub_graph, const size_t& goal_id, bool ignore_rotate = false) const {
             struct Node {
                 int node_id;
                 int value;
@@ -231,14 +233,22 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             while (!heap.empty()) {
                 Node curr = heap.top();
                 heap.pop();
-                for (int next_location : sub_graph.all_backward_edges_[curr.node_id]) {
-                    if (agent_heuristic[next_location] > curr.value + 1) {
-                        agent_heuristic[next_location] = curr.value + 1;
-                        Node next(next_location, curr.value + 1);
+                for (const size_t& next_location : sub_graph.all_backward_edges_[curr.node_id]) {
+                    int new_heuristic_value = curr.value + 1;
+                    if(ignore_rotate && curr.node_id / (2*N) == next_location / (2*N)) {
+                        new_heuristic_value = curr.value;
+                    }
+                    if (agent_heuristic[next_location] > new_heuristic_value) {
+                        agent_heuristic[next_location] = new_heuristic_value;
+                        Node next(next_location, new_heuristic_value);
                         heap.push(next);
                     }
                 }
             }
+            // shrink table
+//            for(int k=0; k<sub_graph.all_nodes_.size()/(2*N); k++) {
+//                //
+//            }
             return agent_heuristic;
         }
 
@@ -350,6 +360,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         DistanceMapUpdater<N> distance_map_updater_;
         std::vector<SubGraphOfAgent<N> > agent_sub_graphs_;
         std::vector<std::vector<int> > agents_heuristic_tables_;
+        std::vector<std::vector<int> > agents_heuristic_tables_ignore_rotate_;
 
         // solutions
         std::vector<LAMAPF_Path> solutions_, initial_solutions_;

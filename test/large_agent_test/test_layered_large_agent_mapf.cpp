@@ -29,8 +29,13 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
     gettimeofday(&tv_pre, &tz);
 
     LargeAgentMAPFInstanceDecompositionPtr<2, AgentType> decomposer_ptr = nullptr;
-    auto layered_paths = layeredLargeAgentMAPF<2, AgentType>(deserializer.getInstances(), deserializer.getAgents(),
-                                     dim, is_occupied, CBS::LargeAgentCBS_func<2, CircleAgent<2> >, 60, decomposer_ptr);
+    std::vector<std::vector<int> > grid_visit_count_table;
+    auto layered_paths = layeredLargeAgentMAPF<2, AgentType>(deserializer.getInstances(),
+                                                             deserializer.getAgents(),
+                                                             dim, is_occupied,
+                                                             CBS::LargeAgentCBS_func<2, AgentType >,
+                                                             grid_visit_count_table,
+                                                             60, decomposer_ptr);
 
     gettimeofday(&tv_after, &tz);
 
@@ -52,7 +57,8 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
 //    std::cout << (raw_path.size() == deserializer.getAgents().size() ? "success" : "failed")
 //              << " raw large agent mapf in " << time_cost << "ms " << std::endl;
 
-    InstanceVisualization<AgentType>(deserializer.getAgents(), decomposer_ptr->getAllPoses(), deserializer.getInstances(), layered_paths);//layered_paths);
+    InstanceVisualization<AgentType>(deserializer.getAgents(), decomposer_ptr->getAllPoses(),
+                                     deserializer.getInstances(), layered_paths, grid_visit_count_table);//layered_paths);
 }
 
 TEST(test, layered_large_agent_CBS) {

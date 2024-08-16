@@ -86,7 +86,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 //printAllSubProblem(std::string("level sorting"));
             }
 
-//            printAllSubProblem(std::string("final"));
+//            printAllSubProblem(std::string("decomposition final"));
 
             // initialize_time_cost_
             std::cout << "-- initialize_time_cost_             (ms) = " << initialize_time_cost_ << std::endl;

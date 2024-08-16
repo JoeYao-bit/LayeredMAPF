@@ -279,7 +279,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                const std::vector<AgentType>& agents,
                                                DimensionLength* dim)
                 : agents_(agents), all_nodes_(all_nodes), dim_(dim) {
-
+            //
         }
 
         void insertPaths(const std::vector<std::pair<int, LAMAPF_Path> >& agent_paths) {
@@ -296,10 +296,44 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             } else {
                 constraint_table_[agent_path.first] = agent_path.second;
             }
+            max_time_stamp_ = std::max(max_time_stamp_, (int)agent_path.second.size());
+        }
+
+        void updateEarliestArriveTimeForAgents(const std::vector<AgentType>& agents, const std::vector<size_t>& target_node_ids) {
+            assert(agents.size() == target_node_ids.size());
+            earliest_arrive_time_map_.clear();
+            for(int k=0; k<agents.size(); k++) {
+                int earliest_time = calculateEarliestArriveTimeForAgent(agents[k], target_node_ids[k]);
+                earliest_arrive_time_map_.insert({agents[k].id_, earliest_time});
+            }
+        }
+
+        // call before use bool hasCollide(...)
+        // calculate the earliest possible arrive time
+        int calculateEarliestArriveTimeForAgent(const AgentType& agent, const size_t& target_node_id) const {
+            int temp_earliest_arrive_time_ = 0;
+            for(const auto& agent_path : constraint_table_) {
+                const auto &path = agent_path.second;
+                int local_earliest_arrive_time = 0;
+                for (int t = path.size() - 2; t >= std::max(temp_earliest_arrive_time_ - 1, 0); t--) {
+                    if (isCollide(agents_[agent_path.first], *all_nodes_[path[t]], *all_nodes_[path[t + 1]],
+                                  agent, *all_nodes_[target_node_id])) {
+                        break;
+                    } else {
+                        local_earliest_arrive_time = t + 1;
+                    }
+                }
+                temp_earliest_arrive_time_ = std::max(local_earliest_arrive_time, temp_earliest_arrive_time_);
+            }
+            std::cout << " set agent " << agent << " earliest_arrive_time_ = " << temp_earliest_arrive_time_ << std::endl;
+            return temp_earliest_arrive_time_;
         }
 
         // whether an agent has conflict at pose
-        bool hasCollide(const AgentType& agent, int time_index, const size_t & current_node, const size_t & next_node) const {
+        bool hasCollide(const AgentType& agent, int time_index, const size_t & current_node, const size_t & next_node, bool is_goal = false) const {
+            if(is_goal) {
+                if(time_index + 1 < earliest_arrive_time_map_.at(agent.id_)) { return true; }
+            }
             for(const auto& agent_path : constraint_table_) {
                 const auto& other_agent_id = agent_path.first;
                 const auto& other_path = agent_path.second;
@@ -330,9 +364,27 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                                  << "->" << *all_nodes_[other_path[time_index+1]]
 //                                  << " have no conflict" << std::endl;
                     }
+                    // if current agent reach target, check whether it collide with other agent in the future
+                    // could be accelerate, by avoid
+                    if(is_goal) {
+                        for(int t=earliest_arrive_time_map_.at(agent.id_); t<other_path.size()-1; t++) {
+                            if(isCollide(agent, *all_nodes_[current_node], *all_nodes_[next_node],
+                                         agents_[other_agent_id], *all_nodes_[other_path[t]], *all_nodes_[other_path[t+1]])) {
+                                return true;
+                            }
+                        }
+                    }
                 }
             }
             return false;
+        }
+
+        int getMaxTimeStamp() const {
+            return max_time_stamp_;
+        }
+
+        int getEarliestTime(const AgentType& agent) const {
+            return earliest_arrive_time_map_.at(agent.id_);
         }
 
     private:
@@ -341,15 +393,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         const std::vector<PosePtr<int, N> >& all_nodes_;
 
-        // time index / agent id :
-//        std::vector<std::vector<size_t> > constraint_table_;
-
         std::map<int, LAMAPF_Path> constraint_table_;
-
-//        std::set<int> contained_agents_; // agents in constraint table
 
         DimensionLength* dim_;
 
+        std::map<int, int> earliest_arrive_time_map_; // agent.id_ and the earliest time to visit the target
+
+        int max_time_stamp_ = 0; // every thing is static after max_tme_stamp
     };
 
     template<Dimension N, typename AgentType>
@@ -363,7 +413,52 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                                 DimensionLength* dim,
                                                                 const IS_OCCUPIED_FUNC<N> &,
                                                                 const LargeAgentPathConstraintTablePtr<N, AgentType>&,
+                                                                std::vector<std::vector<int> >&,
                                                                 int)>;
+
+    template<Dimension N, typename AgentType>
+    Conflicts detectAllConflictBetweenPaths(const LAMAPF_Path& p1, const LAMAPF_Path& p2,
+                                            const AgentType& a1, const AgentType& a2,
+                                            const std::vector<Pose<int, N>*>& all_nodes) {
+        int t1 = p1.size()-1, t2 = p2.size()-1;
+        const auto& longer_agent  = p1.size() > p2.size() ? a1 : a2;
+        const auto& shorter_agent = longer_agent.id_ == a1.id_ ? a2 : a1;
+        const auto& longer_path   = longer_agent.id_ == a1.id_ ? p1 : p2;
+        const auto& shorter_path  = longer_agent.id_ == a1.id_ ? p2 : p1;
+
+        int common_part = std::min(t1, t2);
+        std::vector<std::shared_ptr<Conflict> > cfs;
+        for(int t=0; t<common_part-1; t++) {
+            if(isCollide(a1, *all_nodes[p1[t]], *all_nodes[p1[t+1]],
+                         a2, *all_nodes[p2[t]], *all_nodes[p2[t+1]])) {
+
+//                std::cout << "cs type 1 : " << *all_nodes[p1[t]] << "->" << *all_nodes[p1[t+1]] << ", "
+//                                            << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t+1]]
+//                                            << "/t:{" << t << "," << t+1 << "}" << std::endl;
+
+                auto c1 = std::make_shared<Constraint>(a1.id_, p1[t], p1[t+1], t, t+2);
+                auto c2 = std::make_shared<Constraint>(a2.id_, p2[t], p2[t+1], t, t+2);
+                auto cf = std::make_shared<Conflict>(a1.id_, a2.id_, Constraints{c1}, Constraints{c2});
+                cfs.push_back(cf);
+            }
+        }
+        for(int t=common_part-1; t<std::max(t1, t2) - 1; t++) {
+            if(isCollide(longer_agent, *all_nodes[longer_path[t]], *all_nodes[longer_path[t+1]],
+                         shorter_agent, *all_nodes[shorter_path.back()])) {
+
+//                std::cout << "cs type 2 : " << *all_nodes[longer_path[t]] << "->" << *all_nodes[longer_path[t+1]] << ", "
+//                                            << *all_nodes[shorter_path.back()]
+//                                            << "/t:{" << t << "," << t+1 << "}"
+//                                            << std::endl;
+
+                auto c1 = std::make_shared<Constraint>(longer_agent.id_,  longer_path[t],      longer_path[t+1], t, t+2);
+                auto c2 = std::make_shared<Constraint>(shorter_agent.id_, shorter_path.back(), MAX_NODES,        t, t+2);
+                auto cf = std::make_shared<Conflict>(longer_agent.id_, shorter_agent.id_, Constraints{c1}, Constraints{c2});
+                cfs.push_back(cf);
+            }
+        }
+        return cfs;
+    }
 
 }
 

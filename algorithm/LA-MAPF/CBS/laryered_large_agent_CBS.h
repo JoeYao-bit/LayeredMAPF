@@ -15,8 +15,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                                            DimensionLength* dim,
                                            const IS_OCCUPIED_FUNC<N> & isoc,
                                            const LargeAgentPathConstraintTablePtr<N, AgentType>& path_constraint,
+                                           std::vector<std::vector<int> >& grid_visit_count_table,
                                            double cutoff_time = 30) {
         LargeAgentCBS<N, AgentType> solver(instances, agents, dim, isoc, path_constraint);
+        grid_visit_count_table = solver.grid_visit_count_tables_;
         if(solver.solve(cutoff_time)) {
             return solver.getSolution();
         } else {

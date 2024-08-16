@@ -39,12 +39,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
                 SpaceTimeAstar<N, AgentType> astar(start_node_id, target_node_id,
                                                    this->agents_heuristic_tables_[agent],
+                                                   this->agents_heuristic_tables_ignore_rotate_[agent],
                                                    this->agent_sub_graphs_[agent],
                                                    constraint_table,
                                                    constraint_avoidance_table_,
                                                    path_constraint_,
                                                    this->agents_);
                 LAMAPF_Path solution = astar.solve();
+                grid_visit_count_tables_.push_back(astar.grid_visit_count_table_);
                 if(solution.empty()) {
                     std::cout << " agent " << agent << " search path failed " << std::endl;
                     this->solvable = false;
@@ -155,48 +157,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             return solution_found;
         }
 
-        Conflicts detectAllConflictBetweenPaths(const LAMAPF_Path& p1, const LAMAPF_Path& p2,
-                                                const AgentType& a1, const AgentType& a2,
-                                                const std::vector<Pose<int, N>*>& all_nodes) const {
-            int t1 = p1.size()-1, t2 = p2.size()-1;
-            const auto& longer_agent  = p1.size() > p2.size() ? a1 : a2;
-            const auto& shorter_agent = longer_agent.id_ == a1.id_ ? a2 : a1;
-            const auto& longer_path   = longer_agent.id_ == a1.id_ ? p1 : p2;
-            const auto& shorter_path  = longer_agent.id_ == a1.id_ ? p2 : p1;
-
-            int common_part = std::min(t1, t2);
-            std::vector<std::shared_ptr<Conflict> > cfs;
-            for(int t=0; t<common_part-1; t++) {
-                if(isCollide(a1, *all_nodes[p1[t]], *all_nodes[p1[t+1]],
-                             a2, *all_nodes[p2[t]], *all_nodes[p2[t+1]])) {
-
-//                std::cout << "cs type 1 : " << *all_nodes[p1[t]] << "->" << *all_nodes[p1[t+1]] << ", "
-//                                            << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t+1]]
-//                                            << "/t:{" << t << "," << t+1 << "}" << std::endl;
-
-                    auto c1 = std::make_shared<Constraint>(a1.id_, p1[t], p1[t+1], t, t+2);
-                    auto c2 = std::make_shared<Constraint>(a2.id_, p2[t], p2[t+1], t, t+2);
-                    auto cf = std::make_shared<Conflict>(a1.id_, a2.id_, Constraints{c1}, Constraints{c2});
-                    cfs.push_back(cf);
-                }
-            }
-            for(int t=common_part-1; t<std::max(t1, t2) - 1; t++) {
-                if(isCollide(longer_agent, *all_nodes[longer_path[t]], *all_nodes[longer_path[t+1]],
-                             shorter_agent, *all_nodes[shorter_path.back()])) {
-
-//                std::cout << "cs type 2 : " << *all_nodes[longer_path[t]] << "->" << *all_nodes[longer_path[t+1]] << ", "
-//                                            << *all_nodes[shorter_path.back()]
-//                                            << "/t:{" << t << "," << t+1 << "}"
-//                                            << std::endl;
-
-                    auto c1 = std::make_shared<Constraint>(longer_agent.id_,  longer_path[t],      longer_path[t+1], t, t+2);
-                    auto c2 = std::make_shared<Constraint>(shorter_agent.id_, shorter_path.back(), MAX_NODES,        t, t+2);
-                    auto cf = std::make_shared<Conflict>(longer_agent.id_, shorter_agent.id_, Constraints{c1}, Constraints{c2});
-                    cfs.push_back(cf);
-                }
-            }
-            return cfs;
-        }
+        // for debug only, record how many times each grid are visited during low lever search
+        std::vector<std::vector<int> > grid_visit_count_tables_;
 
     private:
 
@@ -504,6 +466,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //            constraint_avoidance_table_.updateAgent(this->agents_[agent]);
             SpaceTimeAstar<N, AgentType> astar(start_node_id, target_node_id,
                                                this->agents_heuristic_tables_[agent],
+                                               this->agents_heuristic_tables_ignore_rotate_[agent],
                                                this->agent_sub_graphs_[agent],
                                                constraint_table,
                                                nullptr,

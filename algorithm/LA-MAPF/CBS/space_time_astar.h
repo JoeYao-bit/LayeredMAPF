@@ -20,9 +20,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
         AStarNode() : LowLvNode() {}
 
-        AStarNode(int loc, int g_val, int h_val, LowLvNode *parent, int timestep, int num_of_conflicts = 0,
+        AStarNode(int loc, int g_val, int h_val, int h_val_second, LowLvNode *parent, int timestep, int num_of_conflicts = 0,
                   bool in_openlist = false) :
-                LowLvNode(loc, g_val, h_val, parent, timestep, num_of_conflicts, in_openlist) {}
+                LowLvNode(loc, g_val, h_val, h_val_second, parent, timestep, num_of_conflicts, in_openlist) {}
 
 
         ~AStarNode() {}
@@ -51,22 +51,26 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
     };
 
 
+    // debug: record all visited node during expansion and visualize,
+    //       to find out why in some cases 10^7 nodes are created
     template <Dimension N, typename AgentType>
     class SpaceTimeAstar : public SingleAgentSolver<N, AgentType> {
     public:
         SpaceTimeAstar(const size_t& start_pose_id,
                        const size_t& target_pose_id,
                        const std::vector<int>& heuristic,
+                       const std::vector<int>& heuristic_ignore_rotate,
                        const SubGraphOfAgent<N>& sub_graph,
                        const ConstraintTable<N, AgentType>& constraint_table,
                        const ConstraintAvoidanceTablePtr<N, AgentType>& constraint_avoidance_table,
                        const LargeAgentPathConstraintTablePtr<N, AgentType>& path_constraint,
                        const std::vector<AgentType>& agents
         ) : agents_(agents),
-        SingleAgentSolver<N, AgentType>(start_pose_id, target_pose_id, heuristic, sub_graph,
+        SingleAgentSolver<N, AgentType>(start_pose_id, target_pose_id, heuristic, heuristic_ignore_rotate, sub_graph,
                                         constraint_table, constraint_avoidance_table, path_constraint) {
             //
-//            std::cout << "space time search agent " <<  agents[this->sub_graph_.agent_id_] << std::endl;
+            std::cout << "space time search agent " <<  agents[this->sub_graph_.agent_id_] << std::endl;
+            grid_visit_count_table_.resize(sub_graph.all_nodes_.size() / (2*N));
         }
 
         virtual LAMAPF_Path solve() override {
@@ -75,7 +79,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             LAMAPF_Path path;
 
             // generate start and add it to the OPEN & FOCAL list
-            auto start = new AStarNode(this->start_node_id_, 0, std::max(this->lower_bound_, this->heuristic_[this->start_node_id_]), nullptr, 0, 0);
+            auto start = new AStarNode(this->start_node_id_, 0, std::max(this->lower_bound_,
+                                                                         this->heuristic_[this->start_node_id_]),
+                                       this->heuristic_ignore_rotate_[this->start_node_id_],
+                                       nullptr, 0, 0);
 
             start->open_handle = open_list.push(start);
             start->in_openlist = true;
@@ -84,20 +91,29 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             // lower_bound = int(w * min_f_val));
 
             auto holding_time = this->constraint_table_.getHoldingTime(this->target_node_id_, this->constraint_table_.length_min_);
-            this->lower_bound_ = std::max(holding_time, this->lower_bound_); // yz: considering minimum time stamp to target
 
             auto static_timestep = this->constraint_table_.getMaxTimestep() + 1; // everything is static after this timestep
+            if(this->path_constraint_ != nullptr) {
+                static_timestep = std::max(static_timestep, this->path_constraint_->getMaxTimeStamp());
+                holding_time = std::max(holding_time,
+                                        this->path_constraint_->getEarliestTime(agents_[this->sub_graph_.agent_id_]));
+            }
+
+            this->lower_bound_ = std::max(holding_time, this->lower_bound_); // yz: considering minimum time stamp to target
 
             while (!open_list.empty()) {
                 //std::cout << "open, focal size = " << open_list.size() << ", " << focal_list.size() << std::endl;
                 updateFocalList(); // update FOCAL if min f-val increased
                 new_nodes_in_open.clear();
                 auto *curr = popNode();
+//                std::cout << " SpaceTimeAstar pop " << *(this->sub_graph_.all_nodes_[curr->node_id]) << std::endl;
+                grid_visit_count_table_[curr->node_id/(2*N)] ++;
                 assert(curr->node_id >= 0);
                 // check if the popped node is a goal
                 if (curr->node_id == this->target_node_id_ && // arrive at the goal location
                     !curr->wait_at_goal && // not wait at the goal location
-                    curr->timestep >= holding_time) // the agent can hold the goal location afterward
+                    curr->timestep >= holding_time
+                    ) // the agent can hold the goal location afterward
                 {
                     // yz: if find path, update node connection in LLNode
                     updatePath(curr, path);
@@ -106,18 +122,19 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
                 auto next_locations = this->sub_graph_.all_edges_[curr->node_id];//instance.getNeighbors(curr->location);
                 next_locations.emplace_back(curr->node_id); // considering wait
-                std::random_shuffle(next_locations.begin(), next_locations.end()); // shuffle to make agent move in all direction equally
+                std::reverse(next_locations.begin(), next_locations.end());
+                //std::random_shuffle(next_locations.begin(), next_locations.end()); // shuffle to make agent move in all direction equally
 
                 for (const size_t& next_node_id : next_locations) {
                     int next_timestep = curr->timestep + 1;
-//                    if (static_timestep <
-//                        next_timestep) { // now everything is static, so switch to space A* where we always use the same timestep
-//                        // yz: no need to wait after no constraint is applied
-//                        if (next_node_id == curr->node_id) {
-//                            continue;
-//                        }
-//                        next_timestep--;
-//                    }
+                    if (static_timestep <
+                        next_timestep) { // now everything is static, so switch to space A* where we always use the same timestep
+                        // yz: no need to wait after no constraint is applied
+                        if (next_node_id == curr->node_id) {
+                            continue;
+                        }
+                        next_timestep--;
+                    }
                     // yz: check whether satisfied all constraint, including vertex constraint and edge constraint
                     if (this->constraint_table_.constrained(next_node_id, next_timestep) ||
                             this->constraint_table_.constrained(curr->node_id, next_node_id, next_timestep))
@@ -127,10 +144,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //                        std::cout << "this->path_constraint_ == nullptr" << std::endl;
 //                    }
 
-                    // avoid conflict with external paths
+                    // avoid conflict     with external paths
                     if(this->path_constraint_ != nullptr &&
                         this->path_constraint_->hasCollide(agents_[this->sub_graph_.agent_id_], curr->timestep,
-                                                           curr->node_id, next_node_id)) {
+                                                           curr->node_id, next_node_id, next_node_id == this->target_node_id_)) {
                         continue;
                     }
 
@@ -150,6 +167,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
                     // generate (maybe temporary) node
                     auto next = new AStarNode(next_node_id, next_g_val, next_h_val,
+                                              this->heuristic_ignore_rotate_[next_node_id],
                                               curr, next_timestep, next_internal_conflicts);
 
                     if (next_node_id == this->target_node_id_ && curr->node_id == this->target_node_id_)
@@ -201,6 +219,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             return path;
         }
 
+        // for debug only, record how many times each grid are visited during low lever search
+        std::vector<int> grid_visit_count_table_;
+
     private:
 
         void updateFocalList() {
@@ -223,9 +244,20 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                     new_node->in_focallist = true;
                 }
             }
+            if(focal_list.empty()) {
+                for(auto& new_node : open_list) {
+                    if(new_node->getFVal() <= this->min_f_val_* this->w_) {
+                        new_node->in_focallist = true;
+                        new_node->focal_handle = focal_list.push(new_node);
+                    }
+                }
+            }
         }
 
         inline AStarNode *popNode() {
+            if(open_list.empty() || focal_list.empty()) {
+//                std::cout << "FATAL: open | focal size = " << open_list.size() << " | " << focal_list.size() << std::endl;
+            }
             assert(!open_list.empty() && !focal_list.empty());
             //auto node = open_list.top();
             auto node = focal_list.top();
@@ -254,6 +286,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         }
 
         void releaseNodes() {
+            std::cout << " space time astar release " << allNodes_table.size() << " nodes " << std::endl;
             open_list.clear();
             focal_list.clear();
             for (auto node: allNodes_table)
@@ -274,6 +307,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         std::vector<AStarNode*> new_nodes_in_open;
 
         const std::vector<AgentType>& agents_;
+
     };
 
 }
