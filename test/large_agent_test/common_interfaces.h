@@ -256,13 +256,24 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
 
 
     size_t makespan = getMakeSpan(solution);
-
+    draw_all_instance = true;
     while(true) {
         canvas.resetCanvas();
         canvas.drawEmptyGrid();
         canvas.drawGridMap(dim, is_occupied);
 
         if(draw_full_path) {
+            for(int i=0; i<solution.size(); i++)
+            {
+                const auto& path = solution[i];
+                if(path.empty()) { continue; }
+                for(int t=0; t<path.size()-1; t++) {
+                    Pointi<2> pt1 = all_poses[path[t]]->pt_,
+                            pt2 = all_poses[path[t+1]]->pt_;
+                    canvas.drawLineInt(pt1[0], pt1[1], pt2[0], pt2[1], true, std::max(1, zoom_ratio/10), COLOR_TABLE[(i) % 30]);
+                }
+            }
+        } else {
             int i = current_subgraph_id;
             //for(int i=0; i<solution.size(); i++)
             {
@@ -276,13 +287,24 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
             }
         }
         if(draw_all_instance) {
-            for (int i=0; i<instances.size(); i++)
-            {
-                //const auto &instance = instances[current_subgraph_id]; // zoom_ratio/10
-                const auto &instance = instances[i]; // zoom_ratio/10
-                agents[i].drawOnCanvas(instance.first, canvas, COLOR_TABLE[i%30]);
+            if(draw_full_path) {
+                for (int i=0; i<instances.size(); i++)
+                {
+                    //const auto &instance = instances[current_subgraph_id]; // zoom_ratio/10
+                    const auto &instance = instances[i]; // zoom_ratio/10
+                    agents[i].drawOnCanvas(instance.first, canvas, COLOR_TABLE[i%30]);
 
-                agents[i].drawOnCanvas(instance.second, canvas, COLOR_TABLE[i%30]);
+                    agents[i].drawOnCanvas(instance.second, canvas, COLOR_TABLE[i%30]);
+
+                    canvas.drawArrowInt(instance.first.pt_[0], instance.first.pt_[1], -orientToPi_2D(instance.first.orient_), 1, std::max(1, zoom_ratio/10));
+                    canvas.drawArrowInt(instance.second.pt_[0], instance.second.pt_[1], -orientToPi_2D(instance.second.orient_) , 1, std::max(1, zoom_ratio/10));
+
+                }
+            } else {
+                const auto &instance = instances[current_subgraph_id]; // zoom_ratio/10
+                agents[current_subgraph_id].drawOnCanvas(instance.first, canvas, COLOR_TABLE[current_subgraph_id%30]);
+
+                agents[current_subgraph_id].drawOnCanvas(instance.second, canvas, COLOR_TABLE[current_subgraph_id%30]);
 
                 canvas.drawArrowInt(instance.first.pt_[0], instance.first.pt_[1], -orientToPi_2D(instance.first.orient_), 1, std::max(1, zoom_ratio/10));
                 canvas.drawArrowInt(instance.second.pt_[0], instance.second.pt_[1], -orientToPi_2D(instance.second.orient_) , 1, std::max(1, zoom_ratio/10));
@@ -290,25 +312,46 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
             }
         }
         if(draw_path) {
-            int i = current_subgraph_id;
-            //for(int i=0; i<solution.size(); i++)
-            {
-                const auto& path = solution[i];
-                if(path.empty()) { continue; }
-                Pointi<2> pt;
-                int orient = 0;
-                if(time_index <= path.size() - 1) {
-                    pt     = all_poses[path[time_index]]->pt_;
-                    orient = all_poses[path[time_index]]->orient_;
-                } else {
-                    pt     = all_poses[path.back()]->pt_;
-                    orient = all_poses[path.back()]->orient_;
+            if(draw_full_path) {
+                for(int i=0; i<solution.size(); i++)
+                {
+                    const auto &path = solution[i];
+                    if (path.empty()) { continue; }
+                    Pointi<2> pt;
+                    int orient = 0;
+                    if (time_index <= path.size() - 1) {
+                        pt = all_poses[path[time_index]]->pt_;
+                        orient = all_poses[path[time_index]]->orient_;
+                    } else {
+                        pt = all_poses[path.back()]->pt_;
+                        orient = all_poses[path.back()]->orient_;
+                    }
+
+                    agents[i].drawOnCanvas({pt, orient}, canvas, COLOR_TABLE[(i) % 30]);
+
+                    canvas.drawArrowInt(pt[0], pt[1], -orientToPi_2D(orient), 1, std::max(1, zoom_ratio / 10));
+
                 }
+            } else {
+                int i = current_subgraph_id;
+                {
+                    const auto &path = solution[i];
+                    if (path.empty()) { continue; }
+                    Pointi<2> pt;
+                    int orient = 0;
+                    if (time_index <= path.size() - 1) {
+                        pt = all_poses[path[time_index]]->pt_;
+                        orient = all_poses[path[time_index]]->orient_;
+                    } else {
+                        pt = all_poses[path.back()]->pt_;
+                        orient = all_poses[path.back()]->orient_;
+                    }
 
-                agents[i].drawOnCanvas({pt, orient}, canvas, COLOR_TABLE[(i) % 30]);
+                    agents[i].drawOnCanvas({pt, orient}, canvas, COLOR_TABLE[(i) % 30]);
 
-                canvas.drawArrowInt(pt[0], pt[1], -orientToPi_2D(orient), 1, std::max(1, zoom_ratio/10));
+                    canvas.drawArrowInt(pt[0], pt[1], -orientToPi_2D(orient), 1, std::max(1, zoom_ratio / 10));
 
+                }
             }
         }
         if(draw_visit_grid_table) {
@@ -430,7 +473,7 @@ void generateInstance(const std::vector<AgentType>& agents, const std::string& f
     }
 
 //    InstanceVisualization<AgentType>(agents, generator, instances, solution);
-    loadInstanceAndPlanning<AgentType, MethodType>(file_path);
+//    loadInstanceAndPlanning<AgentType, MethodType>(file_path);
 }
 
 template<typename AgentType>

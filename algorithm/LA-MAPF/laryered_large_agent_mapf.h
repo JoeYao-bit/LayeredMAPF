@@ -15,14 +15,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     // current only considering methods that take external path as constraint, like LA-CBS
     template<Dimension N, typename AgentType>
     std::vector<LAMAPF_Path> layeredLargeAgentMAPF(const InstanceOrients<N> & instances,
-                                       const std::vector<AgentType>& agents,
-                                       DimensionLength* dim,
-                                       const IS_OCCUPIED_FUNC<N> & isoc,
-                                       const LA_MAPF_FUNC<N, AgentType> & mapf_func,
-                                       std::vector<std::vector<int> >& grid_visit_count_table,
-                                       int cutoff_time = 60,
-                                       LargeAgentMAPFInstanceDecompositionPtr<2, AgentType>& decomposer_copy = nullptr
-                                       ) {
+                                                   const std::vector<AgentType>& agents,
+                                                   DimensionLength* dim,
+                                                   const IS_OCCUPIED_FUNC<N> & isoc,
+                                                   const LA_MAPF_FUNC<N, AgentType> & mapf_func,
+                                                   std::vector<std::vector<int> >& grid_visit_count_table,
+                                                   int cutoff_time = 60,
+                                                   LargeAgentMAPFInstanceDecompositionPtr<2, AgentType>& decomposer_copy = nullptr,
+                                                   bool use_path_constraint = false
+                                                   ) {
 
         struct timezone tz;
         struct timeval  tv_pre;
@@ -55,9 +56,20 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             // instance_decompose->all_clusters_[i] to instances
             std::set<int> current_id_set = decomposer->all_clusters_[i];
 
-            // insert previous path as static constraint
-            if (!pathss.empty()) {
-                layered_cts->insertPaths(pathss.back());
+            if (use_path_constraint) {
+                // insert previous path as static constraint
+                if (!pathss.empty()) {
+                    layered_cts->insertPaths(pathss.back());
+                }
+            } else {
+                for (int j = 0; j < i; j++) {
+                    if (j == i) { continue; }
+                    const auto &current_cluster = decomposer->all_clusters_[j];
+                    for (const int &agent_id : current_cluster) {
+//                    avoid_locs[instances[agent_id].first[1]][instances[agent_id].first[0]] = true;
+                        layered_cts->insertPath({agent_id, {decomposer->instance_node_ids_[agent_id].second}});
+                    }
+                }
             }
             // insert future agents' start as static constraint
 

@@ -69,7 +69,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         SingleAgentSolver<N, AgentType>(start_pose_id, target_pose_id, heuristic, heuristic_ignore_rotate, sub_graph,
                                         constraint_table, constraint_avoidance_table, path_constraint) {
             //
-            std::cout << "space time search agent " <<  agents[this->sub_graph_.agent_id_] << std::endl;
+//            std::cout << "space time search agent " <<  agents[this->sub_graph_.agent_id_] << std::endl;
             grid_visit_count_table_.resize(sub_graph.all_nodes_.size() / (2*N));
         }
 
@@ -108,11 +108,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 auto *curr = popNode();
 //                std::cout << " SpaceTimeAstar pop " << *(this->sub_graph_.all_nodes_[curr->node_id]) << std::endl;
                 grid_visit_count_table_[curr->node_id/(2*N)] ++;
-                assert(curr->node_id >= 0);
+//                assert(curr->node_id >= 0);
                 // check if the popped node is a goal
-                if (curr->node_id == this->target_node_id_ && // arrive at the goal location
-                    !curr->wait_at_goal && // not wait at the goal location
-                    curr->timestep >= holding_time
+                if (curr->node_id == this->target_node_id_ // && // arrive at the goal location
+                    //!curr->wait_at_goal && // not wait at the goal location
+                    //curr->timestep >= holding_time
                     ) // the agent can hold the goal location afterward
                 {
                     // yz: if find path, update node connection in LLNode
@@ -122,8 +122,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
                 auto next_locations = this->sub_graph_.all_edges_[curr->node_id];//instance.getNeighbors(curr->location);
                 next_locations.emplace_back(curr->node_id); // considering wait
-                std::reverse(next_locations.begin(), next_locations.end());
-                //std::random_shuffle(next_locations.begin(), next_locations.end()); // shuffle to make agent move in all direction equally
+                //std::reverse(next_locations.begin(), next_locations.end());
+                std::random_shuffle(next_locations.begin(), next_locations.end()); // shuffle to make agent move in all direction equally
 
                 for (const size_t& next_node_id : next_locations) {
                     int next_timestep = curr->timestep + 1;
@@ -135,6 +135,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                         }
                         next_timestep--;
                     }
+                    maximum_t_ = std::max(maximum_t_, next_timestep);
                     // yz: check whether satisfied all constraint, including vertex constraint and edge constraint
                     if (this->constraint_table_.constrained(next_node_id, next_timestep) ||
                             this->constraint_table_.constrained(curr->node_id, next_node_id, next_timestep))
@@ -153,25 +154,28 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
                     // compute cost to next_id via curr node
                     int next_g_val = curr->g_val + 1;
-                    int next_h_val = std::max(this->lower_bound_ - next_g_val, this->heuristic_[next_node_id]);
-                    if (next_g_val + next_h_val > this->constraint_table_.length_max_)
-                        continue;
+
+                    int next_h_val = this->heuristic_[next_node_id];//std::max(this->lower_bound_ - next_g_val, this->heuristic_[next_node_id]);
+
+//                    if (next_g_val + next_h_val > this->constraint_table_.length_max_)
+//
+//                        continue;
 
                     // getNumOfConflictsForStep is very time consuming for large agents
                     // resulting no getNumOfConflictsForStep might be faster than use it
-                    int next_internal_conflicts = curr->num_of_conflicts + (this->constraint_avoidance_table_ == nullptr ?
-                            0 : this->constraint_avoidance_table_->getNumOfConflictsForStep(
-                                    *this->sub_graph_.all_nodes_[curr->node_id],
-                                    *this->sub_graph_.all_nodes_[next_node_id],
-                                    curr->timestep));
+                    int next_internal_conflicts = curr->num_of_conflicts +
+                            (this->constraint_avoidance_table_ == nullptr ? 0 :
+                             this->constraint_avoidance_table_->getNumOfConflictsForStep(*this->sub_graph_.all_nodes_[curr->node_id],
+                                                                                         *this->sub_graph_.all_nodes_[next_node_id],
+                                                                                         curr->timestep));
 
                     // generate (maybe temporary) node
                     auto next = new AStarNode(next_node_id, next_g_val, next_h_val,
                                               this->heuristic_ignore_rotate_[next_node_id],
                                               curr, next_timestep, next_internal_conflicts);
 
-                    if (next_node_id == this->target_node_id_ && curr->node_id == this->target_node_id_)
-                        next->wait_at_goal = true;
+//                    if (next_node_id == this->target_node_id_ && curr->node_id == this->target_node_id_)
+//                        next->wait_at_goal = true;
 
                     // try to retrieve it from the hash table
                     auto it = allNodes_table.find(next);
@@ -286,7 +290,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         }
 
         void releaseNodes() {
-            std::cout << " space time astar release " << allNodes_table.size() << " nodes " << std::endl;
+//            std::cout << " space time astar release " << allNodes_table.size() << " nodes " << std::endl;
+//            std::cout << " maximum t = " << maximum_t_ << std::endl;
             open_list.clear();
             focal_list.clear();
             for (auto node: allNodes_table)
@@ -307,6 +312,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         std::vector<AStarNode*> new_nodes_in_open;
 
         const std::vector<AgentType>& agents_;
+
+        int maximum_t_ = 0;
 
     };
 

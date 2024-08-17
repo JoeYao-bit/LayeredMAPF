@@ -53,10 +53,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 } else {
 //                    this->printPath(agent, solution);
                     this->initial_solutions_.push_back(solution);
-                    init_agent_occ_grids.push_back(ConstraintAvoidanceTable<N, AgentType>::getAgentPathOccGrids(this->agents_[agent],
-                                                                                                                this->initial_solutions_[agent],
-                                                                                                                this->all_poses_,
-                                                                                                                this->dim_));
+//                    init_agent_occ_grids.push_back(ConstraintAvoidanceTable<N, AgentType>::getAgentPathOccGrids(this->agents_[agent],
+//                                                                                                                this->initial_solutions_[agent],
+//                                                                                                                this->all_poses_,
+//                                                                                                                this->dim_));
                     this->solutions_.push_back(solution);
                 }
             }
