@@ -127,14 +127,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
                 for (const size_t& next_node_id : next_locations) {
                     int next_timestep = curr->timestep + 1;
-                    if (static_timestep <
-                        next_timestep) { // now everything is static, so switch to space A* where we always use the same timestep
-                        // yz: no need to wait after no constraint is applied
-                        if (next_node_id == curr->node_id) {
-                            continue;
-                        }
-                        next_timestep--;
-                    }
+//                    if (static_timestep <
+//                        next_timestep) { // now everything is static, so switch to space A* where we always use the same timestep
+//                        // yz: no need to wait after no constraint is applied
+//                        if (next_node_id == curr->node_id) {
+//                            continue;
+//                        }
+//                        next_timestep--;
+//                    }
                     maximum_t_ = std::max(maximum_t_, next_timestep);
                     // yz: check whether satisfied all constraint, including vertex constraint and edge constraint
                     if (this->constraint_table_.constrained(next_node_id, next_timestep) ||

@@ -62,23 +62,22 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     layered_cts->insertPaths(pathss.back());
                 }
             } else {
+                // insert previous agents' target as static constraint
                 for (int j = 0; j < i; j++) {
                     if (j == i) { continue; }
                     const auto &current_cluster = decomposer->all_clusters_[j];
                     for (const int &agent_id : current_cluster) {
-//                    avoid_locs[instances[agent_id].first[1]][instances[agent_id].first[0]] = true;
                         layered_cts->insertPath({agent_id, {decomposer->instance_node_ids_[agent_id].second}});
                     }
                 }
             }
-            // insert future agents' start as static constraint
 
+            // insert future agents' start as static constraint
             for(int j = i+1; j<decomposer->all_clusters_.size(); j++)
             {
                 if(j == i) { continue; }
                 const auto& current_cluster = decomposer->all_clusters_[j];
                 for(const int& agent_id : current_cluster) {
-//                    avoid_locs[instances[agent_id].first[1]][instances[agent_id].first[0]] = true;
                     layered_cts->insertPath({agent_id, {decomposer->instance_node_ids_[agent_id].first}});
                 }
             }
@@ -94,11 +93,36 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             std::vector<int> current_id_vec;
             std::vector<size_t> target_node_ids;
+
+            /*    pre calculated variables
+             *    const std::vector<PosePtr<int, N> >& all_poses = {},
+                  const DistanceMapUpdaterPtr<N>& distance_map_updater = nullptr,
+                  const std::vector<SubGraphOfAgent<N> >& agent_sub_graphs = {},
+                  const std::vector<std::vector<int> >& agents_heuristic_tables = {},
+                  const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate = {}
+             * */
+
+            const std::vector<PosePtr<int, N> >& local_all_poses = decomposer->all_poses_;
+            const DistanceMapUpdaterPtr<N>&      local_distance_map_updater = decomposer->distance_map_updater_;
+            std::vector<SubGraphOfAgent<N> >     local_agent_sub_graphs;
+            std::vector<std::vector<int> >       local_agents_heuristic_tables;
+            std::vector<std::vector<int> >       local_agents_heuristic_tables_ignore_rotate;
+
             for(const auto& current_id : current_id_set) {
                 current_id_vec.push_back(current_id);
                 cluster_instances.push_back(instances[current_id]);
                 cluster_agents.push_back(agents[current_id]);
                 target_node_ids.push_back(decomposer->instance_node_ids_[current_id].second);
+
+                local_agent_sub_graphs.push_back(decomposer->agent_sub_graphs_[current_id]);
+                local_agent_sub_graphs.back().agent_id_ = target_node_ids.size() - 1;
+
+                local_agents_heuristic_tables.push_back(
+                        decomposer->agents_heuristic_tables_[current_id]);
+
+                local_agents_heuristic_tables_ignore_rotate.push_back(
+                        decomposer->agents_heuristic_tables_ignore_rotate_[current_id]);
+
             }
 
             layered_cts->updateEarliestArriveTimeForAgents(cluster_agents, target_node_ids);
@@ -110,7 +134,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             gettimeofday(&tv_pre, &tz);
             std::vector<std::vector<int> > grid_visit_count_table_local;
             std::vector<LAMAPF_Path> next_paths = mapf_func(cluster_instances, cluster_agents, dim, isoc, layered_cts,
-                                                            grid_visit_count_table_local, remaining_time);
+                                                            grid_visit_count_table_local, remaining_time,
+                                                            local_all_poses,
+                                                            local_distance_map_updater,
+                                                            local_agent_sub_graphs,
+                                                            local_agents_heuristic_tables,
+                                                            local_agents_heuristic_tables_ignore_rotate
+                                                            );
             gettimeofday(&tv_after, &tz);
 
             double mapf_func_time_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
@@ -158,7 +188,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //            }
 //        }
 //        if(!use_path_constraint) { retv = multiLayerCompress(dim, pathss); }
-        std::cout << " layered large agent mapf success " << !retv.empty() << std::endl;
+        std::cout << "-- layered large agent mapf success " << !retv.empty() << std::endl;
+        std::cout << "-- SOC = " << getSOC(retv) << ", makespan = " << getMakeSpan(retv) << std::endl;
         return retv;
     }
 

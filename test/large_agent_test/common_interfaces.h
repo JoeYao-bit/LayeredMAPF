@@ -256,7 +256,7 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
 
 
     size_t makespan = getMakeSpan(solution);
-    draw_all_instance = true;
+    draw_all_instance = false;
     while(true) {
         canvas.resetCanvas();
         canvas.drawEmptyGrid();

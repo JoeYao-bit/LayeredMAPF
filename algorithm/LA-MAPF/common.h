@@ -405,6 +405,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     template<Dimension N, typename AgentType>
     using LargeAgentPathConstraintTablePtr = std::shared_ptr<LargeAgentPathConstraintTable<N, AgentType> >;
 
+    template<Dimension N>
+    struct SubGraphOfAgent {
+        int agent_id_;
+        std::vector<PosePtr<int, N> > all_nodes_;
+        std::vector<std::vector<size_t> > all_edges_;
+        std::vector<std::vector<size_t> > all_backward_edges_;
+    };
+
     // input: static occupancy map / current solving problem / previous path as constraints
     // output: what path was found, or empty is failed
     template<Dimension N, typename AgentType>
@@ -414,12 +422,17 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                                 const IS_OCCUPIED_FUNC<N> &,
                                                                 const LargeAgentPathConstraintTablePtr<N, AgentType>&,
                                                                 std::vector<std::vector<int> >&,
-                                                                int)>;
+                                                                int,
+                                                                const std::vector<PosePtr<int, N> >,
+                                                                const DistanceMapUpdaterPtr<N>,
+                                                                const std::vector<SubGraphOfAgent<N> >,
+                                                                const std::vector<std::vector<int> >&,
+                                                                const std::vector<std::vector<int> >&)>;
 
     template<Dimension N, typename AgentType>
     Conflicts detectAllConflictBetweenPaths(const LAMAPF_Path& p1, const LAMAPF_Path& p2,
                                             const AgentType& a1, const AgentType& a2,
-                                            const std::vector<Pose<int, N>*>& all_nodes) {
+                                            const std::vector<PosePtr<int, N> >& all_nodes) {
         int t1 = p1.size()-1, t2 = p2.size()-1;
         const auto& longer_agent  = p1.size() > p2.size() ? a1 : a2;
         const auto& shorter_agent = longer_agent.id_ == a1.id_ ? a2 : a1;

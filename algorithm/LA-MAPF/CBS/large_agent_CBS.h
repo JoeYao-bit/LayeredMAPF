@@ -21,8 +21,20 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                       const std::vector<AgentType>& agents,
                       DimensionLength* dim,
                       const IS_OCCUPIED_FUNC<N> & isoc,
-                      const LargeAgentPathConstraintTablePtr<N, AgentType>& path_constraint = nullptr)
-                      : LargeAgentMAPF<N, AgentType>(instances, agents, dim, isoc),
+                      const LargeAgentPathConstraintTablePtr<N, AgentType>& path_constraint = nullptr,
+
+                      const std::vector<PosePtr<int, N> > all_poses = {},
+                      const DistanceMapUpdaterPtr<N> distance_map_updater = nullptr,
+                      const std::vector<SubGraphOfAgent<N> > agent_sub_graphs = {},
+                      const std::vector<std::vector<int> >& agents_heuristic_tables = {},
+                      const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate_ = {}
+                      )
+                      : LargeAgentMAPF<N, AgentType>(instances, agents, dim, isoc,
+                                                     all_poses,
+                                                     distance_map_updater,
+                                                     agent_sub_graphs,
+                                                     agents_heuristic_tables,
+                                                     agents_heuristic_tables_ignore_rotate_),
                         constraint_avoidance_table_(nullptr), //ConstraintAvoidanceTable<N, AgentType>(dim, this->all_poses_, agents.front())),
                         path_constraint_(path_constraint){
             // 1, initial paths
@@ -87,7 +99,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //            std::cout << "-- generate root node " << std::endl;
             int count = 0;
             while (!cleanup_list.empty() && !solution_found) {
-                if(count >= 2000) { break; }
+//                if(count >= 2000) { break; }
 //                std::cout << "-- " << count << " iteration, open size " << cleanup_list.size() << std::endl;
                 count ++;
                 // yz: select node with minimum heuristic value
