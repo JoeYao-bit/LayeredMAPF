@@ -98,7 +98,7 @@ int main(int argc, char** argv) {
     auto MAPF_func = PBS_Li::pbs_MAPF;//CBS_Li::eecbs_MAPF;
     gettimeofday(&tv_pre, &tz);
 
-    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_func, CBS_Li::eecbs_MAPF, true, 30);
+    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_func, CBS_Li::eecbs_MAPF, false, 30);
     gettimeofday(&tv_after, &tz);
     double layered_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
     std::cout << multiple_paths.size() << " agents " << std::endl;
