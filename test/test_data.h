@@ -158,7 +158,7 @@ namespace freeNav::LayeredMAPF{
                     {"ct_path",   "../test/test_data/empty-32-32.ct"},
                     {"output_path", "../test/test_data/layered_mapf/empty-32-32.txt"},
                     {"decomposition_output_path", "../test/test_data/decomposition/empty-32-32_de.txt"},
-                    {"agent_num",    "400"}, // 330
+                    {"agent_num",    "100"}, // 330
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"} // in second
             };

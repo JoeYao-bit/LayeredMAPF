@@ -114,7 +114,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 pt = IdToPointi<N>(id, dim_);
                 if(!isoc_(pt)) {
                     for(int orient=0; orient<2*N; orient++) {
-                        PosePtr<int, N> pose_ptr = new Pose<int, N>(pt, orient);
+                        PosePtr<int, N> pose_ptr = std::make_shared<Pose<int, N> >(pt, orient);
                         all_poses_[id*2*N + orient] = pose_ptr;
                     }
                 }
@@ -128,12 +128,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
 
         ~LargeAgentMAPF_InstanceGenerator() {
-            for(int i=0; i<all_poses_.size(); i++) {
-                if(all_poses_[i] != nullptr) {
-                    delete all_poses_[i];
-                    all_poses_[i] = nullptr;
-                }
-            }
         }
 
         // if agent failed to find legal instance, repick

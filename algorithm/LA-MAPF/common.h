@@ -76,6 +76,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     typedef std::vector<size_t> LAMAPF_Path; // node id sequence
 
+    typedef std::vector<LAMAPF_Path> LAMAPF_Paths;
+
     template<typename T>
     int getSOC(const std::vector<std::vector<T> >& paths) {
         size_t soc = 0;

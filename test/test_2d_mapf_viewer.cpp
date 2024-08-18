@@ -52,7 +52,7 @@ GridPtr<3> sg1 = std::make_shared<Grid<3>>(),
 // MAPFTestConfig_ht_chantry
 // MAPFTestConfig_lak303d
 // MAPFTestConfig_simple
-auto map_test_config = MAPFTestConfig_simple;
+auto map_test_config = MAPFTestConfig_empty_32_32;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -96,41 +96,42 @@ int main(int argc, char** argv) {
     memory_recorder.clear();
     float base_usage = memory_recorder.getCurrentMemoryUsage();
     auto MAPF_func = PBS_Li::pbs_MAPF;//CBS_Li::eecbs_MAPF;
-//    gettimeofday(&tv_pre, &tz);
-//
-//    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_func, CBS_Li::eecbs_MAPF, true, 30);
-//    gettimeofday(&tv_after, &tz);
-//    double layered_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
-//    std::cout << multiple_paths.size() << " agents " << std::endl;
-//    std::cout << "-- layered mapf end in " << layered_cost << "ms" << std::endl << std::endl;
-//    std::cout << " is solution valid ? " << validateSolution<2>(multiple_paths) << std::endl;
-//    sleep(1);
-//    float maximal_usage = memory_recorder.getMaximalMemoryUsage();
-//    {
-//        std::cout << "layered mapf maximal usage = " << maximal_usage - base_usage << " MB" << std::endl;
-//    }
-//
-//    int total_cost = 0, maximum_single_cost = 0;
-//    for(const auto& path : multiple_paths) {
-//        //std::cout << path << std::endl;
-//        total_cost += path.size();
-//        maximum_single_cost = std::max(maximum_single_cost, (int)path.size());
-//    }
-//    std::cout << "layered total cost          = " << total_cost << std::endl;
-//    std::cout << "layered maximum_single_cost = " << maximum_single_cost << std::endl;
-//    std::cout << std::endl;
+    gettimeofday(&tv_pre, &tz);
+
+    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_func, CBS_Li::eecbs_MAPF, true, 30);
+    gettimeofday(&tv_after, &tz);
+    double layered_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
+    std::cout << multiple_paths.size() << " agents " << std::endl;
+    std::cout << "-- layered mapf end in " << layered_cost << "ms" << std::endl << std::endl;
+    std::cout << " is solution valid ? " << validateSolution<2>(multiple_paths) << std::endl;
+    sleep(1);
+    float maximal_usage = memory_recorder.getMaximalMemoryUsage();
+    {
+        std::cout << "layered mapf maximal usage = " << maximal_usage - base_usage << " MB" << std::endl;
+    }
+
+    int total_cost = 0, maximum_single_cost = 0;
+    for(const auto& path : multiple_paths) {
+        //std::cout << path << std::endl;
+        total_cost += path.size();
+        maximum_single_cost = std::max(maximum_single_cost, (int)path.size());
+    }
+    std::cout << "layered total cost          = " << total_cost << std::endl;
+    std::cout << "layered maximum_single_cost = " << maximum_single_cost << std::endl;
+    std::cout << std::endl;
+
     memory_recorder.clear();
     sleep(1);
     base_usage = memory_recorder.getCurrentMemoryUsage();
 
-    gettimeofday(&tv_pre, &tz);
-    multiple_paths = MAPF_func(dim, is_occupied_func, ists, nullptr, 60);
-    gettimeofday(&tv_after, &tz);
-    visited_grid_during_lacam = LaCAM::visited_grid_;
-    double build_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
-    std::cout << multiple_paths.size() << " paths " << " / agents " << ists.size() << std::endl;
-    std::cout << "-- raw mapf end in " << build_cost << "ms" << std::endl;
-    std::cout << " is solution valid ? " << validateSolution<2>(multiple_paths) << std::endl;
+//    gettimeofday(&tv_pre, &tz);
+//    multiple_paths = MAPF_func(dim, is_occupied_func, ists, nullptr, 60);
+//    gettimeofday(&tv_after, &tz);
+//    visited_grid_during_lacam = LaCAM::visited_grid_;
+//    double build_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
+//    std::cout << multiple_paths.size() << " paths " << " / agents " << ists.size() << std::endl;
+//    std::cout << "-- raw mapf end in " << build_cost << "ms" << std::endl;
+//    std::cout << " is solution valid ? " << validateSolution<2>(multiple_paths) << std::endl;
 
     std::cout << "--variation of memory " << memory_recorder.getCurrentMemoryUsage() - base_usage << " MB" << std::endl;
     sleep(1);

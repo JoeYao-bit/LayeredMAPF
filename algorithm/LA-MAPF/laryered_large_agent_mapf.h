@@ -11,7 +11,6 @@
 #include "../../algorithm/LA-MAPF/CBS/constraint.h"
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
-
     // current only considering methods that take external path as constraint, like LA-CBS
     template<Dimension N, typename AgentType>
     std::vector<LAMAPF_Path> layeredLargeAgentMAPF(const InstanceOrients<N> & instances,
