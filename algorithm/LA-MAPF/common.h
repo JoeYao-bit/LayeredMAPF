@@ -69,6 +69,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         double secondary_priority = 0; // used as the tie-breaking creteria for conflict selection
     };
 
+    typedef std::shared_ptr<Conflict> ConflictPtr;
+
     typedef std::vector<std::shared_ptr<Conflict> > Conflicts;
 
     bool operator<(const Conflict &conflict1, const Conflict &conflict2);
@@ -467,12 +469,78 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                                            << std::endl;
 
                 auto c1 = std::make_shared<Constraint>(longer_agent.id_,  longer_path[t],      longer_path[t+1], t, t+2);
-                auto c2 = std::make_shared<Constraint>(shorter_agent.id_, shorter_path.back(), MAX_NODES,        t, t+2);
+                auto c2 = std::make_shared<Constraint>(shorter_agent.id_, shorter_path.back(), MAX_NODES,        0, t+2);
                 auto cf = std::make_shared<Conflict>(longer_agent.id_, shorter_agent.id_, Constraints{c1}, Constraints{c2});
                 cfs.push_back(cf);
             }
         }
         return cfs;
+    }
+
+    template<Dimension N, typename AgentType>
+    ConflictPtr detectFirstConflictBetweenPaths(const LAMAPF_Path& p1, const LAMAPF_Path& p2,
+                                                const AgentType& a1, const AgentType& a2,
+                                                const std::vector<PosePtr<int, N> >& all_nodes) {
+        int t1 = p1.size()-1, t2 = p2.size()-1;
+        const auto& longer_agent  = p1.size() > p2.size() ? a1 : a2;
+        const auto& shorter_agent = longer_agent.id_ == a1.id_ ? a2 : a1;
+        const auto& longer_path   = longer_agent.id_ == a1.id_ ? p1 : p2;
+        const auto& shorter_path  = longer_agent.id_ == a1.id_ ? p2 : p1;
+
+        int common_part = std::min(t1, t2);
+        for(int t=0; t<common_part-1; t++) {
+            if(isCollide(a1, *all_nodes[p1[t]], *all_nodes[p1[t+1]],
+                         a2, *all_nodes[p2[t]], *all_nodes[p2[t+1]])) {
+
+                std::cout << "cs type 1 : " << *all_nodes[p1[t]] << "->" << *all_nodes[p1[t+1]] << ", "
+                                            << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t+1]]
+                                            << "/t:{" << t << "," << t+1 << "}" << std::endl;
+
+                auto c1 = std::make_shared<Constraint>(a1.id_, p1[t], p1[t+1], t, t+2);
+                auto c2 = std::make_shared<Constraint>(a2.id_, p2[t], p2[t+1], t, t+2);
+                auto cf = std::make_shared<Conflict>(a1.id_, a2.id_, Constraints{c1}, Constraints{c2});
+                return cf;
+            }
+        }
+        for(int t=common_part-1; t<std::max(t1, t2) - 1; t++) {
+            if(isCollide(longer_agent, *all_nodes[longer_path[t]], *all_nodes[longer_path[t+1]],
+                         shorter_agent, *all_nodes[shorter_path.back()])) {
+
+                std::cout << "cs type 2 : " << *all_nodes[longer_path[t]] << "->" << *all_nodes[longer_path[t+1]] << ", "
+                                            << *all_nodes[shorter_path.back()]
+                                            << "/t:{" << t << "," << t+1 << "}"
+                                            << std::endl;
+
+                auto c1 = std::make_shared<Constraint>(longer_agent.id_,  longer_path[t],      longer_path[t+1], t, t+2);
+                auto c2 = std::make_shared<Constraint>(shorter_agent.id_, shorter_path.back(), MAX_NODES,        t, t+2);
+                auto cf = std::make_shared<Conflict>(longer_agent.id_, shorter_agent.id_, Constraints{c1}, Constraints{c2});
+                return cf;
+            }
+        }
+        return nullptr;
+    }
+
+    template<Dimension N, typename AgentType>
+    bool isSolutionValid(const LAMAPF_Paths& paths,
+                         const std::vector<AgentType>& agents,
+                         const std::vector<PosePtr<int, N> >& all_poses) {
+        std::cout << __FUNCTION__ << std::endl;
+        assert(paths.size() == agents.size());
+        bool valid = true;
+        for(int i=0; i<paths.size(); i++) {
+            for(int j=i+1; j<paths.size(); j++) {
+                if(paths[i].empty() || paths[j].empty()) { continue; }
+                auto conflict_ptr = detectFirstConflictBetweenPaths(paths[i], paths[j], agents[i], agents[j], all_poses);
+                if(conflict_ptr != nullptr) {
+                    std::cout << "FATAL: detect conflicts between agent "
+                              << agents[i] << "path_size(" << paths[i].size() << ")" << " and "
+                              << agents[j] << "path_size(" << paths[j].size() << ")"
+                              << ", at (t1 = " << conflict_ptr->t1 << ", t2 = " << conflict_ptr->t2 << ")" << std::endl;
+                    valid = false;
+                }
+            }
+        }
+        return valid;
     }
 
 }

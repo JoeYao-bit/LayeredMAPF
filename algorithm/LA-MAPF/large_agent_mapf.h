@@ -26,6 +26,19 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //
 
     template<Dimension N, typename AgentType>
+    void printPath(const std::vector<AgentType>& agents,
+                   const InstanceOrients<N> & instances,
+                   const std::vector<PosePtr<int, N> >& all_poses,
+                   int agent,
+                   const LAMAPF_Path& path) {
+        std::cout << "agent " << agent << ": " <<  instances[agent].first << "->" << instances[agent].second << std::endl;
+        for(int t=0; t<path.size(); t++) {
+            std::cout << *(all_poses[path[t]]) << "->";
+        }
+        std::cout << std::endl;
+    }
+
+    template<Dimension N, typename AgentType>
     class LargeAgentMAPF {
     public:
         LargeAgentMAPF(const InstanceOrients<N> & instances,
@@ -307,13 +320,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return true;
         }
 
-        void printPath(int agent, const LAMAPF_Path& path) const {
-            std::cout << "agent " << agent << ": " <<  this->instances_[agent].first << "->" << this->instances_[agent].second << std::endl;
-            for(int t=0; t<path.size(); t++) {
-                std::cout << *(this->all_poses_[path[t]]) << "->";
-            }
-            std::cout << std::endl;
-        }
+
 
         size_t getMakeSpan() const {
             if(!this->solvable) { return 0; }
