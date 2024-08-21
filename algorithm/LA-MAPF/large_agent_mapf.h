@@ -25,17 +25,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //    };
 //
 
-    template<Dimension N, typename AgentType>
-    void printPath(const std::vector<AgentType>& agents,
-                   const InstanceOrients<N> & instances,
-                   const std::vector<PosePtr<int, N> >& all_poses,
-                   int agent,
-                   const LAMAPF_Path& path) {
-        std::cout << "agent " << agent << ": " <<  instances[agent].first << "->" << instances[agent].second << std::endl;
+    template<Dimension N>
+    std::string printPath(const LAMAPF_Path& path, const std::vector<PosePtr<int, N> >& all_poses) {
+        std::stringstream ss;
         for(int t=0; t<path.size(); t++) {
-            std::cout << *(all_poses[path[t]]) << "->";
+            ss << *(all_poses[path[t]]) << "->";
         }
-        std::cout << std::endl;
+        return ss.str();
     }
 
     template<Dimension N, typename AgentType>
@@ -53,7 +49,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                        const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate = {}
 
                        ) : instances_(instances), agents_(agents), dim_(dim), isoc_(isoc),
-                           all_poses_(all_poses),
+                           all_poses_(all_poses), distance_map_updater_(distance_map_updater),
                            agent_sub_graphs_(agent_sub_graphs),
                            agents_heuristic_tables_(agents_heuristic_tables),
                            agents_heuristic_tables_ignore_rotate_(agents_heuristic_tables_ignore_rotate)
@@ -83,6 +79,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             // 1, construct all possible poses
             if(all_poses_.empty()) {
+                std::cout << "  construct all possible poses" << std::endl;
                 Id total_index = getTotalIndexOfSpace<N>(dim_);
                 all_poses_.resize(total_index * 2 * N, nullptr); // a position with 2*N orientation
                 Pointi <N> pt;
@@ -98,9 +95,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
             // 2, construct each agents subgraph (vertex: where it can stay, edges: whether can it move from one vertex to another)
             if(distance_map_updater_ == nullptr) {
+                std::cout << "  construct distance_map_update" << std::endl;
                 distance_map_updater_ = std::make_shared<DistanceMapUpdater<N> >(this->isoc_, this->dim_);
             }
             if(agent_sub_graphs_.empty()) {
+                std::cout << "  construct agent_sub_graphs" << std::endl;
                 agent_sub_graphs_.reserve(instances_.size());
                 for (int id = 0; id < agents.size(); id++) {
                     agent_sub_graphs_.push_back(constructSubGraphOfAgent(id));
@@ -131,6 +130,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
             // 3, construct each agent's heuristic table, i.e., distance from each node to target
             if(agents_heuristic_tables_.empty()) {
+                std::cout << "  construct agents_heuristic_tables" << std::endl;
                 agents_heuristic_tables_.reserve(instances_.size());
                 for (int agent = 0; agent < instances_.size(); agent++) {
                     agents_heuristic_tables_.push_back(
@@ -138,6 +138,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }
             }
            if(agents_heuristic_tables_ignore_rotate_.empty()) {
+               std::cout << "  construct agents_heuristic_tables_ignore_rotate" << std::endl;
                agents_heuristic_tables_ignore_rotate_.reserve(instances_.size());
                for (int agent = 0; agent < instances_.size(); agent++) {
                    agents_heuristic_tables_ignore_rotate_.push_back(

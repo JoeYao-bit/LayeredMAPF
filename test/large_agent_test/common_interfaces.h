@@ -58,7 +58,7 @@ bool draw_visit_grid_table = false;
 // MAPFTestConfig_AR0014SR
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
-auto map_test_config = MAPFTestConfig_Paris_1_256;//MAPFTestConfig_maze_32_32_4;//MAPFTestConfig_Berlin_1_256;//MAPFTestConfig_simple;
+auto map_test_config = MAPFTestConfig_AR0011SR;//MAPFTestConfig_AR0011SR;//MAPFTestConfig_maze_32_32_4;//MAPFTestConfig_Berlin_1_256;//MAPFTestConfig_simple;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -355,15 +355,17 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
             }
         }
         if(draw_visit_grid_table) {
-            const auto& local_grid_visit_count_table = grid_visit_count_table[current_subgraph_id];
-            Id total_index = getTotalIndexOfSpace<2>(dim);
-            for(int i=0; i<total_index; i++) {
-                Pointi<2> position = IdToPointi<2>(i, dim);
-                int value = local_grid_visit_count_table[i];
-                if(value != 0) {
-                    std::stringstream ss;
-                    ss << value;
-                    canvas.drawTextInt(position[0], position[1], ss.str().c_str(), cv::Vec3b::all(0), .5);
+            if(!grid_visit_count_table.empty()) {
+                const auto& local_grid_visit_count_table = grid_visit_count_table[current_subgraph_id];
+                Id total_index = getTotalIndexOfSpace<2>(dim);
+                for(int i=0; i<total_index; i++) {
+                    Pointi<2> position = IdToPointi<2>(i, dim);
+                    int value = local_grid_visit_count_table[i];
+                    if(value != 0) {
+                        std::stringstream ss;
+                        ss << value;
+                        canvas.drawTextInt(position[0], position[1], ss.str().c_str(), cv::Vec3b::all(0), .5);
+                    }
                 }
             }
         }

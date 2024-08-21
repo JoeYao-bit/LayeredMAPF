@@ -21,7 +21,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                       const std::vector<AgentType>& agents,
                       DimensionLength* dim,
                       const IS_OCCUPIED_FUNC<N> & isoc,
-                      const LargeAgentPathConstraintTablePtr<N, AgentType>& path_constraint = nullptr,
+                      const LargeAgentStaticConstraintTablePtr<N, AgentType>& path_constraint = nullptr,
 
                       const std::vector<PosePtr<int, N> > all_poses = {},
                       const DistanceMapUpdaterPtr<N> distance_map_updater = nullptr,
@@ -58,7 +58,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                                                    path_constraint_,
                                                    this->agents_);
                 LAMAPF_Path solution = astar.solve();
-                grid_visit_count_tables_.push_back(astar.grid_visit_count_table_);
+                //grid_visit_count_tables_.push_back(astar.grid_visit_count_table_);
                 if(solution.empty()) {
                     std::cout << " agent " << agent << " search path failed " << std::endl;
                     this->solvable = false;
@@ -198,7 +198,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
         ConstraintAvoidanceTablePtr<N, AgentType> constraint_avoidance_table_;
 
-        const LargeAgentPathConstraintTablePtr<N, AgentType>& path_constraint_; // take external path as obstacles
+        const LargeAgentStaticConstraintTablePtr<N, AgentType>& path_constraint_; // take external path as obstacles
 
         // store each agent's occupied grid at each time , update with this->solutions_
 //        std::vector< typename ConstraintAvoidanceTable<N, AgentType>::OccGridLevels > agent_occ_grids;

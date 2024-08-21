@@ -14,7 +14,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                                            const std::vector<AgentType>& agents,
                                            DimensionLength* dim,
                                            const IS_OCCUPIED_FUNC<N> & isoc,
-                                           const LargeAgentPathConstraintTablePtr<N, AgentType>& path_constraint,
+                                           const LargeAgentStaticConstraintTablePtr<N, AgentType>& path_constraint,
                                            std::vector<std::vector<int> >& grid_visit_count_table,
                                            double cutoff_time = 30,
 
@@ -25,13 +25,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                                            const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate = {}) {
 
         LargeAgentCBS<N, AgentType> solver(instances, agents, dim, isoc, path_constraint,
-                                           all_poses,
-                                           distance_map_updater,
-                                           agent_sub_graphs,
-                                           agents_heuristic_tables,
-                                           agents_heuristic_tables_ignore_rotate);
+                                                                  all_poses,
+                                                                  distance_map_updater,
+                                                                  agent_sub_graphs,
+                                                                  agents_heuristic_tables,
+                                                                  agents_heuristic_tables_ignore_rotate);
 
-        grid_visit_count_table = solver.grid_visit_count_tables_;
+//        grid_visit_count_table = solver.grid_visit_count_tables_;
 
         if(solver.solve(cutoff_time)) {
             return solver.getSolution();

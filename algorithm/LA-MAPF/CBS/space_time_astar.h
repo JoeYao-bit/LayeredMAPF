@@ -63,14 +63,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                        const SubGraphOfAgent<N>& sub_graph,
                        const ConstraintTable<N, AgentType>& constraint_table,
                        const ConstraintAvoidanceTablePtr<N, AgentType>& constraint_avoidance_table,
-                       const LargeAgentPathConstraintTablePtr<N, AgentType>& path_constraint,
+                       const LargeAgentStaticConstraintTablePtr<N, AgentType>& path_constraint,
                        const std::vector<AgentType>& agents
         ) : agents_(agents),
         SingleAgentSolver<N, AgentType>(start_pose_id, target_pose_id, heuristic, heuristic_ignore_rotate, sub_graph,
                                         constraint_table, constraint_avoidance_table, path_constraint) {
             //
 //            std::cout << "space time search agent " <<  agents[this->sub_graph_.agent_id_] << std::endl;
-            grid_visit_count_table_.resize(sub_graph.all_nodes_.size() / (2*N));
+//            grid_visit_count_table_.resize(sub_graph.all_nodes_.size() / (2*N));
         }
 
         virtual LAMAPF_Path solve() override {
@@ -90,16 +90,16 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             allNodes_table.insert(start); // yz: visited vertex
             // lower_bound = int(w * min_f_val));
 
-            auto holding_time = this->constraint_table_.getHoldingTime(this->target_node_id_, this->constraint_table_.length_min_);
+//            auto holding_time = this->constraint_table_.getHoldingTime(this->target_node_id_, this->constraint_table_.length_min_);
+//
+//            auto static_timestep = this->constraint_table_.getMaxTimestep() + 1; // everything is static after this timestep
+//            if(this->path_constraint_ != nullptr) {
+//                static_timestep = std::max(static_timestep, this->path_constraint_->getMaxTimeStamp());
+//                holding_time = std::max(holding_time,
+//                                        this->path_constraint_->getEarliestTime(agents_[this->sub_graph_.agent_id_]));
+//            }
 
-            auto static_timestep = this->constraint_table_.getMaxTimestep() + 1; // everything is static after this timestep
-            if(this->path_constraint_ != nullptr) {
-                static_timestep = std::max(static_timestep, this->path_constraint_->getMaxTimeStamp());
-                holding_time = std::max(holding_time,
-                                        this->path_constraint_->getEarliestTime(agents_[this->sub_graph_.agent_id_]));
-            }
-
-            this->lower_bound_ = std::max(holding_time, this->lower_bound_); // yz: considering minimum time stamp to target
+//            this->lower_bound_ = std::max(holding_time, this->lower_bound_); // yz: considering minimum time stamp to target
 
             while (!open_list.empty()) {
                 //std::cout << "open, focal size = " << open_list.size() << ", " << focal_list.size() << std::endl;
@@ -107,7 +107,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 new_nodes_in_open.clear();
                 auto *curr = popNode();
 //                std::cout << " SpaceTimeAstar pop " << *(this->sub_graph_.all_nodes_[curr->node_id]) << std::endl;
-                grid_visit_count_table_[curr->node_id/(2*N)] ++;
+//                grid_visit_count_table_[curr->node_id/(2*N)] ++;
 //                assert(curr->node_id >= 0);
                 // check if the popped node is a goal
                 if (curr->node_id == this->target_node_id_ // && // arrive at the goal location
@@ -145,10 +145,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //                        std::cout << "this->path_constraint_ == nullptr" << std::endl;
 //                    }
 
+//                    std::cout << " this->sub_graph_.agent_id_ = " << this->sub_graph_.agent_id_
+//                              << ", this->path_constraint_ = " << this->path_constraint_ << std::endl;
                     // avoid conflict     with external paths
                     if(this->path_constraint_ != nullptr &&
-                        this->path_constraint_->hasCollide(agents_[this->sub_graph_.agent_id_], curr->timestep,
-                                                           curr->node_id, next_node_id, next_node_id == this->target_node_id_)) {
+                        this->path_constraint_->hasCollide(this->sub_graph_.agent_id_, curr->timestep,
+                                                           curr->node_id, next_node_id)) {
                         continue;
                     }
 

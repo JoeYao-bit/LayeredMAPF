@@ -81,6 +81,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                             // move forward to find first collide free start
                             int local_delay_start = t, local_delay_count = 0;
                             while(1) {
+//                                std::cout << " local_delay_start = " << local_delay_start << std::endl;
                                 if(local_delay_start > 0) {
                                     if(!isCollide(pre_agent, *all_poses[pre_path[t]], *all_poses[pre_path[t+1]],
                                                   cur_agent, *all_poses[cur_path[local_delay_start]], *all_poses[cur_path[local_delay_start]])) {
@@ -95,10 +96,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                         local_delay_count = t + 1;
                                         break;
                                     } else {
-                                        std::cout << "FATAL: delay at start cant avoid conflict" << std::endl;
+                                        std::cout << "FATAL: delay at start cant avoid conflict 1" << std::endl;
+                                        exit(0);
                                     }
                                 } else  {
-                                    std::cout << "FATAL: delay start shouldn't < 0" << std::endl;
+                                    std::cout << "FATAL: delay start shouldn't < 0 1 "  << std::endl;
+                                    exit(0);
                                 }
                                 local_delay_start--;
                             }
@@ -136,10 +139,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                         local_delay_count = t + 1;
                                         break;
                                     } else {
-                                        std::cout << "FATAL: delay at start cant avoid conflict" << std::endl;
+                                        std::cout << "FATAL: delay at start cant avoid conflict 2" << std::endl;
+                                        exit(0);
                                     }
                                 } else  {
-                                    std::cout << "FATAL: delay start shouldn't < 0" << std::endl;
+                                    std::cout << "FATAL: delay start shouldn't < 0 2" << std::endl;
+                                    exit(0);
                                 }
                                 local_delay_start--;
                             }
@@ -191,16 +196,16 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<AgentType> pre_agents = agents[0];
 
         for(int i=1; i<pathss.size(); i++) {
-            std::cout << "merge " << i << " th cluster: ";
-            for(const auto& agent : agents[i]) {
-                std::cout << agent.id_ << " ";
+            std::cout << "merge " << i << " th cluster: " << std::endl;
+            for(int j=0; j<agents[i].size(); j++) {
+                const auto& agent = agents[i][j];
+                std::cout << agent.id_ << " : " << printPath<N>(pathss[i][j], all_poses) << std::endl;
             }
-            std::cout << std::endl;
+//            std::cout << std::endl;
             mergedPaths = SingleLayerCompressLargeAgent<N>(all_poses, mergedPaths, pre_agents, pathss[i], agents[i]);
             pre_agents.insert(pre_agents.end(), agents[i].begin(), agents[i].end());
 
-
-            if(!isSolutionValid(mergedPaths, pre_agents, all_poses)) { break; }
+//            if(!isSolutionValid(mergedPaths, pre_agents, all_poses)) { break; }
         }
         mergedPaths.resize(agents.size());
         return mergedPaths;
@@ -238,8 +243,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         assert(decomposer->all_clusters_.size() >= 1);
 
-        LargeAgentPathConstraintTablePtr<N, AgentType> layered_cts =
-                std::make_shared<LargeAgentPathConstraintTable<N, AgentType> >(decomposer->all_poses_, agents, dim);
+        float max_excircle_radius = getMaximumRadius<AgentType>(agents);
+
+
 
         std::vector<std::vector<std::pair<int, LAMAPF_Path> > > pathss;
         std::vector<LAMAPF_Path> retv(instances.size());
@@ -248,37 +254,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         std::vector<LAMAPF_Paths> all_paths;
         std::vector<std::vector<int> > all_cluster_vec;
+
+        std::vector<AgentType> pre_agents;
+        std::vector<size_t> pre_targets;
+
         for(int i=0; i<decomposer->all_clusters_.size(); i++) {
             gettimeofday(&tv_pre, &tz);
             // instance_decompose->all_clusters_[i] to instances
             std::set<int> current_id_set = decomposer->all_clusters_[i];
-
-            if (use_path_constraint) {
-                // insert previous path as static constraint
-                if (!pathss.empty()) {
-                    layered_cts->insertPaths(pathss.back());
-                }
-            } else {
-                // insert previous agents' target as static constraint
-                for (int j = 0; j < i; j++) {
-                    if (j == i) { continue; }
-                    const auto &current_cluster = decomposer->all_clusters_[j];
-                    for (const int &agent_id : current_cluster) {
-                        layered_cts->insertPath({agent_id, {decomposer->instance_node_ids_[agent_id].second}});
-                    }
-                }
-            }
-
-            // insert future agents' start as static constraint
-            for(int j = i+1; j<decomposer->all_clusters_.size(); j++)
-            {
-                if(j == i) { continue; }
-                const auto& current_cluster = decomposer->all_clusters_[j];
-                for(const int& agent_id : current_cluster) {
-                    layered_cts->insertPath({agent_id, {decomposer->instance_node_ids_[agent_id].first}});
-                }
-            }
-
 
             double remaining_time = cutoff_time - (tv_after.tv_sec - tv_pre.tv_sec) + (tv_after.tv_usec - tv_pre.tv_usec)/1e6;
             if(remaining_time < 0) {
@@ -312,7 +295,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 target_node_ids.push_back(decomposer->instance_node_ids_[current_id].second);
 
                 local_agent_sub_graphs.push_back(decomposer->agent_sub_graphs_[current_id]);
-                local_agent_sub_graphs.back().agent_id_ = target_node_ids.size() - 1;
 
                 local_agents_heuristic_tables.push_back(
                         decomposer->agents_heuristic_tables_[current_id]);
@@ -322,7 +304,34 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             }
 
-            layered_cts->updateEarliestArriveTimeForAgents(cluster_agents, target_node_ids);
+            LargeAgentStaticConstraintTablePtr<N, AgentType>
+                    new_constraint_table_ptr_ = std::make_shared<LargeAgentStaticConstraintTable<N, AgentType> > (
+                            max_excircle_radius, dim, isoc, agents, cluster_agents, decomposer->all_poses_);
+
+            new_constraint_table_ptr_->insertPoses(pre_agents, pre_targets);
+
+            // insert future agents' start as static constraint
+            for(int j = i+1; j<decomposer->all_clusters_.size(); j++)
+            {
+                if(j == i) { continue; }
+                const auto& current_cluster = decomposer->all_clusters_[j];
+                for(const int& agent_id : current_cluster) {
+                    new_constraint_table_ptr_->insertPose(agent_id, decomposer->instance_node_ids_[agent_id].first);
+                }
+            }
+
+            for(const auto& agent_id : current_id_vec) {
+                pre_agents.push_back(agents[agent_id]);
+                pre_targets.push_back(decomposer->instance_node_ids_[agent_id].second);
+            }
+
+            std::cout << " layered MAPF " << i << " th cluster: ";
+            for(const auto& id : current_id_set) {
+                assert(agents[id].id_ == id);
+                std::cout << id << " ";
+            }
+            std::cout << std::endl;
+
             gettimeofday(&tv_after, &tz);
             double update_path_constraint_time_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
             std::cout << "-- " << i << " th cluster update path constraint take " << update_path_constraint_time_cost << "ms" << std::endl;
@@ -331,7 +340,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             all_cluster_vec.push_back(current_id_vec);
             gettimeofday(&tv_pre, &tz);
             std::vector<std::vector<int> > grid_visit_count_table_local;
-            std::vector<LAMAPF_Path> next_paths = mapf_func(cluster_instances, cluster_agents, dim, isoc, layered_cts,
+            std::vector<LAMAPF_Path> next_paths = mapf_func(cluster_instances, cluster_agents, dim, isoc,
+                                                            new_constraint_table_ptr_,
+                                                            //layered_cts,
                                                             grid_visit_count_table_local, remaining_time,
                                                             local_all_poses,
                                                             local_distance_map_updater,
@@ -353,23 +364,23 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 return {};//retv;
             }
             // debug: path constraint check
-//            if(layered_cts != nullptr) {
-//                for (int k = 0; k < current_id_vec.size(); k++) {
-//                    for (int t = 0; t < next_paths[k].size() - 1; t++) {
-//                        if (layered_cts->hasCollide(cluster_agents[k], t, next_paths[k][t], next_paths[k][t + 1])) {
-//                            std::cout << "FATAL: " << current_id_vec[k] << " collide with previous path when t = " << t << std::endl;
-//                            return {};//retv;
-//                        }
-//                    }
-//                }
-//            }
+            if(new_constraint_table_ptr_ != nullptr) {
+                for (int k = 0; k < current_id_vec.size(); k++) {
+                    for (int t = 0; t < next_paths[k].size() - 1; t++) {
+                        if (new_constraint_table_ptr_->hasCollide(current_id_vec[k], t, next_paths[k][t], next_paths[k][t + 1])) {
+                            std::cout << "FATAL: agent " << current_id_vec[k] << " collide with previous path when t = " << t << std::endl;
+                            return {};//retv;
+                        }
+                    }
+                }
+            }
             assert(next_paths.size() == current_id_set.size());
             all_paths.push_back(next_paths);
             std::vector<std::pair<int, LAMAPF_Path> > next_paths_with_id;
             for(int k=0; k<current_id_vec.size(); k++) {
                 next_paths_with_id.push_back({current_id_vec[k], next_paths[k]});
                 retv[current_id_vec[k]] = next_paths[k];
-                grid_visit_count_table[current_id_vec[k]] = grid_visit_count_table_local[k];
+//                grid_visit_count_table[current_id_vec[k]] = grid_visit_count_table_local[k];
             }
             pathss.push_back(next_paths_with_id);
         }

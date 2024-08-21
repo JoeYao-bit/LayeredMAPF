@@ -58,7 +58,7 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
 //              << " raw large agent mapf in " << time_cost1 << "ms " << std::endl;
 
     InstanceVisualization<AgentType>(deserializer.getAgents(), decomposer_ptr->getAllPoses(),
-                                     deserializer.getInstances(), layered_paths, grid_visit_count_table);//layered_paths);
+                                     deserializer.getInstances(), layered_paths, grid_visit_count_table);
 }
 
 TEST(test, layered_large_agent_CBS) {
