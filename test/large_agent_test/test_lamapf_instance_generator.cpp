@@ -89,7 +89,7 @@ TEST(LoadCircleInstance, test)
     // LargeAgentConstraintTableForLarge
     // LargeAgentConstraintTable
 
-    loadInstanceAndPlanning<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > >(file_path);
+    loadInstanceAndPlanning<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > >(file_path, 30);
 };
 
 TEST(LoadBlock_2DInstance, test)

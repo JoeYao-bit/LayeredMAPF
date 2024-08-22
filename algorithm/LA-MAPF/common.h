@@ -6,7 +6,7 @@
 #define LAYEREDMAPF_COMMON_H
 
 #include <limits>
-
+#include <chrono>
 #include <boost/geometry.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/heap/pairing_heap.hpp>
@@ -306,6 +306,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             max_time_stamp_ = std::max(max_time_stamp_, (int)agent_path.second.size());
         }
 
+        // called after set all paths
         void updateEarliestArriveTimeForAgents(const std::vector<AgentType>& agents, const std::vector<size_t>& target_node_ids) {
             assert(agents.size() == target_node_ids.size());
             earliest_arrive_time_map_.clear();
@@ -504,6 +505,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 if(time_index + 1 < earliest_arrive_time_map_.at(agent_global_id)) { return true; }
             }
             const auto& agent = global_agents_[agent_global_id];
+            // replace traversal all path with only path in range
             for(const auto& agent_path : path_constraint_table_) {
                 const auto& other_agent_id = agent_path.first;
                 const auto& other_agent = global_agents_[other_agent_id];

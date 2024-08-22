@@ -58,7 +58,7 @@ bool draw_visit_grid_table = false;
 // MAPFTestConfig_AR0014SR
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
-auto map_test_config = MAPFTestConfig_maze_32_32_4;//MAPFTestConfig_AR0011SR;//MAPFTestConfig_maze_32_32_4;//MAPFTestConfig_Berlin_1_256;//MAPFTestConfig_simple;
+auto map_test_config = MAPFTestConfig_Berlin_1_256;//MAPFTestConfig_AR0011SR;//MAPFTestConfig_maze_32_32_4;//MAPFTestConfig_Berlin_1_256;//MAPFTestConfig_simple;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -417,7 +417,7 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
 
 
 template<typename AgentType, typename MethodType>
-void loadInstanceAndPlanning(const std::string& file_path) {
+void loadInstanceAndPlanning(const std::string& file_path, double time_limit = 30) {
     InstanceDeserializer<2, AgentType> deserializer;
     if(deserializer.loadInstanceFromFile(file_path, dim)) {
         std::cout << "load from path " << file_path << " success" << std::endl;
@@ -426,12 +426,21 @@ void loadInstanceAndPlanning(const std::string& file_path) {
         return;
     }
     std::cout << " map scale " << dim[0] << "*" << dim[1] << std::endl;
-    gettimeofday(&tv_pre, &tz);
+    auto start_t = clock();
     MethodType method(deserializer.getInstances(), deserializer.getAgents(), dim, is_occupied);
-    bool solved = method.solve(60, 0);
-    gettimeofday(&tv_after, &tz);
-    double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
-    std::cout << "instance has " << deserializer.getAgents().size() << " agents, find solution ? " << solved << " in " << time_cost << "ms " << std::endl;
+    auto init_t = clock();
+    double init_time_cost = (((double)init_t - start_t)/CLOCKS_PER_SEC);
+    if(init_time_cost >= time_limit) {
+        std::cout << "NOTICE: init of large agent MAPF instance run out of time" << std::endl;
+        return;
+    }
+    bool solved = method.solve(time_limit - init_time_cost, 0);
+    auto solve_t = clock();
+
+    double total_time_cost = (((double)solve_t - start_t)/CLOCKS_PER_SEC);
+
+    std::cout << "instance has " << deserializer.getAgents().size() << " agents, find solution ? " << solved
+              << " in " << total_time_cost << "s " << std::endl;
     std::cout << "solution validation ? " << method.solutionValidation() << std::endl;
 
     LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(deserializer.getAgents(), is_occupied, dim);

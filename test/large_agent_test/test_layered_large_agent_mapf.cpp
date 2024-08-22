@@ -26,7 +26,7 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
     }
     std::cout << "map scale = " << dim[0] << "*" << dim[1] << std::endl;
 
-    gettimeofday(&tv_pre, &tz);
+    auto start_t = clock();
 
     LargeAgentMAPFInstanceDecompositionPtr<2, AgentType> decomposer_ptr = nullptr;
     std::vector<std::vector<int> > grid_visit_count_table;
@@ -35,15 +35,15 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
                                                              dim, is_occupied,
                                                              CBS::LargeAgentCBS_func<2, AgentType >,
                                                              grid_visit_count_table,
-                                                             60, decomposer_ptr,
-                                                             true);
+                                                             30, decomposer_ptr,
+                                                             false);
 
-    gettimeofday(&tv_after, &tz);
+    auto end_t = clock();
 
-    double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
+    double time_cost = ((double)end_t-start_t)/CLOCKS_PER_SEC;
 
     std::cout << (layered_paths.size() == deserializer.getAgents().size() ? "success" : "failed")
-              << " layered large agent mapf in " << time_cost << "ms " << std::endl;
+              << " layered large agent mapf in " << time_cost << "s " << std::endl;
     std::cout << std::endl;
 
 //    gettimeofday(&tv_pre, &tz);

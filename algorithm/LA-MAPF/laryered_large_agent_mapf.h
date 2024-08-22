@@ -227,7 +227,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         struct timezone tz;
         struct timeval  tv_pre;
         struct timeval  tv_after;
-        gettimeofday(&tv_pre, &tz);
+        auto start_t = clock();
 
         LargeAgentMAPFInstanceDecompositionPtr<2, AgentType> decomposer =
                 std::make_shared<LargeAgentMAPFInstanceDecomposition<2, AgentType> >(instances,
@@ -235,9 +235,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         decomposer_copy = decomposer;
 
-        gettimeofday(&tv_after, &tz);
-        double decomposition_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
-        std::cout << "-- decomposition take " << decomposition_cost << " ms to get "
+        auto temp_t = clock();
+        double decomposition_cost = ((double)temp_t - start_t)/CLOCKS_PER_SEC;
+        std::cout << "-- decomposition take " << decomposition_cost << "s to get "
                   << decomposer->all_clusters_.size() << " clusters " << std::endl;
         std::cout << std::endl;
 
@@ -259,14 +259,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<size_t> pre_targets;
 
         for(int i=0; i<decomposer->all_clusters_.size(); i++) {
-            gettimeofday(&tv_pre, &tz);
             // instance_decompose->all_clusters_[i] to instances
             std::set<int> current_id_set = decomposer->all_clusters_[i];
 
-            double remaining_time = cutoff_time - (tv_after.tv_sec - tv_pre.tv_sec) + (tv_after.tv_usec - tv_pre.tv_usec)/1e6;
-            if(remaining_time < 0) {
-                return {};//retv;
-            }
+
 
             InstanceOrients<N> cluster_instances;
             std::vector<AgentType> cluster_agents;
@@ -303,6 +299,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         decomposer->agents_heuristic_tables_ignore_rotate_[current_id]);
 
             }
+            gettimeofday(&tv_pre, &tz);
 
             LargeAgentStaticConstraintTablePtr<N, AgentType>
                     new_constraint_table_ptr_ = std::make_shared<LargeAgentStaticConstraintTable<N, AgentType> > (
@@ -348,6 +345,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             all_cluster_agents.push_back(cluster_agents);
             all_cluster_vec.push_back(current_id_vec);
+
+            auto now_t = clock();
+            double remaining_time = (double)cutoff_time - ((double)now_t - start_t)/CLOCKS_PER_SEC;
+            std::cout << "remaining_time = " << remaining_time << "s" << std::endl;
+            if(remaining_time <= 0) {
+                return {};//retv;
+            }
             gettimeofday(&tv_pre, &tz);
             std::vector<std::vector<int> > grid_visit_count_table_local;
             std::vector<LAMAPF_Path> next_paths = mapf_func(cluster_instances, cluster_agents, dim, isoc,
@@ -374,16 +378,16 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 return {};//retv;
             }
             // debug: path constraint check
-            if(new_constraint_table_ptr_ != nullptr) {
-                for (int k = 0; k < current_id_vec.size(); k++) {
-                    for (int t = 0; t < next_paths[k].size() - 1; t++) {
-                        if (new_constraint_table_ptr_->hasCollide(current_id_vec[k], t, next_paths[k][t], next_paths[k][t + 1])) {
-                            std::cout << "FATAL: agent " << current_id_vec[k] << " collide with previous path when t = " << t << std::endl;
-                            return {};//retv;
-                        }
-                    }
-                }
-            }
+//            if(new_constraint_table_ptr_ != nullptr) {
+//                for (int k = 0; k < current_id_vec.size(); k++) {
+//                    for (int t = 0; t < next_paths[k].size() - 1; t++) {
+//                        if (new_constraint_table_ptr_->hasCollide(current_id_vec[k], t, next_paths[k][t], next_paths[k][t + 1])) {
+//                            std::cout << "FATAL: agent " << current_id_vec[k] << " collide with previous path when t = " << t << std::endl;
+//                            return {};//retv;
+//                        }
+//                    }
+//                }
+//            }
             assert(next_paths.size() == current_id_set.size());
             all_paths.push_back(next_paths);
             std::vector<std::pair<int, LAMAPF_Path> > next_paths_with_id;

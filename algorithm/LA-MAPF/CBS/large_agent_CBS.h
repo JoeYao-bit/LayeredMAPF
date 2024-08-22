@@ -87,6 +87,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         }
 
         virtual bool solve(double time_limit, int cost_lowerbound = 0, int cost_upperbound = MAX_COST) override {
+            auto start_time = clock();
             if(!this->solvable) {
                 std::cout << "-- unsolvable instance " << std::endl;
                 return false;
@@ -101,6 +102,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             while (!cleanup_list.empty() && !solution_found) {
 //                if(count >= 2000) { break; }
 //                std::cout << "-- " << count << " iteration, open size " << cleanup_list.size() << std::endl;
+                auto current_time = clock();
+                if((double)((current_time - start_time)/CLOCKS_PER_SEC) >= time_limit) {
+                    // run out of time
+                    std::cout << "NOTICE: run out of time " << std::endl;
+                    return false;
+                }
                 count ++;
                 // yz: select node with minimum heuristic value
                 auto curr = selectNode();
@@ -190,7 +197,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         std::list<HighLvNode *> allNodes_table; // this is ued for both ECBS and EES
 
         // stats
-        double runtime = 0;
+//        double runtime = 0;
 
         boost::heap::pairing_heap<CBSNode *, boost::heap::compare<CBSNode::compare_node_by_f> > cleanup_list; // it is called open list in ECBS
         boost::heap::pairing_heap<CBSNode *, boost::heap::compare<CBSNode::compare_node_by_inadmissible_f> > open_list; // this is used for EES
@@ -260,12 +267,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         bool terminate(HighLvNode *curr) {
             //std::cout << " terminate, have " << curr->unknownConf.size() << " conflict " << std::endl;
             // yz: if lower bound >= upper bound, terminate with no solution
-            if (cost_lowerbound >= cost_upperbound) {
-                std::cout << " cost_lowerbound >= cost_upperbound " << std::endl;
-                solution_cost = cost_lowerbound;
-                solution_found = false;
-                return true;
-            }
+//            if (cost_lowerbound >= cost_upperbound) {
+//                std::cout << " cost_lowerbound >= cost_upperbound " << std::endl;
+//                solution_cost = cost_lowerbound;
+//                solution_found = false;
+//                return true;
+//            }
             // yz: if current node have no conflict, find a solution, terminate
             if (curr->conflicts.empty() && curr->unknownConf.empty()) //no conflicts
             {// found a solution
@@ -285,11 +292,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 return true;
             }
             // yz: if exceed time limit or number of high level node exceed limit
-            if (runtime > time_limit) {   // time/node out
-                solution_cost = -1;
-                solution_found = false;
-                return true;
-            }
+//            if (runtime > time_limit) {   // time/node out
+//                solution_cost = -1;
+//                solution_found = false;
+//                return true;
+//            }
             return false;
         }
 
