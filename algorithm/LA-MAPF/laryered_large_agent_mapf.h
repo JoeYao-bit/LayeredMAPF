@@ -196,11 +196,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<AgentType> pre_agents = agents[0];
 
         for(int i=1; i<pathss.size(); i++) {
-            std::cout << "merge " << i << " th cluster: " << std::endl;
-            for(int j=0; j<agents[i].size(); j++) {
-                const auto& agent = agents[i][j];
-                std::cout << agent.id_ << " : " << printPath<N>(pathss[i][j], all_poses) << std::endl;
-            }
+//            std::cout << "merge " << i << " th cluster: " << std::endl;
+//            for(int j=0; j<agents[i].size(); j++) {
+//                const auto& agent = agents[i][j];
+//                std::cout << agent.id_ << " : " << printPath<N>(pathss[i][j], all_poses) << std::endl;
+//            }
 //            std::cout << std::endl;
             mergedPaths = SingleLayerCompressLargeAgent<N>(all_poses, mergedPaths, pre_agents, pathss[i], agents[i]);
             pre_agents.insert(pre_agents.end(), agents[i].begin(), agents[i].end());
@@ -310,6 +310,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             new_constraint_table_ptr_->insertPoses(pre_agents, pre_targets);
 
+            if(use_path_constraint) {
+                for(int j = 0; j<pathss.size(); j++) {
+                    for(int k = 0; k<pathss[j].size(); k++) {
+                        new_constraint_table_ptr_->insertPath(pathss[j][k].first, pathss[j][k].second);
+                    }
+                }
+            }
+
+
             // insert future agents' start as static constraint
             for(int j = i+1; j<decomposer->all_clusters_.size(); j++)
             {
@@ -319,6 +328,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     new_constraint_table_ptr_->insertPose(agent_id, decomposer->instance_node_ids_[agent_id].first);
                 }
             }
+            new_constraint_table_ptr_->updateEarliestArriveTimeForAgents(cluster_agents, target_node_ids);
 
             for(const auto& agent_id : current_id_vec) {
                 pre_agents.push_back(agents[agent_id]);

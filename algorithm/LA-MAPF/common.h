@@ -438,9 +438,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                           global_agents_(global_agents),
                                           local_agents_(local_agents),
                                           all_poses_(all_poses) {
-            int total_index = getTotalIndexOfSpace<N>(dim);
-            assert(all_poses.size()/(2*N) == total_index);
-            occupied_table_sat_.resize(total_index, {});
+            total_index_ = getTotalIndexOfSpace<N>(dim);
+            assert(all_poses.size()/(2*N) == total_index_);
+            occupied_table_sat_.resize(total_index_, {});
             for(const auto& agent : local_agents_) {
                 float radius = max_excircle_radius_ + agent.excircle_radius_;
                 points_in_agent_circles_.insert({agent.id_, GetSphereInflationOffsetGrids<N>((uint)ceil(radius))});
@@ -475,7 +475,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         // avoid conflict with  previous agents' target and future agents' start
         // agent global id
-        bool hasCollide(int agent_global_id, int time_index, const size_t & current_node, const size_t & next_node) const {
+        bool hasCollide(int agent_global_id, int time_index, const size_t & current_node, const size_t & next_node, bool is_goal = false) const {
 //            std::cout << "agent_global_id = " << agent_global_id << std::endl;
             // 1, get points in range
 //            auto iter = points_in_agent_circles_.find(agent_global_id);
@@ -500,6 +500,56 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                    }
 //                }
 //            }
+            if(is_goal) {
+                if(time_index + 1 < earliest_arrive_time_map_.at(agent_global_id)) { return true; }
+            }
+            const auto& agent = global_agents_[agent_global_id];
+            for(const auto& agent_path : path_constraint_table_) {
+                const auto& other_agent_id = agent_path.first;
+                const auto& other_agent = global_agents_[other_agent_id];
+                const auto& other_path = agent_path.second;
+                if(agent_global_id == other_agent_id) {
+                    std::cout << " FATAL: agent_global_id == other_agent_id " << std::endl;
+                    continue;
+                }
+                if(other_path.size() - 1 <= time_index) {
+                    if(isCollide(agent, *all_poses_[current_node], *all_poses_[next_node],
+                                 other_agent, *all_poses_[other_path.back()])) {
+//                        std::cout << "t=" << time_index << " " << agent << " at " << *all_nodes_[current_node] << "->" << *all_nodes_[next_node]
+//                                  << " and " << agents_[other_agent_id] << " at " << *all_nodes_[other_path.back()]
+//                                  << " have conflict" << std::endl;
+                        return true;
+                    } else {
+//                        std::cout << "t=" << time_index << " " << agent << " at " << *all_nodes_[current_node] << "->" << *all_nodes_[next_node]
+//                                  << " and " << agents_[other_agent_id] << " at " << *all_nodes_[other_path.back()]
+//                                  << " have no conflict" << std::endl;
+                    }
+                } else {
+                    if(isCollide(agent, *all_poses_[current_node], *all_poses_[next_node],
+                                 other_agent, *all_poses_[other_path[time_index]], *all_poses_[other_path[time_index+1]])) {
+//                        std::cout << "t=" << time_index << " " << agent << " at " << *all_nodes_[current_node] << "->" << *all_nodes_[next_node]
+//                                  << " and " << agents_[other_agent_id] << " at " << *all_nodes_[other_path[time_index]]
+//                                  << "->" << *all_nodes_[other_path[time_index+1]]
+//                                  << " have conflict" << std::endl;
+                        return true;
+                    } else {
+//                        std::cout << "t=" << time_index << " " << agent << " at " << *all_nodes_[current_node] << "->" << *all_nodes_[next_node]
+//                                  << " and " << agents_[other_agent_id] << " at " << *all_nodes_[other_path[time_index]]
+//                                  << "->" << *all_nodes_[other_path[time_index+1]]
+//                                  << " have no conflict" << std::endl;
+                    }
+                }
+                // if current agent reach target, check whether it collide with other agent in the future
+                // could be accelerate, by avoid
+                if(is_goal) {
+                    for(int t=earliest_arrive_time_map_.at(agent_global_id); t<other_path.size()-1; t++) {
+                        if(isCollide(agent, *all_poses_[current_node], *all_poses_[next_node],
+                                     global_agents_[other_agent_id], *all_poses_[other_path[t]], *all_poses_[other_path[t+1]])) {
+                            return true;
+                        }
+                    }
+                }
+            }
             if(hasCollideWithSAT(agent_global_id, current_node, next_node)) {
                 return true;
             }
@@ -517,19 +567,55 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             occupied_table_sat_[node_id/(2*N)].push_back({agent_id_global, node_id});
         }
 
-        void insertPath(const AgentType& agent, const LAMAPF_Path& path) {
-            path_constraint_table_.insert(agent.id_, path);
-            for(int t=0; t<path.size(); t++) {
-                const auto& node_id = path[t];
-                occupied_table_path_[t][node_id/(2*N)].insert({agent.id_, node_id});
+        void insertPath(int global_agent_id, const LAMAPF_Path& path) {
+            path_constraint_table_.insert({global_agent_id, path});
+//            if(occupied_table_path_.size() < path.size()) {
+//                occupied_table_path_.resize(path.size());
+//            }
+//            for(int t=0; t<path.size(); t++) {
+//                const auto& node_id = path[t];
+//                if(occupied_table_path_[t].size() != total_index_) { occupied_table_path_[t].resize(total_index_); }
+//                occupied_table_path_[t][node_id/(2*N)].push_back({global_agent_id, node_id});
+//            }
+        }
+
+        void updateEarliestArriveTimeForAgents(const std::vector<AgentType>& agents, const std::vector<size_t>& target_node_ids) {
+            assert(agents.size() == target_node_ids.size());
+            earliest_arrive_time_map_.clear();
+            for(int k=0; k<agents.size(); k++) {
+                int earliest_time = calculateEarliestArriveTimeForAgent(agents[k], target_node_ids[k]);
+                earliest_arrive_time_map_.insert({agents[k].id_, earliest_time});
             }
         }
+
+        // call before use bool hasCollide(...)
+        // calculate the earliest possible arrive time
+        int calculateEarliestArriveTimeForAgent(const AgentType& agent, const size_t& target_node_id) const {
+            int temp_earliest_arrive_time_ = 0;
+            for(const auto& agent_path : path_constraint_table_) {
+                const auto &path = agent_path.second;
+                int local_earliest_arrive_time = 0;
+                for (int t = path.size() - 2; t >= std::max(temp_earliest_arrive_time_ - 1, 0); t--) {
+                    if (isCollide(global_agents_[agent_path.first], *all_poses_[path[t]], *all_poses_[path[t + 1]],
+                                  agent, *all_poses_[target_node_id])) {
+                        break;
+                    } else {
+                        local_earliest_arrive_time = t + 1;
+                    }
+                }
+                temp_earliest_arrive_time_ = std::max(local_earliest_arrive_time, temp_earliest_arrive_time_);
+            }
+            std::cout << " set agent " << agent << " earliest_arrive_time_ = " << temp_earliest_arrive_time_ << std::endl;
+            return temp_earliest_arrive_time_;
+        }
+
         const std::vector<AgentType>& global_agents_;
         const std::vector<AgentType>& local_agents_;
         const std::vector<PosePtr<int, N> >& all_poses_;
         const float max_excircle_radius_;
         const IS_OCCUPIED_FUNC<N>& isoc_;
         const DimensionLength* dim_;
+        Id total_index_;
 
         std::map<int, Pointis<N> > points_in_agent_circles_; // precomputed check range
 
@@ -540,6 +626,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         // t, location id and related {agent_global_id, poses id}
         std::vector<std::vector<std::vector<std::pair<int, size_t> > > > occupied_table_path_;
         std::map<int, LAMAPF_Path> path_constraint_table_;
+        std::map<int, int> earliest_arrive_time_map_; // agent.id_ and the earliest time to visit the target
 
     };
 

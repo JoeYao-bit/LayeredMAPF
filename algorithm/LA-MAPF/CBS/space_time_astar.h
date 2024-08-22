@@ -150,7 +150,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                     // avoid conflict     with external paths
                     if(this->path_constraint_ != nullptr &&
                         this->path_constraint_->hasCollide(this->sub_graph_.agent_id_, curr->timestep,
-                                                           curr->node_id, next_node_id)) {
+                                                           curr->node_id, next_node_id, next_node_id == this->target_node_id_)) {
                         continue;
                     }
 
