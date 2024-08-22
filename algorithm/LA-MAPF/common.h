@@ -442,6 +442,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             total_index_ = getTotalIndexOfSpace<N>(dim);
             assert(all_poses.size()/(2*N) == total_index_);
             occupied_table_sat_.resize(total_index_, {});
+            static_time_ = 0;
             for(const auto& agent : local_agents_) {
                 float radius = max_excircle_radius_ + agent.excircle_radius_;
                 points_in_agent_circles_.insert({agent.id_, GetSphereInflationOffsetGrids<N>((uint)ceil(radius))});
@@ -571,6 +572,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         void insertPath(int global_agent_id, const LAMAPF_Path& path) {
             path_constraint_table_.insert({global_agent_id, path});
+            static_time_ = std::max((int)path.size() + 1, static_time_);
 //            if(occupied_table_path_.size() < path.size()) {
 //                occupied_table_path_.resize(path.size());
 //            }
@@ -583,6 +585,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         void updateEarliestArriveTimeForAgents(const std::vector<AgentType>& agents, const std::vector<size_t>& target_node_ids) {
             assert(agents.size() == target_node_ids.size());
+            static_time_ = std::max(2, static_time_);
             earliest_arrive_time_map_.clear();
             for(int k=0; k<agents.size(); k++) {
                 int earliest_time = calculateEarliestArriveTimeForAgent(agents[k], target_node_ids[k]);
@@ -629,6 +632,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<std::vector<std::vector<std::pair<int, size_t> > > > occupied_table_path_;
         std::map<int, LAMAPF_Path> path_constraint_table_;
         std::map<int, int> earliest_arrive_time_map_; // agent.id_ and the earliest time to visit the target
+
+        int static_time_ = 0; // after which time, every thing is static
 
     };
 

@@ -70,10 +70,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                                         constraint_table, constraint_avoidance_table, path_constraint) {
             //
 //            std::cout << "space time search agent " <<  agents[this->sub_graph_.agent_id_] << std::endl;
-//            grid_visit_count_table_.resize(sub_graph.all_nodes_.size() / (2*N));
+            grid_visit_count_table_.resize(sub_graph.all_nodes_.size() / (2*N));
         }
 
         virtual LAMAPF_Path solve() override {
+
+            int static_time_step = std::max(this->constraint_table_.getMaxTimestep(),
+                                            this->path_constraint_->static_time_);
 
             new_nodes_in_open.clear();
             LAMAPF_Path path;
@@ -107,7 +110,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 new_nodes_in_open.clear();
                 auto *curr = popNode();
 //                std::cout << " SpaceTimeAstar pop " << *(this->sub_graph_.all_nodes_[curr->node_id]) << std::endl;
-//                grid_visit_count_table_[curr->node_id/(2*N)] ++;
+                grid_visit_count_table_[curr->node_id/(2*N)] ++;
 //                assert(curr->node_id >= 0);
                 // check if the popped node is a goal
                 if (curr->node_id == this->target_node_id_ // && // arrive at the goal location
@@ -120,13 +123,16 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                     break;
                 }
 
+                int next_timestep = curr->timestep + 1;
+
                 auto next_locations = this->sub_graph_.all_edges_[curr->node_id];//instance.getNeighbors(curr->location);
-                next_locations.emplace_back(curr->node_id); // considering wait
+                if(next_timestep < static_time_step) {
+                    next_locations.emplace_back(curr->node_id); // considering wait before every obstacle is static
+                }
                 //std::reverse(next_locations.begin(), next_locations.end());
                 std::random_shuffle(next_locations.begin(), next_locations.end()); // shuffle to make agent move in all direction equally
 
                 for (const size_t& next_node_id : next_locations) {
-                    int next_timestep = curr->timestep + 1;
 //                    if (static_timestep <
 //                        next_timestep) { // now everything is static, so switch to space A* where we always use the same timestep
 //                        // yz: no need to wait after no constraint is applied
@@ -157,11 +163,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                     // compute cost to next_id via curr node
                     int next_g_val = curr->g_val + 1;
 
-                    int next_h_val = this->heuristic_[next_node_id];//std::max(this->lower_bound_ - next_g_val, this->heuristic_[next_node_id]);
-
-//                    if (next_g_val + next_h_val > this->constraint_table_.length_max_)
-//
-//                        continue;
+                    int next_h_val = this->heuristic_[next_node_id];
 
                     // getNumOfConflictsForStep is very time consuming for large agents
                     // resulting no getNumOfConflictsForStep might be faster than use it
@@ -175,9 +177,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                     auto next = new AStarNode(next_node_id, next_g_val, next_h_val,
                                               this->heuristic_ignore_rotate_[next_node_id],
                                               curr, next_timestep, next_internal_conflicts);
-
-//                    if (next_node_id == this->target_node_id_ && curr->node_id == this->target_node_id_)
-//                        next->wait_at_goal = true;
 
                     // try to retrieve it from the hash table
                     auto it = allNodes_table.find(next);

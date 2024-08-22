@@ -394,7 +394,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             for(int k=0; k<current_id_vec.size(); k++) {
                 next_paths_with_id.push_back({current_id_vec[k], next_paths[k]});
                 retv[current_id_vec[k]] = next_paths[k];
-//                grid_visit_count_table[current_id_vec[k]] = grid_visit_count_table_local[k];
+                grid_visit_count_table[current_id_vec[k]] = grid_visit_count_table_local[k];
             }
             pathss.push_back(next_paths_with_id);
         }

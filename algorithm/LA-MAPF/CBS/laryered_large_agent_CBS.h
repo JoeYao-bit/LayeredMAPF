@@ -31,7 +31,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                                                                   agents_heuristic_tables,
                                                                   agents_heuristic_tables_ignore_rotate);
 
-//        grid_visit_count_table = solver.grid_visit_count_tables_;
+        grid_visit_count_table = solver.grid_visit_count_tables_;
 
         if(solver.solve(cutoff_time)) {
             return solver.getSolution();

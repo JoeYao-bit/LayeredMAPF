@@ -58,7 +58,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                                                    path_constraint_,
                                                    this->agents_);
                 LAMAPF_Path solution = astar.solve();
-                //grid_visit_count_tables_.push_back(astar.grid_visit_count_table_);
+                grid_visit_count_tables_.push_back(astar.grid_visit_count_table_);
                 if(solution.empty()) {
                     std::cout << " agent " << agent << " search path failed " << std::endl;
                     this->solvable = false;
