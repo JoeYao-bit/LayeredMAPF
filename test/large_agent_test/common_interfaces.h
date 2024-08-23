@@ -37,6 +37,8 @@ int current_subgraph_id = 0;
 bool draw_all_subgraph_node = false;
 bool draw_all_instance = false;
 bool draw_heuristic_table = false;
+bool draw_heuristic_table_ignore_rotate = false;
+
 bool draw_path = true;
 bool draw_full_path = true;
 bool draw_visit_grid_table = false;
@@ -58,7 +60,7 @@ bool draw_visit_grid_table = false;
 // MAPFTestConfig_AR0014SR
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
-auto map_test_config = MAPFTestConfig_AR0011SR;//MAPFTestConfig_AR0011SR;//MAPFTestConfig_maze_32_32_4;//MAPFTestConfig_Berlin_1_256;//MAPFTestConfig_simple;
+auto map_test_config = MAPFTestConfig_Berlin_1_256;//MAPFTestConfig_AR0011SR;//MAPFTestConfig_maze_32_32_4;//MAPFTestConfig_Berlin_1_256;//MAPFTestConfig_simple;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -134,7 +136,7 @@ void startLargeAgentMAPFTest(const std::vector<AgentType>& agents, const Instanc
                 const auto& path = lacbs.solutions_[i];
                 for(int t=0; t<path.size()-1; t++) {
                     Pointi<2> pt1 = lacbs.all_poses_[path[t]]->pt_, pt2 = lacbs.all_poses_[path[t+1]]->pt_;
-                    canvas.drawLineInt(pt1[0], pt1[1], pt2[0], pt2[1], true, zoom_ratio/10, COLOR_TABLE[(i) % 30]);
+                    canvas.drawLineInt(pt1[0], pt1[1], pt2[0], pt2[1], true, std::max(zoom_ratio/10, 1), COLOR_TABLE[(i) % 30]);
                 }
             }
         }
@@ -162,7 +164,7 @@ void startLargeAgentMAPFTest(const std::vector<AgentType>& agents, const Instanc
                 //std::cout << "rect " << rect.first << ", " << rect.second << std::endl;
 
                 lacbs.agents_[i].drawOnCanvas({pt, orient}, canvas, COLOR_TABLE[(i) % 30]);
-                canvas.drawArrowInt(pt[0], pt[1], -orientToPi_2D(orient) , 1, zoom_ratio/10);
+                canvas.drawArrowInt(pt[0], pt[1], -orientToPi_2D(orient) , 1, std::max(zoom_ratio/10, 1));
 
             }
         }
@@ -171,13 +173,14 @@ void startLargeAgentMAPFTest(const std::vector<AgentType>& agents, const Instanc
             {
                 const auto &instance = instances[current_subgraph_id];
                 agents[current_subgraph_id].drawOnCanvas(instance.first, canvas, COLOR_TABLE[current_subgraph_id%30]);
-                canvas.drawArrowInt(instance.first.pt_[0], instance.first.pt_[1], -orientToPi_2D(instance.first.orient_) , 1, zoom_ratio/10);
+                canvas.drawArrowInt(instance.first.pt_[0], instance.first.pt_[1], -orientToPi_2D(instance.first.orient_) , 1, std::max(zoom_ratio/10, 1));
 
                 agents[current_subgraph_id].drawOnCanvas(instance.second, canvas, COLOR_TABLE[current_subgraph_id%30]);
-                canvas.drawArrowInt(instance.second.pt_[0], instance.second.pt_[1], -orientToPi_2D(instance.second.orient_), 1, zoom_ratio/10);
+                canvas.drawArrowInt(instance.second.pt_[0], instance.second.pt_[1], -orientToPi_2D(instance.second.orient_), 1, std::max(zoom_ratio/10, 1));
 
             }
         }
+        // agents_heuristic_tables_ignore_rotate_
         if(draw_heuristic_table) {
             const auto& heuristic_table = lacbs.agents_heuristic_tables_[current_subgraph_id];
             Id total_index = getTotalIndexOfSpace<2>(dim);
@@ -193,7 +196,23 @@ void startLargeAgentMAPFTest(const std::vector<AgentType>& agents, const Instanc
                         ) {
                     Pointi<2> position = IdToPointi<2>(i, dim);
                     std::stringstream ss;
-                    ss << value;
+                    ss << "h: " << value;
+                    canvas.drawTextInt(position[0], position[1], ss.str().c_str(), cv::Vec3b::all(0), .5);
+                }
+            }
+        }
+        if(draw_heuristic_table_ignore_rotate) {
+            const auto& heuristic_table = lacbs.agents_heuristic_tables_ignore_rotate_[current_subgraph_id];
+            Id total_index = getTotalIndexOfSpace<2>(dim);
+            for(int i=0; i<total_index; i++) {
+                // pick minimum heuristic value in all direction
+                int value = MAX<int>;
+                value = heuristic_table[i];
+                if(value != MAX<int>// && value < 10
+                        ) {
+                    Pointi<2> position = IdToPointi<2>(i, dim);
+                    std::stringstream ss;
+                    ss << "hir: " << value;
                     canvas.drawTextInt(position[0], position[1], ss.str().c_str(), cv::Vec3b::all(0), .5);
                 }
             }
@@ -218,6 +237,9 @@ void startLargeAgentMAPFTest(const std::vector<AgentType>& agents, const Instanc
                 break;
             case 'h':
                 draw_heuristic_table = !draw_heuristic_table;
+                break;
+            case 'r':
+                draw_heuristic_table_ignore_rotate = !draw_heuristic_table_ignore_rotate;
                 break;
             case 'p':
                 draw_path = !draw_path;

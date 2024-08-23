@@ -142,7 +142,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                agents_heuristic_tables_ignore_rotate_.reserve(instances_.size());
                for (int agent = 0; agent < instances_.size(); agent++) {
                    agents_heuristic_tables_ignore_rotate_.push_back(
-                           constructHeuristicTable(agent_sub_graphs_[agent], instance_node_ids_[agent].second, true));
+                           constructHeuristicTableIgnoreRotate(agent_sub_graphs_[agent], instance_node_ids_[agent].second));
                }
            }
             gettimeofday(&tv_after, &tz);
@@ -240,7 +240,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return sub_graph;
         }
 
-        std::vector<int> constructHeuristicTable(const SubGraphOfAgent<N>& sub_graph, const size_t& goal_id, bool ignore_rotate = false) const {
+
+
+        std::vector<int> constructHeuristicTable(const SubGraphOfAgent<N>& sub_graph, const size_t& goal_id) const {
             struct Node {
                 int node_id;
                 int value;
@@ -257,8 +259,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     }
                 };  // used by OPEN (heap) to compare nodes (top of the heap has min f-val, and then highest g-val)
             };
-
-            std::vector<int> agent_heuristic(sub_graph.all_nodes_.size(), MAX_TIMESTEP);
+            std::vector<int> agent_heuristic(sub_graph.all_nodes_.size(), MAX<int>);
 
             // generate a heap that can save nodes (and an open_handle)
             boost::heap::pairing_heap<Node, boost::heap::compare<typename Node::compare_node> > heap;
@@ -273,9 +274,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 heap.pop();
                 for (const size_t& next_location : sub_graph.all_backward_edges_[curr.node_id]) {
                     int new_heuristic_value = curr.value + 1;
-                    if(ignore_rotate && curr.node_id / (2*N) == next_location / (2*N)) {
-                        new_heuristic_value = curr.value;
-                    }
                     if (agent_heuristic[next_location] > new_heuristic_value) {
                         agent_heuristic[next_location] = new_heuristic_value;
                         Node next(next_location, new_heuristic_value);
@@ -289,6 +287,66 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //            }
             return agent_heuristic;
         }
+
+        std::vector<int> constructHeuristicTableIgnoreRotate(const SubGraphOfAgent<N>& sub_graph,
+                                                             const size_t& goal_id) const {
+            struct Node {
+                Pointi<N> node_pt;
+                int value;
+
+                Node() = default;
+
+                Node(const Pointi<N>& node_pt, int value) : node_pt(node_pt), value(value) {}
+
+                // the following is used to compare nodes in the OPEN list
+                struct compare_node {
+                    // returns true if n1 > n2 (note -- this gives us *min*-heap).
+                    bool operator()(const Node &n1, const Node &n2) const {
+                        return n1.value >= n2.value;
+                    }
+                };  // used by OPEN (heap) to compare nodes (top of the heap has min f-val, and then highest g-val)
+            };
+
+            std::vector<int> retv(sub_graph.all_nodes_.size()/(2*N), MAX<int>);
+            // 1, get grid connectivity graph
+            std::vector<bool> c_graph(sub_graph.all_nodes_.size()/(2*N), false);
+            for(int i=0; i<sub_graph.all_nodes_.size(); i++) {
+                if(sub_graph.all_nodes_[i] != nullptr) {
+//                    std::cout << "flag 4" << std::endl;
+                    c_graph[i/(2*N)] = true;
+                }
+            }
+            // 2, wave front to get heuristic table
+            // generate a heap that can save nodes (and an open_handle)
+            boost::heap::pairing_heap<Node, boost::heap::compare<typename Node::compare_node> > heap;
+            Pointi<N> target_pt = IdToPointi<N>(goal_id/(2*N), dim_);
+            Node root(target_pt, 0);
+            retv[goal_id/(2*N)] = 0;
+            heap.push(root);  // add root to heap
+            // yz: compute heuristic from goal to visible grid via Breadth First Search
+            //     search the static shortest path
+            Pointis<N> offsets = GetNearestOffsetGrids<N>();
+            while (!heap.empty()) {
+                Node curr = heap.top();
+                heap.pop();
+                for (const Pointi<N>& offset : offsets) {
+                    Pointi<N> next_location = curr.node_pt + offset;
+                    if(isoc_(next_location)) { continue; }
+                    Id id = PointiToId<N>(next_location, dim_);
+                    if(!c_graph[id]) { continue; }
+                    int new_heuristic_value = curr.value + 1;
+                    if (retv[id] > new_heuristic_value) {
+                        retv[id] = new_heuristic_value;
+                        Node next(next_location, new_heuristic_value);
+                        heap.push(next);
+                    }
+
+                }
+            }
+            return retv;
+        }
+
+
 
         bool solutionValidation() const {
             for(int a1=0; a1<this->agents_.size(); a1++) {

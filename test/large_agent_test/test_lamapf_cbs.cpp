@@ -16,7 +16,7 @@
 #include "../../freeNav-base/dependencies/2d_grid/text_map_loader.h"
 #include "../test_data.h"
 #include "common_interfaces.h"
-
+#include "../../algorithm/LA-MAPF/CBS/laryered_large_agent_CBS.h"
 
 
 CircleAgent<2> c1(2.5, 0, dim);
@@ -167,31 +167,22 @@ TEST(pointer, test) {
 }
 
 TEST(CircleAgentSubGraph, cbs_test) {
+    const std::string file_path = map_test_config.at("crc_ins_path");
 
-    // fake instances
-    InstanceOrients<2> instances = {
-//            {{{8, 3}, 0}, {{23, 22},0} },
-//            {{{9, 2}, 0}, {{5, 22}, 0}},
-//            {{{2, 5}, 0}, {{17, 22}, 3}}
-            {{{8, 3}, 0}, {{23, 22},0} },
-            {{{9, 2}, 0}, {{5, 22}, 0}},
-            {{{2, 5}, 0}, {{17, 22}, 3}}
-    };
-    CircleAgents<2> agents({
-//                            CircleAgent<2>(.3, 0, dim),
-//                            CircleAgent<2>(.7, 1, dim),
-//                            CircleAgent<2>(.6, 2, dim)
-                                   CircleAgent<2>(.4, 0, dim),
-                                   CircleAgent<2>(.4, 1, dim),
-                                   CircleAgent<2>(.4, 2, dim)
-                           });
-//    std::cout << "dim = " << dim << std::endl;
-//    for(const auto& agent : agents) {
-//        std::cout << "agent " << agent.id_ << ", dim = " << agent.dim_ << std::endl;
-//        std::cout << "agent " << agent.id_ << ", dim = " << agent.dim_[0] << ", " << agent.dim_[1] << std::endl;
-//    }
+    InstanceDeserializer<2, CircleAgent<2> > deserializer;
+    if (deserializer.loadInstanceFromFile(file_path, dim)) {
+        std::cout << "load from path " << file_path << " success" << std::endl;
+    } else {
+        std::cout << "load from path " << file_path << " failed" << std::endl;
+        return;
+    }
+    std::cout << "map scale = " << dim[0] << "*" << dim[1] << std::endl;
 
-    startLargeAgentMAPFTest<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2>> >(agents, instances);
+    LargeAgentMAPFInstanceDecompositionPtr<2, CircleAgent<2>> decomposer_ptr = nullptr;
+    std::vector<std::vector<int> > grid_visit_count_table;
+
+
+    startLargeAgentMAPFTest<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2>> >(deserializer.getAgents(), deserializer.getInstances());
 }
 
 TEST(BlockAgentSubGraph, cbs_test) {

@@ -39,10 +39,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             bool operator()(const LowLvNode *n1, const LowLvNode *n2) const {
                 if (n1->g_val + n1->h_val == n2->g_val + n2->h_val) {
                     if (n1->h_val == n2->h_val) {
-                        //if(n1->h_val_second == n2->h_val_second) {
+//                        if(n1->h_val_second == n2->h_val_second) {
                             return rand() % 2 == 0;   // break ties randomly
-                        //}
-                        //return n1->h_val_second >= n2->h_val_second;
+//                        }
+//                        return n1->h_val_second >= n2->h_val_second;
                     }
                     return n1->h_val >= n2->h_val;  // break ties towards smaller h_vals (closer to goal location)
                 }
@@ -57,7 +57,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 if (n1->num_of_conflicts == n2->num_of_conflicts) {
                     if (n1->g_val + n1->h_val == n2->g_val + n2->h_val) {
                         if (n1->h_val == n2->h_val) {
-                            return rand() % 2 == 0;   // break ties randomly
+                            if(n1->h_val_second == n2->h_val_second) {
+                                return rand() % 2 == 0;   // break ties randomly
+                            }
+                            return n1->h_val_second >= n2->h_val_second;
                         }
                         return n1->h_val >= n2->h_val;  // break ties towards smaller h_vals (closer to goal location)
                     }

@@ -75,8 +75,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
         virtual LAMAPF_Path solve() override {
 
-            int static_time_step = std::max(this->constraint_table_.getMaxTimestep(),
-                                            this->path_constraint_->static_time_);
+            int static_time_step = this->constraint_table_.getMaxTimestep();
+
+            if(this->path_constraint_ != nullptr) {
+                static_time_step = std::max(static_time_step, this->path_constraint_->static_time_);
+            }
 
             new_nodes_in_open.clear();
             LAMAPF_Path path;
@@ -84,7 +87,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             // generate start and add it to the OPEN & FOCAL list
             auto start = new AStarNode(this->start_node_id_, 0, std::max(this->lower_bound_,
                                                                          this->heuristic_[this->start_node_id_]),
-                                       this->heuristic_ignore_rotate_[this->start_node_id_],
+                                       this->heuristic_ignore_rotate_[this->start_node_id_/(2*N)],
                                        nullptr, 0, 0);
 
             start->open_handle = open_list.push(start);
@@ -175,7 +178,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
                     // generate (maybe temporary) node
                     auto next = new AStarNode(next_node_id, next_g_val, next_h_val,
-                                              this->heuristic_ignore_rotate_[next_node_id],
+                                              this->heuristic_ignore_rotate_[next_node_id/(2*N)],
                                               curr, next_timestep, next_internal_conflicts);
 
                     // try to retrieve it from the hash table
