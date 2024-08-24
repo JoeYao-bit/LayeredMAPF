@@ -79,7 +79,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             // 5, level sorting
             if(decompose_level >= 1) {
                 gettimeofday(&tv_pre, &tz);
-                levelSorting();
+//                levelSorting();
                 gettimeofday(&tv_after, &tz);
                 level_sorting_time_cost_ =
                         (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
@@ -547,6 +547,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     }
                 }
             }
+            // sorting in increase size, to enable large cluster have fewer external path constraint
+//            std::sort(all_clusters.begin(),all_clusters.end(),[](std::set<int> x,std::set<int> y){return x.size()>y.size();});
             all_clusters_ = all_clusters;
 
         }

@@ -21,6 +21,10 @@
 #include "../../freeNav-base/visualization/canvas/canvas.h"
 #include "../../freeNav-base/dependencies/2d_grid/text_map_loader.h"
 #include "../test_data.h"
+#include "../../algorithm/LA-MAPF/CBS/laryered_large_agent_CBS.h"
+
+#include "../../algorithm/LA-MAPF/laryered_large_agent_mapf.h"
+
 
 using namespace freeNav;
 using namespace freeNav::LayeredMAPF;
@@ -49,7 +53,7 @@ bool draw_visit_grid_table = false;
 // MAPFTestConfig_warehouse_10_20_10_2_2
 // MAPFTestConfig_Paris_1_256
 // MAPFTestConfig_simple
-// MAPFTestConfig_empty_48_48
+// MAPFTestConfig_empty_48_48 // error
 // MAPFTestConfig_warehouse_20_40_10_2_1
 // MAPFTestConfig_warehouse_20_40_10_2_2
 // MAPFTestConfig_room_32_32_4
@@ -60,7 +64,11 @@ bool draw_visit_grid_table = false;
 // MAPFTestConfig_AR0014SR
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
-auto map_test_config = MAPFTestConfig_Berlin_1_256;//MAPFTestConfig_AR0011SR;//MAPFTestConfig_maze_32_32_4;//MAPFTestConfig_Berlin_1_256;//MAPFTestConfig_simple;
+auto map_test_config = MAPFTestConfig_maze_32_32_4;
+//MAPFTestConfig_AR0011SR;
+// MAPFTestConfig_maze_32_32_4;
+// MAPFTestConfig_Berlin_1_256;
+// MAPFTestConfig_simple;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -379,14 +387,16 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
         if(draw_visit_grid_table) {
             if(!grid_visit_count_table.empty()) {
                 const auto& local_grid_visit_count_table = grid_visit_count_table[current_subgraph_id];
-                Id total_index = getTotalIndexOfSpace<2>(dim);
-                for(int i=0; i<total_index; i++) {
-                    Pointi<2> position = IdToPointi<2>(i, dim);
-                    int value = local_grid_visit_count_table[i];
-                    if(value != 0) {
-                        std::stringstream ss;
-                        ss << value;
-                        canvas.drawTextInt(position[0], position[1], ss.str().c_str(), cv::Vec3b::all(0), .5);
+                if(!local_grid_visit_count_table.empty()){
+                    Id total_index = getTotalIndexOfSpace<2>(dim);
+                    for(int i=0; i<total_index; i++) {
+                        Pointi<2> position = IdToPointi<2>(i, dim);
+                        int value = local_grid_visit_count_table[i];
+                        if(value != 0) {
+                            std::stringstream ss;
+                            ss << value;
+                            canvas.drawTextInt(position[0], position[1], ss.str().c_str(), cv::Vec3b::all(0), .5);
+                        }
                     }
                 }
             }
@@ -414,6 +424,7 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
                 break;
             case 'g':
                 draw_visit_grid_table = !draw_visit_grid_table;
+                break;
             case 'q':
                 if(makespan > 0) {
                     time_index = time_index + makespan - 1;
@@ -437,6 +448,15 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
     }
 }
 
+/*
+ *     auto layered_paths = layeredLargeAgentMAPF<2, AgentType>(deserializer.getInstances(),
+                                                             deserializer.getAgents(),
+                                                             dim, is_occupied,
+                                                             CBS::LargeAgentCBS_func<2, AgentType >,
+                                                             grid_visit_count_table,
+                                                             30, decomposer_ptr,
+                                                             true);
+ * */
 
 template<typename AgentType, typename MethodType>
 void loadInstanceAndPlanning(const std::string& file_path, double time_limit = 30) {
@@ -467,6 +487,40 @@ void loadInstanceAndPlanning(const std::string& file_path, double time_limit = 3
 
     LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(deserializer.getAgents(), is_occupied, dim);
     InstanceVisualization<AgentType>(deserializer.getAgents(), generator.getAllPoses(), deserializer.getInstances(), method.getSolution());
+}
+
+template<typename AgentType>
+void loadInstanceAndPlanningLayeredCBS(const std::string& file_path, double time_limit = 30, bool path_constraint = false) {
+    InstanceDeserializer<2, AgentType> deserializer;
+    if(deserializer.loadInstanceFromFile(file_path, dim)) {
+        std::cout << "load from path " << file_path << " success" << std::endl;
+    } else {
+        std::cout << "load from path " << file_path << " failed" << std::endl;
+        return;
+    }
+    std::cout << " map scale " << dim[0] << "*" << dim[1] << std::endl;
+
+    std::vector<std::vector<int> > grid_visit_count_table;
+    LargeAgentMAPFInstanceDecompositionPtr<2, CircleAgent<2>> decomposer_ptr = nullptr;
+    auto start_t = clock();
+    auto layered_paths = layeredLargeAgentMAPF<2, AgentType>(deserializer.getInstances(),
+                                                            deserializer.getAgents(),
+                                                            dim, is_occupied,
+                                                            CBS::LargeAgentCBS_func<2, AgentType >,
+                                                            grid_visit_count_table,
+                                                            time_limit, decomposer_ptr,
+                                                             path_constraint);
+    auto end_t = clock();
+    double total_time_cost = ((double)end_t - start_t)/CLOCKS_PER_SEC;
+    std::cout << "instance has " << deserializer.getAgents().size() << " agents, find solution ? " << !layered_paths.empty()
+              << " in " << total_time_cost << "s " << std::endl;
+
+    LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(deserializer.getAgents(), is_occupied, dim);
+    InstanceVisualization<AgentType>(deserializer.getAgents(),
+                                     generator.getAllPoses(),
+                                     deserializer.getInstances(),
+                                     layered_paths,
+                                     grid_visit_count_table);
 }
 
 
@@ -505,8 +559,10 @@ void generateInstance(const std::vector<AgentType>& agents, const std::string& f
         return;
     }
 
-//    InstanceVisualization<AgentType>(agents, generator, instances, solution);
+//    InstanceVisualization<AgentType>(agents, generator.getAllPoses(), instances, solution);
 //    loadInstanceAndPlanning<AgentType, MethodType>(file_path);
+    loadInstanceAndPlanningLayeredCBS<CircleAgent<2> >(map_test_config.at("crc_ins_path"), 30, false);
+
 }
 
 template<typename AgentType>

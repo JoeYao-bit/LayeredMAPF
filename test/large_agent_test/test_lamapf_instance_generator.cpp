@@ -52,8 +52,8 @@ int canvas_size_x = 1000, canvas_size_y = 700;
 
 TEST(GenerateCircleInstance, test)
 {
-    const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(30,
-                                                                   .4, 3.8,
+    const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(5,
+                                                                   .4, 2.3,
                                                                    .1,
                                                                    dim);
 
@@ -89,7 +89,10 @@ TEST(LoadCircleInstance, test)
     // LargeAgentConstraintTableForLarge
     // LargeAgentConstraintTable
 
-    loadInstanceAndPlanning<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > >(file_path, 30);
+//    loadInstanceAndPlanning<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > >(file_path, 30);
+
+    loadInstanceAndPlanningLayeredCBS<CircleAgent<2> >(file_path, 60, true);
+
 };
 
 TEST(LoadBlock_2DInstance, test)

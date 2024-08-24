@@ -188,26 +188,29 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     LAMAPF_Paths multiLayerCompressLargeAgent(const std::vector<PosePtr<int, N> >& all_poses,
                                           const std::vector<LAMAPF_Paths>& pathss,
                                           const std::vector<std::vector<AgentType> >& agents) {
+        assert(pathss.size() == agents.size());
         if(pathss.size() == 1) { return pathss[0]; }
         else if(pathss.empty()) { return {}; }
+
+        int total_size = 0;
+        for(int i=0; i<agents.size(); i++) {
+            assert(pathss[i].size() == agents[i].size());
+            total_size += agents[i].size();
+        }
 
         // delay other path to avoid conflict with previous
         LAMAPF_Paths mergedPaths = pathss[0];
         std::vector<AgentType> pre_agents = agents[0];
 
         for(int i=1; i<pathss.size(); i++) {
-//            std::cout << "merge " << i << " th cluster: " << std::endl;
-//            for(int j=0; j<agents[i].size(); j++) {
-//                const auto& agent = agents[i][j];
-//                std::cout << agent.id_ << " : " << printPath<N>(pathss[i][j], all_poses) << std::endl;
-//            }
-//            std::cout << std::endl;
+//
+
             mergedPaths = SingleLayerCompressLargeAgent<N>(all_poses, mergedPaths, pre_agents, pathss[i], agents[i]);
             pre_agents.insert(pre_agents.end(), agents[i].begin(), agents[i].end());
 
 //            if(!isSolutionValid(mergedPaths, pre_agents, all_poses)) { break; }
         }
-        mergedPaths.resize(agents.size());
+        mergedPaths.resize(total_size);
         return mergedPaths;
     }
 
@@ -262,21 +265,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             // instance_decompose->all_clusters_[i] to instances
             std::set<int> current_id_set = decomposer->all_clusters_[i];
 
-
-
             InstanceOrients<N> cluster_instances;
             std::vector<AgentType> cluster_agents;
 
             std::vector<int> current_id_vec;
             std::vector<size_t> target_node_ids;
-
-            /*    pre calculated variables
-             *    const std::vector<PosePtr<int, N> >& all_poses = {},
-                  const DistanceMapUpdaterPtr<N>& distance_map_updater = nullptr,
-                  const std::vector<SubGraphOfAgent<N> >& agent_sub_graphs = {},
-                  const std::vector<std::vector<int> >& agents_heuristic_tables = {},
-                  const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate = {}
-             * */
 
             const std::vector<PosePtr<int, N> >& local_all_poses = decomposer->all_poses_;
             const DistanceMapUpdaterPtr<N>&      local_distance_map_updater = decomposer->distance_map_updater_;
@@ -284,10 +277,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             std::vector<std::vector<int> >       local_agents_heuristic_tables;
             std::vector<std::vector<int> >       local_agents_heuristic_tables_ignore_rotate;
 
+
             for(const auto& current_id : current_id_set) {
                 current_id_vec.push_back(current_id);
                 cluster_instances.push_back(instances[current_id]);
                 cluster_agents.push_back(agents[current_id]);
+
+
                 target_node_ids.push_back(decomposer->instance_node_ids_[current_id].second);
 
                 local_agent_sub_graphs.push_back(decomposer->agent_sub_graphs_[current_id]);
@@ -315,7 +311,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }
             }
 
-
             // insert future agents' start as static constraint
             for(int j = i+1; j<decomposer->all_clusters_.size(); j++)
             {
@@ -327,7 +322,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
             new_constraint_table_ptr_->updateEarliestArriveTimeForAgents(cluster_agents, target_node_ids);
 
-            for(const auto& agent_id : current_id_vec) {
+            std::vector<AgentType> local_cluster_agents; // copy of agent, with local id
+
+            for(int k=0; k<current_id_vec.size(); k++) {
+
+                const auto& agent_id = current_id_vec[k];
+                AgentType local_copy = agents[agent_id];
+                local_copy.id_ = k;
+                local_cluster_agents.push_back(local_copy);
+
                 pre_agents.push_back(agents[agent_id]);
                 pre_targets.push_back(decomposer->instance_node_ids_[agent_id].second);
             }
@@ -354,7 +357,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
             gettimeofday(&tv_pre, &tz);
             std::vector<std::vector<int> > grid_visit_count_table_local;
-            std::vector<LAMAPF_Path> next_paths = mapf_func(cluster_instances, cluster_agents, dim, isoc,
+            std::vector<LAMAPF_Path> next_paths = mapf_func(cluster_instances,
+                                                            local_cluster_agents,//cluster_agents,
+                                                            dim, isoc,
                                                             new_constraint_table_ptr_,
                                                             //layered_cts,
                                                             grid_visit_count_table_local, remaining_time,

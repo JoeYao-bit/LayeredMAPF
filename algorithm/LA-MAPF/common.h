@@ -333,7 +333,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }
                 temp_earliest_arrive_time_ = std::max(local_earliest_arrive_time, temp_earliest_arrive_time_);
             }
-            std::cout << " set agent " << agent << " earliest_arrive_time_ = " << temp_earliest_arrive_time_ << std::endl;
+//            std::cout << " set agent " << agent << " earliest_arrive_time_ = " << temp_earliest_arrive_time_ << std::endl;
             return temp_earliest_arrive_time_;
         }
 
@@ -610,7 +610,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }
                 temp_earliest_arrive_time_ = std::max(local_earliest_arrive_time, temp_earliest_arrive_time_);
             }
-            std::cout << " set agent " << agent << " earliest_arrive_time_ = " << temp_earliest_arrive_time_ << std::endl;
+//            std::cout << " set agent " << agent << " earliest_arrive_time_ = " << temp_earliest_arrive_time_ << std::endl;
             return temp_earliest_arrive_time_;
         }
 
