@@ -87,10 +87,9 @@ TEST(BlockCoverageGrid, test) {
 }
 
 TEST(BlockRotateCoverageGrid, test) {
-//    BlockAgent_2D agent(Pointf<2>{-2.7, -1.2}, Pointf<2>{4.3, 1.2}, 0, nullptr);
-    BlockAgent_2D agent(Pointf<2>{-10.2, -5.3}, Pointf<2>{8.4, 5.3}, 0, nullptr);
-    std::pair<Pointis<2>, Pointis<2> > coverage_pair = agent.rotate_pts_[0];
-    double min_radius = agent.min_pt_.Norm(), max_radius = agent.max_pt_.Norm();
+
+
+
 //    visualizeAgentCoverage<BlockAgent_2D >(agent, coverage_pair);
     Canvas canvas("Coverage visualize", dim[0], dim[1], .1, zoom_ratio);
     int half_x = dim[0]/2, half_y = dim[1]/2;
@@ -107,10 +106,21 @@ TEST(BlockRotateCoverageGrid, test) {
     bool draw_agent = true;
     bool draw_rect_grid = false;
     bool draw_circle = true;
+
+    float start_x = -10.2, end_x = 8.4;
+
+
     while(true) {
         canvas.resetCanvas();
         canvas.drawEmptyGrid();
 //        canvas.drawGridMap(dim, is_occupied);
+
+    //    BlockAgent_2D agent(Pointf<2>{-2.7, -1.2}, Pointf<2>{4.3, 1.2}, 0, nullptr);
+        BlockAgent_2D agent(Pointf<2>{start_x, -5}, Pointf<2>{end_x, 5}, 0, nullptr);
+        std::pair<Pointis<2>, Pointis<2> > coverage_pair = agent.rotate_pts_[0];
+
+        double min_radius = agent.min_pt_.Norm(), max_radius = agent.max_pt_.Norm();
+
         if(draw_rect_grid) {
             for(const auto& pt : agent.grids_[2].second) {
                 canvas.drawGrid(pt[0] + half_x, pt[1] + half_y, cv::Vec3b::all(200));
@@ -162,6 +172,24 @@ TEST(BlockRotateCoverageGrid, test) {
             case 'c':
                 draw_circle = !draw_circle;
                 break;
+
+            case 'q':
+                start_x --;
+                break;
+            case 'e':
+                if(start_x < -1) {
+                    start_x ++;
+                }
+                break;
+            case 'w':
+                end_x ++;
+                break;
+            case 's':
+                if(end_x > 1) {
+                    end_x --;
+                }
+                break;
+
             default:
                 break;
         }
