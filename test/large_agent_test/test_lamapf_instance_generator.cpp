@@ -67,10 +67,10 @@ TEST(GenerateCircleInstance, test)
 
 TEST(GenerateBlock_2DInstance, test)
 {
-    const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(12,
+    const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(20,
                                                                 -2.4, -.2,
-                                                                .2, 2.4,
-                                                                .2, 2.4,
+                                                                .2, 1.4,
+                                                                .2, 1.4,
                                                                 .1, dim);
     generateInstance<BlockAgent_2D, CBS::LargeAgentCBS<2, BlockAgent_2D > >(agents, map_test_config.at("blk_ins_path"));
 
@@ -98,11 +98,17 @@ TEST(LoadCircleInstance, test)
 TEST(LoadBlock_2DInstance, test)
 {
     const std::string file_path = map_test_config.at("blk_ins_path");
+
+//    ok
 //    loadInstanceAndPlanning<BlockAgent_2D,
 //                            LaCAM::LargeAgentLaCAM<2,
 //                            BlockAgent_2D, LaCAM::LargeAgentConstraintTable<2, BlockAgent_2D > > >(file_path);
-    loadInstanceAndPlanning<BlockAgent_2D,
-            CBS::LargeAgentCBS<2, BlockAgent_2D > >(file_path);
+
+//    loadInstanceAndPlanning<BlockAgent_2D,
+//            CBS::LargeAgentCBS<2, BlockAgent_2D > >(file_path, 100);
+
+    loadInstanceAndPlanningLayeredCBS<BlockAgent_2D >(file_path, 30, false);
+
 };
 
 TEST(resize, test)
@@ -116,3 +122,6 @@ TEST(resize, test)
     // 1 2 3 10 10
 }
 
+TEST(max_size_t, test) {
+    std::cout << "MAX<size_t> = " << MAX<size_t> << std::endl;
+}

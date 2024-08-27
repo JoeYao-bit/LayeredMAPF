@@ -251,7 +251,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         explicit ConnectivityGraph(int total_nodes) {
             hyper_node_id_map_.resize(total_nodes, MAX<size_t>);
-            related_agents_map_.resize(total_nodes, {});
         }
 
         std::vector<std::vector<int> > related_agents_map_; // store each pose collide with what agents' start(2*id) or target(2*id+1)
@@ -445,7 +444,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             static_time_ = 0;
             for(const auto& agent : local_agents_) {
                 float radius = max_excircle_radius_ + agent.excircle_radius_;
-                points_in_agent_circles_.insert({agent.id_, GetSphereInflationOffsetGrids<N>((uint)ceil(radius))});
+                // plus one to ensure check including both current node and next node of edge
+                points_in_agent_circles_.insert({agent.id_, GetSphereInflationOffsetGrids<N>((uint)ceil(radius + 1))}); //
             }
         }
 
@@ -465,7 +465,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     // 2, only passable points in range
                     temp_id = PointiToId(temp_pt, dim_);
                     for(const auto& agent_pair : occupied_table_sat_[temp_id]) {
-                        if(isCollide(global_agents_[agent_global_id], *all_poses_[next_node],
+                        if(isCollide(global_agents_[agent_global_id], *all_poses_[current_node], *all_poses_[next_node],
                                      global_agents_[agent_pair.first], *all_poses_[agent_pair.second])) {
                             return true;
                         }

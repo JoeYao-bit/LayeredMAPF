@@ -186,14 +186,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             sub_graph.agent_id_ = agent_id;
             sub_graph.all_nodes_.resize(total_index * 2 * N, nullptr);
             // initial nodes in subgraph
-            for(size_t id=0; id<total_index; id++) {
-                if(all_poses_[id*2*N] != nullptr) {
-                    // if current grid is free, then check all orientation
-                    for(int orient=0; orient<2*N; orient ++) {
-                        const auto& current_pose = all_poses_[id * 2 * N + orient];
-                        if(!agent.isCollide(*current_pose, dim_, isoc_, *distance_map_updater_)) {
-                            sub_graph.all_nodes_[id * 2 * N + orient] = current_pose;
-                        }
+            for(size_t id=0; id<all_poses_.size(); id++) {
+                if(all_poses_[id] != nullptr) {
+                    const auto& current_pose = all_poses_[id];
+                    if(!agent.isCollide(*current_pose, dim_, isoc_, *distance_map_updater_)) {
+                        sub_graph.all_nodes_[id] = current_pose;
                     }
                 }
             }
@@ -215,6 +212,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         Id another_node_id = PointiToId<N>(new_pt, dim_)*2*N + origin_orient;
                         PosePtr<int, N> another_node_ptr = sub_graph.all_nodes_[another_node_id];
                         if(another_node_ptr == nullptr) { continue; }
+
+                        // debug
+                        // considering direction, some edge is not reversible
+//                        bool direct_legal  = agent.isCollide(*another_node_ptr, *node_ptr, dim_, isoc_, *distance_map_updater_);
+//                        bool reverse_legal = agent.isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, *distance_map_updater_);
+//                        assert(direct_legal == reverse_legal);
+
                         if(!agent.isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, *distance_map_updater_)) {
                             sub_graph.all_edges_[pose_id].push_back(another_node_id);
                             sub_graph.all_backward_edges_[another_node_id].push_back(pose_id);
@@ -281,6 +285,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     }
                 }
             }
+
+            assert(agent_heuristic[instance_node_ids_[sub_graph.agent_id_].first] != MAX<int>);
+
+            // debug
+//            for(int i=0; i<sub_graph.all_nodes_.size(); i++) {
+//                if(sub_graph.all_nodes_[i] != nullptr) {
+//                    assert(agent_heuristic[i] != MAX<int>);
+//                }
+//            }
             // shrink table
 //            for(int k=0; k<sub_graph.all_nodes_.size()/(2*N); k++) {
 //                //

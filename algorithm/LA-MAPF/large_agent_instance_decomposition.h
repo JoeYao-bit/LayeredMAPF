@@ -28,8 +28,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                             const std::vector<AgentType>& agents,
                                             DimensionLength* dim,
                                             const IS_OCCUPIED_FUNC<N> & isoc,
+                                            bool directed_graph = true, // whether edge between poses is always reversible
                                             int decompose_level=3)
-                                            : LargeAgentMAPF<N, AgentType>(instances, agents, dim, isoc) {
+                                            : LargeAgentMAPF<N, AgentType>(instances, agents, dim, isoc),
+                                              directed_graph_(directed_graph) {
 
             assert(decompose_level >= 0 && decompose_level <= 3);
 
@@ -37,7 +39,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             struct timeval  tv_pre;
             struct timeval  tv_after;
             gettimeofday(&tv_pre, &tz);
-
             for(int i=0; i<instances.size(); i++) {
                 instance_id_set_.insert(i);
             }
@@ -135,14 +136,17 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return true;
         }
 
-        ConnectivityGraph getAgentConnectivityGraph(const int& agent_id) const {
-            ConnectivityGraph graph(this->all_poses_.size());
-            SubGraphOfAgent<N> current_subgraph = this->agent_sub_graphs_[agent_id];
-            // 1, get each pose's relation with other agent
+        std::vector<std::vector<int> > getRelatedAgentGraph(int agent_id, const std::vector<PosePtr<int, N> >& all_nodes) const {
+            std::vector<std::vector<int> > related_agents_map(all_nodes.size());
             for(int i=0; i<this->agents_.size(); i++) {
                 //if(i == agent_id) { continue; }
                 const auto& agent = this->agents_[agent_id];
                 const auto& another_agent = this->agents_[i];
+                const auto& another_subgraph = this->agent_sub_graphs_[i];
+
+                assert(another_subgraph.all_nodes_[this->instance_node_ids_[i].first] != nullptr);
+                assert(another_subgraph.all_nodes_[this->instance_node_ids_[i].second] != nullptr);
+
 //                std::cout << "agent/another = " << agent_id << ", " << i << std::endl;
                 const auto& another_agent_start_pose  = this->instances_[i].first;
                 const auto& another_agent_target_pose = this->instances_[i].second;
@@ -180,13 +184,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                             // get a nearby pose id
                             temp_pose_id = temp_id*2*N + orient;
                             // check whether this node is available in current agent's subgraph
-                            if(current_subgraph.all_nodes_[temp_pose_id] != nullptr) {
+                            if(all_nodes[temp_pose_id] != nullptr) {
 //                                std::cout << " check start conflict" << std::endl;
-                                if(isCollide(agent, *current_subgraph.all_nodes_[temp_pose_id],
+                                if(isCollide(agent, *all_nodes[temp_pose_id],
                                              another_agent, another_agent_start_pose))
                                 {
                                     // if they have conflict
-                                    graph.related_agents_map_[temp_pose_id].push_back(2*i);
+                                    related_agents_map[temp_pose_id].push_back(2*i);
 //                                    std::cout << " agent " << agent_id  << "," << i << "'s start have conflict at " << temp_start << std::endl;
                                 }
                             }
@@ -202,13 +206,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                             // get a nearby pose id
                             temp_pose_id = temp_id*2*N + orient;
                             // check whether this node is available in current agent's subgraph
-                            if(current_subgraph.all_nodes_[temp_pose_id] != nullptr) {
+                            if(all_nodes[temp_pose_id] != nullptr) {
 //                                std::cout << " check target conflict" << std::endl;
-                                if(isCollide(agent, *current_subgraph.all_nodes_[temp_pose_id],
+                                if(isCollide(agent, *all_nodes[temp_pose_id],
                                              another_agent, another_agent_target_pose))
                                 {
                                     // if they have conflict
-                                    graph.related_agents_map_[temp_pose_id].push_back(2*i + 1);
+                                    related_agents_map[temp_pose_id].push_back(2*i + 1);
 //                                    std::cout << " agent " << agent_id  << "," << i << "'s target have conflict at " << temp_target << std::endl;
                                 }
                             }
@@ -216,42 +220,81 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     }
                 }
             }
+            return related_agents_map;
+        }
+
+        ConnectivityGraph getAgentConnectivityGraph(const int& agent_id) const {
+            ConnectivityGraph graph(this->all_poses_.size());
+            SubGraphOfAgent<N> current_subgraph = this->agent_sub_graphs_[agent_id];
+            assert(current_subgraph.all_nodes_[this->instance_node_ids_[agent_id].first] != nullptr);
+            assert(current_subgraph.all_nodes_[this->instance_node_ids_[agent_id].second] != nullptr);
+
+            // 1, get each pose's relation with other agent
+            graph.related_agents_map_ = getRelatedAgentGraph(agent_id, current_subgraph.all_nodes_);
+
             // 2, construct connectivity graph and record boundary (where different hyper node converge)
+            std::vector<std::set<size_t> > strong_components = getStrongComponentFromSubGraph(current_subgraph.all_edges_, directed_graph_);
+
             int max_hyper_node_id = 0;
             std::vector<size_t> boundary_nodes;
-            for(size_t i=0; i<current_subgraph.all_nodes_.size(); i++) {
-                const auto& current_pose_ptr = current_subgraph.all_nodes_[i];
-                if(current_pose_ptr == nullptr) { continue; }
-                if(graph.hyper_node_id_map_[i] != MAX<size_t>) { continue; }
-                std::vector<size_t> nodes_buffer = {i}, next_buffer = {};
-                while(!nodes_buffer.empty()) {
-                    next_buffer.clear();
-                    for(const auto& cur_node : nodes_buffer) {
-                        // traversal all neighboring nodes
-                        for (const auto &neighbor_node_id : current_subgraph.all_edges_[cur_node]) {
-                            if (graph.related_agents_map_[i] == graph.related_agents_map_[neighbor_node_id]) {
-                                if (graph.hyper_node_id_map_[neighbor_node_id] != MAX<size_t>) {
+            // considering the using boost to detect strong connected component of directed graph
+            for(const std::set<size_t>& cur_component : strong_components) {
+                for (const size_t & node_id : cur_component) {
+                    const auto &current_pose_ptr = current_subgraph.all_nodes_[node_id];
+                    if (current_pose_ptr == nullptr) { continue; }
+                    if (graph.hyper_node_id_map_[node_id] != MAX<size_t>) { continue; }
+                    graph.hyper_node_id_map_[node_id] = max_hyper_node_id;
+                    std::vector<size_t> nodes_buffer = {node_id}, next_buffer = {};
+                    while (!nodes_buffer.empty()) {
+                        next_buffer.clear();
+                        for (const auto &cur_node : nodes_buffer) {
+                            // traversal all neighboring nodes
+                            for (const auto &neighbor_node_id : current_subgraph.all_edges_[cur_node]) {
+                                if(cur_component.find(neighbor_node_id) == cur_component.end()) {
+                                    // when two node belong to different component
+                                    if (graph.hyper_node_id_map_[neighbor_node_id] != MAX<size_t>) {
+                                        boundary_nodes.push_back(neighbor_node_id);
+                                    }
+                                    if (graph.hyper_node_id_map_[cur_node] != MAX<size_t>) {
+                                        boundary_nodes.push_back(cur_node);
+                                    }
                                     continue;
                                 }
-                                graph.hyper_node_id_map_[neighbor_node_id] = max_hyper_node_id;
-                                next_buffer.push_back(neighbor_node_id);
-                            } else {
-                                if (graph.hyper_node_id_map_[neighbor_node_id] != MAX<size_t>) {
-                                    boundary_nodes.push_back(cur_node);
-                                    boundary_nodes.push_back(neighbor_node_id);
+                                if (graph.related_agents_map_[node_id] == graph.related_agents_map_[neighbor_node_id]) {
+                                    if (graph.hyper_node_id_map_[neighbor_node_id] != MAX<size_t>) {
+                                        continue;
+                                    }
+                                    graph.hyper_node_id_map_[neighbor_node_id] = max_hyper_node_id;
+                                    next_buffer.push_back(neighbor_node_id);
+                                } else {
+                                    if (graph.hyper_node_id_map_[neighbor_node_id] != MAX<size_t>) {
+                                        boundary_nodes.push_back(neighbor_node_id);
+                                    }
+                                    if (graph.hyper_node_id_map_[cur_node] != MAX<size_t>) {
+                                        boundary_nodes.push_back(cur_node);
+                                    }
                                 }
                             }
                         }
+                        std::swap(nodes_buffer, next_buffer);
                     }
-                    std::swap(nodes_buffer, next_buffer);
+                    max_hyper_node_id++;
                 }
-                max_hyper_node_id ++;
             }
+
+            for(int node_id=0; node_id<current_subgraph.all_nodes_.size(); node_id++) {
+                const auto &current_pose_ptr = current_subgraph.all_nodes_[node_id];
+                if (current_pose_ptr == nullptr) { continue; }
+            }
+
             graph.all_edges_set_.resize(max_hyper_node_id);
             graph.all_edges_vec_.resize(max_hyper_node_id);
             // 3, get start hyper node id and target hyper node id
             graph.start_hyper_node_  = graph.hyper_node_id_map_[this->instance_node_ids_[agent_id].first];
             graph.target_hyper_node_ = graph.hyper_node_id_map_[this->instance_node_ids_[agent_id].second];
+            assert(graph.start_hyper_node_ != MAX<size_t>);
+            assert(graph.target_hyper_node_ != MAX<size_t>);
+
             // 4, get connections between hyper graph nodes
             graph.hyper_node_with_agents_.resize(max_hyper_node_id);
             for(const auto& node_id : boundary_nodes) {
@@ -290,6 +333,57 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return graph;
         }
 
+
+        std::vector<std::set<size_t> > getStrongComponentFromSubGraph(const std::vector<std::vector<size_t> >& all_edges, bool directed_graph = false) const {
+
+            using namespace boost;
+
+            if(directed_graph) {
+                typedef adjacency_list<vecS, vecS, directedS, size_t> Graph;
+                Graph g;
+
+                for(size_t i=0; i<all_edges.size(); i++) {
+                    if(all_edges[i].empty()) { continue; }
+                    for(const size_t& j : all_edges[i]) {
+                        add_edge(i, j, g);
+                    }
+                }
+                std::vector<int> component(num_vertices(g));
+                int num = strong_components(g, &component[0]);
+
+                std::vector<std::set<size_t> > retv(component.size());
+
+//                std::cout << "Total number of strong components: " << num << std::endl;
+                for (size_t i = 0; i < component.size(); ++i) {
+//                    std::cout << "Vertex " << i << " is in component " << component[i] << std::endl;
+                    retv[component[i]].insert(i);
+                }
+                return retv;
+            } else {
+                typedef adjacency_list<vecS, vecS, undirectedS, size_t> Graph;
+                Graph g;
+
+                for(size_t i=0; i<all_edges.size(); i++) {
+                    if(all_edges[i].empty()) { continue; }
+                    for(const size_t& j : all_edges[i]) {
+                        add_edge(i, j, g);
+                    }
+                }
+                std::vector<int> component(num_vertices(g));
+                int num = connected_components(g, &component[0]);
+
+                std::vector<std::set<size_t> > retv(component.size());
+
+//                std::cout << "Total number of strong components: " << num << std::endl;
+                for (size_t i = 0; i < component.size(); ++i) {
+//                    std::cout << "Vertex " << i << " is in component " << component[i] << std::endl;
+                    retv[component[i]].insert(i);
+                }
+                return retv;
+            }
+
+        }
+
         // return path that consists of agents
         // distinguish_sat whether consider start and target as one in calculate cost
         std::set<int> searchAgent(int agent_id,
@@ -311,6 +405,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                             const std::vector<int> & ignore_cost_set = {}
                                              )
              * */
+            assert(connect_graphs_[agent_id].start_hyper_node_ != MAX<size_t>);
+            assert(connect_graphs_[agent_id].target_hyper_node_ != MAX<size_t>);
+
             return search_machine.search(agent_id, connect_graphs_[agent_id].start_hyper_node_,
                                          this->agent_sub_graphs_[agent_id], this->connect_graphs_[agent_id],
                                          avoid_agents, passing_agents,
@@ -548,7 +645,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }
             }
             // sorting in increase size, to enable large cluster have fewer external path constraint
-//            std::sort(all_clusters.begin(),all_clusters.end(),[](std::set<int> x,std::set<int> y){return x.size()>y.size();});
+            std::sort(all_clusters.begin(),all_clusters.end(),[](std::set<int> x,std::set<int> y){return x.size()>y.size();});
             all_clusters_ = all_clusters;
 
         }
@@ -690,13 +787,16 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return sorted_levels; // sorted levels
         }
 
-        typedef boost::subgraph< boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS,
-                boost::property< boost::vertex_color_t, int>, boost::property< boost::edge_index_t, int> > > Graph;
 
-        typedef boost::graph_traits<Graph>::vertex_iterator vertex_iter;
 
         std::pair<std::vector<std::set<int> >, std::map<int, int>>
         getStrongComponentFromAheadSequence(const std::map<int, std::set<int> >& ahead_sequence) const {
+
+            typedef boost::subgraph< boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS,
+                    boost::property< boost::vertex_color_t, int>, boost::property< boost::edge_index_t, int> > > Graph;
+
+            typedef boost::graph_traits<Graph>::vertex_iterator vertex_iter;
+
             // 1, transform all nodes in ahead_sequence to continuous int sequence
             std::vector<int> id_to_node_table;
             std::map<int, int> node_to_id_table;
@@ -885,6 +985,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         std::vector<std::vector<int> > heuristic_tables_; // distinguish_sat = false
 
+        bool directed_graph_ = true;
 
         std::set<int> instance_id_set_; // set of all agent's id
 

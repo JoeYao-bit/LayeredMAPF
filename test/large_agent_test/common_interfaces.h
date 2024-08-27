@@ -34,7 +34,7 @@ struct timezone tz;
 struct timeval tv_pre, tv_cur;
 struct timeval tv_after;
 
-int zoom_ratio = 5;
+int zoom_ratio = 10;
 
 Pointi<2> pt1;
 int current_subgraph_id = 0;
@@ -64,7 +64,7 @@ bool draw_visit_grid_table = false;
 // MAPFTestConfig_AR0014SR
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
-auto map_test_config = MAPFTestConfig_maze_32_32_4;
+auto map_test_config = MAPFTestConfig_empty_48_48;
 //MAPFTestConfig_AR0011SR;
 // MAPFTestConfig_maze_32_32_4;
 // MAPFTestConfig_Berlin_1_256;
@@ -99,7 +99,7 @@ void startLargeAgentMAPFTest(const std::vector<AgentType>& agents, const Instanc
     gettimeofday(&tv_pre, &tz);
     //CBS::LargeAgentCBS;
     Method lacbs(instances, agents, dim, is_occupied);
-    bool solved = lacbs.solve(60, 0);
+    bool solved = lacbs.solve(5, 0);
     gettimeofday(&tv_after, &tz);
     double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
     std::cout << "find solution ? " << solved << " in " << time_cost << "ms " << std::endl;
@@ -200,7 +200,7 @@ void startLargeAgentMAPFTest(const std::vector<AgentType>& agents, const Instanc
                         value = heuristic_table[i*4 + orient];
                     }
                 }
-                if(value != MAX<int> && value < 10
+                if(value != MAX<int> // && value < 10
                         ) {
                     Pointi<2> position = IdToPointi<2>(i, dim);
                     std::stringstream ss;
@@ -305,14 +305,17 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
             }
         } else {
             int i = current_subgraph_id;
-            //for(int i=0; i<solution.size(); i++)
-            {
-                const auto& path = solution[i];
-                if(path.empty()) { continue; }
-                for(int t=0; t<path.size()-1; t++) {
-                    Pointi<2> pt1 = all_poses[path[t]]->pt_,
-                            pt2 = all_poses[path[t+1]]->pt_;
-                    canvas.drawLineInt(pt1[0], pt1[1], pt2[0], pt2[1], true, std::max(1, zoom_ratio/10), COLOR_TABLE[(i) % 30]);
+            if(!solution.empty()) {
+                //for(int i=0; i<solution.size(); i++)
+                {
+                    const auto &path = solution[i];
+                    if (path.empty()) { continue; }
+                    for (int t = 0; t < path.size() - 1; t++) {
+                        Pointi<2> pt1 = all_poses[path[t]]->pt_,
+                                pt2 = all_poses[path[t + 1]]->pt_;
+                        canvas.drawLineInt(pt1[0], pt1[1], pt2[0], pt2[1], true, std::max(1, zoom_ratio / 10),
+                                           COLOR_TABLE[(i) % 30]);
+                    }
                 }
             }
         }
@@ -364,7 +367,7 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
                 }
             } else {
                 int i = current_subgraph_id;
-                {
+                if(!solution.empty()) {
                     const auto &path = solution[i];
                     if (path.empty()) { continue; }
                     Pointi<2> pt;
@@ -468,6 +471,7 @@ void loadInstanceAndPlanning(const std::string& file_path, double time_limit = 3
         return;
     }
     std::cout << " map scale " << dim[0] << "*" << dim[1] << std::endl;
+
     auto start_t = clock();
     MethodType method(deserializer.getInstances(), deserializer.getAgents(), dim, is_occupied);
     auto init_t = clock();
@@ -486,7 +490,12 @@ void loadInstanceAndPlanning(const std::string& file_path, double time_limit = 3
     std::cout << "solution validation ? " << method.solutionValidation() << std::endl;
 
     LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(deserializer.getAgents(), is_occupied, dim);
-    InstanceVisualization<AgentType>(deserializer.getAgents(), generator.getAllPoses(), deserializer.getInstances(), method.getSolution());
+    InstanceVisualization<AgentType>(deserializer.getAgents(), generator.getAllPoses(), deserializer.getInstances(),
+                                     method.getSolution()
+    );
+
+//    InstanceVisualization<AgentType>(deserializer.getAgents(), generator.getAllPoses(), deserializer.getInstances(), {});
+
 }
 
 template<typename AgentType>
@@ -501,7 +510,7 @@ void loadInstanceAndPlanningLayeredCBS(const std::string& file_path, double time
     std::cout << " map scale " << dim[0] << "*" << dim[1] << std::endl;
 
     std::vector<std::vector<int> > grid_visit_count_table;
-    LargeAgentMAPFInstanceDecompositionPtr<2, CircleAgent<2>> decomposer_ptr = nullptr;
+    LargeAgentMAPFInstanceDecompositionPtr<2, AgentType > decomposer_ptr = nullptr;
     auto start_t = clock();
     auto layered_paths = layeredLargeAgentMAPF<2, AgentType>(deserializer.getInstances(),
                                                             deserializer.getAgents(),
@@ -561,7 +570,7 @@ void generateInstance(const std::vector<AgentType>& agents, const std::string& f
 
 //    InstanceVisualization<AgentType>(agents, generator.getAllPoses(), instances, solution);
 //    loadInstanceAndPlanning<AgentType, MethodType>(file_path);
-    loadInstanceAndPlanningLayeredCBS<CircleAgent<2> >(map_test_config.at("crc_ins_path"), 30, false);
+    loadInstanceAndPlanningLayeredCBS<AgentType>(file_path, 30, false);
 
 }
 

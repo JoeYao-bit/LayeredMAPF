@@ -91,12 +91,20 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                     }
                                 } else if (local_delay_start == 0) {
                                     if(!isCollide(pre_agent, *all_poses[pre_path[t]], *all_poses[pre_path[t+1]],
-                                                  cur_agent, *all_poses[cur_path[0]], *all_poses[cur_path[0]])) {
+                                                  cur_agent, *all_poses[cur_path[0]])) {
 //                                        std::cout << " cur at " << 0 << ", " << 0 << " is free" << std::endl;
                                         local_delay_count = t + 1;
                                         break;
                                     } else {
-                                        std::cout << "FATAL: delay at start cant avoid conflict 1" << std::endl;
+                                        std::cout << "FATAL: delay at start cant avoid conflict 1 between agent "
+                                                  << pre_agent.id_ << " and " << cur_agent.id_ << " at t = " << t << std::endl;
+                                        std::cout << "pre agent = " << pre_agent << " : "
+                                                  << *all_poses[pre_path[t]] << "->" << *all_poses[pre_path[t+1]] << std::endl;
+                                        std::cout << "cur agent = " << cur_agent << " : "
+                                                  << *all_poses[cur_path[0]] << std::endl;
+
+                                        std::cout << "cur path = " << printPath(cur_path, all_poses) << std::endl;
+
                                         exit(0);
                                     }
                                 } else  {
@@ -314,12 +322,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             // insert future agents' start as static constraint
             for(int j = i+1; j<decomposer->all_clusters_.size(); j++)
             {
-                if(j == i) { continue; }
                 const auto& current_cluster = decomposer->all_clusters_[j];
                 for(const int& agent_id : current_cluster) {
                     new_constraint_table_ptr_->insertPose(agent_id, decomposer->instance_node_ids_[agent_id].first);
                 }
             }
+            // insert previous agents' target as static constraint
             new_constraint_table_ptr_->updateEarliestArriveTimeForAgents(cluster_agents, target_node_ids);
 
             std::vector<AgentType> local_cluster_agents; // copy of agent, with local id

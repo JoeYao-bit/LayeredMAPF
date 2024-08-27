@@ -167,6 +167,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                     int next_g_val = curr->g_val + 1;
 
                     int next_h_val = this->heuristic_[next_node_id];
+                    if(next_h_val == MAX<int>) {
+                        continue;
+                    }
+//                    assert(next_h_val != MAX<int>);
 
                     // getNumOfConflictsForStep is very time consuming for large agents
                     // resulting no getNumOfConflictsForStep might be faster than use it
@@ -264,7 +268,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
         inline AStarNode *popNode() {
             if(open_list.empty() || focal_list.empty()) {
-//                std::cout << "FATAL: open | focal size = " << open_list.size() << " | " << focal_list.size() << std::endl;
+                std::cout << "FATAL: open | focal size = " << open_list.size() << " | " << focal_list.size() << std::endl;
             }
             assert(!open_list.empty() && !focal_list.empty());
             //auto node = open_list.top();

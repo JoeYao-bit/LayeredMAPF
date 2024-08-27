@@ -182,27 +182,28 @@ TEST(CircleAgentSubGraph, cbs_test) {
     std::vector<std::vector<int> > grid_visit_count_table;
 
 
-    startLargeAgentMAPFTest<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2>> >(deserializer.getAgents(), deserializer.getInstances());
+    startLargeAgentMAPFTest<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2>> >(deserializer.getAgents(),
+                                                                                    deserializer.getInstances());
 }
 
 TEST(BlockAgentSubGraph, cbs_test) {
-    // fake instances
-    InstanceOrients<2> instances = {
-            {{{5, 3}, 0}, {{23, 22},0} },
-            {{{9, 2}, 0}, {{5, 22}, 0}},
-            {{{2, 5}, 0}, {{17, 22}, 3}}
-    };
-    Pointf<2> min_pt_0{-.4, -.4},  max_pt_0{.4, .4},
-            min_pt_1{-.6, -.4},  max_pt_1{1., .4},
-            min_pt_2{-.3, -1.2}, max_pt_2{1., 1.2};
-    // NOTICE: initialize pt in constructor cause constant changed
-    BlockAgents_2D agents({
-                                        BlockAgent_2D({-.4, -.4}, {.4, .4}, 0, dim),
-                                        BlockAgent_2D({-.6, -.4}, {1.3, .4}, 1, dim),
-                                        BlockAgent_2D({-.3, -.8},{1., .8}, 2, dim)
-                                });
 
-    startLargeAgentMAPFTest<BlockAgent_2D, CBS::LargeAgentCBS<2, BlockAgent_2D> >(agents, instances);
+    const std::string file_path = map_test_config.at("blk_ins_path");
+
+    InstanceDeserializer<2, BlockAgent_2D > deserializer;
+    if (deserializer.loadInstanceFromFile(file_path, dim)) {
+        std::cout << "load from path " << file_path << " success" << std::endl;
+    } else {
+        std::cout << "load from path " << file_path << " failed" << std::endl;
+        return;
+    }
+    std::cout << "map scale = " << dim[0] << "*" << dim[1] << std::endl;
+
+    LargeAgentMAPFInstanceDecompositionPtr<2, BlockAgent_2D > decomposer_ptr = nullptr;
+    std::vector<std::vector<int> > grid_visit_count_table;
+
+    startLargeAgentMAPFTest<BlockAgent_2D, CBS::LargeAgentCBS<2, BlockAgent_2D> >(deserializer.getAgents(),
+                                                                                  deserializer.getInstances());
 }
 
 TEST(constraint_avoidance_table, test) {
