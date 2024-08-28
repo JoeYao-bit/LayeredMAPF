@@ -28,12 +28,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             current_node_(current_node), graph_(graph), TreeNode<N, HyperGraphNodeDataPtr<N>>(parent) {
             if(parent != nullptr) {
                 visited_agent_ = parent->visited_agent_;
-                // if is a agent node, rather than a free group node
-                for(const int& agent_id : graph_.hyper_node_with_agents_[current_node_]) {
-                    if(!ignore_cost_agent_ids.empty() && ignore_cost_agent_ids[agent_id]) { continue; }
-                    visited_agent_.insert(distinguish_sat ? agent_id : agent_id/2);
-                }
-//                std::cout << "visited_agent_ size = " << visited_agent_.size() << std::endl;
+            }
+            // if is a agent node, rather than a free group node
+            for(const int& agent_id : graph_.hyper_node_with_agents_[current_node_]) {
+                if(!ignore_cost_agent_ids.empty() && ignore_cost_agent_ids[agent_id]) { continue; }
+                visited_agent_.insert(distinguish_sat ? agent_id : agent_id/2);
             }
         }
 
@@ -105,8 +104,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         std::vector<HyperGraphNodeDataPtr<N> > current_set, all_ptr_set;
 
-        HyperGraphNodeDataPtr<N> init_node_ptr = new HyperGraphNodeData<N>(graph.target_hyper_node_, nullptr, graph);
-        init_node_ptr->visited_agent_ = { distinguish_sat ? 2*agent_id + 1 : agent_id };
+        HyperGraphNodeDataPtr<N> init_node_ptr = new HyperGraphNodeData<N>(graph.target_hyper_node_, nullptr, graph, distinguish_sat);
+//        init_node_ptr->visited_agent_ = { distinguish_sat ? 2*agent_id + 1 : agent_id };
 
         current_set.push_back(init_node_ptr);
 
@@ -189,23 +188,57 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                              const ConnectivityGraph& con_graph,
                              const std::vector<bool> &avoid_agents,
                              const std::vector<bool> &passing_agents,
-                             const std::vector<int> heuristic_table,
+                             const std::vector<int>& heuristic_table,
                              bool distinguish_sat = false,
                              const std::vector<bool> & ignore_cost_set = {}) {
             const auto &start_node_id = con_graph.start_hyper_node_;
             assert(start_node_id != MAX<size_t>);
 
-            // check whether avoid specific agents
-            if(!avoid_agents.empty() && (avoid_agents[2*agent_id] || avoid_agents[2*agent_id+1]) ) { return {}; }
-            // check whether passing specific agents, if passing_agents_ == empty, ignore this constraint
-            if(!passing_agents.empty() && (!passing_agents[2*agent_id] || !passing_agents[2*agent_id+1])) { return {}; }
+//            // check whether avoid specific agents
+//            if(!avoid_agents.empty() && (avoid_agents[2*agent_id] || avoid_agents[2*agent_id+1]) ) { return {}; }
+//            // check whether passing specific agents, if passing_agents_ == empty, ignore this constraint
+//            if(!passing_agents.empty() && (!passing_agents[2*agent_id] || !passing_agents[2*agent_id+1])) { return {}; }
 
-            HyperGraphNodeDataPtr<N> start_node = new HyperGraphNodeData<N>(start_hyper_node_id, nullptr, con_graph);
+            assert(sub_graph.start_node_id_ != MAX<size_t>);
+            assert(sub_graph.target_node_id_ != MAX<size_t>);
+//            std::cout << "depend path search: " << std::endl;
+            // check whether start/target avoid specific agents
+            if(!avoid_agents.empty()) {
+                //std::cout << " start avoid_agents (" << sub_graph.start_node_id_ << "): ";
+                for(const auto& pa : con_graph.related_agents_map_[sub_graph.start_node_id_]) {
+                    //std::cout << pa << " ";
+                    if(avoid_agents[pa]) { return {}; }
+                }
+                //std::cout << std::endl;
+                //std::cout << " target avoid_agents: (" << sub_graph.target_node_id_ << "): ";
+                for(const auto& pa : con_graph.related_agents_map_[sub_graph.target_node_id_]) {
+                    //std::cout << pa << " ";
+                    if(avoid_agents[pa]) { return {}; }
+                }
+                //std::cout << std::endl;
+            }
+
+            // check whether start/target passing specific agents
+            if(!passing_agents.empty()) {
+                //std::cout << " start passing_agents: (" << sub_graph.start_node_id_ << "): ";
+                for(const auto& pa : con_graph.related_agents_map_[sub_graph.start_node_id_]) {
+                    //std::cout << pa << " ";
+                    if(!passing_agents[pa]) { return {}; }
+                }
+                //std::cout << std::endl;
+                //std::cout << " target passing_agents: (" << sub_graph.target_node_id_ << "): ";
+                for(const auto& pa : con_graph.related_agents_map_[sub_graph.target_node_id_]) {
+                    //std::cout << pa << " ";
+                    if(!passing_agents[pa]) { return {}; }
+                }
+                //std::cout << std::endl;
+            }
+
+            HyperGraphNodeDataPtr<N> start_node = new HyperGraphNodeData<N>(start_hyper_node_id, nullptr, con_graph, distinguish_sat);
 
 //            std::cout << "start_node cur and pre " << start_node << " / " << start_node->pa_ << std::endl;
             start_node->h_val_ = heuristic_table[start_hyper_node_id];
             start_node->in_openlist_ = true;
-            start_node->visited_agent_ = { distinguish_sat ? 2*agent_id : agent_id };
 
             start_node->open_handle_ = open_list_.push(start_node);
             allNodes_table_.insert(start_node); // yz: visited vertex
@@ -290,12 +323,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             node->in_openlist_ = true;
         }
 
-        typedef boost::heap::pairing_heap<HyperGraphNodeDataPtr <N>, boost::heap::compare<typename HyperGraphNodeData<N>::compare_node> > heap_open_t;
+        typedef boost::heap::pairing_heap<HyperGraphNodeDataPtr <N>,
+                boost::heap::compare<typename HyperGraphNodeData<N>::compare_node> > heap_open_t;
         heap_open_t open_list_;
 
         // how about considering grid distance of path as focal list ?
 
-        typedef boost::unordered_set<HyperGraphNodeDataPtr<N>, typename HyperGraphNodeData<N>::NodeHasher, typename HyperGraphNodeData<N>::equal_node> hashtable_t;
+        typedef boost::unordered_set<HyperGraphNodeDataPtr<N>, typename HyperGraphNodeData<N>::NodeHasher,
+                typename HyperGraphNodeData<N>::equal_node> hashtable_t;
         hashtable_t allNodes_table_;
 
         void releaseNodes() {

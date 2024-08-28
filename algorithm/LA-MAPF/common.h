@@ -350,7 +350,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     if(isCollide(agent, *all_nodes_[current_node], *all_nodes_[next_node],
                                  global_agents_[other_agent_id], *all_nodes_[other_path.back()])) {
 //                        std::cout << "t=" << time_index << " " << agent << " at " << *all_nodes_[current_node] << "->" << *all_nodes_[next_node]
-//                                  << " and " << agents_[other_agent_id] << " at " << *all_nodes_[other_path.back()]
+//                                  << " and " << global_agents_[other_agent_id] << " at " << *all_nodes_[other_path.back()]
 //                                  << " have conflict" << std::endl;
                         return true;
                     } else {
@@ -362,7 +362,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     if(isCollide(agent, *all_nodes_[current_node], *all_nodes_[next_node],
                                  global_agents_[other_agent_id], *all_nodes_[other_path[time_index]], *all_nodes_[other_path[time_index+1]])) {
 //                        std::cout << "t=" << time_index << " " << agent << " at " << *all_nodes_[current_node] << "->" << *all_nodes_[next_node]
-//                                  << " and " << agents_[other_agent_id] << " at " << *all_nodes_[other_path[time_index]]
+//                                  << " and " << global_agents_[other_agent_id] << " at " << *all_nodes_[other_path[time_index]]
 //                                  << "->" << *all_nodes_[other_path[time_index+1]]
 //                                  << " have conflict" << std::endl;
                         return true;
@@ -467,6 +467,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     for(const auto& agent_pair : occupied_table_sat_[temp_id]) {
                         if(isCollide(global_agents_[agent_global_id], *all_poses_[current_node], *all_poses_[next_node],
                                      global_agents_[agent_pair.first], *all_poses_[agent_pair.second])) {
+
+//                            std::cout << global_agents_[agent_global_id] << " at " << *all_poses_[current_node] << "->" << *all_poses_[next_node]
+//                                      << " and " << global_agents_[agent_pair.first] << " at " << *all_poses_[agent_pair.second]
+//                                      << " have conflict" << std::endl;
+
                             return true;
                         }
                     }
@@ -518,9 +523,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 if(other_path.size() - 1 <= time_index) {
                     if(isCollide(agent, *all_poses_[current_node], *all_poses_[next_node],
                                  other_agent, *all_poses_[other_path.back()])) {
-//                        std::cout << "t=" << time_index << " " << agent << " at " << *all_nodes_[current_node] << "->" << *all_nodes_[next_node]
-//                                  << " and " << agents_[other_agent_id] << " at " << *all_nodes_[other_path.back()]
-//                                  << " have conflict" << std::endl;
+                        std::cout << "t=" << time_index << " " << agent << " at " << *all_poses_[current_node] << "->" << *all_poses_[next_node]
+                                  << " and " << global_agents_[other_agent_id] << " at " << *all_poses_[other_path.back()]
+                                  << " have conflict" << std::endl;
                         return true;
                     } else {
 //                        std::cout << "t=" << time_index << " " << agent << " at " << *all_nodes_[current_node] << "->" << *all_nodes_[next_node]
@@ -530,10 +535,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 } else {
                     if(isCollide(agent, *all_poses_[current_node], *all_poses_[next_node],
                                  other_agent, *all_poses_[other_path[time_index]], *all_poses_[other_path[time_index+1]])) {
-//                        std::cout << "t=" << time_index << " " << agent << " at " << *all_nodes_[current_node] << "->" << *all_nodes_[next_node]
-//                                  << " and " << agents_[other_agent_id] << " at " << *all_nodes_[other_path[time_index]]
-//                                  << "->" << *all_nodes_[other_path[time_index+1]]
-//                                  << " have conflict" << std::endl;
+                        std::cout << "t=" << time_index << " " << agent << " at " << *all_poses_[current_node] << "->" << *all_poses_[next_node]
+                                  << " and " << global_agents_[other_agent_id] << " at " << *all_poses_[other_path[time_index]]
+                                  << "->" << *all_poses_[other_path[time_index+1]]
+                                  << " have conflict" << std::endl;
                         return true;
                     } else {
 //                        std::cout << "t=" << time_index << " " << agent << " at " << *all_nodes_[current_node] << "->" << *all_nodes_[next_node]
@@ -544,6 +549,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }
                 // if current agent reach target, check whether it collide with other agent in the future
                 // could be accelerate, by avoid
+//                std::cout << "ct 4" << std::endl;
                 if(is_goal) {
                     for(int t=earliest_arrive_time_map_.at(agent_global_id); t<other_path.size()-1; t++) {
                         if(isCollide(agent, *all_poses_[current_node], *all_poses_[next_node],
@@ -553,6 +559,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     }
                 }
             }
+//            std::cout << "ct 5" << std::endl;
             if(hasCollideWithSAT(agent_global_id, current_node, next_node)) {
                 return true;
             }
@@ -643,6 +650,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     template<Dimension N>
     struct SubGraphOfAgent {
         int agent_id_;
+        size_t start_node_id_ = MAX<size_t>;
+        size_t target_node_id_ = MAX<size_t>;
         std::vector<PosePtr<int, N> > all_nodes_;
         std::vector<std::vector<size_t> > all_edges_;
         std::vector<std::vector<size_t> > all_backward_edges_;
@@ -755,7 +764,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     bool isSolutionValid(const LAMAPF_Paths& paths,
                          const std::vector<AgentType>& agents,
                          const std::vector<PosePtr<int, N> >& all_poses) {
-        std::cout << __FUNCTION__ << std::endl;
         assert(paths.size() == agents.size());
         bool valid = true;
         for(int i=0; i<paths.size(); i++) {

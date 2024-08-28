@@ -72,6 +72,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                     this->solutions_.push_back(solution);
                 }
             }
+            if(this->solvable) {
+                assert(this->solutions_.size() == instances.size());
+                assert(this->solutions_.size() == this->initial_solutions_.size());
+            }
             // 2, detect conflict
 //            for(int i=0; i<this->instances_.size()-1; i++) {
 //                for(int j=i+1; j<this->instances_.size(); j++) {
@@ -223,6 +227,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         }
 
         void generateRoot() {
+//            std::cout << __FUNCTION__ << " called " << std::endl;
             auto root = new CBSNode();
             root->g_val = 0;
             this->solutions_.resize(this->instances_.size(), {});

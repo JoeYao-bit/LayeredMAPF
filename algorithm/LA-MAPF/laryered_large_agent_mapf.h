@@ -35,7 +35,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                const std::vector<AgentType>& pre_agents,
                                                const LAMAPF_Paths& paths,
                                                const std::vector<AgentType>& agents) {
-        int t=1;
+        int t=0;
         std::vector<bool> reach_states(paths.size(), false);
         LAMAPF_Paths modified_paths(paths);
         while(1) {
@@ -216,7 +216,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             mergedPaths = SingleLayerCompressLargeAgent<N>(all_poses, mergedPaths, pre_agents, pathss[i], agents[i]);
             pre_agents.insert(pre_agents.end(), agents[i].begin(), agents[i].end());
 
-//            if(!isSolutionValid(mergedPaths, pre_agents, all_poses)) { break; }
+            // debug, check whether merged path have conflicts
+            //if(!isSolutionValid(mergedPaths, pre_agents, all_poses)) { break; }
         }
         mergedPaths.resize(total_size);
         return mergedPaths;
@@ -382,6 +383,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             double mapf_func_time_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
             std::cout << "-- " << i << " th cluster mapf func take " << mapf_func_time_cost << "ms" << std::endl << std::endl;
 
+            for(int k=0; k<current_id_vec.size(); k++) {
+                grid_visit_count_table[current_id_vec[k]] = grid_visit_count_table_local[k];
+            }
+
             if(next_paths.empty()) {
                 std::cout << " layered MAPF failed " << i << " th cluster: ";
                 for(const auto& id : current_id_set) {
@@ -407,7 +412,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             for(int k=0; k<current_id_vec.size(); k++) {
                 next_paths_with_id.push_back({current_id_vec[k], next_paths[k]});
                 retv[current_id_vec[k]] = next_paths[k];
-                grid_visit_count_table[current_id_vec[k]] = grid_visit_count_table_local[k];
             }
             pathss.push_back(next_paths_with_id);
         }

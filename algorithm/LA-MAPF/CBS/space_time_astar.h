@@ -81,6 +81,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 static_time_step = std::max(static_time_step, this->path_constraint_->static_time_);
             }
 
+//            std::cout << "static_time_step = " << static_time_step << std::endl;
+
             new_nodes_in_open.clear();
             LAMAPF_Path path;
 
@@ -108,7 +110,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //            this->lower_bound_ = std::max(holding_time, this->lower_bound_); // yz: considering minimum time stamp to target
 
             while (!open_list.empty()) {
-                //std::cout << "open, focal size = " << open_list.size() << ", " << focal_list.size() << std::endl;
+//                std::cout << "open, focal size = " << open_list.size() << ", " << focal_list.size() << std::endl;
                 updateFocalList(); // update FOCAL if min f-val increased
                 new_nodes_in_open.clear();
                 auto *curr = popNode();
@@ -144,12 +146,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //                        }
 //                        next_timestep--;
 //                    }
+//                    std::cout << "next_node " << *this->sub_graph_.all_nodes_[next_node_id] << std::endl;
                     maximum_t_ = std::max(maximum_t_, next_timestep);
                     // yz: check whether satisfied all constraint, including vertex constraint and edge constraint
                     if (this->constraint_table_.constrained(next_node_id, next_timestep) ||
                             this->constraint_table_.constrained(curr->node_id, next_node_id, next_timestep))
                         continue;
-
+//                    std::cout << " flag 1 " << std::endl;
 //                    if(this->path_constraint_ == nullptr) {
 //                        std::cout << "this->path_constraint_ == nullptr" << std::endl;
 //                    }
@@ -157,11 +160,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //                    std::cout << " this->sub_graph_.agent_id_ = " << this->sub_graph_.agent_id_
 //                              << ", this->path_constraint_ = " << this->path_constraint_ << std::endl;
                     // avoid conflict     with external paths
+//                    std::cout << " reach target = " << (next_node_id == this->target_node_id_) << std::endl;
                     if(this->path_constraint_ != nullptr &&
                         this->path_constraint_->hasCollide(this->sub_graph_.agent_id_, curr->timestep,
                                                            curr->node_id, next_node_id, next_node_id == this->target_node_id_)) {
                         continue;
                     }
+//                    std::cout << " flag 2 " << std::endl;
 
                     // compute cost to next_id via curr node
                     int next_g_val = curr->g_val + 1;
@@ -170,6 +175,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                     if(next_h_val == MAX<int>) {
                         continue;
                     }
+//                    std::cout << " flag 3 " << std::endl;
 //                    assert(next_h_val != MAX<int>);
 
                     // getNumOfConflictsForStep is very time consuming for large agents

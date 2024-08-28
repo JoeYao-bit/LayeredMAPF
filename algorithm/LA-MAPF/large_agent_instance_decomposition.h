@@ -8,6 +8,8 @@
 #include "large_agent_mapf.h"
 #include "large_agent_dependency_path_search.h"
 #include "../../freeNav-base/basic_elements/point.h"
+#include "CBS/space_time_astar.h"
+
 
 #include <sys/time.h>
 #include <boost/graph/subgraph.hpp>
@@ -64,7 +66,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 gettimeofday(&tv_after, &tz);
                 instance_decomposition_time_cost_ =
                         (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
-                //printAllSubProblem(std::string("instance decomposition"));
+//                printAllSubProblem(std::string("instance decomposition"));
             }
 
             // 4，bi-partition clusters till cannot bi-partition
@@ -74,17 +76,17 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 gettimeofday(&tv_after, &tz);
                 cluster_bipartition_time_cost_ =
                         (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
-                //printAllSubProblem(std::string("cluster bi-partition"));
+//                printAllSubProblem(std::string("cluster bi-partition"));
             }
 
             // 5, level sorting
             if(decompose_level >= 1) {
                 gettimeofday(&tv_pre, &tz);
-//                levelSorting();
+                levelSorting();
                 gettimeofday(&tv_after, &tz);
                 level_sorting_time_cost_ =
                         (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
-                //printAllSubProblem(std::string("level sorting"));
+//                printAllSubProblem(std::string("level sorting"));
             }
 
 //            printAllSubProblem(std::string("decomposition final"));
@@ -104,6 +106,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
             assert(total_count == this->instances_.size());
             std::cout << "-- Decomposition completeness ? " << decompositionValidCheck(all_clusters_) << std::endl;
+            std::cout << "-- Decomposition completeness (grid map) ? " << decompositionValidCheckGridMap(all_clusters_) << std::endl;
+
             std::cout << " max/total size " << max_cluster_size << " / " << this->instances_.size() << std::endl;
         }
 
@@ -136,6 +140,76 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return true;
         }
 
+        bool decompositionValidCheckGridMap(const std::vector<std::set<int> >& all_levels) const {
+            float max_excircle_radius = getMaximumRadius(this->agents_);
+            std::vector<AgentType> pre_agents;
+            std::vector<size_t> pre_targets;
+
+            for(int i=0; i<all_levels.size(); i++) {
+//                std::cout << "-- level " << i << " valid check ... " << std::endl;
+
+                std::vector<AgentType> cur_agents;
+                std::vector<size_t> cur_targets;
+                for(const auto& agent_id : all_levels[i]) {
+                    cur_agents.push_back(this->agents_[agent_id]);
+                    cur_targets.push_back(this->instance_node_ids_[agent_id].second);
+                }
+
+                LargeAgentStaticConstraintTablePtr<N, AgentType>
+                        new_constraint_table_ptr_ = std::make_shared<LargeAgentStaticConstraintTable<N, AgentType> > (
+                        max_excircle_radius, this->dim_, this->isoc_, this->agents_, cur_agents, this->all_poses_);
+
+                new_constraint_table_ptr_->insertPoses(pre_agents, pre_targets);
+
+                pre_agents.insert(pre_agents.end(), cur_agents.begin(), cur_agents.end());
+                pre_targets.insert(pre_targets.end(), cur_targets.begin(), cur_targets.end());
+
+                // insert future agents' start as static constraint
+                for(int j = i+1; j<all_levels.size(); j++)
+                {
+                    const auto& current_cluster = all_levels[j];
+                    for(const int& agent_id : current_cluster) {
+                        new_constraint_table_ptr_->insertPose(agent_id, this->instance_node_ids_[agent_id].first);
+                    }
+                }
+                new_constraint_table_ptr_->updateEarliestArriveTimeForAgents(cur_agents, cur_targets);
+                for(const auto& agent_id : all_levels[i]) {
+//                    std::cout << "-- agent " << agent_id << " valid check ... " << std::endl;
+                    CBS::ConstraintTable<N, AgentType> constraint_table(agent_id,
+                                                                        this->agents_,
+                                                                        this->all_poses_,
+                                                                        this->dim_,
+                                                                        this->isoc_);
+
+                    CBS::SpaceTimeAstar<N, AgentType> solver(this->instance_node_ids_[agent_id].first,
+                                                             this->instance_node_ids_[agent_id].second,
+                                                             this->agents_heuristic_tables_[agent_id],
+                                                             this->agents_heuristic_tables_ignore_rotate_[agent_id],
+                                                             this->agent_sub_graphs_[agent_id],
+                                                             constraint_table,
+                                                             nullptr,
+                                                             new_constraint_table_ptr_,
+                                                             cur_agents
+                                                             );
+                    LAMAPF_Path path = solver.solve();
+                    if(path.empty()) {
+                        std::cout << "FATAL: cluster " << i << ", agent " << agent_id << " unsolvable after decomposition" << std::endl;
+//                        std::vector<size_t> visited_nodes = {1550, 1742, 1548, 1549};
+//                        for(const auto& visited_node : visited_nodes) {
+//                            std::cout << *this->all_poses_[visited_node] << " related to agent: ";
+//                            for(const auto& temp_agent_id : this->connect_graphs_[agent_id].related_agents_map_[visited_node]) {
+//                                std::cout << temp_agent_id << " ";
+//                            }
+//                            std::cout << std::endl;
+//                        }
+                        assert(0);
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
         std::vector<std::vector<int> > getRelatedAgentGraph(int agent_id, const std::vector<PosePtr<int, N> >& all_nodes) const {
             std::vector<std::vector<int> > related_agents_map(all_nodes.size());
             for(int i=0; i<this->agents_.size(); i++) {
@@ -156,7 +230,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
                 // get the maximum range of conflict
                 float max_range_radius = agent.excircle_radius_ + another_agent.excircle_radius_;
-                int local_space_width = 2*ceil(max_range_radius) + 1;
+                int local_space_width = 2*ceil(max_range_radius) + 2;
                 // construct a temp local space
                 DimensionLength local_dim[N];
                 Pointi<N> center_pt;
@@ -168,7 +242,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 int local_total_index = getTotalIndexOfSpace<N>(local_dim);
 //                std::cout << " local_total_index = " << local_total_index << std::endl;
                 Pointi<N> temp_pt, temp_start, temp_target;
-                size_t temp_pose_id;
+                size_t temp_pose_id, other_temp_pose_id;
                 Id temp_id;
                 for(int gid=0; gid<local_total_index; gid++) {
                     temp_pt = IdToPointi<N>(gid, local_dim) - center_pt;
@@ -186,12 +260,26 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                             // check whether this node is available in current agent's subgraph
                             if(all_nodes[temp_pose_id] != nullptr) {
 //                                std::cout << " check start conflict" << std::endl;
-                                if(isCollide(agent, *all_nodes[temp_pose_id],
-                                             another_agent, another_agent_start_pose))
+                                // if current node is collide with other agent
+                                if(isCollide(agent, *all_nodes[temp_pose_id], another_agent, another_agent_start_pose))
                                 {
                                     // if they have conflict
                                     related_agents_map[temp_pose_id].push_back(2*i);
 //                                    std::cout << " agent " << agent_id  << "," << i << "'s start have conflict at " << temp_start << std::endl;
+                                } else {
+                                    // if current node's edge is collide with other agent
+                                    for(int other_orient=0; other_orient<2*N; other_orient++) {
+                                        if(other_orient == orient || orient/2 == other_orient/2) { continue; }
+                                        other_temp_pose_id = temp_id*2*N + other_orient;
+                                        if(all_nodes[other_temp_pose_id] == nullptr) { continue; }
+                                        if(isCollide(agent, *all_nodes[temp_pose_id], *all_nodes[other_temp_pose_id],
+                                                     another_agent, another_agent_start_pose))
+                                        {
+                                            // if they have conflict
+                                            related_agents_map[temp_pose_id].push_back(2*i);
+//                                    std::cout << " agent " << agent_id  << "," << i << "'s start have conflict at " << temp_start << std::endl;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -214,6 +302,20 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                     // if they have conflict
                                     related_agents_map[temp_pose_id].push_back(2*i + 1);
 //                                    std::cout << " agent " << agent_id  << "," << i << "'s target have conflict at " << temp_target << std::endl;
+                                } else {
+                                    // if current node's edge is collide with other agent
+                                    for(int other_orient=0; other_orient<2*N; other_orient++) {
+                                        if(other_orient == orient || orient/2 == other_orient/2) { continue; }
+                                        other_temp_pose_id = temp_id*2*N + other_orient;
+                                        if(all_nodes[other_temp_pose_id] == nullptr) { continue; }
+                                        if(isCollide(agent, *all_nodes[temp_pose_id], *all_nodes[other_temp_pose_id],
+                                                     another_agent, another_agent_start_pose))
+                                        {
+                                            // if they have conflict
+                                            related_agents_map[temp_pose_id].push_back(2*i + 1);
+//                                    std::cout << " agent " << agent_id  << "," << i << "'s start have conflict at " << temp_start << std::endl;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -231,6 +333,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             // 1, get each pose's relation with other agent
             graph.related_agents_map_ = getRelatedAgentGraph(agent_id, current_subgraph.all_nodes_);
+
+            // assert agent's start and target have no overlap with other agent's start or target
+//            assert(graph.related_agents_map_[this->instance_node_ids_[agent_id].first].size() == 1);
+//            assert(graph.related_agents_map_[this->instance_node_ids_[agent_id].second].size() == 1);
 
             // 2, construct connectivity graph and record boundary (where different hyper node converge)
             std::vector<std::set<size_t> > strong_components = getStrongComponentFromSubGraph(current_subgraph.all_edges_, directed_graph_);
@@ -409,7 +515,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             assert(connect_graphs_[agent_id].target_hyper_node_ != MAX<size_t>);
 
             return search_machine.search(agent_id, connect_graphs_[agent_id].start_hyper_node_,
-                                         this->agent_sub_graphs_[agent_id], this->connect_graphs_[agent_id],
+                                         this->agent_sub_graphs_[agent_id],
+                                         this->connect_graphs_[agent_id],
                                          avoid_agents, passing_agents,
                                          distinguish_sat ? heuristic_tables_sat_[agent_id] : heuristic_tables_[agent_id],
                                          distinguish_sat, ignore_cost_set);
@@ -430,7 +537,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             // decompose the whole instance to multiple unrelated cluster
 
-            std::set<int> buffer_agents = instance_id_set_;
+            std::set<int> buffer_agents = instance_id_set_; // all agents
             std::vector<std::set<int> > all_clusters;
 
             // get top level isolated clusters
@@ -462,6 +569,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             for(const auto& iter : cluster_of_agents) {
                 all_clusters_.push_back(iter.second);
             }
+            std::sort(all_clusters_.begin(), all_clusters_.end(),[](std::set<int> x,std::set<int> y){return x.size()>y.size();});
         }
 
         // select the largest cluster and merge remaining agent into one cluster and return
@@ -489,16 +597,24 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             std::vector<bool> within_set = AgentIdsToSATID(instance_id_set);
             for(const auto& id_agent_pair : all_passing_agent) {
                 const int& agent_id = id_agent_pair.first;
+//                std::cout << __FUNCTION__ << " agent_id = " << agent_id << std::endl;
                 const std::set<int>& agent_path = id_agent_pair.second;
+
                 for(const int& other_agent : agent_path) {
 
                     if(all_unavoidable_agent.find(agent_id) == all_unavoidable_agent.end()) {
                         all_unavoidable_agent.insert(std::pair<int, std::set<int> >(agent_id, {}));
                     }
+
                     std::vector<bool> avoid_list(2*this->instances_.size(), false);
                     avoid_list[other_agent*2] = true, avoid_list[other_agent*2 + 1] = true;
+//                    std::cout << __FUNCTION__ << " try avoid  " << other_agent << std::endl;
+
                     if((searchAgent(agent_id, avoid_list, within_set, distinguish_sat)).empty()) {
                         all_unavoidable_agent.at(agent_id).insert(other_agent);
+                        //std::cout << " failed " << std::endl;
+                    } else {
+                        //std::cout << " success " << std::endl;
                     }
                 }
             }
@@ -550,8 +666,25 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 auto passing_agents = searchAgent(agent_id, {}, buffer_sat); // pass test
                 all_agents_path.insert({agent_id, passing_agents});
             }
+//            std::cout << "all_agents_path 0: " << std::endl;
+//            for(const auto& pair : all_agents_path) {
+//                std::cout << "agent " << pair.first << ": ";
+//                for(const auto& id : pair.second) {
+//                    std::cout << id << " ";
+//                }
+//                std::cout << std::endl;
+//            }
+
             // determine agent's unavoidable agent
             std::map<int, std::set<int> > all_unavoidable_agent = searchUnAvoidAgentForEachAgent(all_agents_path, agents);
+//            std::cout << "all_unavoidable_agent: " << std::endl;
+//            for(const auto& pair : all_unavoidable_agent) {
+//                std::cout << "agent " << pair.first << ": ";
+//                for(const auto& id : pair.second) {
+//                    std::cout << id << " ";
+//                }
+//                std::cout << std::endl;
+//            }
 
             // lower bound of cluster size
             // determine each agent's related agent (unavoidable)
@@ -633,11 +766,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     int count = 0;
                     buffer_agents = top_cluster;
                     // bi-partition until can not bi-partition
-                    while (buffer_agents.size() > 1) {
-                        auto agents_pair = biPartitionCluster(buffer_agents);
-                        std::swap(buffer_agents, agents_pair.second);
-                        all_clusters.push_back(agents_pair.first);
-                        count++;
+                    //if(count_top_cluster == 1)
+                    {
+                        while (buffer_agents.size() > 1) {
+                            auto agents_pair = biPartitionCluster(buffer_agents);
+                            std::swap(buffer_agents, agents_pair.second);
+                            all_clusters.push_back(agents_pair.first);
+                            count++;
+                        }
                     }
                     if (!buffer_agents.empty()) {
                         all_clusters.push_back(buffer_agents);
@@ -645,7 +781,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }
             }
             // sorting in increase size, to enable large cluster have fewer external path constraint
-            std::sort(all_clusters.begin(),all_clusters.end(),[](std::set<int> x,std::set<int> y){return x.size()>y.size();});
+            std::sort(all_clusters.begin(), all_clusters.end(), [](std::set<int> x,std::set<int> y){return x.size()>y.size();});
             all_clusters_ = all_clusters;
 
         }
@@ -686,6 +822,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 // add agent's sat path in an incremental way
                 all_agents_path.insert({agent_id, passing_sats});
             }
+
+//            std::cout << "all_agents_path: " << std::endl;
+//            for(const auto& pair : all_agents_path) {
+//                std::cout << "agent " << pair.first << ": ";
+//                for(const auto& id : pair.second) {
+//                    std::cout << id << " ";
+//                }
+//                std::cout << std::endl;
+//            }
 
             // 2, get all strong components
             auto ahead_and_later_sequence = getAheadAndLaterSequence(all_agents_path);

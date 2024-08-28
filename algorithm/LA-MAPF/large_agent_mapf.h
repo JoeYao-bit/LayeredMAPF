@@ -98,6 +98,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 std::cout << "  construct distance_map_update" << std::endl;
                 distance_map_updater_ = std::make_shared<DistanceMapUpdater<N> >(this->isoc_, this->dim_);
             }
+
+
             if(agent_sub_graphs_.empty()) {
                 std::cout << "  construct agent_sub_graphs" << std::endl;
                 agent_sub_graphs_.reserve(instances_.size());
@@ -105,28 +107,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     agent_sub_graphs_.push_back(constructSubGraphOfAgent(id));
                 }
             }
-            // check solvability
-            instance_node_ids_.reserve(instances_.size());
-            for (int agent = 0; agent < instances_.size(); agent++) {
-                // check start
-                int start_node_id =
-                       PointiToId<N>(instances_[agent].first.pt_, dim_) * 2 * N + instances_[agent].first.orient_;
-                if (agent_sub_graphs_[agent].all_nodes_[start_node_id] == nullptr) {
-                   std::cerr << " agent " << agent << "'s start " << instances_[agent].first.pt_ << "^"
-                             << instances_[agent].first.orient_ << " is unavailable " << std::endl;
-                   solvable = false;
-                   break;
+
+            if(instance_node_ids_.empty()) {
+                instance_node_ids_.reserve(instances_.size());
+                for (const auto &sub_graph : agent_sub_graphs_) {
+                    instance_node_ids_.push_back({sub_graph.start_node_id_, sub_graph.target_node_id_});
                 }
-                // check target
-                int target_node_id = PointiToId<N>(instances_[agent].second.pt_, dim_) * 2 * N +
-                                    instances_[agent].second.orient_;
-                if (agent_sub_graphs_[agent].all_nodes_[target_node_id] == nullptr) {
-                   std::cerr << " agent " << agent << "'s target " << instances_[agent].second.pt_ << "^"
-                             << instances_[agent].second.orient_ << " is unavailable " << std::endl;
-                   solvable = false;
-                   break;
-               }
-               instance_node_ids_.push_back(std::make_pair(start_node_id, target_node_id));
             }
             // 3, construct each agent's heuristic table, i.e., distance from each node to target
             if(agents_heuristic_tables_.empty()) {
@@ -178,13 +164,32 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return *all_poses_[node_id];
         }
 
-        SubGraphOfAgent<N> constructSubGraphOfAgent(int agent_id) const {
+
+        SubGraphOfAgent<N> constructSubGraphOfAgent(int agent_id) {
             const AgentType& agent = agents_[agent_id];
             Id total_index = getTotalIndexOfSpace<N>(dim_);
+
             assert(all_poses_.size() == total_index*2*N);
+
+            // check start
+            int start_node_id = PointiToId<N>(instances_[agent_id].first.pt_, dim_) * 2 * N +
+                                instances_[agent_id].first.orient_;
+
+            // check target
+            int target_node_id = PointiToId<N>(instances_[agent_id].second.pt_, dim_) * 2 * N +
+                                 instances_[agent_id].second.orient_;
+
+            instance_node_ids_.push_back(std::make_pair(start_node_id, target_node_id));
+
+
             SubGraphOfAgent<N> sub_graph;
+
             sub_graph.agent_id_ = agent_id;
+
             sub_graph.all_nodes_.resize(total_index * 2 * N, nullptr);
+            sub_graph.start_node_id_ = start_node_id;
+            sub_graph.target_node_id_ = target_node_id;
+
             // initial nodes in subgraph
             for(size_t id=0; id<all_poses_.size(); id++) {
                 if(all_poses_[id] != nullptr) {
@@ -194,6 +199,19 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     }
                 }
             }
+
+            if (sub_graph.all_nodes_[start_node_id] == nullptr) {
+                std::cerr << " agent " << agent << "'s start " << instances_[agent_id].first.pt_ << "^"
+                          << instances_[agent_id].first.orient_ << " is unavailable " << std::endl;
+                solvable = false;
+            }
+
+            if (sub_graph.all_nodes_[target_node_id] == nullptr) {
+                std::cerr << " agent " << agent << "'s target " << instances_[agent_id].second.pt_ << "^"
+                          << instances_[agent_id].second.orient_ << " is unavailable " << std::endl;
+                solvable = false;
+            }
+
             // when add edges, assume agent can only change position or orientation, cannot change both of them
             // and orientation can only change 90 degree at one timestep, that means the two orient must be orthogonal
             sub_graph.all_edges_.resize(total_index*2*N, {});
