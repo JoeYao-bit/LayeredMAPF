@@ -253,7 +253,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             hyper_node_id_map_.resize(total_nodes, MAX<size_t>);
         }
 
-        std::vector<std::vector<int> > related_agents_map_; // store each pose collide with what agents' start(2*id) or target(2*id+1)
+        std::vector<std::set<int> > related_agents_map_; // store each pose collide with what agents' start(2*id) or target(2*id+1)
 
         // store each node's hyper node id, default to MAX<size_t>
         // may be disposed after we construct ConnectivityGraph
@@ -261,7 +261,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         // store what agent current hyper node associate with
         // a hyper node may associate with no agent may also associate with multiple agent
-        std::vector<std::vector<int> > hyper_node_with_agents_;
+        std::vector<std::set<int> > hyper_node_with_agents_;
 
         std::vector<std::vector<size_t> > all_edges_vec_; // each hyper node's connecting node, store in vector
 
@@ -523,9 +523,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 if(other_path.size() - 1 <= time_index) {
                     if(isCollide(agent, *all_poses_[current_node], *all_poses_[next_node],
                                  other_agent, *all_poses_[other_path.back()])) {
-                        std::cout << "t=" << time_index << " " << agent << " at " << *all_poses_[current_node] << "->" << *all_poses_[next_node]
-                                  << " and " << global_agents_[other_agent_id] << " at " << *all_poses_[other_path.back()]
-                                  << " have conflict" << std::endl;
+//                        std::cout << "t=" << time_index << " " << agent << " at " << *all_poses_[current_node] << "->" << *all_poses_[next_node]
+//                                  << " and " << global_agents_[other_agent_id] << " at " << *all_poses_[other_path.back()]
+//                                  << " have conflict" << std::endl;
                         return true;
                     } else {
 //                        std::cout << "t=" << time_index << " " << agent << " at " << *all_nodes_[current_node] << "->" << *all_nodes_[next_node]
@@ -535,10 +535,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 } else {
                     if(isCollide(agent, *all_poses_[current_node], *all_poses_[next_node],
                                  other_agent, *all_poses_[other_path[time_index]], *all_poses_[other_path[time_index+1]])) {
-                        std::cout << "t=" << time_index << " " << agent << " at " << *all_poses_[current_node] << "->" << *all_poses_[next_node]
-                                  << " and " << global_agents_[other_agent_id] << " at " << *all_poses_[other_path[time_index]]
-                                  << "->" << *all_poses_[other_path[time_index+1]]
-                                  << " have conflict" << std::endl;
+//                        std::cout << "t=" << time_index << " " << agent << " at " << *all_poses_[current_node] << "->" << *all_poses_[next_node]
+//                                  << " and " << global_agents_[other_agent_id] << " at " << *all_poses_[other_path[time_index]]
+//                                  << "->" << *all_poses_[other_path[time_index+1]]
+//                                  << " have conflict" << std::endl;
                         return true;
                     } else {
 //                        std::cout << "t=" << time_index << " " << agent << " at " << *all_nodes_[current_node] << "->" << *all_nodes_[next_node]

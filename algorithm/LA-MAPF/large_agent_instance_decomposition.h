@@ -44,16 +44,19 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             for(int i=0; i<instances.size(); i++) {
                 instance_id_set_.insert(i);
             }
-
+            std::cout << "start getAgentConnectivityGraph" << std::endl;
             // 1, construct each agent's connectivity graph
             for(int i=0; i<agents.size(); i++) {
                 connect_graphs_.push_back(getAgentConnectivityGraph(i));
             }
+            std::cout << "finish getAgentConnectivityGraph" << std::endl;
+            std::cout << "start calculateLargeAgentHyperGraphStaticHeuristic" << std::endl;
             // 2, calculate heuristic table for each connectivity graph
             for(int i=0; i<agents.size(); i++) {
                 heuristic_tables_.push_back(calculateLargeAgentHyperGraphStaticHeuristic<N>(i, this->dim_, connect_graphs_[i], false));
                 heuristic_tables_sat_.push_back(calculateLargeAgentHyperGraphStaticHeuristic<N>(i, this->dim_, connect_graphs_[i], true));
             }
+            std::cout << "finish calculateLargeAgentHyperGraphStaticHeuristic" << std::endl;
 
             gettimeofday(&tv_after, &tz);
             initialize_time_cost_ =
@@ -66,7 +69,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 gettimeofday(&tv_after, &tz);
                 instance_decomposition_time_cost_ =
                         (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
-//                printAllSubProblem(std::string("instance decomposition"));
+                //printAllSubProblem(std::string("instance decomposition"));
             }
 
             // 4，bi-partition clusters till cannot bi-partition
@@ -76,7 +79,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 gettimeofday(&tv_after, &tz);
                 cluster_bipartition_time_cost_ =
                         (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
-//                printAllSubProblem(std::string("cluster bi-partition"));
+                //printAllSubProblem(std::string("cluster bi-partition"));
             }
 
             // 5, level sorting
@@ -86,7 +89,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 gettimeofday(&tv_after, &tz);
                 level_sorting_time_cost_ =
                         (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
-//                printAllSubProblem(std::string("level sorting"));
+                //printAllSubProblem(std::string("level sorting"));
             }
 
 //            printAllSubProblem(std::string("decomposition final"));
@@ -210,8 +213,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return true;
         }
 
-        std::vector<std::vector<int> > getRelatedAgentGraph(int agent_id, const std::vector<PosePtr<int, N> >& all_nodes) const {
-            std::vector<std::vector<int> > related_agents_map(all_nodes.size());
+        std::vector<std::set<int> > getRelatedAgentGraph(int agent_id, const std::vector<PosePtr<int, N> >& all_nodes) const {
+            std::vector<std::set<int> > related_agents_map(all_nodes.size());
             for(int i=0; i<this->agents_.size(); i++) {
                 //if(i == agent_id) { continue; }
                 const auto& agent = this->agents_[agent_id];
@@ -264,7 +267,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                 if(isCollide(agent, *all_nodes[temp_pose_id], another_agent, another_agent_start_pose))
                                 {
                                     // if they have conflict
-                                    related_agents_map[temp_pose_id].push_back(2*i);
+                                    related_agents_map[temp_pose_id].insert(2*i);
 //                                    std::cout << " agent " << agent_id  << "," << i << "'s start have conflict at " << temp_start << std::endl;
                                 } else {
                                     // if current node's edge is collide with other agent
@@ -276,7 +279,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                      another_agent, another_agent_start_pose))
                                         {
                                             // if they have conflict
-                                            related_agents_map[temp_pose_id].push_back(2*i);
+                                            related_agents_map[temp_pose_id].insert(2*i);
 //                                    std::cout << " agent " << agent_id  << "," << i << "'s start have conflict at " << temp_start << std::endl;
                                         }
                                     }
@@ -300,7 +303,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                              another_agent, another_agent_target_pose))
                                 {
                                     // if they have conflict
-                                    related_agents_map[temp_pose_id].push_back(2*i + 1);
+                                    related_agents_map[temp_pose_id].insert(2*i + 1);
 //                                    std::cout << " agent " << agent_id  << "," << i << "'s target have conflict at " << temp_target << std::endl;
                                 } else {
                                     // if current node's edge is collide with other agent
@@ -312,7 +315,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                      another_agent, another_agent_start_pose))
                                         {
                                             // if they have conflict
-                                            related_agents_map[temp_pose_id].push_back(2*i + 1);
+                                            related_agents_map[temp_pose_id].insert(2*i + 1);
 //                                    std::cout << " agent " << agent_id  << "," << i << "'s start have conflict at " << temp_start << std::endl;
                                         }
                                     }

@@ -65,7 +65,7 @@ bool draw_visit_grid_table = false;
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
 auto map_test_config = MAPFTestConfig_empty_48_48;
-//MAPFTestConfig_AR0011SR;
+// MAPFTestConfig_AR0011SR;
 // MAPFTestConfig_maze_32_32_4;
 // MAPFTestConfig_Berlin_1_256;
 // MAPFTestConfig_simple;
@@ -524,12 +524,12 @@ void loadInstanceAndPlanningLayeredCBS(const std::string& file_path, double time
     std::cout << "instance has " << deserializer.getAgents().size() << " agents, find solution ? " << !layered_paths.empty()
               << " in " << total_time_cost << "s " << std::endl;
 
-    LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(deserializer.getAgents(), is_occupied, dim);
-    InstanceVisualization<AgentType>(deserializer.getAgents(),
-                                     generator.getAllPoses(),
-                                     deserializer.getInstances(),
-                                     layered_paths,
-                                     grid_visit_count_table);
+//    LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(deserializer.getAgents(), is_occupied, dim);
+//    InstanceVisualization<AgentType>(deserializer.getAgents(),
+//                                     generator.getAllPoses(),
+//                                     deserializer.getInstances(),
+//                                     layered_paths,
+//                                     grid_visit_count_table);
 }
 
 
