@@ -237,7 +237,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             HyperGraphNodeDataPtr<N> start_node = new HyperGraphNodeData<N>(start_hyper_node_id, nullptr, con_graph, distinguish_sat);
 
             assert(start_node->visited_agent_.size() >= 1);
-            assert(con_graph.related_agents_map_[con_graph.target_hyper_node_].size() >= 1);
+            assert(con_graph.hyper_node_with_agents_[con_graph.target_hyper_node_].size() >= 1);
 //            std::cout << "start_node cur and pre " << start_node << " / " << start_node->pa_ << std::endl;
             start_node->h_val_ = heuristic_table[start_hyper_node_id];
             start_node->in_openlist_ = true;
