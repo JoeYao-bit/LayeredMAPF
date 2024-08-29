@@ -99,12 +99,14 @@ TEST(boost_strong_componnet, test) {
     Graph g(8);
 
     // 添加边
-    add_edge(Vertex(0), Vertex(1), g);
+    add_edge(Vertex(11), Vertex(1), g);
     add_edge(Vertex(1), Vertex(2), g);
-    add_edge(Vertex(2), Vertex(0), g);
+    add_edge(Vertex(2), Vertex(11), g);
+
     add_edge(Vertex(3), Vertex(4), g);
     add_edge(Vertex(4), Vertex(5), g);
     add_edge(Vertex(5), Vertex(3), g);
+
     add_edge(Vertex(6), Vertex(7), g);
 
     // 向量存储每个顶点的强连通分量编号

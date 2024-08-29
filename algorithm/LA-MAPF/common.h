@@ -267,9 +267,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         std::vector<std::set<size_t> > all_edges_set_; // each hyper node's connecting node, store in set
 
-        size_t start_hyper_node_; // where is start in the hyper graph
+        size_t start_hyper_node_ = MAX<size_t>; // where is start in the hyper graph
 
-        size_t target_hyper_node_; // where is target in the hyper graph
+        size_t target_hyper_node_ = MAX<size_t>; // where is target in the hyper graph
 
     };
 

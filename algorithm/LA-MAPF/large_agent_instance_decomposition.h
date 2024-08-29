@@ -44,19 +44,19 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             for(int i=0; i<instances.size(); i++) {
                 instance_id_set_.insert(i);
             }
-            std::cout << "start getAgentConnectivityGraph" << std::endl;
+            std::cout << "-- start getAgentConnectivityGraph" << std::endl;
             // 1, construct each agent's connectivity graph
             for(int i=0; i<agents.size(); i++) {
                 connect_graphs_.push_back(getAgentConnectivityGraph(i));
             }
-            std::cout << "finish getAgentConnectivityGraph" << std::endl;
-            std::cout << "start calculateLargeAgentHyperGraphStaticHeuristic" << std::endl;
+            std::cout << "-- finish getAgentConnectivityGraph" << std::endl;
+            std::cout << "-- start calculateLargeAgentHyperGraphStaticHeuristic" << std::endl;
             // 2, calculate heuristic table for each connectivity graph
             for(int i=0; i<agents.size(); i++) {
                 heuristic_tables_.push_back(calculateLargeAgentHyperGraphStaticHeuristic<N>(i, this->dim_, connect_graphs_[i], false));
                 heuristic_tables_sat_.push_back(calculateLargeAgentHyperGraphStaticHeuristic<N>(i, this->dim_, connect_graphs_[i], true));
             }
-            std::cout << "finish calculateLargeAgentHyperGraphStaticHeuristic" << std::endl;
+            std::cout << "-- finish calculateLargeAgentHyperGraphStaticHeuristic" << std::endl;
 
             gettimeofday(&tv_after, &tz);
             initialize_time_cost_ =
@@ -108,10 +108,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 if(all_clusters_[i].size() > max_cluster_size) { max_cluster_size = all_clusters_[i].size(); }
             }
             assert(total_count == this->instances_.size());
+            std::cout << "-- max/total size " << max_cluster_size << " / " << this->instances_.size() << std::endl;
             std::cout << "-- Decomposition completeness ? " << decompositionValidCheck(all_clusters_) << std::endl;
             std::cout << "-- Decomposition completeness (grid map) ? " << decompositionValidCheckGridMap(all_clusters_) << std::endl;
 
-            std::cout << " max/total size " << max_cluster_size << " / " << this->instances_.size() << std::endl;
         }
 
         bool decompositionValidCheck(const std::vector<std::set<int> >& all_levels) const {
@@ -136,6 +136,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     auto passing_agents = searchAgent(agent, avoid_sats, {}, true);
                     if(passing_agents.empty()) {
                         std::cout << "ERROR: cluster " << i << ", agent " << agent << " is im-complete" << std::endl;
+                        assert(0);
                         return false;
                     }
                 }
@@ -325,6 +326,24 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     }
                 }
             }
+            assert(related_agents_map[this->instance_node_ids_[agent_id].first].find(2*agent_id) !=
+                   related_agents_map[this->instance_node_ids_[agent_id].first].end());
+
+            assert(related_agents_map[this->instance_node_ids_[agent_id].second].find(2*agent_id+1) !=
+                   related_agents_map[this->instance_node_ids_[agent_id].second].end());
+
+//            std::cout << " agent " << agent_id << " start related agent = ";
+//            for(const size_t & id : related_agents_map[this->instance_node_ids_[agent_id].first]) {
+//                std::cout << id << " ";
+//            }
+//            std::cout << std::endl;
+//
+//            std::cout << " agent " << agent_id << " target related agent = ";
+//            for(const size_t & id : related_agents_map[this->instance_node_ids_[agent_id].second]) {
+//                std::cout << id << " ";
+//            }
+//            std::cout << std::endl;
+
             return related_agents_map;
         }
 
@@ -342,45 +361,71 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //            assert(graph.related_agents_map_[this->instance_node_ids_[agent_id].second].size() == 1);
 
             // 2, construct connectivity graph and record boundary (where different hyper node converge)
-            std::vector<std::set<size_t> > strong_components = getStrongComponentFromSubGraph(current_subgraph.all_edges_, directed_graph_);
+            std::vector<std::set<size_t> > strong_components = getStrongComponentFromSubGraph(current_subgraph.all_nodes_,
+                                                                                              current_subgraph.all_edges_,
+                                                                                              directed_graph_);
 
             int max_hyper_node_id = 0;
             std::vector<size_t> boundary_nodes;
+
+            std::vector<std::vector<size_t> > node_in_hyper_node;
+
             // considering the using boost to detect strong connected component of directed graph
             for(const std::set<size_t>& cur_component : strong_components) {
+                if(cur_component.size() == 1) {
+                    if(current_subgraph.all_nodes_[*cur_component.begin()] == nullptr) { continue; }
+                }
                 for (const size_t & node_id : cur_component) {
                     const auto &current_pose_ptr = current_subgraph.all_nodes_[node_id];
                     if (current_pose_ptr == nullptr) { continue; }
                     if (graph.hyper_node_id_map_[node_id] != MAX<size_t>) { continue; }
                     graph.hyper_node_id_map_[node_id] = max_hyper_node_id;
+
+                    node_in_hyper_node.push_back({});
+                    node_in_hyper_node.back().push_back(node_id);
+
                     std::vector<size_t> nodes_buffer = {node_id}, next_buffer = {};
                     while (!nodes_buffer.empty()) {
                         next_buffer.clear();
                         for (const auto &cur_node : nodes_buffer) {
                             // traversal all neighboring nodes
                             for (const auto &neighbor_node_id : current_subgraph.all_edges_[cur_node]) {
+
+                                // if belong to different component
                                 if(cur_component.find(neighbor_node_id) == cur_component.end()) {
                                     // when two node belong to different component
-                                    if (graph.hyper_node_id_map_[neighbor_node_id] != MAX<size_t>) {
+                                    //if (graph.hyper_node_id_map_[neighbor_node_id] != MAX<size_t>)
+                                    {
                                         boundary_nodes.push_back(neighbor_node_id);
                                     }
-                                    if (graph.hyper_node_id_map_[cur_node] != MAX<size_t>) {
+                                    //if (graph.hyper_node_id_map_[cur_node] != MAX<size_t>)
+                                    {
                                         boundary_nodes.push_back(cur_node);
                                     }
-                                    continue;
-                                }
-                                if (graph.related_agents_map_[node_id] == graph.related_agents_map_[neighbor_node_id]) {
-                                    if (graph.hyper_node_id_map_[neighbor_node_id] != MAX<size_t>) {
-                                        continue;
-                                    }
-                                    graph.hyper_node_id_map_[neighbor_node_id] = max_hyper_node_id;
-                                    next_buffer.push_back(neighbor_node_id);
                                 } else {
-                                    if (graph.hyper_node_id_map_[neighbor_node_id] != MAX<size_t>) {
-                                        boundary_nodes.push_back(neighbor_node_id);
-                                    }
-                                    if (graph.hyper_node_id_map_[cur_node] != MAX<size_t>) {
-                                        boundary_nodes.push_back(cur_node);
+
+                                    if (graph.related_agents_map_[node_id] == graph.related_agents_map_[neighbor_node_id]) {
+                                        if (graph.hyper_node_id_map_[neighbor_node_id] != MAX<size_t>) {
+                                            continue;
+                                        }
+                                        graph.hyper_node_id_map_[neighbor_node_id] = max_hyper_node_id;
+                                        next_buffer.push_back(neighbor_node_id);
+
+                                        node_in_hyper_node.back().push_back(neighbor_node_id);
+
+                                    } else {
+
+                                        // if two node have different related agent, they are on boundary
+                                        // shouldn't reach here
+    //                                    std::cout << "FATAL: shouldn't reach here" << std::endl;
+                                        //if (graph.hyper_node_id_map_[neighbor_node_id] != MAX<size_t>)
+                                        {
+                                            boundary_nodes.push_back(neighbor_node_id);
+                                        }
+                                        //if (graph.hyper_node_id_map_[cur_node] != MAX<size_t>)
+                                        {
+                                            boundary_nodes.push_back(cur_node);
+                                        }
                                     }
                                 }
                             }
@@ -391,9 +436,48 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }
             }
 
-            for(int node_id=0; node_id<current_subgraph.all_nodes_.size(); node_id++) {
-                const auto &current_pose_ptr = current_subgraph.all_nodes_[node_id];
-                if (current_pose_ptr == nullptr) { continue; }
+            // debug
+            // all node belong to the same each hyper node should have the same related_agents_map_
+            assert(node_in_hyper_node.size() == max_hyper_node_id);
+            for(int cid = 0; cid<max_hyper_node_id; cid++) {
+                assert(!node_in_hyper_node[cid].empty());
+                for(const auto& another_id : node_in_hyper_node[cid]) {
+                    assert(graph.related_agents_map_[node_in_hyper_node[cid].front()] == graph.related_agents_map_[another_id]);
+                }
+            }
+
+//            for(int node_id=0; node_id<current_subgraph.all_nodes_.size(); node_id++) {
+//                const auto &current_pose_ptr = current_subgraph.all_nodes_[node_id];
+//                if (current_pose_ptr == nullptr) { continue; }
+//            }
+
+            // debug // not pass
+            int non_null_count = 0;
+            for(int i=0; i<this->agent_sub_graphs_[agent_id].all_nodes_.size(); i++) {
+                if(current_subgraph.all_nodes_[i] != nullptr) {
+                    non_null_count ++;
+                }
+            }
+            int component_count = 0;
+            for(int i=0; i<strong_components.size(); i++) {
+                // ignore nullptr
+                if(strong_components[i].size() == 1) {
+                    if(this->agent_sub_graphs_[agent_id].all_nodes_[*strong_components[i].begin()] == nullptr) { continue; }
+                }
+                component_count = component_count + strong_components[i].size();
+            }
+//            std::cout << " non_null_count = " << non_null_count << " / component_count = " << component_count
+//                      << " / total_node_count = " << getTotalIndexOfSpace<N>(this->dim_)*2*N << std::endl;
+
+            assert(non_null_count == component_count);
+
+            // debug // pass
+            for(int i=0; i<this->all_poses_.size(); i++) {
+                if(current_subgraph.all_nodes_[i] != nullptr) {
+                    assert(graph.hyper_node_id_map_[i] != MAX<size_t>);
+                } else {
+                    assert(graph.hyper_node_id_map_[i] == MAX<size_t>);
+                }
             }
 
             graph.all_edges_set_.resize(max_hyper_node_id);
@@ -404,13 +488,17 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             assert(graph.start_hyper_node_ != MAX<size_t>);
             assert(graph.target_hyper_node_ != MAX<size_t>);
 
+
+
             // 4, get connections between hyper graph nodes
             graph.hyper_node_with_agents_.resize(max_hyper_node_id);
+            for(int cur_hyper_node_id=0; cur_hyper_node_id<max_hyper_node_id; cur_hyper_node_id++) {
+                graph.hyper_node_with_agents_[cur_hyper_node_id] =
+                        graph.related_agents_map_[node_in_hyper_node[cur_hyper_node_id].front()];
+            }
             for(const auto& node_id : boundary_nodes) {
                 const auto& cur_hyper_node_id = graph.hyper_node_id_map_[node_id];
-                if(graph.hyper_node_with_agents_[cur_hyper_node_id].empty()) {
-                    graph.hyper_node_with_agents_[cur_hyper_node_id] = graph.related_agents_map_[node_id];
-                }
+
                 for(const auto& nearby_node_id : current_subgraph.all_edges_[node_id]) {
                     const auto& next_hyper_node_id = graph.hyper_node_id_map_[nearby_node_id];
                     if(next_hyper_node_id != MAX<size_t> && cur_hyper_node_id != next_hyper_node_id) {
@@ -425,6 +513,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     }
                 }
             }
+
+//            assert(hyper_node_set_flag == std::vector<bool>(max_hyper_node_id, true));
+
+            assert(graph.hyper_node_with_agents_[graph.start_hyper_node_].find(2*agent_id) !=
+                           graph.hyper_node_with_agents_[graph.start_hyper_node_].end());
+
+            assert(graph.hyper_node_with_agents_[graph.target_hyper_node_].find(2*agent_id+1) !=
+                           graph.hyper_node_with_agents_[graph.target_hyper_node_].end());
+
             // print for debug
 //            std::cout << "agent_id " << agent_id << "'s hyper" << std::endl;
 //            for(int hyper_node_id=0; hyper_node_id < max_hyper_node_id; hyper_node_id++) {
@@ -443,14 +540,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
 
 
-        std::vector<std::set<size_t> > getStrongComponentFromSubGraph(const std::vector<std::vector<size_t> >& all_edges, bool directed_graph = false) const {
+        std::vector<std::set<size_t> > getStrongComponentFromSubGraph(const std::vector<PosePtr<int, N>>& all_poses,
+                                                                      const std::vector<std::vector<size_t> >& all_edges,
+                                                                      bool directed_graph = true) const {
 
             using namespace boost;
 
             if(directed_graph) {
                 typedef adjacency_list<vecS, vecS, directedS, size_t> Graph;
                 Graph g;
-
                 for(size_t i=0; i<all_edges.size(); i++) {
                     if(all_edges[i].empty()) { continue; }
                     for(const size_t& j : all_edges[i]) {
@@ -458,10 +556,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     }
                 }
                 std::vector<int> component(num_vertices(g));
-                int num = strong_components(g, &component[0]);
-
-                std::vector<std::set<size_t> > retv(component.size());
-
+                int num = connected_components(g, &component[0]);
+                std::vector<std::set<size_t> > retv(num);
 //                std::cout << "Total number of strong components: " << num << std::endl;
                 for (size_t i = 0; i < component.size(); ++i) {
 //                    std::cout << "Vertex " << i << " is in component " << component[i] << std::endl;
@@ -471,7 +567,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             } else {
                 typedef adjacency_list<vecS, vecS, undirectedS, size_t> Graph;
                 Graph g;
-
                 for(size_t i=0; i<all_edges.size(); i++) {
                     if(all_edges[i].empty()) { continue; }
                     for(const size_t& j : all_edges[i]) {
@@ -480,9 +575,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }
                 std::vector<int> component(num_vertices(g));
                 int num = connected_components(g, &component[0]);
-
-                std::vector<std::set<size_t> > retv(component.size());
-
+                std::vector<std::set<size_t> > retv(num);
 //                std::cout << "Total number of strong components: " << num << std::endl;
                 for (size_t i = 0; i < component.size(); ++i) {
 //                    std::cout << "Vertex " << i << " is in component " << component[i] << std::endl;
@@ -490,7 +583,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }
                 return retv;
             }
-
         }
 
         // return path that consists of agents

@@ -69,8 +69,8 @@ TEST(GenerateBlock_2DInstance, test)
 {
     const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(20,
                                                                 -2.4, -.2,
-                                                                .2, 1.4,
-                                                                .2, 1.4,
+                                                                .2, 2.4,
+                                                                .2, 2.4,
                                                                 .1, dim);
     generateInstance<BlockAgent_2D, CBS::LargeAgentCBS<2, BlockAgent_2D > >(agents, map_test_config.at("blk_ins_path"));
 
@@ -91,7 +91,7 @@ TEST(LoadCircleInstance, test)
 
 //    loadInstanceAndPlanning<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > >(file_path, 30);
 
-    loadInstanceAndPlanningLayeredCBS<CircleAgent<2> >(file_path, 60, true);
+    loadInstanceAndPlanningLayeredCBS<CircleAgent<2> >(file_path, 60, false);
 
 };
 
@@ -107,7 +107,7 @@ TEST(LoadBlock_2DInstance, test)
 //    loadInstanceAndPlanning<BlockAgent_2D,
 //            CBS::LargeAgentCBS<2, BlockAgent_2D > >(file_path, 100);
 
-    loadInstanceAndPlanningLayeredCBS<BlockAgent_2D >(file_path, 30, false);
+    loadInstanceAndPlanningLayeredCBS<BlockAgent_2D >(file_path, 60, false);
 
 };
 

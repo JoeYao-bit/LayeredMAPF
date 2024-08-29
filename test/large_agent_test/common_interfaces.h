@@ -64,10 +64,10 @@ bool draw_visit_grid_table = false;
 // MAPFTestConfig_AR0014SR
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
-auto map_test_config = MAPFTestConfig_empty_48_48;
+auto map_test_config = MAPFTestConfig_Berlin_1_256;
 // MAPFTestConfig_AR0011SR;
 // MAPFTestConfig_maze_32_32_4;
-// MAPFTestConfig_Berlin_1_256;
+// MAPFTestConfig_Berlin_1_256; // error
 // MAPFTestConfig_simple;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
@@ -509,7 +509,13 @@ void loadInstanceAndPlanningLayeredCBS(const std::string& file_path, double time
     }
     std::cout << " map scale " << dim[0] << "*" << dim[1] << std::endl;
 
+
+//    LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(deserializer.getAgents(), is_occupied, dim, 1e7);
+//
+//    std::cout << " solvable ?  " << !((generator.getConnectionBetweenNode(7, 89773, 108968)).empty()) << std::endl;
+
     std::vector<std::vector<int> > grid_visit_count_table;
+
     LargeAgentMAPFInstanceDecompositionPtr<2, AgentType > decomposer_ptr = nullptr;
     auto start_t = clock();
     auto layered_paths = layeredLargeAgentMAPF<2, AgentType>(deserializer.getInstances(),
@@ -524,12 +530,13 @@ void loadInstanceAndPlanningLayeredCBS(const std::string& file_path, double time
     std::cout << "instance has " << deserializer.getAgents().size() << " agents, find solution ? " << !layered_paths.empty()
               << " in " << total_time_cost << "s " << std::endl;
 
-//    LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(deserializer.getAgents(), is_occupied, dim);
-//    InstanceVisualization<AgentType>(deserializer.getAgents(),
-//                                     generator.getAllPoses(),
-//                                     deserializer.getInstances(),
-//                                     layered_paths,
-//                                     grid_visit_count_table);
+    LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(deserializer.getAgents(), is_occupied, dim);
+
+    InstanceVisualization<AgentType>(deserializer.getAgents(),
+                                     generator.getAllPoses(),
+                                     deserializer.getInstances(),
+                                     layered_paths,
+                                     grid_visit_count_table);
 }
 
 

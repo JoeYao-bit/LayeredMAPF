@@ -201,13 +201,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
 
             if (sub_graph.all_nodes_[start_node_id] == nullptr) {
-                std::cerr << " agent " << agent << "'s start " << instances_[agent_id].first.pt_ << "^"
+                std::cout << "FATAL: agent " << agent << "'s start " << instances_[agent_id].first.pt_ << "^"
                           << instances_[agent_id].first.orient_ << " is unavailable " << std::endl;
                 solvable = false;
             }
 
             if (sub_graph.all_nodes_[target_node_id] == nullptr) {
-                std::cerr << " agent " << agent << "'s target " << instances_[agent_id].second.pt_ << "^"
+                std::cout << "FATAL: agent " << agent << "'s target " << instances_[agent_id].second.pt_ << "^"
                           << instances_[agent_id].second.orient_ << " is unavailable " << std::endl;
                 solvable = false;
             }

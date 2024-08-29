@@ -228,42 +228,88 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
 
         LAMAPF_Path getConnectionBetweenNode(const int& agent_id, const size_t& start_id, const size_t& target_id) const {
-            LAMAPF_Path retv;
+//            LAMAPF_Path retv;
+//            const auto& sub_graph = agent_sub_graphs_[agent_id];
+//            assert(sub_graph.all_nodes_[start_id] != nullptr && sub_graph.all_nodes_[target_id] != nullptr);
+//            std::vector<size_t> pre_visited(all_poses_.size(), MAX<size_t>);
+//            pre_visited[start_id] = start_id;
+//            std::vector<size_t> current_nodes = {start_id}, next_nodes;
+//            bool reach_target = false;
+//            while (!current_nodes.empty()) {
+//                next_nodes.clear();
+//                for(const auto& node : current_nodes) {
+//                    const auto& neighbors = sub_graph.all_edges_[node];
+//                    for(const auto& another_node : neighbors) {
+//                        if(pre_visited[another_node] != MAX<size_t>) { continue; }
+//
+//                        if(another_node == target_id) {
+//                            pre_visited[another_node] = node;
+////                            std::cout << "find path " << std::endl;
+//                            // retrieve path
+//                            LAMAPF_Path path;
+//                            size_t buffer_node = another_node;
+//                            while (buffer_node != start_id) {
+////                                std::cout << "buffer_node " << buffer_node << std::endl;
+//                                path.push_back(buffer_node);
+//                                buffer_node = pre_visited[buffer_node];
+//                            }
+//                            path.push_back(start_id);
+//                            std::reverse(path.begin(), path.end());
+////                            std::cout << "find path size = " << path.size() << std::endl;
+//                            return path;
+//                        }
+//
+//                        next_nodes.push_back(another_node);
+//                        pre_visited[another_node] = node;
+//                    }
+//                }
+//                std::swap(current_nodes, next_nodes);
+//            }
+//            return {};
+//
+            struct Node {
+                int node_id;
+                int value;
+
+                Node() = default;
+
+                Node(int node_id, int value) : node_id(node_id), value(value) {}
+
+                // the following is used to compare nodes in the OPEN list
+                struct compare_node {
+                    // returns true if n1 > n2 (note -- this gives us *min*-heap).
+                    bool operator()(const Node &n1, const Node &n2) const {
+                        return n1.value >= n2.value;
+                    }
+                };  // used by OPEN (heap) to compare nodes (top of the heap has min f-val, and then highest g-val)
+            };
+
             const auto& sub_graph = agent_sub_graphs_[agent_id];
-            assert(sub_graph.all_nodes_[start_id] != nullptr && sub_graph.all_nodes_[target_id] != nullptr);
-            std::vector<size_t> pre_visited(all_poses_.size(), MAX<size_t>);
-            pre_visited[start_id] = start_id;
-            std::vector<size_t> current_nodes = {start_id}, next_nodes;
-            bool reach_target = false;
-            while (!current_nodes.empty()) {
-                next_nodes.clear();
-                for(const auto& node : current_nodes) {
-                    const auto& neighbors = sub_graph.all_edges_[node];
-                    for(const auto& another_node : neighbors) {
-                        if(pre_visited[another_node] != MAX<size_t>) { continue; }
-                        if(another_node == target_id) {
-                            pre_visited[another_node] = node;
-//                            std::cout << "find path " << std::endl;
-                            // retrieve path
-                            LAMAPF_Path path;
-                            size_t buffer_node = another_node;
-                            while (buffer_node != start_id) {
-//                                std::cout << "buffer_node " << buffer_node << std::endl;
-                                path.push_back(buffer_node);
-                                buffer_node = pre_visited[buffer_node];
-                            }
-                            path.push_back(start_id);
-                            std::reverse(path.begin(), path.end());
-//                            std::cout << "find path size = " << path.size() << std::endl;
-                            return path;
-                        }
-                        next_nodes.push_back(another_node);
-                        pre_visited[another_node] = node;
+
+            std::vector<int> agent_heuristic(sub_graph.all_nodes_.size(), MAX<int>);
+
+            // generate a heap that can save nodes (and an open_handle)
+            boost::heap::pairing_heap<Node, boost::heap::compare<typename Node::compare_node> > heap;
+
+            Node root(target_id, 0);
+            agent_heuristic[target_id] = 0;
+            heap.push(root);
+            while (!heap.empty()) {
+                Node curr = heap.top();
+                heap.pop();
+                for (const size_t& next_location : sub_graph.all_backward_edges_[curr.node_id]) {
+                    int new_heuristic_value = curr.value + 1;
+                    if (agent_heuristic[next_location] > new_heuristic_value) {
+                        agent_heuristic[next_location] = new_heuristic_value;
+                        Node next(next_location, new_heuristic_value);
+                        heap.push(next);
                     }
                 }
-                std::swap(current_nodes, next_nodes);
             }
-            return {};
+
+            bool connect = (agent_heuristic[start_id] != MAX<int>);
+            LAMAPF_Path connected_path = {start_id, target_id}, disconnected_path = {};
+            return connect ? connected_path : disconnected_path;
         }
 
         const std::vector<PosePtr<int, N> >& getAllPoses() const
@@ -274,22 +320,86 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     private:
 
         SubGraphOfAgent<N> constructSubGraphOfAgent(const AgentType& agent) const {
+//            Id total_index = getTotalIndexOfSpace<N>(dim_);
+//            assert(all_poses_.size() == total_index*2*N);
+//            SubGraphOfAgent<N> sub_graph;
+//            sub_graph.all_nodes_.resize(total_index * 2 * N, nullptr);
+//            // initial nodes in subgraph
+//            for(size_t id=0; id<total_index; id++) {
+//                if(all_poses_[id*2*N] != nullptr) {
+//                    // if current grid is free, then check all orientation
+//                    for(int orient=0; orient<2*N; orient ++) {
+//                        const auto& current_pose = all_poses_[id * 2 * N + orient];
+//                        if(!agent.isCollide(*current_pose, dim_, isoc_, distance_map_updater_)) {
+//                            sub_graph.all_nodes_[id * 2 * N + orient] = current_pose;
+//                        }
+//                    }
+//                }
+//            }
+//            // when add edges, assume agent can only change position or orientation, cannot change both of them
+//            // and orientation can only change 90 degree at one timestep, that means the two orient must be orthogonal
+//            sub_graph.all_edges_.resize(total_index*2*N, {});
+//            sub_graph.all_backward_edges_.resize(total_index*2*N, {});
+//            Pointis<N> neighbors = GetNearestOffsetGrids<N>();
+//            for(size_t pose_id=0; pose_id < sub_graph.all_nodes_.size(); pose_id++) {
+//                const auto& node_ptr = sub_graph.all_nodes_[pose_id];
+//                if(node_ptr != nullptr) {
+//                    // add edges about position changing
+//                    size_t origin_orient = pose_id%(2*N);
+//                    Pointi<N> origin_pt = node_ptr->pt_;
+//                    Pointi<N> new_pt;
+//                    for(const auto& offset : neighbors) {
+//                        new_pt = origin_pt + offset;
+//                        if(isOutOfBoundary(new_pt, dim_)) { continue; }
+//                        Id another_node_id = PointiToId<N>(new_pt, dim_)*2*N + origin_orient;
+//                        PosePtr<int, N> another_node_ptr = sub_graph.all_nodes_[another_node_id];
+//                        if(another_node_ptr == nullptr) { continue; }
+//                        if(!agent.isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, distance_map_updater_)) {
+//                            sub_graph.all_edges_[pose_id].push_back(another_node_id);
+//                            sub_graph.all_backward_edges_[another_node_id].push_back(pose_id);
+//                        }
+//                    }
+//                    // add edges about orientation changing
+//                    size_t base_id = pose_id / (2*N) * (2*N);
+//                    for(size_t orient=0; orient<2*N; orient++) {
+//                        // avoid repeat itself
+//                        if(node_ptr->orient_ == orient) { continue; }
+//                        // if another node in subgraph
+//                        size_t another_node_id = base_id + orient;
+//                        PosePtr<int, N> another_node_ptr = sub_graph.all_nodes_[another_node_id];
+//                        if(another_node_ptr == nullptr) { continue; }
+//                        // check whether can transfer to another node
+//                        if(!agent.isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, distance_map_updater_)) {
+//                            sub_graph.all_edges_[pose_id].push_back(another_node_id);
+//                            sub_graph.all_backward_edges_[another_node_id].push_back(pose_id);
+//                        }
+//                    }
+//                }
+//            }
+//            return sub_graph;
+
+
             Id total_index = getTotalIndexOfSpace<N>(dim_);
+
             assert(all_poses_.size() == total_index*2*N);
+
             SubGraphOfAgent<N> sub_graph;
+
+            sub_graph.agent_id_ = agent.id_;
+
             sub_graph.all_nodes_.resize(total_index * 2 * N, nullptr);
+
+
             // initial nodes in subgraph
-            for(size_t id=0; id<total_index; id++) {
-                if(all_poses_[id*2*N] != nullptr) {
-                    // if current grid is free, then check all orientation
-                    for(int orient=0; orient<2*N; orient ++) {
-                        const auto& current_pose = all_poses_[id * 2 * N + orient];
-                        if(!agent.isCollide(*current_pose, dim_, isoc_, distance_map_updater_)) {
-                            sub_graph.all_nodes_[id * 2 * N + orient] = current_pose;
-                        }
+            for(size_t id=0; id<all_poses_.size(); id++) {
+                if(all_poses_[id] != nullptr) {
+                    const auto& current_pose = all_poses_[id];
+                    if(!agent.isCollide(*current_pose, dim_, isoc_, distance_map_updater_)) {
+                        sub_graph.all_nodes_[id] = current_pose;
                     }
                 }
             }
+
             // when add edges, assume agent can only change position or orientation, cannot change both of them
             // and orientation can only change 90 degree at one timestep, that means the two orient must be orthogonal
             sub_graph.all_edges_.resize(total_index*2*N, {});
@@ -308,6 +418,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         Id another_node_id = PointiToId<N>(new_pt, dim_)*2*N + origin_orient;
                         PosePtr<int, N> another_node_ptr = sub_graph.all_nodes_[another_node_id];
                         if(another_node_ptr == nullptr) { continue; }
+
                         if(!agent.isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, distance_map_updater_)) {
                             sub_graph.all_edges_[pose_id].push_back(another_node_id);
                             sub_graph.all_backward_edges_[another_node_id].push_back(pose_id);
