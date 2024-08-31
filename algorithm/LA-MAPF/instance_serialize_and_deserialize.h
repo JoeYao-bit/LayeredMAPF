@@ -22,12 +22,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             if(!is.is_open()) { return false; }
             agents_.clear();
             instances_.clear();
-
+            strs_.clear();
             std::string line;
             while(getline(is, line)) {
                 std::pair<AgentType, InstanceOrient<N> > temp_pair = AgentType::deserialize(line, dim);
                 agents_.push_back(temp_pair.first);
                 instances_.push_back(temp_pair.second);
+                strs_.push_back(line);
             }
             return true;
         }
@@ -40,8 +41,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return instances_;
         }
 
+        std::vector<std::string> getTextString() const {
+            return strs_;
+        }
+
         std::vector<AgentType> agents_;
         InstanceOrients<N> instances_;
+
+        std::vector<std::string> strs_;
     };
 
     template<Dimension N, typename AgentType>
@@ -51,19 +58,28 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             //
         }
 
-        bool saveToFile(const std::string& file_path) const {
+        bool saveToFile(const std::string& file_path) {
+            strs_.clear();
             std::ofstream os(file_path, std::ios::trunc);
             if(!os.is_open()) { return false; }
             for(int i=0; i<agents_.size(); i++) {
                 std::string str = agents_[i].serialize(instance_[i].first, instance_[i].second);
                 os << str << "\n";
+                strs_.push_back(str);
             }
             os.close();
             return true;
         };
 
+        std::vector<std::string> getTextString() const {
+            return strs_;
+        }
+
         std::vector<AgentType> agents_;
         InstanceOrients<N> instance_;
+
+        std::vector<std::string> strs_;
+
     };
 }
 #endif //LAYEREDMAPF_INSTANCE_SERIALIZE_AND_DESERIALIZE_H

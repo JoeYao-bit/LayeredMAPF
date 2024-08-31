@@ -319,7 +319,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     private:
 
-        SubGraphOfAgent<N> constructSubGraphOfAgent(const AgentType& agent) const {
+        SubGraphOfAgent<N, AgentType> constructSubGraphOfAgent(const AgentType& agent) const {
 //            Id total_index = getTotalIndexOfSpace<N>(dim_);
 //            assert(all_poses_.size() == total_index*2*N);
 //            SubGraphOfAgent<N> sub_graph;
@@ -383,9 +383,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             assert(all_poses_.size() == total_index*2*N);
 
-            SubGraphOfAgent<N> sub_graph;
+            SubGraphOfAgent<N, AgentType> sub_graph(agent);
 
-            sub_graph.agent_id_ = agent.id_;
 
             sub_graph.all_nodes_.resize(total_index * 2 * N, nullptr);
 
@@ -453,7 +452,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         // intermediate variables
         std::vector<PosePtr<int, N> > all_poses_;
         DistanceMapUpdater<N> distance_map_updater_;
-        std::vector<SubGraphOfAgent<N> > agent_sub_graphs_;
+        std::vector<SubGraphOfAgent<N, AgentType> > agent_sub_graphs_;
         int max_sample_ = 100000;
 
     };

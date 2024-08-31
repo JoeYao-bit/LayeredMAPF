@@ -60,20 +60,20 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                        const size_t& target_pose_id,
                        const std::vector<int>& heuristic,
                        const std::vector<int>& heuristic_ignore_rotate,
-                       const SubGraphOfAgent<N>& sub_graph,
+                       const SubGraphOfAgent<N, AgentType>& sub_graph,
                        const ConstraintTable<N, AgentType>& constraint_table,
                        const ConstraintAvoidanceTablePtr<N, AgentType>& constraint_avoidance_table,
-                       const LargeAgentStaticConstraintTablePtr<N, AgentType>& path_constraint,
-                       const std::vector<AgentType>& agents
-        ) : agents_(agents),
-        SingleAgentSolver<N, AgentType>(start_pose_id, target_pose_id, heuristic, heuristic_ignore_rotate, sub_graph,
+                       const LargeAgentStaticConstraintTablePtr<N, AgentType>& path_constraint
+        ) : SingleAgentSolver<N, AgentType>(start_pose_id, target_pose_id, heuristic, heuristic_ignore_rotate, sub_graph,
                                         constraint_table, constraint_avoidance_table, path_constraint) {
             //
-//            std::cout << "space time search agent " <<  agents[this->sub_graph_.agent_id_] << std::endl;
+//            std::cout << "space time search agent " <<  this->sub_graph_.agent_ << std::endl;
             grid_visit_count_table_.resize(sub_graph.all_nodes_.size() / (2*N));
         }
 
         virtual LAMAPF_Path solve() override {
+
+//            std::cout << "space time search agent in solve " <<  this->sub_graph_.agent_ << std::endl;
 
             int static_time_step = this->constraint_table_.getMaxTimestep();
 
@@ -109,12 +109,16 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
 //            this->lower_bound_ = std::max(holding_time, this->lower_bound_); // yz: considering minimum time stamp to target
 
+            int count = 0;
             while (!open_list.empty()) {
 //                std::cout << "open, focal size = " << open_list.size() << ", " << focal_list.size() << std::endl;
+                //assert(count <= 1000);
+                count++;
                 updateFocalList(); // update FOCAL if min f-val increased
                 new_nodes_in_open.clear();
                 auto *curr = popNode();
-//                std::cout << " SpaceTimeAstar pop " << *(this->sub_graph_.all_nodes_[curr->node_id]) << std::endl;
+//                std::cout << " SpaceTimeAstar pop " << *(this->sub_graph_.all_nodes_[curr->node_id])
+//                          << ", t = " << curr->timestep << std::endl;
                 grid_visit_count_table_[curr->node_id/(2*N)] ++;
 //                assert(curr->node_id >= 0);
                 // check if the popped node is a goal
@@ -128,7 +132,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                     break;
                 }
 
-                int next_timestep = curr->timestep + 1;
+                int next_timestep = // curr->timestep + 1
+                        curr->timestep >= static_time_step ? curr->timestep : curr->timestep + 1;
 
                 auto next_locations = this->sub_graph_.all_edges_[curr->node_id];//instance.getNeighbors(curr->location);
                 if(next_timestep < static_time_step) {
@@ -148,10 +153,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //                    }
 //                    std::cout << "next_node " << *this->sub_graph_.all_nodes_[next_node_id] << std::endl;
                     maximum_t_ = std::max(maximum_t_, next_timestep);
+//                    if(next_node_id == 4737) {
+//                        std::cout << " reach target flag 1 " << std::endl;
+//                    }
                     // yz: check whether satisfied all constraint, including vertex constraint and edge constraint
                     if (this->constraint_table_.constrained(next_node_id, next_timestep) ||
                             this->constraint_table_.constrained(curr->node_id, next_node_id, next_timestep))
                         continue;
+
+//                    if(next_node_id == 4737) {
+//                        std::cout << " reach target flag 2 " << std::endl;
+//                    }
+
 //                    std::cout << " flag 1 " << std::endl;
 //                    if(this->path_constraint_ == nullptr) {
 //                        std::cout << "this->path_constraint_ == nullptr" << std::endl;
@@ -162,10 +175,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                     // avoid conflict     with external paths
 //                    std::cout << " reach target = " << (next_node_id == this->target_node_id_) << std::endl;
                     if(this->path_constraint_ != nullptr &&
-                        this->path_constraint_->hasCollide(this->sub_graph_.agent_id_, curr->timestep,
+                        this->path_constraint_->hasCollide(this->sub_graph_.agent_.id_, curr->timestep,
                                                            curr->node_id, next_node_id, next_node_id == this->target_node_id_)) {
                         continue;
                     }
+//                    if(next_node_id == 4737) {
+//                        std::cout << " reach target flag 3 " << std::endl;
+//                    }
 //                    std::cout << " flag 2 " << std::endl;
 
                     // compute cost to next_id via curr node
@@ -175,6 +191,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                     if(next_h_val == MAX<int>) {
                         continue;
                     }
+
+//                    if(next_node_id == 4737) {
+//                        std::cout << " reach target flag 4 " << std::endl;
+//                    }
+
 //                    std::cout << " flag 3 " << std::endl;
 //                    assert(next_h_val != MAX<int>);
 
@@ -324,8 +345,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         hashtable_t allNodes_table;
 
         std::vector<AStarNode*> new_nodes_in_open;
-
-        const std::vector<AgentType>& agents_;
 
         int maximum_t_ = 0;
 

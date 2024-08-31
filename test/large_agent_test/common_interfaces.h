@@ -64,7 +64,8 @@ bool draw_visit_grid_table = false;
 // MAPFTestConfig_AR0014SR
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
-auto map_test_config = MAPFTestConfig_empty_48_48;
+auto map_test_config = MAPFTestConfig_Paris_1_256;
+// MAPFTestConfig_Paris_1_256
 // MAPFTestConfig_AR0011SR;
 // MAPFTestConfig_maze_32_32_4;
 // MAPFTestConfig_Berlin_1_256; // error
@@ -509,6 +510,13 @@ void loadInstanceAndPlanningLayeredCBS(const std::string& file_path, double time
     }
     std::cout << " map scale " << dim[0] << "*" << dim[1] << std::endl;
 
+    // debug: print all agents and instance
+    std::cout << "Instance: " << std::endl;
+    std::vector<std::string> strs = deserializer.getTextString();
+    for(const auto& str : strs) {
+        std::cout << str << std::endl;
+    }
+    std::cout << std::endl;
 
 //    LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(deserializer.getAgents(), is_occupied, dim, 1e7);
 //
@@ -530,13 +538,13 @@ void loadInstanceAndPlanningLayeredCBS(const std::string& file_path, double time
     std::cout << "instance has " << deserializer.getAgents().size() << " agents, find solution ? " << !layered_paths.empty()
               << " in " << total_time_cost << "s " << std::endl;
 
-    LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(deserializer.getAgents(), is_occupied, dim);
-
-    InstanceVisualization<AgentType>(deserializer.getAgents(),
-                                     generator.getAllPoses(),
-                                     deserializer.getInstances(),
-                                     layered_paths,
-                                     grid_visit_count_table);
+//    LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(deserializer.getAgents(), is_occupied, dim);
+//
+//    InstanceVisualization<AgentType>(deserializer.getAgents(),
+//                                     generator.getAllPoses(),
+//                                     deserializer.getInstances(),
+//                                     layered_paths,
+//                                     grid_visit_count_table);
 }
 
 
@@ -544,10 +552,13 @@ template<typename AgentType, typename MethodType>
 void generateInstance(const std::vector<AgentType>& agents, const std::string& file_path) {
     gettimeofday(&tv_pre, &tz);
     LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(agents, is_occupied, dim, 1e7);
+
+    // debug: print all agents
     for(int i=0; i<agents.size(); i++) {
         const auto& agent = agents[i];
         std::cout << agent << std::endl;
     }
+
     const auto& instances_and_path = generator.getNewInstance();
     gettimeofday(&tv_after, &tz);
     double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
@@ -577,7 +588,7 @@ void generateInstance(const std::vector<AgentType>& agents, const std::string& f
 
 //    InstanceVisualization<AgentType>(agents, generator.getAllPoses(), instances, solution);
 //    loadInstanceAndPlanning<AgentType, MethodType>(file_path);
-    loadInstanceAndPlanningLayeredCBS<AgentType>(file_path, 30, false);
+    loadInstanceAndPlanningLayeredCBS<AgentType>(file_path, 60, false);
 
 }
 

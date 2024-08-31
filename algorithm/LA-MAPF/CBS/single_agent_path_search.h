@@ -103,7 +103,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                           const size_t& target_node_id,
                           const std::vector<int>& heuristic,
                           const std::vector<int>& heuristic_ignore_rotate,
-                          const SubGraphOfAgent<N>& sub_graph,
+                          const SubGraphOfAgent<N, AgentType>& sub_graph,
                           const ConstraintTable<N, AgentType>& constraint_table = nullptr,
                           const ConstraintAvoidanceTablePtr<N, AgentType>& constraint_avoidance_table = nullptr,
                           const LargeAgentStaticConstraintTablePtr<N, AgentType> & path_constraint = nullptr
@@ -124,7 +124,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         const size_t& target_node_id_;
         const std::vector<int>& heuristic_;  // this is the precomputed heuristic for this agent
         const std::vector<int>& heuristic_ignore_rotate_;  // this is the precomputed heuristic for this agent
-        const SubGraphOfAgent<N>& sub_graph_;
+        const SubGraphOfAgent<N, AgentType>& sub_graph_;
 
     //protected:
 

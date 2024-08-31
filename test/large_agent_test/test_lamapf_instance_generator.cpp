@@ -52,7 +52,7 @@ int canvas_size_x = 1000, canvas_size_y = 700;
 
 TEST(GenerateCircleInstance, test)
 {
-    const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(20,
+    const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(18,
                                                                    .4, 2.3,
                                                                    .1,
                                                                    dim);
@@ -67,10 +67,10 @@ TEST(GenerateCircleInstance, test)
 
 TEST(GenerateBlock_2DInstance, test)
 {
-    const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(20,
-                                                                -2.4, -.2,
-                                                                .2, 2.4,
-                                                                .2, 2.4,
+    const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(15,
+                                                                -1.4, -.2,
+                                                                .2, 1.4,
+                                                                .2, 1.4,
                                                                 .1, dim);
     generateInstance<BlockAgent_2D, CBS::LargeAgentCBS<2, BlockAgent_2D > >(agents, map_test_config.at("blk_ins_path"));
 
@@ -125,3 +125,27 @@ TEST(resize, test)
 TEST(max_size_t, test) {
     std::cout << "MAX<size_t> = " << MAX<size_t> << std::endl;
 }
+
+TEST(Multi_GenerateCircleInstance, test) {
+    for(int i=0; i<10; i++) {
+        const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(16,
+                                                                       .4, 2.3,
+                                                                       .1,
+                                                                       dim);
+
+        generateInstance<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > > (agents,
+                                                                                   map_test_config.at("crc_ins_path"));
+    }
+}
+
+TEST(Multi_GenerateBlock_2DInstance, test) {
+    for(int i=0; i<10; i++) {
+        const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(15,
+                                                                    -1.4, -.2,
+                                                                    .2, 1.4,
+                                                                    .2, 1.4,
+                                                                    .1, dim);
+        generateInstance<BlockAgent_2D, CBS::LargeAgentCBS<2, BlockAgent_2D > >(agents, map_test_config.at("blk_ins_path"));
+    }
+}
+

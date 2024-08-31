@@ -508,7 +508,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                }
 //            }
             if(is_goal) {
-                if(time_index + 1 < earliest_arrive_time_map_.at(agent_global_id)) { return true; }
+                if(time_index + 1 < earliest_arrive_time_map_.at(agent_global_id)) {
+//                    std::cout << "reach target failed 1" << std::endl;
+                    return true;
+                }
             }
             const auto& agent = global_agents_[agent_global_id];
             // replace traversal all path with only path in range
@@ -517,7 +520,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 const auto& other_agent = global_agents_[other_agent_id];
                 const auto& other_path = agent_path.second;
                 if(agent_global_id == other_agent_id) {
-                    std::cout << " FATAL: agent_global_id == other_agent_id " << std::endl;
+//                    std::cout << " FATAL: agent_global_id == other_agent_id " << std::endl;
                     continue;
                 }
                 if(other_path.size() - 1 <= time_index) {
@@ -528,8 +531,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                                  << " have conflict" << std::endl;
                         return true;
                     } else {
-//                        std::cout << "t=" << time_index << " " << agent << " at " << *all_nodes_[current_node] << "->" << *all_nodes_[next_node]
-//                                  << " and " << agents_[other_agent_id] << " at " << *all_nodes_[other_path.back()]
+//                        std::cout << "t=" << time_index << " " << agent << " at " << *all_poses_[current_node] << "->" << *all_poses_[next_node]
+//                                  << " and " << global_agents_[other_agent_id] << " at " << *all_poses_[other_path.back()]
 //                                  << " have no conflict" << std::endl;
                     }
                 } else {
@@ -541,9 +544,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                                  << " have conflict" << std::endl;
                         return true;
                     } else {
-//                        std::cout << "t=" << time_index << " " << agent << " at " << *all_nodes_[current_node] << "->" << *all_nodes_[next_node]
-//                                  << " and " << agents_[other_agent_id] << " at " << *all_nodes_[other_path[time_index]]
-//                                  << "->" << *all_nodes_[other_path[time_index+1]]
+//                        std::cout << "t=" << time_index << " " << agent << " at " << *all_poses_[current_node] << "->" << *all_poses_[next_node]
+//                                  << " and " << global_agents_[other_agent_id] << " at " << *all_poses_[other_path[time_index]]
+//                                  << "->" << *all_poses_[other_path[time_index+1]]
 //                                  << " have no conflict" << std::endl;
                     }
                 }
@@ -554,6 +557,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     for(int t=earliest_arrive_time_map_.at(agent_global_id); t<other_path.size()-1; t++) {
                         if(isCollide(agent, *all_poses_[current_node], *all_poses_[next_node],
                                      global_agents_[other_agent_id], *all_poses_[other_path[t]], *all_poses_[other_path[t+1]])) {
+//                            std::cout << "reach target failed 2" << std::endl;
                             return true;
                         }
                     }
@@ -561,6 +565,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
 //            std::cout << "ct 5" << std::endl;
             if(hasCollideWithSAT(agent_global_id, current_node, next_node)) {
+//                std::cout << "reach target failed 3" << std::endl;
                 return true;
             }
             return false;
@@ -647,9 +652,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     template<Dimension N, typename AgentType>
     using LargeAgentStaticConstraintTablePtr = std::shared_ptr<LargeAgentStaticConstraintTable<N, AgentType> >;
 
-    template<Dimension N>
+    template<Dimension N, typename AgentType>
     struct SubGraphOfAgent {
-        int agent_id_;
+
+        explicit SubGraphOfAgent(const AgentType& agent): agent_(agent) {}
+
+        const AgentType& agent_;
         size_t start_node_id_ = MAX<size_t>;
         size_t target_node_id_ = MAX<size_t>;
         std::vector<PosePtr<int, N> > all_nodes_;
@@ -669,7 +677,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                                 int,
                                                                 const std::vector<PosePtr<int, N> >,
                                                                 const DistanceMapUpdaterPtr<N>,
-                                                                const std::vector<SubGraphOfAgent<N> >,
+                                                                const std::vector<SubGraphOfAgent<N, AgentType> >,
                                                                 const std::vector<std::vector<int> >&,
                                                                 const std::vector<std::vector<int> >&)>;
 

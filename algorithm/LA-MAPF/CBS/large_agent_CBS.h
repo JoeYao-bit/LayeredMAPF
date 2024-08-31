@@ -25,7 +25,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
                       const std::vector<PosePtr<int, N> > all_poses = {},
                       const DistanceMapUpdaterPtr<N> distance_map_updater = nullptr,
-                      const std::vector<SubGraphOfAgent<N> > agent_sub_graphs = {},
+                      const std::vector<SubGraphOfAgent<N, AgentType> > agent_sub_graphs = {},
                       const std::vector<std::vector<int> >& agents_heuristic_tables = {},
                       const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate_ = {}
                       )
@@ -55,8 +55,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                                                    this->agent_sub_graphs_[agent],
                                                    constraint_table,
                                                    constraint_avoidance_table_,
-                                                   path_constraint_,
-                                                   this->agents_);
+                                                   path_constraint_);
                 LAMAPF_Path solution = astar.solve();
                 grid_visit_count_tables_.push_back(astar.grid_visit_count_table_);
                 if(solution.empty()) {
@@ -494,8 +493,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                                                this->agent_sub_graphs_[agent],
                                                constraint_table,
                                                nullptr,
-                                               path_constraint_,
-                                               this->agents_);
+                                               path_constraint_);
             astar.lower_bound_ = lowerbound;
             LAMAPF_Path new_path = astar.solve();
             if (!new_path.empty()) {

@@ -150,7 +150,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return heuristic_table;
     }
 
-    template<Dimension N>
+    template<Dimension N, typename AgentType>
     struct DependencyPathSearch {
 
         explicit DependencyPathSearch() {}
@@ -184,7 +184,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         // distinguish_sat means whether considering
         std::set<int> search(int agent_id,
                              int start_hyper_node_id,
-                             const SubGraphOfAgent<N>& sub_graph,
+                             const SubGraphOfAgent<N, AgentType>& sub_graph,
                              const ConnectivityGraph& con_graph,
                              const std::vector<bool> &avoid_agents,
                              const std::vector<bool> &passing_agents,

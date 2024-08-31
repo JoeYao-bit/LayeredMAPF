@@ -192,8 +192,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                              this->agent_sub_graphs_[agent_id],
                                                              constraint_table,
                                                              nullptr,
-                                                             new_constraint_table_ptr_,
-                                                             cur_agents
+                                                             new_constraint_table_ptr_
                                                              );
                     LAMAPF_Path path = solver.solve();
                     if(path.empty()) {
@@ -234,13 +233,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
                 // get the maximum range of conflict
                 float max_range_radius = agent.excircle_radius_ + another_agent.excircle_radius_;
-                int local_space_width = 2*ceil(max_range_radius) + 2;
+                int maximum_ralated_range = ceil(max_range_radius + sqrt(N)); // considering the boundary of two shape in one grid
+//                std::cout << " maximum_related_range = " << maximum_ralated_range << std::endl;
+                int local_space_width = 2*maximum_ralated_range + 1;
                 // construct a temp local space
                 DimensionLength local_dim[N];
                 Pointi<N> center_pt;
                 for(int d=0; d<N; d++) {
                     local_dim[d] = local_space_width;
-                    center_pt[d] = ceil(max_range_radius);
+                    center_pt[d] = maximum_ralated_range;
                 }
 //                std::cout << "max_range_radius / ceil(max_range_radius) = " << max_range_radius << " / " << ceil(max_range_radius) << std::endl;
                 int local_total_index = getTotalIndexOfSpace<N>(local_dim);
@@ -250,13 +251,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 Id temp_id;
                 for(int gid=0; gid<local_total_index; gid++) {
                     temp_pt = IdToPointi<N>(gid, local_dim) - center_pt;
-//                    std::cout << "gid / temp_pt /center_pt " << gid << " / " << IdToPointi<N>(gid, dim) << ", " << center_pt << std::endl;
-                    if(temp_pt.Norm() > max_range_radius) { continue; }
+                    if(temp_pt.Norm() > maximum_ralated_range) { continue; }
+//                    if(agent_id == 2 && i == 9) {
+//                        std::cout << "gid / temp_pt /center_pt " << gid << " / " << temp_pt
+//                                  << ", " << center_pt << std::endl;
+//                    }
                     // 1) for another agent's start
                     temp_start = another_agent_start_pt + temp_pt;
                     // isoc contain in range test implicitly
                     if(!this->isoc_(temp_start)) {
-//                        std::cout << " temp_start " << temp_start << std::endl;
+//                        if(agent_id == 2 && i == 9) {
+//                            std::cout << " temp_start " << temp_start << std::endl;
+//                        }
                         temp_id = PointiToId<N>(temp_start, this->dim_);
                         for(int orient=0; orient<2*N; orient++) {
                             // get a nearby pose id
@@ -269,7 +275,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                 {
                                     // if they have conflict
                                     related_agents_map[temp_pose_id].insert(2*i);
-//                                    std::cout << " agent " << agent_id  << "," << i << "'s start have conflict at " << temp_start << std::endl;
+//                                    if(agent_id == 2 && i == 9) {
+//                                        std::cout << " agent " << agent_id  << "," << i << "'s start have conflict at " << temp_start << std::endl;
+//                                    }
                                 } else {
                                     // if current node's edge is collide with other agent
                                     for(int other_orient=0; other_orient<2*N; other_orient++) {
@@ -279,9 +287,16 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                         if(isCollide(agent, *all_nodes[temp_pose_id], *all_nodes[other_temp_pose_id],
                                                      another_agent, another_agent_start_pose))
                                         {
+                                            //std::cout << " agent " << agent_id  << "," << i << "'s start have conflict at " << temp_start << std::endl;
                                             // if they have conflict
                                             related_agents_map[temp_pose_id].insert(2*i);
-//                                    std::cout << " agent " << agent_id  << "," << i << "'s start have conflict at " << temp_start << std::endl;
+                                            break;
+                                        } else {
+//                                            if(agent_id == 2 && i == 9) {
+//                                                std::cout << agent << " at " << *all_nodes[temp_pose_id] << "->" << *all_nodes[other_temp_pose_id]
+//                                                          << " and " << another_agent << " at " << another_agent_start_pose
+//                                                          << " have no conflict" << std::endl;
+//                                            }
                                         }
                                     }
                                 }
@@ -293,6 +308,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     // isoc contain in range test implicitly
                     if(!this->isoc_(temp_target)) {
 //                        std::cout << " temp_target " << temp_target << std::endl;
+//                        if(agent_id == 2 && i == 9) {
+//                            std::cout << " temp_target " << temp_target << std::endl;
+//                        }
                         temp_id = PointiToId<N>(temp_target, this->dim_);
                         for(int orient=0; orient<2*N; orient++) {
                             // get a nearby pose id
@@ -306,6 +324,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                     // if they have conflict
                                     related_agents_map[temp_pose_id].insert(2*i + 1);
 //                                    std::cout << " agent " << agent_id  << "," << i << "'s target have conflict at " << temp_target << std::endl;
+//                                    if(agent_id == 2 && i == 9) {
+//                                        std::cout << " agent " << agent_id  << "," << i << "'s target have conflict at " << temp_target << std::endl;
+//                                    }
                                 } else {
                                     // if current node's edge is collide with other agent
                                     for(int other_orient=0; other_orient<2*N; other_orient++) {
@@ -313,11 +334,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                         other_temp_pose_id = temp_id*2*N + other_orient;
                                         if(all_nodes[other_temp_pose_id] == nullptr) { continue; }
                                         if(isCollide(agent, *all_nodes[temp_pose_id], *all_nodes[other_temp_pose_id],
-                                                     another_agent, another_agent_start_pose))
+                                                     another_agent, another_agent_target_pose))
                                         {
                                             // if they have conflict
                                             related_agents_map[temp_pose_id].insert(2*i + 1);
+                                            break;
 //                                    std::cout << " agent " << agent_id  << "," << i << "'s start have conflict at " << temp_start << std::endl;
+                                        } else {
+//                                            if(agent_id == 2 && i == 9) {
+//                                                std::cout << agent << " at " << *all_nodes[temp_pose_id] << "->" << *all_nodes[other_temp_pose_id]
+//                                                          << " and " << another_agent << " at " << another_agent_target_pose
+//                                                          << " have no conflict" << std::endl;
+//                                            }
                                         }
                                     }
                                 }
@@ -349,7 +377,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         ConnectivityGraph getAgentConnectivityGraph(const int& agent_id) const {
             ConnectivityGraph graph(this->all_poses_.size());
-            SubGraphOfAgent<N> current_subgraph = this->agent_sub_graphs_[agent_id];
+            SubGraphOfAgent<N, AgentType> current_subgraph = this->agent_sub_graphs_[agent_id];
             assert(current_subgraph.all_nodes_[this->instance_node_ids_[agent_id].first] != nullptr);
             assert(current_subgraph.all_nodes_[this->instance_node_ids_[agent_id].second] != nullptr);
 
@@ -536,6 +564,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                }
 //                std::cout << std::endl;
 //            }
+
+
             return graph;
         }
 
@@ -593,7 +623,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                   bool distinguish_sat = false,
                                   const std::vector<bool>& ignore_cost_set = {}) const {
             assert(!heuristic_tables_.empty() && !heuristic_tables_sat_.empty());
-            DependencyPathSearch<N> search_machine;
+            DependencyPathSearch<N, AgentType> search_machine;
             /*
              * DependencyPathSearch::search(int agent_id,
                                             int start_hyper_node_id,

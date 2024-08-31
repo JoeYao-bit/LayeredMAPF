@@ -282,7 +282,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             const std::vector<PosePtr<int, N> >& local_all_poses = decomposer->all_poses_;
             const DistanceMapUpdaterPtr<N>&      local_distance_map_updater = decomposer->distance_map_updater_;
-            std::vector<SubGraphOfAgent<N> >     local_agent_sub_graphs;
+            std::vector<SubGraphOfAgent<N, AgentType> >     local_agent_sub_graphs;
             std::vector<std::vector<int> >       local_agents_heuristic_tables;
             std::vector<std::vector<int> >       local_agents_heuristic_tables_ignore_rotate;
 

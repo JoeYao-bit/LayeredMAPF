@@ -20,7 +20,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
                                            const std::vector<PosePtr<int, N> >& all_poses = {},
                                            const DistanceMapUpdaterPtr<N>& distance_map_updater = nullptr,
-                                           const std::vector<SubGraphOfAgent<N> >& agent_sub_graphs = {},
+                                           const std::vector<SubGraphOfAgent<N, AgentType> >& agent_sub_graphs = {},
                                            const std::vector<std::vector<int> >& agents_heuristic_tables = {},
                                            const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate = {}) {
 
