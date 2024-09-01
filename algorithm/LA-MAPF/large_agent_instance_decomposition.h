@@ -414,8 +414,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             graph.related_agents_map_ = getRelatedAgentGraph(agent_id, current_subgraph.all_nodes_);
 
             // assert agent's start and target have no overlap with other agent's start or target
-//            assert(graph.related_agents_map_[this->instance_node_ids_[agent_id].first].size() == 1);
-//            assert(graph.related_agents_map_[this->instance_node_ids_[agent_id].second].size() == 1);
+            assert(graph.related_agents_map_[this->instance_node_ids_[agent_id].first].size() >= 1);
+            assert(graph.related_agents_map_[this->instance_node_ids_[agent_id].second].size() >= 1);
 
             // 2, construct connectivity graph and record boundary (where different hyper node converge)
             std::vector<std::set<size_t> > strong_components = getStrongComponentFromSubGraph(current_subgraph.all_nodes_,
@@ -583,7 +583,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }
             }
 
-//            assert(hyper_node_set_flag == std::vector<bool>(max_hyper_node_id, true));
 
             assert(graph.hyper_node_with_agents_[graph.start_hyper_node_].find(2*agent_id) !=
                            graph.hyper_node_with_agents_[graph.start_hyper_node_].end());
@@ -729,7 +728,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             std::vector<bool> buffer_sat = AgentIdsToSATID(buffer_agents);
             for(const int& agent_id : buffer_agents) {
                 auto passing_agents = searchAgent(agent_id, {}, buffer_sat); // pass test
-//                assert(!passing_agents.empty());
+                assert(!passing_agents.empty());
 //                if(agent_id == 9) {
 //                    std::cout << "--agent " << agent_id << "'s passing_agents = ";
 //                    for(const auto& passing_agent : passing_agents) {

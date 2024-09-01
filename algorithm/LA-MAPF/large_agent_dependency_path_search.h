@@ -145,8 +145,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             a_ptr = nullptr;
         }
         // use BFS to calculate heuristic value for all free grid, and obstacle heuristic
-//        assert(heuristic_table[graph.target_hyper_node_] != MAX<int>);
-//        assert(heuristic_table[graph.start_hyper_node_]  != MAX<int>);
+        assert(heuristic_table[graph.target_hyper_node_] != MAX<int>);
+        assert(heuristic_table[graph.start_hyper_node_]  != MAX<int>);
 
         return heuristic_table;
     }
