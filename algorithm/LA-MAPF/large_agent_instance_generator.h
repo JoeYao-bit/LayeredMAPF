@@ -142,8 +142,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 while (true) {
                     // 1, pick start nodes from its subgraph
                     start_id = rd() % all_poses_.size();
-                    count_of_pick ++;
-                    if(count_of_pick > max_sample_) { break;}
+
                     if(agent_sub_graphs_[i].all_nodes_[start_id] == nullptr) {
                         continue;
                     }
@@ -164,21 +163,21 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         }
                     }
                     if(repick) {
+                        count_of_pick ++;
+                        if(count_of_pick > max_sample_) {
+                            std::cout << "failed to get start for agent " << i << std::endl;
+                            return {};
+                        }
                         continue;
                     } else {
                         break;
                     }
                 }
-                if(count_of_pick > max_sample_) {
-                    //std::cout << "failed to get start for agent " << i << std::endl;
-                    return {};
-                }
                 //std::cout << "find agent " << i << "'s start" << std::endl;
+                count_of_pick = 0;
                 while (true) {
                     // 1, pick start nodes from its subgraph
                     target_id = rd() % all_poses_.size();
-                    count_of_pick ++;
-                    if(count_of_pick > max_sample_) { break;}
                     if(agent_sub_graphs_[i].all_nodes_[target_id] == nullptr) {
                         continue;
                     }
@@ -205,12 +204,22 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         }
                     }
                     if(repick) {
+                        count_of_pick ++;
+                        if(count_of_pick > max_sample_) {
+                            //std::cout << "failed to get start for agent " << i << std::endl;
+                            return {};
+                        }
                         continue;
                     }
                     // 3, check whether there is a path connect them, otherwise re-pick
                     LAMAPF_Path path = getConnectionBetweenNode(i, start_id, target_id);
                     if(path.empty()) {
                         //std::cout << "find no connection between start and target, repick target" << std::endl;
+                        count_of_pick ++;
+                        if(count_of_pick > max_sample_) {
+                            //std::cout << "failed to get start for agent " << i << std::endl;
+                            return {};
+                        }
                         continue;
                     } else {
                         std::cout << "find agent " << i << "'s instance success" << std::endl;
@@ -219,15 +228,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         break;
                     }
                 }
-                if(count_of_pick > max_sample_) {
-                    std::cout << "failed to get target for agent " << i << std::endl;
-                    return {};
-                }
             }
             return new_instances;
         }
 
         LAMAPF_Path getConnectionBetweenNode(const int& agent_id, const size_t& start_id, const size_t& target_id) const {
+//            std::cout << " run getConnectionBetweenNode " << std::endl;
+
 //            LAMAPF_Path retv;
 //            const auto& sub_graph = agent_sub_graphs_[agent_id];
 //            assert(sub_graph.all_nodes_[start_id] != nullptr && sub_graph.all_nodes_[target_id] != nullptr);
@@ -309,6 +316,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             bool connect = (agent_heuristic[start_id] != MAX<int>);
             LAMAPF_Path connected_path = {start_id, target_id}, disconnected_path = {};
+//            std::cout << " finish getConnectionBetweenNode " << std::endl;
             return connect ? connected_path : disconnected_path;
         }
 
@@ -317,7 +325,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 return all_poses_;
         }
 
-    private:
+//    private:
 
         SubGraphOfAgent<N, AgentType> constructSubGraphOfAgent(const AgentType& agent) const {
 //            Id total_index = getTotalIndexOfSpace<N>(dim_);

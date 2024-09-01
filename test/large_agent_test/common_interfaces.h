@@ -310,12 +310,13 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
                 //for(int i=0; i<solution.size(); i++)
                 {
                     const auto &path = solution[i];
-                    if (path.empty()) { continue; }
-                    for (int t = 0; t < path.size() - 1; t++) {
-                        Pointi<2> pt1 = all_poses[path[t]]->pt_,
-                                pt2 = all_poses[path[t + 1]]->pt_;
-                        canvas.drawLineInt(pt1[0], pt1[1], pt2[0], pt2[1], true, std::max(1, zoom_ratio / 10),
-                                           COLOR_TABLE[(i) % 30]);
+                    if (!path.empty()) {
+                        for (int t = 0; t < path.size() - 1; t++) {
+                            Pointi<2> pt1 = all_poses[path[t]]->pt_,
+                                    pt2 = all_poses[path[t + 1]]->pt_;
+                            canvas.drawLineInt(pt1[0], pt1[1], pt2[0], pt2[1], true, std::max(1, zoom_ratio / 10),
+                                               COLOR_TABLE[(i) % 30]);
+                        }
                     }
                 }
             }
@@ -370,21 +371,21 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
                 int i = current_subgraph_id;
                 if(!solution.empty()) {
                     const auto &path = solution[i];
-                    if (path.empty()) { continue; }
-                    Pointi<2> pt;
-                    int orient = 0;
-                    if (time_index <= path.size() - 1) {
-                        pt = all_poses[path[time_index]]->pt_;
-                        orient = all_poses[path[time_index]]->orient_;
-                    } else {
-                        pt = all_poses[path.back()]->pt_;
-                        orient = all_poses[path.back()]->orient_;
+                    if (!path.empty()) {
+                        Pointi<2> pt;
+                        int orient = 0;
+                        if (time_index <= path.size() - 1) {
+                            pt = all_poses[path[time_index]]->pt_;
+                            orient = all_poses[path[time_index]]->orient_;
+                        } else {
+                            pt = all_poses[path.back()]->pt_;
+                            orient = all_poses[path.back()]->orient_;
+                        }
+
+                        agents[i].drawOnCanvas({pt, orient}, canvas, COLOR_TABLE[(i) % 30]);
+
+                        canvas.drawArrowInt(pt[0], pt[1], -orientToPi_2D(orient), 1, std::max(1, zoom_ratio / 10));
                     }
-
-                    agents[i].drawOnCanvas({pt, orient}, canvas, COLOR_TABLE[(i) % 30]);
-
-                    canvas.drawArrowInt(pt[0], pt[1], -orientToPi_2D(orient), 1, std::max(1, zoom_ratio / 10));
-
                 }
             }
         }
@@ -399,7 +400,7 @@ void InstanceVisualization(const std::vector<AgentType>& agents,
                         if(value != 0) {
                             std::stringstream ss;
                             ss << value;
-                            canvas.drawTextInt(position[0], position[1], ss.str().c_str(), cv::Vec3b::all(0), .5);
+                            canvas.drawTextInt(position[0], position[1], ss.str().c_str(), cv::Vec3b::all(200), .5);
                         }
                     }
                 }
@@ -548,10 +549,11 @@ void loadInstanceAndPlanningLayeredCBS(const std::string& file_path, double time
 }
 
 
+// maximum_sample_count: max times of sample start and target for an agent
 template<typename AgentType, typename MethodType>
-void generateInstance(const std::vector<AgentType>& agents, const std::string& file_path) {
+void generateInstance(const std::vector<AgentType>& agents, const std::string& file_path, int maximum_sample_count = 1e7) {
     gettimeofday(&tv_pre, &tz);
-    LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(agents, is_occupied, dim, 1e7);
+    LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(agents, is_occupied, dim, maximum_sample_count);
 
     // debug: print all agents
     for(int i=0; i<agents.size(); i++) {

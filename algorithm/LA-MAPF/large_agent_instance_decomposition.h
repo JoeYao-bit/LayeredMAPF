@@ -83,7 +83,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
 
             // 5, level sorting
-            if(decompose_level >= 1) {
+            if(decompose_level >= 3) {
                 gettimeofday(&tv_pre, &tz);
                 levelSorting();
                 gettimeofday(&tv_after, &tz);
@@ -110,6 +110,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             assert(total_count == this->instances_.size());
             std::cout << "-- max/total size " << max_cluster_size << " / " << this->instances_.size() << std::endl;
             std::cout << "-- Decomposition completeness ? " << decompositionValidCheck(all_clusters_) << std::endl;
+
+            grid_paths_.resize(agents.size(), {});
+            agent_visited_grids_.resize(agents.size(), std::vector<int>(this->all_poses_.size(), MAX<int>));
             std::cout << "-- Decomposition completeness (grid map) ? " << decompositionValidCheckGridMap(all_clusters_) << std::endl;
 
         }
@@ -136,7 +139,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     auto passing_agents = searchAgent(agent, avoid_sats, {}, true);
                     if(passing_agents.empty()) {
                         std::cout << "ERROR: cluster " << i << ", agent " << agent << " is im-complete" << std::endl;
-                        assert(0);
+//                        assert(0);
                         return false;
                     }
                 }
@@ -144,7 +147,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return true;
         }
 
-        bool decompositionValidCheckGridMap(const std::vector<std::set<int> >& all_levels) const {
+        bool decompositionValidCheckGridMap(const std::vector<std::set<int> >& all_levels) {
+
             float max_excircle_radius = getMaximumRadius(this->agents_);
             std::vector<AgentType> pre_agents;
             std::vector<size_t> pre_targets;
@@ -195,6 +199,17 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                              new_constraint_table_ptr_
                                                              );
                     LAMAPF_Path path = solver.solve();
+                    grid_paths_[agent_id] = path;
+                    agent_visited_grids_[agent_id] = solver.grid_visit_count_table_;
+
+//                    if(agent_id == 2) {
+//                        std::cout << "agent path : ";
+//                        for(const auto& node_id : path) {
+//                            std::cout << "(" <<node_id << ", h=" << connect_graphs_[agent_id].hyper_node_id_map_[node_id] << ")->";
+//                        }
+//                        std::cout << std::endl;
+//                    }
+
                     if(path.empty()) {
                         std::cout << "FATAL: cluster " << i << ", agent " << agent_id << " unsolvable after decomposition" << std::endl;
 //                        std::vector<size_t> visited_nodes = {1550, 1742, 1548, 1549};
@@ -205,8 +220,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                            }
 //                            std::cout << std::endl;
 //                        }
+
                         assert(0);
-                        return false;
+//                        return false;
                     }
                 }
             }
@@ -252,7 +268,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 for(int gid=0; gid<local_total_index; gid++) {
                     temp_pt = IdToPointi<N>(gid, local_dim) - center_pt;
                     if(temp_pt.Norm() > maximum_ralated_range) { continue; }
-//                    if(agent_id == 2 && i == 9) {
+//                    if(agent_id == 9 && i == 10) {
 //                        std::cout << "gid / temp_pt /center_pt " << gid << " / " << temp_pt
 //                                  << ", " << center_pt << std::endl;
 //                    }
@@ -260,7 +276,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     temp_start = another_agent_start_pt + temp_pt;
                     // isoc contain in range test implicitly
                     if(!this->isoc_(temp_start)) {
-//                        if(agent_id == 2 && i == 9) {
+//                        if(agent_id == 9 && i == 10) {
 //                            std::cout << " temp_start " << temp_start << std::endl;
 //                        }
                         temp_id = PointiToId<N>(temp_start, this->dim_);
@@ -275,8 +291,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                 {
                                     // if they have conflict
                                     related_agents_map[temp_pose_id].insert(2*i);
-//                                    if(agent_id == 2 && i == 9) {
-//                                        std::cout << " agent " << agent_id  << "," << i << "'s start have conflict at " << temp_start << std::endl;
+//                                    if(agent_id == 9 && i == 10) {
+//                                        std::cout << "ReAG: " << agent << " at " << *all_nodes[temp_pose_id]
+//                                                  << " and " << another_agent << " at " << another_agent_start_pose
+//                                                  << " have conflict" << std::endl;
 //                                    }
                                 } else {
                                     // if current node's edge is collide with other agent
@@ -287,12 +305,16 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                         if(isCollide(agent, *all_nodes[temp_pose_id], *all_nodes[other_temp_pose_id],
                                                      another_agent, another_agent_start_pose))
                                         {
-                                            //std::cout << " agent " << agent_id  << "," << i << "'s start have conflict at " << temp_start << std::endl;
+//                                            if(agent_id == 9 && i == 10) {
+//                                                std::cout << "ReAG: " << agent << " at " << *all_nodes[temp_pose_id] << "->" << *all_nodes[other_temp_pose_id]
+//                                                          << " and " << another_agent << " at " << another_agent_start_pose
+//                                                          << " have conflict" << std::endl;
+//                                            }
                                             // if they have conflict
                                             related_agents_map[temp_pose_id].insert(2*i);
                                             break;
                                         } else {
-//                                            if(agent_id == 2 && i == 9) {
+//                                            if(agent_id == 9 && i == 10) {
 //                                                std::cout << agent << " at " << *all_nodes[temp_pose_id] << "->" << *all_nodes[other_temp_pose_id]
 //                                                          << " and " << another_agent << " at " << another_agent_start_pose
 //                                                          << " have no conflict" << std::endl;
@@ -308,7 +330,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     // isoc contain in range test implicitly
                     if(!this->isoc_(temp_target)) {
 //                        std::cout << " temp_target " << temp_target << std::endl;
-//                        if(agent_id == 2 && i == 9) {
+//                        if(agent_id == 9 && i == 10) {
 //                            std::cout << " temp_target " << temp_target << std::endl;
 //                        }
                         temp_id = PointiToId<N>(temp_target, this->dim_);
@@ -324,8 +346,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                     // if they have conflict
                                     related_agents_map[temp_pose_id].insert(2*i + 1);
 //                                    std::cout << " agent " << agent_id  << "," << i << "'s target have conflict at " << temp_target << std::endl;
-//                                    if(agent_id == 2 && i == 9) {
-//                                        std::cout << " agent " << agent_id  << "," << i << "'s target have conflict at " << temp_target << std::endl;
+//                                    if(agent_id == 9 && i == 10) {
+//                                        std::cout << "ReAG: " << agent << " at " << *all_nodes[temp_pose_id]
+//                                                  << " and " << another_agent << " at " << another_agent_target_pose
+//                                                  << " have conflict" << std::endl;
 //                                    }
                                 } else {
                                     // if current node's edge is collide with other agent
@@ -338,10 +362,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                         {
                                             // if they have conflict
                                             related_agents_map[temp_pose_id].insert(2*i + 1);
+//                                            if(agent_id == 9 && i == 10) {
+//                                                std::cout << "ReAG: " << agent << " at " << *all_nodes[temp_pose_id] << "->" << *all_nodes[other_temp_pose_id]
+//                                                          << " and " << another_agent << " at " << another_agent_target_pose
+//                                                          << " have conflict" << std::endl;
+//                                            }
                                             break;
-//                                    std::cout << " agent " << agent_id  << "," << i << "'s start have conflict at " << temp_start << std::endl;
                                         } else {
-//                                            if(agent_id == 2 && i == 9) {
+//                                            if(agent_id == 9 && i == 10) {
 //                                                std::cout << agent << " at " << *all_nodes[temp_pose_id] << "->" << *all_nodes[other_temp_pose_id]
 //                                                          << " and " << another_agent << " at " << another_agent_target_pose
 //                                                          << " have no conflict" << std::endl;
@@ -372,6 +400,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //            }
 //            std::cout << std::endl;
 
+
             return related_agents_map;
         }
 
@@ -394,7 +423,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                                                               directed_graph_);
 
             int max_hyper_node_id = 0;
-            std::vector<size_t> boundary_nodes;
+            std::vector<std::pair<size_t, size_t> > boundary_nodes;
 
             std::vector<std::vector<size_t> > node_in_hyper_node;
 
@@ -422,18 +451,28 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                 // if belong to different component
                                 if(cur_component.find(neighbor_node_id) == cur_component.end()) {
                                     // when two node belong to different component
-                                    //if (graph.hyper_node_id_map_[neighbor_node_id] != MAX<size_t>)
+                                    size_t node_from = MAX<size_t>, node_to = MAX<size_t>;
+                                    node_from = cur_node;
+                                    node_to = neighbor_node_id;
+
+                                    //if(node_from != MAX<size_t> && node_to != MAX<size_t>)
                                     {
-                                        boundary_nodes.push_back(neighbor_node_id);
-                                    }
-                                    //if (graph.hyper_node_id_map_[cur_node] != MAX<size_t>)
-                                    {
-                                        boundary_nodes.push_back(cur_node);
+                                        boundary_nodes.push_back({node_from, node_to});
                                     }
                                 } else {
 
                                     if (graph.related_agents_map_[node_id] == graph.related_agents_map_[neighbor_node_id]) {
                                         if (graph.hyper_node_id_map_[neighbor_node_id] != MAX<size_t>) {
+                                            if(graph.hyper_node_id_map_[neighbor_node_id] != max_hyper_node_id) {
+                                                // if two node have different related agent, they are on boundary
+                                                size_t node_from = MAX<size_t>, node_to = MAX<size_t>;
+                                                node_from = cur_node;
+                                                node_to = neighbor_node_id;
+                                                //if(node_from != MAX<size_t> && node_to != MAX<size_t>)
+                                                {
+                                                    boundary_nodes.push_back({node_from, node_to});
+                                                }
+                                            }
                                             continue;
                                         }
                                         graph.hyper_node_id_map_[neighbor_node_id] = max_hyper_node_id;
@@ -442,17 +481,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                         node_in_hyper_node.back().push_back(neighbor_node_id);
 
                                     } else {
-
                                         // if two node have different related agent, they are on boundary
-                                        // shouldn't reach here
-    //                                    std::cout << "FATAL: shouldn't reach here" << std::endl;
-                                        //if (graph.hyper_node_id_map_[neighbor_node_id] != MAX<size_t>)
+                                        size_t node_from = MAX<size_t>, node_to = MAX<size_t>;
+                                        node_from = cur_node;
+                                        node_to = neighbor_node_id;
+                                        //if(node_from != MAX<size_t> && node_to != MAX<size_t>)
                                         {
-                                            boundary_nodes.push_back(neighbor_node_id);
-                                        }
-                                        //if (graph.hyper_node_id_map_[cur_node] != MAX<size_t>)
-                                        {
-                                            boundary_nodes.push_back(cur_node);
+                                            boundary_nodes.push_back({node_from, node_to});
                                         }
                                     }
                                 }
@@ -510,6 +545,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             graph.all_edges_set_.resize(max_hyper_node_id);
             graph.all_edges_vec_.resize(max_hyper_node_id);
+            graph.all_edges_vec_backward_.resize(max_hyper_node_id);
+
             // 3, get start hyper node id and target hyper node id
             graph.start_hyper_node_  = graph.hyper_node_id_map_[this->instance_node_ids_[agent_id].first];
             graph.target_hyper_node_ = graph.hyper_node_id_map_[this->instance_node_ids_[agent_id].second];
@@ -524,21 +561,25 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 graph.hyper_node_with_agents_[cur_hyper_node_id] =
                         graph.related_agents_map_[node_in_hyper_node[cur_hyper_node_id].front()];
             }
-            for(const auto& node_id : boundary_nodes) {
-                const auto& cur_hyper_node_id = graph.hyper_node_id_map_[node_id];
 
-                for(const auto& nearby_node_id : current_subgraph.all_edges_[node_id]) {
-                    const auto& next_hyper_node_id = graph.hyper_node_id_map_[nearby_node_id];
-                    if(next_hyper_node_id != MAX<size_t> && cur_hyper_node_id != next_hyper_node_id) {
-                        if(graph.all_edges_set_[cur_hyper_node_id].find(next_hyper_node_id) == graph.all_edges_set_[cur_hyper_node_id].end()) {
-                            graph.all_edges_set_[cur_hyper_node_id].insert(next_hyper_node_id);
-                            graph.all_edges_vec_[cur_hyper_node_id].push_back(next_hyper_node_id);
-                        }
-                        if(graph.all_edges_set_[next_hyper_node_id].find(cur_hyper_node_id) == graph.all_edges_set_[next_hyper_node_id].end()) {
-                            graph.all_edges_set_[next_hyper_node_id].insert(cur_hyper_node_id);
-                            graph.all_edges_vec_[next_hyper_node_id].push_back(cur_hyper_node_id);
-                        }
-                    }
+            for(const auto& node_id_pair : boundary_nodes) {
+//                if(agent_id == 2) {
+//                    std::cout << "boundary_node = " << *this->all_poses_[node_id_pair.first]
+//                              << "(" << node_id_pair.first << ")"
+//                              << "->" << *this->all_poses_[node_id_pair.second]
+//                              << "(" << node_id_pair.second << ")"  << std::endl;
+//                }
+                const auto& cur_hyper_node_id  = graph.hyper_node_id_map_[node_id_pair.first];
+                const auto& next_hyper_node_id = graph.hyper_node_id_map_[node_id_pair.second];
+                assert(cur_hyper_node_id != next_hyper_node_id);
+                assert(cur_hyper_node_id != MAX<size_t> && next_hyper_node_id != MAX<size_t>);
+
+                if(graph.all_edges_set_[cur_hyper_node_id].find(next_hyper_node_id) == graph.all_edges_set_[cur_hyper_node_id].end()) {
+
+                    graph.all_edges_set_[cur_hyper_node_id].insert(next_hyper_node_id);
+                    graph.all_edges_vec_[cur_hyper_node_id].push_back(next_hyper_node_id);
+
+                    graph.all_edges_vec_backward_[next_hyper_node_id].push_back(cur_hyper_node_id);
                 }
             }
 
@@ -550,21 +591,39 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             assert(graph.hyper_node_with_agents_[graph.target_hyper_node_].find(2*agent_id+1) !=
                            graph.hyper_node_with_agents_[graph.target_hyper_node_].end());
 
-            // print for debug
-//            std::cout << "agent_id " << agent_id << "'s hyper" << std::endl;
-//            for(int hyper_node_id=0; hyper_node_id < max_hyper_node_id; hyper_node_id++) {
-//                std::cout << "hyper_node " << hyper_node_id << " visible to: ";
-//                for(const int& another_hyper_id : graph.all_edges_vec_[hyper_node_id]) {
-//                    std::cout << another_hyper_id << " ";
+//            if(agent_id == 9) {
+//                std::vector<size_t> node_list = {//186009, 183961, 182937, 184985, 186011
+//                        186013,
+//                        183965,
+//                        182941,
+//                        184989,
+//                        187035};
+//                for(const auto& node_id : node_list) {
+//                    std::cout << "node " << node_id << "(hyper id = " << graph.hyper_node_id_map_[node_id] << ")"
+//                              << " related agent: ";
+//                    for(const size_t & id : graph.related_agents_map_[node_id]) {
+//                        std::cout << id << " ";
+//                    }
+//                    std::cout << std::endl;
 //                }
-//                //std::cout << std::endl;
-//                std::cout << ", relared to agent: ";
-//                for(const int& related_agent : graph.hyper_node_with_agents_[hyper_node_id]) {
-//                    std::cout << related_agent << " ";
-//                }
-//                std::cout << std::endl;
 //            }
 
+            // print for debug
+//            if(agent_id == 2) {
+//                std::cout << "agent_id " << agent_id << "'s hyper" << std::endl;
+//                for (int hyper_node_id = 0; hyper_node_id < max_hyper_node_id; hyper_node_id++) {
+//                    std::cout << "hyper_node " << hyper_node_id << " visible to: ";
+//                    for (const int &another_hyper_id : graph.all_edges_vec_[hyper_node_id]) {
+//                        std::cout << another_hyper_id << " ";
+//                    }
+//                    //std::cout << std::endl;
+//                    std::cout << ", relared to agent: ";
+//                    for (const int &related_agent : graph.hyper_node_with_agents_[hyper_node_id]) {
+//                        std::cout << related_agent << " ";
+//                    }
+//                    std::cout << std::endl;
+//                }
+//            }
 
             return graph;
         }
@@ -606,9 +665,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 std::vector<int> component(num_vertices(g));
                 int num = connected_components(g, &component[0]);
                 std::vector<std::set<size_t> > retv(num);
-//                std::cout << "Total number of strong components: " << num << std::endl;
+                std::cout << "Total number of strong components: " << num << std::endl;
                 for (size_t i = 0; i < component.size(); ++i) {
-//                    std::cout << "Vertex " << i << " is in component " << component[i] << std::endl;
+                    std::cout << "Vertex " << i << " is in component " << component[i] << std::endl;
                     retv[component[i]].insert(i);
                 }
                 return retv;
@@ -670,11 +729,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             std::vector<bool> buffer_sat = AgentIdsToSATID(buffer_agents);
             for(const int& agent_id : buffer_agents) {
                 auto passing_agents = searchAgent(agent_id, {}, buffer_sat); // pass test
-//                std::cout << "--agent " << agent_id << "'s dependency path = ";
-//                for(const auto& passing_agent : passing_agents) {
-//                    std::cout << passing_agent << " ";
+//                assert(!passing_agents.empty());
+//                if(agent_id == 9) {
+//                    std::cout << "--agent " << agent_id << "'s passing_agents = ";
+//                    for(const auto& passing_agent : passing_agents) {
+//                        std::cout << passing_agent << " ";
+//                    }
+//                    std::cout << std::endl;
 //                }
-//                std::cout << std::endl; // ok till here
                 all_agents_path.insert({agent_id, passing_agents});
             }
             all_passing_agent_ = all_agents_path;
@@ -1269,6 +1331,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         float instance_decomposition_time_cost_ = 0;
         float cluster_bipartition_time_cost_    = 0;
         float level_sorting_time_cost_          = 0;
+
+        // variables for debug
+        LAMAPF_Paths grid_paths_;
+        std::vector<std::vector<int> > agent_visited_grids_;
 
     };
 

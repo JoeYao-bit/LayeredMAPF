@@ -265,6 +265,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         std::vector<std::vector<size_t> > all_edges_vec_; // each hyper node's connecting node, store in vector
 
+        std::vector<std::vector<size_t> > all_edges_vec_backward_; // each hyper node's connecting node, store in vector
+
+
         std::vector<std::set<size_t> > all_edges_set_; // each hyper node's connecting node, store in set
 
         size_t start_hyper_node_ = MAX<size_t>; // where is start in the hyper graph
@@ -467,11 +470,24 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     for(const auto& agent_pair : occupied_table_sat_[temp_id]) {
                         if(isCollide(global_agents_[agent_global_id], *all_poses_[current_node], *all_poses_[next_node],
                                      global_agents_[agent_pair.first], *all_poses_[agent_pair.second])) {
-
-//                            std::cout << global_agents_[agent_global_id] << " at " << *all_poses_[current_node] << "->" << *all_poses_[next_node]
-//                                      << " and " << global_agents_[agent_pair.first] << " at " << *all_poses_[agent_pair.second]
-//                                      << " have conflict" << std::endl;
-
+//                            if(global_agents_[agent_global_id].id_ == 9 && global_agents_[agent_pair.first].id_ == 10) {
+//                                std::cout << "SAT: " << global_agents_[agent_global_id] << " at "
+//                                          << *all_poses_[current_node] << "{" << current_node <<  "}"
+//                                          << "->" << *all_poses_[next_node] << "{" << next_node <<  "}"
+//                                          << " and " << global_agents_[agent_pair.first] << " at "
+//                                          << *all_poses_[agent_pair.second]
+//                                          << " have conflict" << std::endl;
+//
+//                                if(isCollide(global_agents_[agent_global_id], *all_poses_[current_node],
+//                                             global_agents_[agent_pair.first], *all_poses_[agent_pair.second])) {
+//                                    std::cout << "current node collide" << std::endl;
+//                                }
+//                                if(isCollide(global_agents_[agent_global_id], *all_poses_[next_node],
+//                                             global_agents_[agent_pair.first], *all_poses_[agent_pair.second])) {
+//                                    std::cout << "next_node node collide" << std::endl;
+//                                }
+//
+//                            }
                             return true;
                         }
                     }

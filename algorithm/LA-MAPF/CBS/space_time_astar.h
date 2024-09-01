@@ -73,7 +73,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
         virtual LAMAPF_Path solve() override {
 
-//            std::cout << "space time search agent in solve " <<  this->sub_graph_.agent_ << std::endl;
+//            std::cout << "space time search agent in solve " <<  this->sub_graph_.agent_
+//                      << ", from " << *this->sub_graph_.all_nodes_[this->start_node_id_]
+//                      << ", to " << *this->sub_graph_.all_nodes_[this->target_node_id_] << std::endl;
 
             int static_time_step = this->constraint_table_.getMaxTimestep();
 
@@ -111,14 +113,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
             int count = 0;
             while (!open_list.empty()) {
-//                std::cout << "open, focal size = " << open_list.size() << ", " << focal_list.size() << std::endl;
+//                if(this->sub_graph_.agent_.id_ == 9) {
+//                    std::cout << "open, focal size = " << open_list.size() << ", " << focal_list.size() << std::endl;
+//                }
                 //assert(count <= 1000);
                 count++;
                 updateFocalList(); // update FOCAL if min f-val increased
                 new_nodes_in_open.clear();
                 auto *curr = popNode();
-//                std::cout << " SpaceTimeAstar pop " << *(this->sub_graph_.all_nodes_[curr->node_id])
-//                          << ", t = " << curr->timestep << std::endl;
+//                if(this->sub_graph_.agent_.id_ == 9) {
+//                    std::cout << " SpaceTimeAstar pop " << *(this->sub_graph_.all_nodes_[curr->node_id])
+//                          << ", t = " << curr->timestep << ", h = " << curr->h_val << std::endl;
+//                }
                 grid_visit_count_table_[curr->node_id/(2*N)] ++;
 //                assert(curr->node_id >= 0);
                 // check if the popped node is a goal
@@ -153,7 +159,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //                    }
 //                    std::cout << "next_node " << *this->sub_graph_.all_nodes_[next_node_id] << std::endl;
                     maximum_t_ = std::max(maximum_t_, next_timestep);
-//                    if(next_node_id == 4737) {
+//                    if(this->sub_graph_.agent_.id_ == 9 && next_node_id == this->target_node_id_) {
 //                        std::cout << " reach target flag 1 " << std::endl;
 //                    }
                     // yz: check whether satisfied all constraint, including vertex constraint and edge constraint
@@ -161,7 +167,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                             this->constraint_table_.constrained(curr->node_id, next_node_id, next_timestep))
                         continue;
 
-//                    if(next_node_id == 4737) {
+//                    if(this->sub_graph_.agent_.id_ == 9 && next_node_id == this->target_node_id_) {
 //                        std::cout << " reach target flag 2 " << std::endl;
 //                    }
 
@@ -179,7 +185,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                                                            curr->node_id, next_node_id, next_node_id == this->target_node_id_)) {
                         continue;
                     }
-//                    if(next_node_id == 4737) {
+//                    if(this->sub_graph_.agent_.id_ == 9 && next_node_id == this->target_node_id_) {
 //                        std::cout << " reach target flag 3 " << std::endl;
 //                    }
 //                    std::cout << " flag 2 " << std::endl;

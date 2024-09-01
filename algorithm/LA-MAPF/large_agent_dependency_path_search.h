@@ -96,9 +96,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     // dist is defined like g_val and h_val, how many agent need to cross to reach target
     template <Dimension N>
     std::vector<int> calculateLargeAgentHyperGraphStaticHeuristic(int agent_id, DimensionLength* dim, const ConnectivityGraph& graph, bool distinguish_sat = false) {
-//        std::cout << "call " << __FUNCTION__ << std::endl;
         // the two table update simultaneously
-        int total_index = getTotalIndexOfSpace<N>(dim);
 
         std::vector<int> heuristic_table(graph.all_edges_vec_.size(), MAX<int>);
 
@@ -123,7 +121,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
                 current_h = heuristic_table[node_ptr->current_node_];
 
-                for(const auto& neighbor_node_id : graph.all_edges_vec_[node_ptr->current_node_]) {
+                for(const auto& neighbor_node_id : graph.all_edges_vec_backward_[node_ptr->current_node_]) {
 
                     HyperGraphNodeDataPtr<N> next_node_data_ptr = new HyperGraphNodeData<N>(neighbor_node_id, node_ptr, graph, distinguish_sat);
                     all_ptr_set.push_back(next_node_data_ptr);
@@ -147,6 +145,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             a_ptr = nullptr;
         }
         // use BFS to calculate heuristic value for all free grid, and obstacle heuristic
+//        assert(heuristic_table[graph.target_hyper_node_] != MAX<int>);
+//        assert(heuristic_table[graph.start_hyper_node_]  != MAX<int>);
+
         return heuristic_table;
     }
 
@@ -255,6 +256,20 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 if(curr_node->current_node_ == con_graph.target_hyper_node_) // if current node is belong to an agent
                 {
                     auto passed_agents = getPassingAgents(curr_node);//curr_node->passed_agents_;
+                    // debug
+//                    if(agent_id == 9) {
+//                        std::cout << " agent 9 visited hyper node = ";
+//                        auto buffer_node = curr_node;
+//                        while(true) {
+//                            if(buffer_node == nullptr) {
+//                                break;
+//                            } else {
+//                                std::cout << buffer_node->current_node_ << " ";
+//                                buffer_node = buffer_node->pa_;
+//                            }
+//                        }
+//                        std::cout << std::endl;
+//                    }
                     releaseNodes();
                     return passed_agents;
                 }

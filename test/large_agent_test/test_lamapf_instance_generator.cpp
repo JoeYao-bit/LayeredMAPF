@@ -134,18 +134,97 @@ TEST(Multi_GenerateCircleInstance, test) {
                                                                        dim);
 
         generateInstance<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > > (agents,
-                                                                                   map_test_config.at("crc_ins_path"));
+                                                                                   map_test_config.at("crc_ins_path"),
+                                                                                   1e5);
     }
 }
 
 TEST(Multi_GenerateBlock_2DInstance, test) {
-    for(int i=0; i<10; i++) {
+    for(int i=0; i<20; i++) {
         const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(15,
                                                                     -1.4, -.2,
                                                                     .2, 1.4,
                                                                     .2, 1.4,
                                                                     .1, dim);
-        generateInstance<BlockAgent_2D, CBS::LargeAgentCBS<2, BlockAgent_2D > >(agents, map_test_config.at("blk_ins_path"));
+        generateInstance<BlockAgent_2D, CBS::LargeAgentCBS<2, BlockAgent_2D > >(agents,
+                                                                                map_test_config.at("blk_ins_path"),
+                                                                                1e5);
     }
 }
 
+template<typename AgentType>
+void Generator_test() {
+    InstanceDeserializer<2, BlockAgent_2D> deserializer;
+
+    const std::string file_path = map_test_config.at("blk_ins_path");
+
+    if(deserializer.loadInstanceFromFile(file_path, dim)) {
+        std::cout << "load from path " << file_path << " success" << std::endl;
+    } else {
+        std::cout << "load from path " << file_path << " failed" << std::endl;
+        return;
+    }
+    std::cout << " map scale " << dim[0] << "*" << dim[1] << std::endl;
+
+    LargeAgentMAPF_InstanceGenerator<2, BlockAgent_2D> generator(deserializer.getAgents(), is_occupied, dim, 1e7);
+
+
+    for(int i=0; i<deserializer.getAgents().size(); i++) {
+        size_t start_id = generator.agent_sub_graphs_[i].start_node_id_;
+        size_t target_id = generator.agent_sub_graphs_[i].target_node_id_;
+
+        assert(generator.agent_sub_graphs_[i].all_nodes_[start_id] != nullptr);
+        assert(generator.agent_sub_graphs_[i].all_nodes_[target_id] != nullptr);
+    }
+
+//    LargeAgentMAPFInstanceDecompositionPtr<2, AgentType> decomposer =
+//            std::make_shared<LargeAgentMAPFInstanceDecomposition<2, AgentType> >(deserializer.getInstances(),
+//                                                                                 deserializer.getAgents(), dim, is_occupied);
+
+    CBS::LargeAgentCBS<2, AgentType> solver(deserializer.getInstances(), deserializer.getAgents(), dim, is_occupied);
+
+    for(int i=0; i<deserializer.getAgents().size(); i++) {
+        size_t start_id  = solver.agent_sub_graphs_[i].start_node_id_;
+        size_t target_id = solver.agent_sub_graphs_[i].target_node_id_;
+
+        assert(solver.agent_sub_graphs_[i].all_nodes_[start_id] != nullptr);
+        assert(solver.agent_sub_graphs_[i].all_nodes_[target_id] != nullptr);
+    }
+
+}
+
+TEST(Generator_BlockAgent_2D, test) {
+    Generator_test<BlockAgent_2D>();
+}
+
+template<typename AgentType>
+void Decomposition_test() {
+    InstanceDeserializer<2, BlockAgent_2D> deserializer;
+
+    const std::string file_path = map_test_config.at("blk_ins_path");
+
+    if(deserializer.loadInstanceFromFile(file_path, dim)) {
+        std::cout << "load from path " << file_path << " success" << std::endl;
+    } else {
+        std::cout << "load from path " << file_path << " failed" << std::endl;
+        return;
+    }
+    std::cout << " map scale " << dim[0] << "*" << dim[1] << std::endl;
+
+    LargeAgentMAPFInstanceDecomposition<2, AgentType> decomposer =
+            LargeAgentMAPFInstanceDecomposition<2, AgentType>(deserializer.getInstances(),
+                                                              deserializer.getAgents(),
+                                                              dim,
+                                                              is_occupied);
+
+    InstanceVisualization<AgentType>(deserializer.getAgents(),
+                                     decomposer.getAllPoses(),
+                                     deserializer.getInstances(),
+                                     decomposer.grid_paths_,
+                                     decomposer.agent_visited_grids_);
+
+}
+
+TEST(Decomposition, test) {
+    Decomposition_test<BlockAgent_2D>();
+}

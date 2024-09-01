@@ -302,7 +302,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }
             }
 
-            assert(agent_heuristic[instance_node_ids_[sub_graph.agent_.id_].first] != MAX<int>);
+            assert(agent_heuristic[instance_node_ids_[sub_graph.agent_.id_].first]  != MAX<int>);
+            assert(agent_heuristic[instance_node_ids_[sub_graph.agent_.id_].second] != MAX<int>);
 
             // debug
 //            for(int i=0; i<sub_graph.all_nodes_.size(); i++) {
@@ -372,6 +373,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
                 }
             }
+            assert(retv[instance_node_ids_[sub_graph.agent_.id_].first/(2*N)]  != MAX<int>);
+            assert(retv[instance_node_ids_[sub_graph.agent_.id_].second/(2*N)] != MAX<int>);
             return retv;
         }
 
