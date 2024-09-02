@@ -64,11 +64,11 @@ bool draw_visit_grid_table = false;
 // MAPFTestConfig_AR0014SR
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
-auto map_test_config = MAPFTestConfig_Paris_1_256;
+auto map_test_config = MAPFTestConfig_Berlin_1_256;
 // MAPFTestConfig_Paris_1_256
+// MAPFTestConfig_Berlin_1_256;
 // MAPFTestConfig_AR0011SR;
 // MAPFTestConfig_maze_32_32_4;
-// MAPFTestConfig_Berlin_1_256; // error
 // MAPFTestConfig_simple;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
@@ -553,7 +553,25 @@ void loadInstanceAndPlanningLayeredCBS(const std::string& file_path, double time
 template<typename AgentType, typename MethodType>
 void generateInstance(const std::vector<AgentType>& agents, const std::string& file_path, int maximum_sample_count = 1e7) {
     gettimeofday(&tv_pre, &tz);
-    LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(agents, is_occupied, dim, maximum_sample_count);
+
+    //debug. test whether serialize and deserialize will change behavior
+    InstanceOrients<2> fake_instances;
+    for(int i=0; i<agents.size(); i++) {
+        fake_instances.push_back({Pose<int, 2>{{0,0},0}, Pose<int, 2>{{0,0},0}});
+    }
+    InstanceSerializer<2, AgentType> fake_serializer(agents, fake_instances);
+    if(!fake_serializer.saveToFile(file_path)) {
+        std::cout << "fake_serializer save to path " << file_path << " failed" << std::endl;
+        return;
+    }
+    InstanceDeserializer<2, AgentType> fake_deserializer;
+    if(!fake_deserializer.loadInstanceFromFile(file_path, dim)) {
+        std::cout << "load from path " << file_path << " failed" << std::endl;
+        return;
+    }
+    auto new_agents = fake_deserializer.getAgents();
+
+    LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(new_agents, is_occupied, dim, maximum_sample_count);
 
     // debug: print all agents
     for(int i=0; i<agents.size(); i++) {
@@ -580,7 +598,7 @@ void generateInstance(const std::vector<AgentType>& agents, const std::string& f
     for(int i=0; i<instances_and_path.size(); i++) {
         solution.push_back(instances_and_path[i].second);
     }
-    InstanceSerializer<2, AgentType> serializer(agents, instances);
+    InstanceSerializer<2, AgentType> serializer(new_agents, instances);
     if(serializer.saveToFile(file_path)) {
         std::cout << "save to path " << file_path << " success" << std::endl;
     } else {

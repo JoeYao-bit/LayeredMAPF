@@ -140,13 +140,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 size_t start_id, target_id;
                 count_of_pick = 0;
                 while (true) {
+                    count_of_pick ++;
                     // 1, pick start nodes from its subgraph
                     start_id = rd() % all_poses_.size();
 
                     if(agent_sub_graphs_[i].all_nodes_[start_id] == nullptr) {
                         continue;
                     }
-                    //std::cout << "pick agent " << i << "'s start " <<  std::endl;
+//                    std::cout << "pick agent " << i << "'s start " << *all_poses_[start_id] <<  std::endl;
                     // 2, if it has conflict with other agents, re-pick util no conflicts
                     bool repick = false;
                     for (int id = 0; id < new_instances.size(); id++) {
@@ -163,7 +164,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         }
                     }
                     if(repick) {
-                        count_of_pick ++;
                         if(count_of_pick > max_sample_) {
                             std::cout << "failed to get start for agent " << i << std::endl;
                             return {};
@@ -174,8 +174,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     }
                 }
                 //std::cout << "find agent " << i << "'s start" << std::endl;
+                std::cout << "find start count_of_pick = " << count_of_pick << std::endl;
                 count_of_pick = 0;
                 while (true) {
+                    count_of_pick ++;
+
                     // 1, pick start nodes from its subgraph
                     target_id = rd() % all_poses_.size();
                     if(agent_sub_graphs_[i].all_nodes_[target_id] == nullptr) {
@@ -187,7 +190,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     if(target_id == start_id) {
                         continue;
                     }
-                    //std::cout << "pick agent " << i << "'s target " <<  std::endl;
+//                    std::cout << "pick agent " << i << "'s target " << *all_poses_[target_id] << std::endl;
                     // 2, if it has conflict with other agents, re-pick util no conflicts
                     bool repick = false;
                     for (int id = 0; id < new_instances.size(); id++) {
@@ -204,17 +207,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         }
                     }
                     if(repick) {
-                        count_of_pick ++;
                         if(count_of_pick > max_sample_) {
                             //std::cout << "failed to get start for agent " << i << std::endl;
                             return {};
                         }
                         continue;
                     }
+                    assert(agent_sub_graphs_[i].all_nodes_[start_id] != nullptr &&
+                           agent_sub_graphs_[i].all_nodes_[target_id] != nullptr);
                     // 3, check whether there is a path connect them, otherwise re-pick
                     LAMAPF_Path path = getConnectionBetweenNode(i, start_id, target_id);
                     if(path.empty()) {
-                        //std::cout << "find no connection between start and target, repick target" << std::endl;
+//                        std::cout << "find no connection between start and target, repick target" << std::endl;
                         count_of_pick ++;
                         if(count_of_pick > max_sample_) {
                             //std::cout << "failed to get start for agent " << i << std::endl;
@@ -222,12 +226,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         }
                         continue;
                     } else {
-                        std::cout << "find agent " << i << "'s instance success" << std::endl;
+                        std::cout << "find agent " << i << "'s instance (" << *all_poses_[start_id] << "->"
+                                  << *all_poses_[target_id]<< ") success" << std::endl;
                         // 4, insert as a success instance
                         new_instances.push_back({{*all_poses_[start_id], *all_poses_[target_id]}, path});
                         break;
                     }
                 }
+                std::cout << "find target count_of_pick = " << count_of_pick << std::endl;
             }
             return new_instances;
         }
@@ -398,11 +404,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
 
             // initial nodes in subgraph
+            int count_of_nodes = 0;
             for(size_t id=0; id<all_poses_.size(); id++) {
                 if(all_poses_[id] != nullptr) {
                     const auto& current_pose = all_poses_[id];
                     if(!agent.isCollide(*current_pose, dim_, isoc_, distance_map_updater_)) {
                         sub_graph.all_nodes_[id] = current_pose;
+                        count_of_nodes ++;
                     }
                 }
             }
@@ -412,6 +420,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             sub_graph.all_edges_.resize(total_index*2*N, {});
             sub_graph.all_backward_edges_.resize(total_index*2*N, {});
             Pointis<N> neighbors = GetNearestOffsetGrids<N>();
+            int count_of_edges = 0;
             for(size_t pose_id=0; pose_id < sub_graph.all_nodes_.size(); pose_id++) {
                 const auto& node_ptr = sub_graph.all_nodes_[pose_id];
                 if(node_ptr != nullptr) {
@@ -427,6 +436,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         if(another_node_ptr == nullptr) { continue; }
 
                         if(!agent.isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, distance_map_updater_)) {
+                            count_of_edges ++;
                             sub_graph.all_edges_[pose_id].push_back(another_node_id);
                             sub_graph.all_backward_edges_[another_node_id].push_back(pose_id);
                         }
@@ -442,12 +452,16 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         if(another_node_ptr == nullptr) { continue; }
                         // check whether can transfer to another node
                         if(!agent.isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, distance_map_updater_)) {
+                            count_of_edges ++;
                             sub_graph.all_edges_[pose_id].push_back(another_node_id);
                             sub_graph.all_backward_edges_[another_node_id].push_back(pose_id);
                         }
                     }
                 }
             }
+            // debug
+            std::cout << "Generator Agent " << agent << "'s subgraph have nodes/edges = "
+                      << count_of_edges << " / " << count_of_nodes << std::endl;
             return sub_graph;
         }
 
@@ -461,7 +475,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<PosePtr<int, N> > all_poses_;
         DistanceMapUpdater<N> distance_map_updater_;
         std::vector<SubGraphOfAgent<N, AgentType> > agent_sub_graphs_;
-        int max_sample_ = 100000;
+        int max_sample_ = 1e5;
 
     };
 
