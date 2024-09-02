@@ -108,6 +108,22 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }
             }
 
+            // debug
+//            for(int i=0; i<agents.size(); i++) {
+//                int count_of_nodes = 0;
+//                for(const auto& ptr : agent_sub_graphs_[i].all_nodes_) {
+//                    if(ptr != nullptr) {
+//                        count_of_nodes ++;
+//                    }
+//                }
+//                int count_of_edges = 0;
+//                for(const auto& nodes : agent_sub_graphs_[i].all_edges_) {
+//                    count_of_edges += nodes.size();
+//                }
+//                std::cout << "LA-MAPF Agent " << agents[i] << "'s subgraph have nodes/edges = "
+//                          << count_of_edges << " / " << count_of_nodes << std::endl;
+//            }
+
             if(instance_node_ids_.empty()) {
                 instance_node_ids_.reserve(instances_.size());
                 for (const auto &sub_graph : agent_sub_graphs_) {

@@ -174,7 +174,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     }
                 }
                 //std::cout << "find agent " << i << "'s start" << std::endl;
-                std::cout << "find start count_of_pick = " << count_of_pick << std::endl;
+//                std::cout << "find start count_of_pick = " << count_of_pick << std::endl;
                 count_of_pick = 0;
                 while (true) {
                     count_of_pick ++;
@@ -226,14 +226,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         }
                         continue;
                     } else {
-                        std::cout << "find agent " << i << "'s instance (" << *all_poses_[start_id] << "->"
-                                  << *all_poses_[target_id]<< ") success" << std::endl;
+//                        std::cout << "find agent " << i << "'s instance (" << *all_poses_[start_id] << "->"
+//                                  << *all_poses_[target_id]<< ") success" << std::endl;
                         // 4, insert as a success instance
                         new_instances.push_back({{*all_poses_[start_id], *all_poses_[target_id]}, path});
                         break;
                     }
                 }
-                std::cout << "find target count_of_pick = " << count_of_pick << std::endl;
+//                std::cout << "find target count_of_pick = " << count_of_pick << std::endl;
             }
             return new_instances;
         }
@@ -460,8 +460,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }
             }
             // debug
-            std::cout << "Generator Agent " << agent << "'s subgraph have nodes/edges = "
-                      << count_of_edges << " / " << count_of_nodes << std::endl;
+//            std::cout << "Generator Agent " << agent << "'s subgraph have nodes/edges = "
+//                      << count_of_edges << " / " << count_of_nodes << std::endl;
             return sub_graph;
         }
 

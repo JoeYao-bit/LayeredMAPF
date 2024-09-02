@@ -36,8 +36,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                const LAMAPF_Paths& paths,
                                                const std::vector<AgentType>& agents) {
         int t=0;
-        std::vector<bool> reach_states(paths.size(), false);
+//        std::vector<bool> reach_states(paths.size(), false);
         LAMAPF_Paths modified_paths(paths);
+        int total_delay_count = 0;
         while(1) {
 //            std::cout << " t = " << t << std::endl;
             // check whether current proceed
@@ -57,8 +58,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 for(int j=0; j<modified_paths.size(); j++) {
                     const auto& cur_path  = modified_paths[j];
                     const auto& cur_agent = agents[j];
-
-//                    detectFirstConflictBetweenPaths(cur_path, cur_agent, pre_path, pre_agent, );
 
                     // check whether finished
                     if(t <= cur_path.size() - 1) { all_finished = false; }
@@ -150,7 +149,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                         std::cout << "FATAL: delay at start cant avoid conflict 2" << std::endl;
                                         exit(0);
                                     }
-                                } else  {
+                                } else {
                                     std::cout << "FATAL: delay start shouldn't < 0 2" << std::endl;
                                     exit(0);
                                 }
@@ -169,9 +168,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         }
                     }
                 }
-//                if(!proceed) {
-//                    break;
-//                }
             }
             if(proceed && all_finished) { break; }
             if(!proceed) {
@@ -181,8 +177,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                    if(t-1 >= path.size()-1) { continue; }
 //                    path.insert(path.begin() + t-1, path[t-1]);
 //                }
-                delayPathLargeAgent<N, AgentType>(modified_paths, delay_start_time, delay_count);
-                t = delay_start_time;
+//                delayPathLargeAgent<N, AgentType>(modified_paths, delay_start_time, delay_count);
+                delayPathLargeAgent<N, AgentType>(modified_paths, 0, delay_count);
+
+                //t = delay_start_time;
+                total_delay_count += delay_count;
+                t = total_delay_count;
             } else {
                 t++;
             }
@@ -211,7 +211,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<AgentType> pre_agents = agents[0];
 
         for(int i=1; i<pathss.size(); i++) {
-//
+            // debug
+//            std::cout << "merge " << i << " th paths" << std::endl;
 
             mergedPaths = SingleLayerCompressLargeAgent<N>(all_poses, mergedPaths, pre_agents, pathss[i], agents[i]);
             pre_agents.insert(pre_agents.end(), agents[i].begin(), agents[i].end());
@@ -436,7 +437,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             std::cout << "-- take " << merge_path_time_cost << "ms to merge paths" << std::endl << std::endl;
         }
         std::cout << "final check" << std::endl;
-        isSolutionValid(retv, agents, decomposer->all_poses_);
+        assert(isSolutionValid(retv, agents, decomposer->all_poses_));
 
         std::cout << "-- layered large agent mapf success " << !retv.empty() << std::endl;
         std::cout << "-- SOC = " << getSOC(retv) << ", makespan = " << getMakeSpan(retv) << std::endl;

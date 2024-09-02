@@ -418,9 +418,60 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             assert(graph.related_agents_map_[this->instance_node_ids_[agent_id].second].size() >= 1);
 
             // 2, construct connectivity graph and record boundary (where different hyper node converge)
-            std::vector<std::set<size_t> > strong_components = getStrongComponentFromSubGraph(current_subgraph.all_nodes_,
-                                                                                              current_subgraph.all_edges_,
-                                                                                              directed_graph_);
+            const std::vector<std::set<size_t> >& strong_components
+                                    = getStrongComponentFromSubGraph(current_subgraph.all_nodes_,
+                                                                     current_subgraph.all_edges_,
+                                                                     current_subgraph.all_backward_edges_,
+                                                                     directed_graph_);
+
+            // debug
+            int non_null_count = 0;
+            for(int i=0; i<this->agent_sub_graphs_[agent_id].all_nodes_.size(); i++) {
+                if(current_subgraph.all_nodes_[i] != nullptr) {
+                    non_null_count ++;
+                }
+            }
+            int component_count = 0;
+            for(int i=0; i<strong_components.size(); i++) {
+                // ignore component that consists of nullptr
+                bool find_nullptr = false, find_non_nullptr = false;
+                for(const auto& temp_node_id : strong_components[i]) {
+                    if(this->agent_sub_graphs_[agent_id].all_nodes_[temp_node_id] != nullptr) {
+                        find_non_nullptr = true;
+                    } else {
+                        find_nullptr = true;
+                    }
+                }
+                assert(find_nullptr ^ find_non_nullptr); // a component cannot have both ptr and nullptr
+                if(find_non_nullptr) {
+                    component_count = component_count + strong_components[i].size();
+                }
+            }
+//            std::cout << " non_null_count = " << non_null_count << " / component_count = " << component_count
+//                      << " / total_node_count = " << getTotalIndexOfSpace<N>(this->dim_)*2*N << std::endl;
+
+            // debug
+            if(non_null_count != component_count) {
+                std::vector<bool> in_component_state(this->agent_sub_graphs_[agent_id].all_nodes_.size(), false);
+                for(int i=0; i<strong_components.size(); i++) {
+                    for(const auto& temp_node_id : strong_components[i]) {
+                        in_component_state[temp_node_id] = true;
+                    }
+                }
+                for(int i=0; i<this->agent_sub_graphs_[agent_id].all_nodes_.size(); i++) {
+                    if(current_subgraph.all_nodes_[i] != nullptr) {
+                        if(!in_component_state[i]) {
+                            std::cout << " node " << i << *this->all_poses_[i] << " not in component" << std::endl;
+                        }
+                    } else {
+                        if(in_component_state[i]) {
+                            std::cout << " node " << i << " is nullptr but in component" << std::endl;
+                        }
+                    }
+                }
+            }
+            assert(non_null_count == component_count);
+
 
             int max_hyper_node_id = 0;
             std::vector<std::pair<size_t, size_t> > boundary_nodes;
@@ -429,7 +480,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             // considering the using boost to detect strong connected component of directed graph
             for(const std::set<size_t>& cur_component : strong_components) {
-                if(cur_component.size() == 1) {
+                //if(cur_component.size() == 1)
+                {
                     if(current_subgraph.all_nodes_[*cur_component.begin()] == nullptr) { continue; }
                 }
                 for (const size_t & node_id : cur_component) {
@@ -514,25 +566,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                if (current_pose_ptr == nullptr) { continue; }
 //            }
 
-            // debug // not pass
-            int non_null_count = 0;
-            for(int i=0; i<this->agent_sub_graphs_[agent_id].all_nodes_.size(); i++) {
-                if(current_subgraph.all_nodes_[i] != nullptr) {
-                    non_null_count ++;
-                }
-            }
-            int component_count = 0;
-            for(int i=0; i<strong_components.size(); i++) {
-                // ignore nullptr
-                if(strong_components[i].size() == 1) {
-                    if(this->agent_sub_graphs_[agent_id].all_nodes_[*strong_components[i].begin()] == nullptr) { continue; }
-                }
-                component_count = component_count + strong_components[i].size();
-            }
-//            std::cout << " non_null_count = " << non_null_count << " / component_count = " << component_count
-//                      << " / total_node_count = " << getTotalIndexOfSpace<N>(this->dim_)*2*N << std::endl;
-
-            assert(non_null_count == component_count);
 
             // debug // pass
             for(int i=0; i<this->all_poses_.size(); i++) {
@@ -630,6 +663,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         std::vector<std::set<size_t> > getStrongComponentFromSubGraph(const std::vector<PosePtr<int, N>>& all_poses,
                                                                       const std::vector<std::vector<size_t> >& all_edges,
+                                                                      const std::vector<std::vector<size_t> >& all_backward_edges,
                                                                       bool directed_graph = true) const {
 
             using namespace boost;
@@ -638,7 +672,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 typedef adjacency_list<vecS, vecS, directedS, size_t> Graph;
                 Graph g;
                 for(size_t i=0; i<all_edges.size(); i++) {
-                    if(all_edges[i].empty()) { continue; }
+                    if(all_poses[i] == nullptr) { continue; }
+                    if(all_edges[i].empty() && all_backward_edges[i].empty()) {
+                        add_vertex(i, g); // any non-nullptr should have a position
+                        continue;
+                    }
                     for(const size_t& j : all_edges[i]) {
                         add_edge(i, j, g);
                     }

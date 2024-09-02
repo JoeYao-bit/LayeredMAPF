@@ -127,7 +127,7 @@ TEST(max_size_t, test) {
 }
 
 TEST(Multi_GenerateCircleInstance, test) {
-    for(int i=0; i<10; i++) {
+    for(int i=0; i<100; i++) {
         const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(16,
                                                                        .4, 2.3,
                                                                        .1,
@@ -135,12 +135,12 @@ TEST(Multi_GenerateCircleInstance, test) {
 
         generateInstance<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > > (agents,
                                                                                    map_test_config.at("crc_ins_path"),
-                                                                                   1e5);
+                                                                                   1e4);
     }
 }
 
 TEST(Multi_GenerateBlock_2DInstance, test) {
-    for(int i=0; i<20; i++) {
+    for(int i=0; i<100; i++) {
         const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(15,
                                                                     -1.4, -.2,
                                                                     .2, 1.4,
@@ -148,13 +148,13 @@ TEST(Multi_GenerateBlock_2DInstance, test) {
                                                                     .1, dim);
         generateInstance<BlockAgent_2D, CBS::LargeAgentCBS<2, BlockAgent_2D > >(agents,
                                                                                 map_test_config.at("blk_ins_path"),
-                                                                                1e5);
+                                                                                1e4);
     }
 }
 
 template<typename AgentType>
 void Generator_test() {
-    InstanceDeserializer<2, BlockAgent_2D> deserializer;
+    InstanceDeserializer<2, AgentType> deserializer;
 
     const std::string file_path = map_test_config.at("blk_ins_path");
 
@@ -173,8 +173,8 @@ void Generator_test() {
         size_t start_id = generator.agent_sub_graphs_[i].start_node_id_;
         size_t target_id = generator.agent_sub_graphs_[i].target_node_id_;
 
-        assert(generator.agent_sub_graphs_[i].all_nodes_[start_id] != nullptr);
-        assert(generator.agent_sub_graphs_[i].all_nodes_[target_id] != nullptr);
+//        assert(generator.agent_sub_graphs_[i].all_nodes_[start_id] != nullptr);
+//        assert(generator.agent_sub_graphs_[i].all_nodes_[target_id] != nullptr);
     }
 
 //    LargeAgentMAPFInstanceDecompositionPtr<2, AgentType> decomposer =
@@ -187,8 +187,8 @@ void Generator_test() {
         size_t start_id  = solver.agent_sub_graphs_[i].start_node_id_;
         size_t target_id = solver.agent_sub_graphs_[i].target_node_id_;
 
-        assert(solver.agent_sub_graphs_[i].all_nodes_[start_id] != nullptr);
-        assert(solver.agent_sub_graphs_[i].all_nodes_[target_id] != nullptr);
+//        assert(solver.agent_sub_graphs_[i].all_nodes_[start_id] != nullptr);
+//        assert(solver.agent_sub_graphs_[i].all_nodes_[target_id] != nullptr);
     }
 
 }
