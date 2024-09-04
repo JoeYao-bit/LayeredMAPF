@@ -230,6 +230,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             // and orientation can only change 90 degree at one timestep, that means the two orient must be orthogonal
             sub_graph.all_edges_.resize(total_index*2*N, {});
             sub_graph.all_backward_edges_.resize(total_index*2*N, {});
+
+            // debug
+//            std::vector<std::set<size_t> > all_edges_set(total_index*2*N);
+//            std::vector<std::set<size_t> > all_backward_edges_set(total_index*2*N);
+
             Pointis<N> neighbors = GetNearestOffsetGrids<N>();
             for(size_t pose_id=0; pose_id < sub_graph.all_nodes_.size(); pose_id++) {
                 const auto& node_ptr = sub_graph.all_nodes_[pose_id];
@@ -242,6 +247,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         new_pt = origin_pt + offset;
                         if(isOutOfBoundary(new_pt, dim_)) { continue; }
                         Id another_node_id = PointiToId<N>(new_pt, dim_)*2*N + origin_orient;
+                        if(pose_id == another_node_id) { continue; }
                         PosePtr<int, N> another_node_ptr = sub_graph.all_nodes_[another_node_id];
                         if(another_node_ptr == nullptr) { continue; }
 
@@ -254,6 +260,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         if(!agent.isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, *distance_map_updater_)) {
                             sub_graph.all_edges_[pose_id].push_back(another_node_id);
                             sub_graph.all_backward_edges_[another_node_id].push_back(pose_id);
+
+                            // debug
+//                            all_edges_set[pose_id].insert(another_node_id);
+//                            all_backward_edges_set[another_node_id].insert(pose_id);
                         }
                     }
                     // add edges about orientation changing
@@ -269,10 +279,29 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         if(!agent.isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, *distance_map_updater_)) {
                             sub_graph.all_edges_[pose_id].push_back(another_node_id);
                             sub_graph.all_backward_edges_[another_node_id].push_back(pose_id);
+
+                            // debug
+//                            all_edges_set[pose_id].insert(another_node_id);
+//                            all_backward_edges_set[another_node_id].insert(pose_id);
                         }
                     }
                 }
             }
+            // debug
+//            for(size_t i=0; i<all_edges_set.size(); i++) {
+//                for(const size_t& j : all_edges_set[i]) {
+//                    if(all_backward_edges_set[j].find(i) == all_backward_edges_set[j].end()) {
+//                        std::cout << "FATAL: edges have more than backward_edges" << std::endl;
+//                    }
+//                }
+//            }
+//            for(size_t i=0; i<all_backward_edges_set.size(); i++) {
+//                for(const size_t& j : all_backward_edges_set[i]) {
+//                    if(all_edges_set[j].find(i) == all_edges_set[j].end()) {
+//                        std::cout << "FATAL: backward_edges have more than edges" << std::endl;
+//                    }
+//                }
+//            }
             return sub_graph;
         }
 

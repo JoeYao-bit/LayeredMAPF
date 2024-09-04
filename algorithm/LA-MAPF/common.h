@@ -7,9 +7,18 @@
 
 #include <limits>
 #include <chrono>
+#include <stack>
+
 #include <boost/geometry.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/heap/pairing_heap.hpp>
+#include <boost/graph/subgraph.hpp>
+#include <boost/graph/adjacency_list.hpp>
+
+#include <boost/config.hpp>
+#include <boost/graph/connected_components.hpp>
+#include <boost/graph/strong_components.hpp>
+
 #include <random>
 
 #include "../basic.h"
@@ -470,7 +479,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     for(const auto& agent_pair : occupied_table_sat_[temp_id]) {
                         if(isCollide(global_agents_[agent_global_id], *all_poses_[current_node], *all_poses_[next_node],
                                      global_agents_[agent_pair.first], *all_poses_[agent_pair.second])) {
-//                            if(global_agents_[agent_global_id].id_ == 9 && global_agents_[agent_pair.first].id_ == 10) {
+                            // debug
+//                            if(global_agents_[agent_global_id].id_ == 4 && global_agents_[agent_pair.first].id_ == 10) {
 //                                std::cout << "SAT: " << global_agents_[agent_global_id] << " at "
 //                                          << *all_poses_[current_node] << "{" << current_node <<  "}"
 //                                          << "->" << *all_poses_[next_node] << "{" << next_node <<  "}"
@@ -695,7 +705,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                                 const DistanceMapUpdaterPtr<N>,
                                                                 const std::vector<SubGraphOfAgent<N, AgentType> >,
                                                                 const std::vector<std::vector<int> >&,
-                                                                const std::vector<std::vector<int> >&)>;
+                                                                const std::vector<std::vector<int> >&,
+                                                                ConnectivityGraph*)>;
 
     template<Dimension N, typename AgentType>
     Conflicts detectAllConflictBetweenPaths(const LAMAPF_Path& p1, const LAMAPF_Path& p2,
@@ -805,6 +816,193 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
         return valid;
     }
+
+    struct GraphForTest
+    {
+        GraphForTest(size_t size = 10) {
+            all_edges_.resize(10);
+        }
+
+        void addEdge(const size_t& node_from, const size_t& node_to) {
+            if(node_from + 1 > all_edges_.size()) {
+                all_edges_.resize(node_from + 1);
+            }
+
+            if(node_to + 1 > all_edges_.size()) {
+                all_edges_.resize(node_to + 1);
+            }
+
+            all_edges_[node_from].push_back(node_to);
+
+//            all_backward_edges_[node_to].push_back(node_from);
+
+        }
+
+        std::vector<std::vector<size_t> > all_edges_;
+        std::vector<std::vector<size_t> > all_backward_edges_;
+
+    };
+
+    struct TarjanForSCC
+    {
+        TarjanForSCC(const std::vector<std::vector<size_t> >& all_edges)
+                     : all_edges_(all_edges) {}
+
+        std::vector<std::set<size_t> > tarjanForSCC() {
+            dfn = std::vector<size_t>(all_edges_.size(), MAX<size_t>);
+            low = std::vector<size_t>(all_edges_.size(), MAX<size_t>);
+
+            std::cout << "all_edges_.size() = " << all_edges_.size() << std::endl;
+
+            dfncnt = -1;
+
+            in_stack = std::vector<bool>(all_edges_.size(), false);
+            stack = std::stack<size_t>();
+            retv.clear();
+
+            for(size_t i=0; i<all_edges_.size(); i++) {
+                if(dfn[i] == MAX<size_t>) {
+                    tarjan(i);
+                }
+            }
+//            tarjan(1);
+
+//            std::cout << "DFN/LOW: " << std::endl;
+//            for(int i=0; i<all_edges_.size(); i++) {
+//                std::cout << "node " << i << " in  " << dfn[i] << "/" << low[i]
+//                << std::endl;
+//            }
+            return retv;
+        }
+
+        void tarjan(const size_t& u) {
+            dfncnt ++;
+            dfn[u] = dfncnt;
+            low[u] = dfn[u];
+
+            in_stack[u] = true;
+            stack.push(u);
+
+            for (const size_t &v : all_edges_[u]) {
+                if (dfn[v] == MAX<size_t>) {
+                    tarjan(v);
+                    low[u] = std::min(low[u], low[v]);
+//                    std::cout << "u, v = " << u << ", " << v << ", set_1 low[" << u << "] to " << low[u] << std::endl;
+                }
+                else if (in_stack[v])
+                {
+                    low[u] = std::min(low[u], dfn[v]);
+//                    std::cout << "u, v = " << u << ", " << v << ", set_2 low[" << u << "] to " << low[u] << std::endl;
+                }
+            }
+//            assert(0);
+            if(low[u] == dfn[u]) {
+                std::set<size_t> component;
+                size_t y;
+//                std::cout << " find loop, stack pop all: ";
+                do {
+                    y = stack.top();
+//                    std::cout << stack.top() << " ";
+                    stack.pop();
+                    in_stack[y] = false;
+                    component.insert(y);
+                } while (y != u);
+                retv.push_back(component);
+//                std::cout << std::endl;
+            }
+        }
+
+        std::vector<std::set<size_t> > tarjanForSCC_without_recursion() {
+            dfn = std::vector<size_t>(all_edges_.size(), MAX<size_t>);
+            low = std::vector<size_t>(all_edges_.size(), MAX<size_t>);
+
+            std::cout << "all_edges_.size() = " << all_edges_.size() << std::endl;
+
+            dfncnt = -1;
+            retv.clear();
+
+            ptr_stack.resize(all_edges_.size(), nullptr);
+
+            for(size_t i=0; i<all_edges_.size(); i++) {
+                if(dfn[i] == MAX<size_t>) {
+                    tarjan_without_recursion(i);
+                }
+            }
+            // release data
+            for(int i=0; i<all_edges_.size(); i++) {
+                if(ptr_stack[i] != nullptr) {
+                    delete ptr_stack[i];
+                    ptr_stack[i] = nullptr;
+                }
+            }
+        }
+
+        void tarjan_without_recursion(const size_t& curr) {
+
+//            dfncnt ++;
+//            dfn[curr] = dfncnt;
+//
+//            std::stack<Node*> stack_temp;
+//            auto start_node = new Node{nullptr, curr};
+//            stack_temp.push(start_node);
+//
+//            ptr_stack[curr] = start_node;
+//
+//            while(!stack_temp.empty()) {
+//                const auto& u = stack_temp.top();
+//                stack_temp.pop();
+//                for (const size_t &v : all_edges_[u->curr_]) {
+//                    if(dfn[v] == MAX<size_t>) {
+//                        dfncnt ++;
+//                        dfn[v] = dfncnt;
+//                        auto new_node = new Node{u, v};
+//                        ptr_stack[v] = new_node;
+//
+//                        stack_temp.push(new_node);
+//                    } else if(low[v] < low[u->curr_]) {
+//                        // reverse and get local loop
+//                        auto buffer = ;
+//                        while() {
+//                            //
+//                        }
+//                    }
+//                }
+//            }
+
+        }
+
+
+        struct Node {
+            Node* pa_;
+            size_t curr_;
+        };
+
+        const std::vector<std::vector<size_t> >& all_edges_;
+
+        // traversal graph in DFS mode
+        std::vector<size_t> dfn, // the time index of visit current node
+        low; // the minimum time index of node the node can visit
+
+        size_t dfncnt;
+
+        std::vector<bool> in_stack;
+        std::stack<size_t> stack;
+
+        std::vector<std::set<size_t> > retv;
+
+        std::vector<Node*> ptr_stack;
+
+        std::vector<std::set<size_t> > node_loop_id_map; // a node map in multiple partial map
+
+        size_t tp;
+//        std::vector<size_t> scc;
+//        size_t sc;  // 结点 i 所在 SCC 的编号
+//        std::vector<size_t> sz;       // 强连通 i 的大小
+    };
+
+
+    std::vector<std::set<size_t> > getStrongComponentFromGraph(const std::vector<std::vector<size_t> >& all_edges,
+                                                               const std::vector<std::vector<size_t> >& all_backward_edges);
 
 }
 

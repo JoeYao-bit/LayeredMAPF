@@ -22,14 +22,16 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                                            const DistanceMapUpdaterPtr<N>& distance_map_updater = nullptr,
                                            const std::vector<SubGraphOfAgent<N, AgentType> >& agent_sub_graphs = {},
                                            const std::vector<std::vector<int> >& agents_heuristic_tables = {},
-                                           const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate = {}) {
+                                           const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate = {},
+                                           ConnectivityGraph* connect_graph = nullptr) {
 
         LargeAgentCBS<N, AgentType> solver(instances, agents, dim, isoc, path_constraint,
                                                                   all_poses,
                                                                   distance_map_updater,
                                                                   agent_sub_graphs,
                                                                   agents_heuristic_tables,
-                                                                  agents_heuristic_tables_ignore_rotate);
+                                                                  agents_heuristic_tables_ignore_rotate,
+                                                                  connect_graph);
 
         grid_visit_count_table = solver.grid_visit_count_tables_;
 

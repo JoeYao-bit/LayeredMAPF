@@ -64,8 +64,8 @@ bool draw_visit_grid_table = false;
 // MAPFTestConfig_AR0014SR
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
-auto map_test_config = MAPFTestConfig_Berlin_1_256;
-// MAPFTestConfig_Paris_1_256
+auto map_test_config = MAPFTestConfig_Paris_1_256;
+// MAPFTestConfig_Paris_1_256 // error
 // MAPFTestConfig_Berlin_1_256;
 // MAPFTestConfig_AR0011SR;
 // MAPFTestConfig_maze_32_32_4;
@@ -533,7 +533,7 @@ void loadInstanceAndPlanningLayeredCBS(const std::string& file_path, double time
                                                             CBS::LargeAgentCBS_func<2, AgentType >,
                                                             grid_visit_count_table,
                                                             time_limit, decomposer_ptr,
-                                                             path_constraint);
+                                                            path_constraint);
     auto end_t = clock();
     double total_time_cost = ((double)end_t - start_t)/CLOCKS_PER_SEC;
     std::cout << "instance has " << deserializer.getAgents().size() << " agents, find solution ? " << !layered_paths.empty()

@@ -257,8 +257,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 {
                     auto passed_agents = getPassingAgents(curr_node);//curr_node->passed_agents_;
                     // debug
-//                    if(agent_id == 9) {
-//                        std::cout << " agent 9 visited hyper node = ";
+//                    if(agent_id == 4) {
+//                        std::cout << " agent 4 visited hyper node = ";
 //                        auto buffer_node = curr_node;
 //                        while(true) {
 //                            if(buffer_node == nullptr) {

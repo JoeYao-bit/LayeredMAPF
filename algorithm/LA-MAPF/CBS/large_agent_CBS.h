@@ -27,7 +27,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                       const DistanceMapUpdaterPtr<N> distance_map_updater = nullptr,
                       const std::vector<SubGraphOfAgent<N, AgentType> > agent_sub_graphs = {},
                       const std::vector<std::vector<int> >& agents_heuristic_tables = {},
-                      const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate_ = {}
+                      const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate_ = {},
+                      ConnectivityGraph* connect_graph = nullptr
                       )
                       : LargeAgentMAPF<N, AgentType>(instances, agents, dim, isoc,
                                                      all_poses,
@@ -36,7 +37,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                                                      agents_heuristic_tables,
                                                      agents_heuristic_tables_ignore_rotate_),
                         constraint_avoidance_table_(nullptr), //ConstraintAvoidanceTable<N, AgentType>(dim, this->all_poses_, agents.front())),
-                        path_constraint_(path_constraint){
+                        path_constraint_(path_constraint),
+                        connect_graph_(connect_graph) {
             // 1, initial paths
             for(int agent=0; agent<this->instance_node_ids_.size(); agent++) {
                 ConstraintTable<N, AgentType> constraint_table(agent, this->agents_, this->all_poses_, this->dim_, this->isoc_);
@@ -55,7 +57,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                                                    this->agent_sub_graphs_[agent],
                                                    constraint_table,
                                                    constraint_avoidance_table_,
-                                                   path_constraint_);
+                                                   path_constraint_,
+                                                   connect_graph_);
                 LAMAPF_Path solution = astar.solve();
                 grid_visit_count_tables_.push_back(astar.grid_visit_count_table_);
                 if(solution.empty()) {
@@ -181,6 +184,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
         // for debug only, record how many times each grid are visited during low lever search
         std::vector<std::vector<int> > grid_visit_count_tables_;
+        ConnectivityGraph* connect_graph_ = nullptr;
 
     private:
 
@@ -493,7 +497,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                                                this->agent_sub_graphs_[agent],
                                                constraint_table,
                                                nullptr,
-                                               path_constraint_);
+                                               path_constraint_,
+                                               connect_graph_);
             astar.lower_bound_ = lowerbound;
             LAMAPF_Path new_path = astar.solve();
             if (!new_path.empty()) {

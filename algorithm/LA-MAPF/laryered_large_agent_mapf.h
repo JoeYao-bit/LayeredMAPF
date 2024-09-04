@@ -377,7 +377,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                             local_distance_map_updater,
                                                             local_agent_sub_graphs,
                                                             local_agents_heuristic_tables,
-                                                            local_agents_heuristic_tables_ignore_rotate
+                                                            local_agents_heuristic_tables_ignore_rotate,
+                                                            nullptr
                                                             );
             gettimeofday(&tv_after, &tz);
 
