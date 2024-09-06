@@ -197,7 +197,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                              constraint_table,
                                                              nullptr,
                                                              new_constraint_table_ptr_,
-                                                             nullptr // &connect_graphs_[4] // only in debug !
+                                                             nullptr //&connect_graphs_[4] // only in debug !
                                                              );
                     LAMAPF_Path path = solver.solve();
                     grid_paths_[agent_id] = path;
@@ -213,7 +213,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
                     if(path.empty()) {
                         std::cout << "FATAL: cluster " << i << ", agent " << agent_id << " unsolvable after decomposition" << std::endl;
-//                        std::vector<size_t> visited_nodes = {1550, 1742, 1548, 1549};
+
+                        // debug
+//                        std::vector<size_t> visited_nodes = {1253, 1249};
 //                        for(const auto& visited_node : visited_nodes) {
 //                            std::cout << *this->all_poses_[visited_node] << " related to agent: ";
 //                            for(const auto& temp_agent_id : this->connect_graphs_[agent_id].related_agents_map_[visited_node]) {
@@ -221,9 +223,24 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                            }
 //                            std::cout << std::endl;
 //                        }
+//                        std::vector<size_t> hyper_ids = {65}; //{85, 84, 65};
+//
+//                        std::vector<int> count_of_grid = std::vector<int>(this->all_poses_.size()/(2*N), 0);
+                        // debug
+//                        const auto& current_subgraph = this->agent_sub_graphs_[4];
+//                        const auto& graph = connect_graphs_[4];
+//                        for(const auto& hyper_id : hyper_ids) {
+//                            for (int i = 0; i < current_subgraph.all_nodes_.size(); i++) {
+//                                if (graph.hyper_node_id_map_[i] == hyper_id) {
+//                                    count_of_grid[i/(2*N)] ++;
+//                                }
+//                            }
+//                            std::cout << std::endl;
+//                        }
+//                        agent_visited_grids_[agent_id] = count_of_grid;
 
                         assert(0);
-//                        return false;
+                        return false;
                     }
                 }
             }
@@ -251,7 +268,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 // get the maximum range of conflict
                 float max_range_radius = agent.excircle_radius_ + another_agent.excircle_radius_;
                 int maximum_ralated_range = ceil(max_range_radius + sqrt(N) + 1); // considering the boundary of two shape in one grid
-//                std::cout << " maximum_related_range = " << maximum_ralated_range << std::endl;
+
+//                if(agent_id == 4 && i == 3) {
+//                    std::cout << " maximum_related_range = " << maximum_ralated_range << std::endl;
+//                }
                 int local_space_width = 2*maximum_ralated_range + 1;
                 // construct a temp local space
                 DimensionLength local_dim[N];
@@ -277,7 +297,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     temp_start = another_agent_start_pt + temp_pt;
                     // isoc contain in range test implicitly
                     if(!this->isoc_(temp_start)) {
-//                        if(agent_id == 9 && i == 10) {
+//                        if(agent_id == 4 && i == 3) {
 //                            std::cout << " temp_start " << temp_start << std::endl;
 //                        }
                         temp_id = PointiToId<N>(temp_start, this->dim_);
@@ -292,7 +312,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                 {
                                     // if they have conflict
                                     related_agents_map[temp_pose_id].insert(2*i);
-//                                    if(agent_id == 4 && i == 10) {
+//                                    if(agent_id == 4 && i == 3) {
 //                                        std::cout << "ReAG: " << agent << " at " << *all_nodes[temp_pose_id]
 //                                                  << " and " << another_agent << " at " << another_agent_start_pose
 //                                                  << " have conflict" << std::endl;
@@ -306,7 +326,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                         if(isCollide(agent, *all_nodes[temp_pose_id], *all_nodes[other_temp_pose_id],
                                                      another_agent, another_agent_start_pose))
                                         {
-//                                            if(agent_id == 4 && i == 10) {
+//                                            if(agent_id == 4 && i == 3) {
 //                                                std::cout << "ReAG: " << agent << " at " << *all_nodes[temp_pose_id] << "->" << *all_nodes[other_temp_pose_id]
 //                                                          << " and " << another_agent << " at " << another_agent_start_pose
 //                                                          << " have conflict" << std::endl;
@@ -331,7 +351,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     // isoc contain in range test implicitly
                     if(!this->isoc_(temp_target)) {
 //                        std::cout << " temp_target " << temp_target << std::endl;
-//                        if(agent_id == 9 && i == 10) {
+//                        if(agent_id == 4 && i == 3) {
 //                            std::cout << " temp_target " << temp_target << std::endl;
 //                        }
                         temp_id = PointiToId<N>(temp_target, this->dim_);
@@ -347,7 +367,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                     // if they have conflict
                                     related_agents_map[temp_pose_id].insert(2*i + 1);
 //                                    std::cout << " agent " << agent_id  << "," << i << "'s target have conflict at " << temp_target << std::endl;
-//                                    if(agent_id == 4 && i == 10) {
+//                                    if(agent_id == 4 && i == 3) {
 //                                        std::cout << "ReAG: " << agent << " at " << *all_nodes[temp_pose_id]
 //                                                  << " and " << another_agent << " at " << another_agent_target_pose
 //                                                  << " have conflict" << std::endl;
@@ -363,7 +383,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                         {
                                             // if they have conflict
                                             related_agents_map[temp_pose_id].insert(2*i + 1);
-//                                            if(agent_id == 4 && i == 10) {
+//                                            if(agent_id == 4 && i == 3) {
 //                                                std::cout << "ReAG: " << agent << " at " << *all_nodes[temp_pose_id] << "->" << *all_nodes[other_temp_pose_id]
 //                                                          << " and " << another_agent << " at " << another_agent_target_pose
 //                                                          << " have conflict" << std::endl;
@@ -403,18 +423,19 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                    related_agents_map[this->instance_node_ids_[agent_id].second].end());
 
             // debug
-//            std::cout << " agent " << agent_id << " start related agent = ";
-//            for(const size_t & id : related_agents_map[this->instance_node_ids_[agent_id].first]) {
-//                std::cout << id << " ";
-//            }
-//            std::cout << std::endl;
+//            if(agent_id == 4) {
+//                std::cout << " agent " << agent_id << " start related agent = ";
+//                for (const size_t &id : related_agents_map[this->instance_node_ids_[agent_id].first]) {
+//                    std::cout << id << " ";
+//                }
+//                std::cout << std::endl;
 //
-//            std::cout << " agent " << agent_id << " target related agent = ";
-//            for(const size_t & id : related_agents_map[this->instance_node_ids_[agent_id].second]) {
-//                std::cout << id << " ";
+//                std::cout << " agent " << agent_id << " target related agent = ";
+//                for (const size_t &id : related_agents_map[this->instance_node_ids_[agent_id].second]) {
+//                    std::cout << id << " ";
+//                }
+//                std::cout << std::endl;
 //            }
-//            std::cout << std::endl;
-
 
 
             return related_agents_map;
@@ -428,7 +449,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             // 1, get each pose's relation with other agent
             graph.related_agents_map_ = getRelatedAgentGraph(agent_id, current_subgraph.all_nodes_);
-
             // assert agent's start and target have no overlap with other agent's start or target
             assert(graph.related_agents_map_[this->instance_node_ids_[agent_id].first].size() >= 1);
             assert(graph.related_agents_map_[this->instance_node_ids_[agent_id].second].size() >= 1);
@@ -438,6 +458,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                     = getStrongComponentFromSubGraph(current_subgraph.all_nodes_,
                                                                      current_subgraph.all_edges_,
                                                                      current_subgraph.all_backward_edges_,
+                                                                     graph.related_agents_map_,
                                                                      directed_graph_);
 
 //            TarjanForSCC tarjan(current_subgraph.all_edges_);
@@ -591,6 +612,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                         node_in_hyper_node.back().push_back(neighbor_node_id);
 
                                     } else {
+                                        // shouldn't reach here, because all node in the same component have the same related agents
+                                        assert(0);
                                         // if two node have different related agent, they are on boundary
                                         size_t node_from = MAX<size_t>, node_to = MAX<size_t>;
                                         node_from = cur_node;
@@ -657,6 +680,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 const auto& cur_hyper_node_id  = graph.hyper_node_id_map_[node_id_pair.first];
                 const auto& next_hyper_node_id = graph.hyper_node_id_map_[node_id_pair.second];
 
+                // debug
 //                if(agent_id == 4) {
 //                    std::cout << "boundary_node = " << *this->all_poses_[node_id_pair.first]
 //                              << "(" << node_id_pair.first << ")h{" << cur_hyper_node_id << "}"
@@ -716,6 +740,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                    }
 //                    std::cout << std::endl;
 //                }
+//
+//                std::vector<size_t> node_ids = {1253, 1249};
+//                for(const auto& node_id : node_ids) {
+//                    std::cout << "node " << node_id << ", " << *this->all_poses_[node_id]
+//                              <<  "'hyper id = " << graph.hyper_node_id_map_[node_id] << std::endl;
+//                }
+//
 //            }
 
             return graph;
@@ -725,6 +756,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<std::set<size_t> > getStrongComponentFromSubGraph(const std::vector<PosePtr<int, N>>& all_poses,
                                                                       const std::vector<std::vector<size_t> >& all_edges,
                                                                       const std::vector<std::vector<size_t> >& all_backward_edges,
+                                                                      const std::vector<std::set<int> >& related_agents_map,
                                                                       bool directed_graph = true) const {
 
             using namespace boost;
@@ -744,6 +776,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     }
                     for(const size_t& j : all_edges[i]) {
                         assert(i != MAX<size_t> && j != MAX<size_t>);
+                        if(related_agents_map[i] != related_agents_map[j]) { continue; }
                         add_edge(Vertex(i), Vertex(j), g);
                     }
                 }

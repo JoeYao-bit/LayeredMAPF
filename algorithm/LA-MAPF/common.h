@@ -480,7 +480,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         if(isCollide(global_agents_[agent_global_id], *all_poses_[current_node], *all_poses_[next_node],
                                      global_agents_[agent_pair.first], *all_poses_[agent_pair.second])) {
                             // debug
-//                            if(global_agents_[agent_global_id].id_ == 4 && global_agents_[agent_pair.first].id_ == 10) {
+//                            if(global_agents_[agent_global_id].id_ == 4 && global_agents_[agent_pair.first].id_ == 3) {
 //                                std::cout << "SAT: " << global_agents_[agent_global_id] << " at "
 //                                          << *all_poses_[current_node] << "{" << current_node <<  "}"
 //                                          << "->" << *all_poses_[next_node] << "{" << next_node <<  "}"

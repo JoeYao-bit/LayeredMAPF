@@ -140,15 +140,41 @@ TEST(Multi_GenerateCircleInstance, test) {
 }
 
 TEST(Multi_GenerateBlock_2DInstance, test) {
-    for(int i=0; i<100; i++) {
-        const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(15,
-                                                                    -1.4, -.2,
-                                                                    .2, 1.4,
-                                                                    .2, 1.4,
-                                                                    .1, dim);
-        generateInstance<BlockAgent_2D, CBS::LargeAgentCBS<2, BlockAgent_2D > >(agents,
-                                                                                map_test_config.at("blk_ins_path"),
-                                                                                1e4);
+    int count_of_test = 100;
+    for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < count_of_test; i++) {
+            const BlockAgents_2D &agents = RandomBlock2DAgentsGenerator(16,
+                                                                        -1.4, -.2,
+                                                                        .2, 1.4,
+                                                                        .2, 1.4,
+                                                                        .1, dim);
+
+//            const BlockAgents_2D &agents = RandomBlock2DAgentsGenerator(5,
+//                                                                        -1.4, -.2,
+//                                                                        .2, 1.4,
+//                                                                        .2, 1.4,
+//                                                                        .1, dim);
+
+            generateInstance<BlockAgent_2D, CBS::LargeAgentCBS<2, BlockAgent_2D> >(agents,
+                                                                                   map_test_config.at("blk_ins_path"),
+                                                                                   1e4);
+        }
+        for (int i = 0; i < count_of_test; i++) {
+            const CircleAgents<2> &agents = RandomCircleAgentsGenerator<2>(16,
+                                                                           .4, 2.3,
+                                                                           .1,
+                                                                           dim);
+
+//            const CircleAgents<2> &agents = RandomCircleAgentsGenerator<2>(5,
+//                                                                           .4, 1.4,
+//                                                                           .1,
+//                                                                           dim);
+
+            generateInstance<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > >(agents,
+                                                                                      map_test_config.at(
+                                                                                              "crc_ins_path"),
+                                                                                      1e4);
+        }
     }
 }
 
@@ -199,7 +225,7 @@ TEST(Generator_BlockAgent_2D, test) {
 
 template<typename AgentType>
 void Decomposition_test() {
-    InstanceDeserializer<2, BlockAgent_2D> deserializer;
+    InstanceDeserializer<2, AgentType> deserializer;
 
     const std::string file_path = map_test_config.at("blk_ins_path");
 
@@ -210,6 +236,13 @@ void Decomposition_test() {
         return;
     }
     std::cout << " map scale " << dim[0] << "*" << dim[1] << std::endl;
+
+    std::cout << "Instance: " << std::endl;
+    std::vector<std::string> strs = deserializer.getTextString();
+    for(const auto& str : strs) {
+        std::cout << str << std::endl;
+    }
+    std::cout << std::endl;
 
     LargeAgentMAPFInstanceDecomposition<2, AgentType> decomposer =
             LargeAgentMAPFInstanceDecomposition<2, AgentType>(deserializer.getInstances(),
@@ -225,6 +258,10 @@ void Decomposition_test() {
 
 }
 
-TEST(Decomposition, test) {
+TEST(Decomposition_BlockAgent_2D, test) {
     Decomposition_test<BlockAgent_2D>();
+}
+
+TEST(Decomposition_Circle, test) {
+    Decomposition_test<CircleAgent<2> >();
 }

@@ -125,10 +125,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 auto *curr = popNode();
 //                if(this->sub_graph_.agent_.id_ == 4) {
 //                    std::cout << " SpaceTimeAstar pop " << *(this->sub_graph_.all_nodes_[curr->node_id])
-//                          << ", t = " << curr->timestep << ", h = " << curr->h_val;
+//                          << ", id = " << curr->node_id << ", t = " << curr->timestep << ", h = " << curr->h_val;
 //                    if(connect_graph_ != nullptr
-//                    && connect_graph_->hyper_node_id_map_[curr->node_id] != 212
-//                       && connect_graph_->hyper_node_id_map_[curr->node_id] != 220
+//                    //&& connect_graph_->hyper_node_id_map_[curr->node_id] != 212
+//                    //   && connect_graph_->hyper_node_id_map_[curr->node_id] != 220
 //                    ) {
 //                        std::cout << ", hyper id = " << connect_graph_->hyper_node_id_map_[curr->node_id];
 //                    }
@@ -158,7 +158,24 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 std::random_shuffle(next_locations.begin(), next_locations.end()); // shuffle to make agent move in all direction equally
 
                 for (const size_t& next_node_id : next_locations) {
-//                    if(curr->node_id == 232270) {
+                    // debug
+                    //if(this->sub_graph_.agent_.id_ == 4)
+//                    {
+//                        std::cout << " next_node_id = " << *this->sub_graph_.all_nodes_[next_node_id]
+//                                  << "{" << next_node_id << "}" ;
+//
+//                        if(connect_graph_ != nullptr
+//                            //&& connect_graph_->hyper_node_id_map_[curr->node_id] != 212
+//                            //   && connect_graph_->hyper_node_id_map_[curr->node_id] != 220
+//                                ) {
+//                            std::cout << ", hyper id = " << connect_graph_->hyper_node_id_map_[next_node_id];
+//                        }
+//
+//                        std::cout << std::endl;
+//                    }
+                    //debug
+                    //if(curr->node_id == 1261 || curr->node_id == 1262)
+//                    {
 //                        std::cout << " flag1 next_node_id = " << next_node_id << ", h = " << this->heuristic_[next_node_id] << std::endl;
 //                    }
 //                    if (static_timestep <
@@ -177,8 +194,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                     // yz: check whether satisfied all constraint, including vertex constraint and edge constraint
                     if (this->constraint_table_.constrained(next_node_id, next_timestep) ||
                             this->constraint_table_.constrained(curr->node_id, next_node_id, next_timestep))
-                        continue;
-//                    if(curr->node_id == 232270) {
+                    { continue; }
+                    //if(curr->node_id == 1261 || curr->node_id == 1262)
+//                    {
 //                        std::cout << " flag2 next_node_id = " << next_node_id << ", h = " << this->heuristic_[next_node_id] << std::endl;
 //                    }
 //                    if(this->sub_graph_.agent_.id_ == 9 && next_node_id == this->target_node_id_) {
@@ -199,7 +217,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                                                            curr->node_id, next_node_id, next_node_id == this->target_node_id_)) {
                         continue;
                     }
-//                    if(curr->node_id == 232270) {
+                    //if(curr->node_id == 1261 || curr->node_id == 1262)
+//                    {
 //                        std::cout << " flag3 next_node_id = " << next_node_id << ", h = " << this->heuristic_[next_node_id] << std::endl;
 //                    }
 //                    if(this->sub_graph_.agent_.id_ == 9 && next_node_id == this->target_node_id_) {
@@ -214,7 +233,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                     if(next_h_val == MAX<int>) {
                         continue;
                     }
-//                    if(curr->node_id == 232270) {
+                    //if(curr->node_id == 1261 || curr->node_id == 1262)
+//                    {
 //                        std::cout << " flag4 next_node_id = " << next_node_id << ", h = " << this->heuristic_[next_node_id] << std::endl;
 //                    }
 //                    if(next_node_id == 4737) {
