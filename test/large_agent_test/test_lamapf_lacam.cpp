@@ -24,54 +24,82 @@ using namespace freeNav::LayeredMAPF::LA_MAPF;
 
 TEST(BlockAgentSubGraph, lacam_test) {
 
-    // fake instances
-    InstanceOrients<2> instances = {
-            {{{5, 3}, 0},  {{23, 22},0} },
-            {{{9, 2}, 0},  {{5, 22}, 0}},
-            {{{2, 5}, 0},  {{17, 22}, 3}},
-            {{{5, 7}, 0},  {{20, 23}, 2}},
-            {{{30, 7}, 0}, {{2, 23}, 2}}
-    };
+//    // fake instances
+//    InstanceOrients<2> instances = {
+//            {{{5, 3}, 0},  {{23, 22},0} },
+//            {{{9, 2}, 0},  {{5, 22}, 0}},
+//            {{{2, 5}, 0},  {{17, 22}, 3}},
+//            {{{5, 7}, 0},  {{20, 23}, 2}},
+//            {{{30, 7}, 0}, {{2, 23}, 2}}
+//    };
+//
+//    const Pointf<2> min_pt_0{-.4, -.4},  max_pt_0{.4, .4},
+//                    min_pt_1{-.6, -.4},  max_pt_1{1., .4},
+//                    min_pt_2{-.3, -1.2}, max_pt_2{1., 1.2},
+//                    min_pt_3{-.3, -1.2}, max_pt_3{1., 1.2},
+//                    min_pt_4{-.3, -.6},  max_pt_4{1.2, .6};
+//
+//    // NOTICE: initialize pt in constructor cause constant changed, unknown reason
+//    const BlockAgents_2D agents({
+//                                        BlockAgent_2D({-.4, -.4},  {.4, .4}, 0, dim),
+//                                        BlockAgent_2D({-.6, -.4},  {1., .4}, 1, dim),
+//                                        BlockAgent_2D({-.3, -.6}, {.8, .6}, 2, dim),
+//                                        BlockAgent_2D({-.3, -.6}, {.8, .6}, 3, dim),
+//                                        BlockAgent_2D({-.3, -.6},  {1.2, .6}, 4, dim)
+//
+//                                });
 
-    const Pointf<2> min_pt_0{-.4, -.4},  max_pt_0{.4, .4},
-                    min_pt_1{-.6, -.4},  max_pt_1{1., .4},
-                    min_pt_2{-.3, -1.2}, max_pt_2{1., 1.2},
-                    min_pt_3{-.3, -1.2}, max_pt_3{1., 1.2},
-                    min_pt_4{-.3, -.6},  max_pt_4{1.2, .6};
+    const std::string file_path = map_test_config.at("blk_ins_path");
 
-    // NOTICE: initialize pt in constructor cause constant changed, unknown reason
-    const BlockAgents_2D agents({
-                                        BlockAgent_2D({-.4, -.4},  {.4, .4}, 0, dim),
-                                        BlockAgent_2D({-.6, -.4},  {1., .4}, 1, dim),
-                                        BlockAgent_2D({-.3, -.6}, {.8, .6}, 2, dim),
-                                        BlockAgent_2D({-.3, -.6}, {.8, .6}, 3, dim),
-                                        BlockAgent_2D({-.3, -.6},  {1.2, .6}, 4, dim)
-
-                                });
+    InstanceDeserializer<2, BlockAgent_2D > deserializer;
+    if (deserializer.loadInstanceFromFile(file_path, dim)) {
+        std::cout << "load from path " << file_path << " success" << std::endl;
+    } else {
+        std::cout << "load from path " << file_path << " failed" << std::endl;
+        return;
+    }
+    std::cout << "map scale = " << dim[0] << "*" << dim[1] << std::endl;
 
     startLargeAgentMAPFTest<BlockAgent_2D,
                             LaCAM::LargeAgentLaCAM<2, BlockAgent_2D,
-                            LaCAM::LargeAgentConstraints<2, BlockAgent_2D> > >(agents, instances);
+                            LaCAM::LargeAgentConstraints<2, BlockAgent_2D> > >(deserializer.getAgents(),
+                                                                               deserializer.getInstances());
 
 }
 
 
 TEST(CircleAgentSubGraph, lacam_test) {
 
-    // fake instances
-    InstanceOrients<2> instances = {
-            {{{8, 3}, 0}, {{23, 22},0} },
-            {{{9, 2}, 0}, {{5, 22}, 0}},
-            {{{2, 5}, 0}, {{17, 22}, 3}}
-    };
-    CircleAgents<2> agents({
-                                   CircleAgent<2>(.3, 0, dim),
-                                   CircleAgent<2>(.7, 1, dim),
-                                   CircleAgent<2>(.6, 2, dim)
-                           });
+//    // fake instances
+//    InstanceOrients<2> instances = {
+//            {{{8, 3}, 0}, {{23, 22},0} },
+//            {{{9, 2}, 0}, {{5, 22}, 0}},
+//            {{{2, 5}, 0}, {{17, 22}, 3}}
+//    };
+//    CircleAgents<2> agents({
+//                                   CircleAgent<2>(.3, 0, dim),
+//                                   CircleAgent<2>(.7, 1, dim),
+//                                   CircleAgent<2>(.6, 2, dim)
+//                           });
+//    startLargeAgentMAPFTest<CircleAgent<2>,
+//                            LaCAM::LargeAgentLaCAM<2, CircleAgent<2>,
+//                            LaCAM::LargeAgentConstraints<2, CircleAgent<2> > > >(agents, instances);
+
+    const std::string file_path = map_test_config.at("crc_ins_path");
+
+    InstanceDeserializer<2, CircleAgent<2> > deserializer;
+    if (deserializer.loadInstanceFromFile(file_path, dim)) {
+        std::cout << "load from path " << file_path << " success" << std::endl;
+    } else {
+        std::cout << "load from path " << file_path << " failed" << std::endl;
+        return;
+    }
+    std::cout << "map scale = " << dim[0] << "*" << dim[1] << std::endl;
+
     startLargeAgentMAPFTest<CircleAgent<2>,
-                            LaCAM::LargeAgentLaCAM<2, CircleAgent<2>,
-                            LaCAM::LargeAgentConstraints<2, CircleAgent<2> > > >(agents, instances);
+            LaCAM::LargeAgentLaCAM<2, CircleAgent<2>,
+                    LaCAM::LargeAgentConstraints<2, CircleAgent<2>> > >(deserializer.getAgents(),
+                                                                        deserializer.getInstances());
 
 }
 

@@ -21,7 +21,7 @@
 #include "../../freeNav-base/visualization/canvas/canvas.h"
 #include "../../freeNav-base/dependencies/2d_grid/text_map_loader.h"
 #include "../test_data.h"
-#include "../../algorithm/LA-MAPF/CBS/laryered_large_agent_CBS.h"
+#include "../../algorithm/LA-MAPF/CBS/layered_large_agent_CBS.h"
 
 #include "../../algorithm/LA-MAPF/laryered_large_agent_mapf.h"
 
@@ -64,7 +64,7 @@ bool draw_visit_grid_table = false;
 // MAPFTestConfig_AR0014SR
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
-auto map_test_config = MAPFTestConfig_AR0011SR;
+auto map_test_config = MAPFTestConfig_Berlin_1_256;
 // MAPFTestConfig_Paris_1_256 //  pass
 // MAPFTestConfig_Berlin_1_256; // pass
 // MAPFTestConfig_maze_32_32_4; // pass
@@ -500,9 +500,12 @@ void loadInstanceAndPlanning(const std::string& file_path, double time_limit = 3
 //    InstanceVisualization<AgentType>(deserializer.getAgents(), generator.getAllPoses(), deserializer.getInstances(), {});
 
 }
-
+//LaCAM::LargeAgentConstraints<2, BlockAgent_2D>
 template<typename AgentType>
-void loadInstanceAndPlanningLayeredCBS(const std::string& file_path, double time_limit = 30, bool path_constraint = false) {
+void loadInstanceAndPlanningLayeredLAMAPF(const LA_MAPF_FUNC<2, AgentType>& mapf_func,
+                                          const std::string& file_path,
+                                          double time_limit = 30,
+                                          bool path_constraint = false) {
     InstanceDeserializer<2, AgentType> deserializer;
     if(deserializer.loadInstanceFromFile(file_path, dim)) {
         std::cout << "load from path " << file_path << " success" << std::endl;
@@ -531,7 +534,7 @@ void loadInstanceAndPlanningLayeredCBS(const std::string& file_path, double time
     auto layered_paths = layeredLargeAgentMAPF<2, AgentType>(deserializer.getInstances(),
                                                             deserializer.getAgents(),
                                                             dim, is_occupied,
-                                                            CBS::LargeAgentCBS_func<2, AgentType >,
+                                                            mapf_func, //CBS::LargeAgentCBS_func<2, AgentType >,
                                                             grid_visit_count_table,
                                                             time_limit, decomposer_ptr,
                                                             path_constraint);
@@ -551,11 +554,21 @@ void loadInstanceAndPlanningLayeredCBS(const std::string& file_path, double time
 
 
 // maximum_sample_count: max times of sample start and target for an agent
-template<typename AgentType, typename MethodType>
-void generateInstance(const std::vector<AgentType>& agents, const std::string& file_path, int maximum_sample_count = 1e7) {
+template<typename AgentType>
+void generateInstance(const std::vector<AgentType>& agents,
+                      const std::string& file_path,
+                      const LA_MAPF_FUNC<2, AgentType>& mapf_func,
+                      int maximum_sample_count = 1e7) {
     gettimeofday(&tv_pre, &tz);
 
-    //debug. test whether serialize and deserialize will change behavior
+    // get previous texts as backup
+    InstanceDeserializer<2, AgentType> deserializer_1;
+    deserializer_1.loadInstanceFromFile(file_path, dim);
+    std::vector<std::string> backup_strs = deserializer_1.getTextString();
+
+
+    // test whether serialize and deserialize will change agent's behavior
+    // even we didn't change their behavior explicitly
     InstanceOrients<2> fake_instances;
     for(int i=0; i<agents.size(); i++) {
         fake_instances.push_back({Pose<int, 2>{{0,0},0}, Pose<int, 2>{{0,0},0}});
@@ -571,6 +584,9 @@ void generateInstance(const std::vector<AgentType>& agents, const std::string& f
         return;
     }
     auto new_agents = fake_deserializer.getAgents();
+
+    // restore backup texts
+    fake_serializer.saveStrsToFile(backup_strs, file_path);
 
     LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(new_agents, is_occupied, dim, maximum_sample_count);
 
@@ -609,7 +625,7 @@ void generateInstance(const std::vector<AgentType>& agents, const std::string& f
 
 //    InstanceVisualization<AgentType>(agents, generator.getAllPoses(), instances, solution);
 //    loadInstanceAndPlanning<AgentType, MethodType>(file_path);
-    loadInstanceAndPlanningLayeredCBS<AgentType>(file_path, 60, false);
+    loadInstanceAndPlanningLayeredLAMAPF<AgentType>(mapf_func, file_path, 60, false);
 
 }
 

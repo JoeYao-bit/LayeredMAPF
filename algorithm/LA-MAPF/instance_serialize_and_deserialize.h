@@ -59,6 +59,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
 
         bool saveToFile(const std::string& file_path) {
+            if(agents_.empty() || instance_.empty()) {
+                std::cout << "serializer have nothing to save" << std::endl;
+                return true;
+            }
             strs_.clear();
             std::ofstream os(file_path, std::ios::trunc);
             if(!os.is_open()) { return false; }
@@ -66,6 +70,17 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 std::string str = agents_[i].serialize(instance_[i].first, instance_[i].second);
                 os << str << "\n";
                 strs_.push_back(str);
+            }
+            os.close();
+            return true;
+        };
+
+        bool saveStrsToFile(const std::vector<std::string>& strs, const std::string& file_path) {
+            strs_.clear();
+            std::ofstream os(file_path, std::ios::trunc);
+            if(!os.is_open()) { return false; }
+            for(const auto& str : strs) {
+                os << str << "\n";
             }
             os.close();
             return true;

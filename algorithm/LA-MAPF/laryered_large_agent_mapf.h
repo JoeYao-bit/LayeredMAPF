@@ -218,7 +218,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             pre_agents.insert(pre_agents.end(), agents[i].begin(), agents[i].end());
 
             // debug, check whether merged path have conflicts
-            //if(!isSolutionValid(mergedPaths, pre_agents, all_poses)) { break; }
+            if(!isSolutionValid(mergedPaths, pre_agents, all_poses)) { break; }
         }
         mergedPaths.resize(total_size);
         return mergedPaths;
@@ -232,7 +232,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                    const IS_OCCUPIED_FUNC<N> & isoc,
                                                    const LA_MAPF_FUNC<N, AgentType> & mapf_func,
                                                    std::vector<std::vector<int> >& grid_visit_count_table,
-                                                   int cutoff_time = 60,
+                                                   double cutoff_time = 60,
                                                    LargeAgentMAPFInstanceDecompositionPtr<2, AgentType>& decomposer_copy = nullptr,
                                                    bool use_path_constraint = false
                                                    ) {
@@ -333,7 +333,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             new_constraint_table_ptr_->updateEarliestArriveTimeForAgents(cluster_agents, target_node_ids);
 
             std::vector<AgentType> local_cluster_agents; // copy of agent, with local id
-
             for(int k=0; k<current_id_vec.size(); k++) {
 
                 const auto& agent_id = current_id_vec[k];
@@ -345,7 +344,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 pre_targets.push_back(decomposer->instance_node_ids_[agent_id].second);
             }
 
-            std::cout << " layered MAPF " << i << " th cluster: ";
+            std::cout << "-- agent in " << i << " th cluster (layered MAPF): ";
             for(const auto& id : current_id_set) {
                 assert(agents[id].id_ == id);
                 std::cout << id << " ";
@@ -368,10 +367,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             gettimeofday(&tv_pre, &tz);
             std::vector<std::vector<int> > grid_visit_count_table_local;
             std::vector<LAMAPF_Path> next_paths = mapf_func(cluster_instances,
-                                                            local_cluster_agents,//cluster_agents,
+                                                            local_cluster_agents,
                                                             dim, isoc,
                                                             new_constraint_table_ptr_,
-                                                            //layered_cts,
                                                             grid_visit_count_table_local, remaining_time,
                                                             local_all_poses,
                                                             local_distance_map_updater,
@@ -385,8 +383,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             double mapf_func_time_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
             std::cout << "-- " << i << " th cluster mapf func take " << mapf_func_time_cost << "ms" << std::endl << std::endl;
 
-            for(int k=0; k<current_id_vec.size(); k++) {
-                grid_visit_count_table[current_id_vec[k]] = grid_visit_count_table_local[k];
+            if(grid_visit_count_table_local.size() == current_id_vec.size()) {
+                for (int k = 0; k < current_id_vec.size(); k++) {
+                    grid_visit_count_table[current_id_vec[k]] = grid_visit_count_table_local[k];
+                }
             }
 
             if(next_paths.empty()) {
@@ -416,6 +416,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 retv[current_id_vec[k]] = next_paths[k];
             }
             pathss.push_back(next_paths_with_id);
+//            std::cout << "flag 2.6 " << std::endl;
+
         }
         LAMAPF_Paths merged_paths;
         if(!use_path_constraint) {

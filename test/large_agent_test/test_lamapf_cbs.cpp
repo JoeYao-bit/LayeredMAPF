@@ -16,7 +16,7 @@
 #include "../../freeNav-base/dependencies/2d_grid/text_map_loader.h"
 #include "../test_data.h"
 #include "common_interfaces.h"
-#include "../../algorithm/LA-MAPF/CBS/laryered_large_agent_CBS.h"
+#include "../../algorithm/LA-MAPF/CBS/layered_large_agent_CBS.h"
 
 
 CircleAgent<2> c1(2.5, 0, dim);

@@ -700,7 +700,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                                 const IS_OCCUPIED_FUNC<N> &,
                                                                 const LargeAgentStaticConstraintTablePtr<N, AgentType>&,
                                                                 std::vector<std::vector<int> >&,
-                                                                int,
+                                                                double,
                                                                 const std::vector<PosePtr<int, N> >,
                                                                 const DistanceMapUpdaterPtr<N>,
                                                                 const std::vector<SubGraphOfAgent<N, AgentType> >,

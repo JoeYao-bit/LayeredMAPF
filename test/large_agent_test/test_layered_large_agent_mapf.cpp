@@ -8,7 +8,7 @@
 #include <gtest/gtest.h>
 #include "common_interfaces.h"
 #include "../../algorithm/LA-MAPF/laryered_large_agent_mapf.h"
-#include "../../algorithm/LA-MAPF/CBS/laryered_large_agent_CBS.h"
+#include "../../algorithm/LA-MAPF/CBS/layered_large_agent_CBS.h"
 #include "../../algorithm/LA-MAPF/CBS/large_agent_CBS.h"
 
 //#include "../../algorithm/LA-MAPF/LaCAM/large_agent_lacam.h"

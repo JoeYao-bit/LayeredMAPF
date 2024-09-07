@@ -9,6 +9,10 @@
 #include "../../algorithm/LA-MAPF/CBS/large_agent_CBS.h"
 #include "../../algorithm/LA-MAPF/LaCAM/large_agent_lacam.h"
 #include "../../algorithm/LA-MAPF/CBS/constraint_avoidance_table.h"
+
+#include "../../algorithm/LA-MAPF/LaCAM/layered_large_agent_LaCAM.h"
+#include "../../algorithm/LA-MAPF/CBS/layered_large_agent_CBS.h"
+
 #include "common_interfaces.h"
 
 #include "../test_data.h"
@@ -57,7 +61,10 @@ TEST(GenerateCircleInstance, test)
                                                                    .1,
                                                                    dim);
 
-    generateInstance<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > > (agents, map_test_config.at("crc_ins_path"));
+    generateInstance<CircleAgent<2> > (agents,
+                                       map_test_config.at("crc_ins_path"),
+                                       CBS::LargeAgentCBS_func<2, CircleAgent<2> >,
+                                               1e3);
 
 //    generateInstance<CircleAgent<2>,
 //        LaCAM::LargeAgentLaCAM<2, CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >
@@ -67,18 +74,21 @@ TEST(GenerateCircleInstance, test)
 
 TEST(GenerateBlock_2DInstance, test)
 {
-    const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(15,
+    const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(3,
                                                                 -1.4, -.2,
                                                                 .2, 1.4,
                                                                 .2, 1.4,
                                                                 .1, dim);
-    generateInstance<BlockAgent_2D, CBS::LargeAgentCBS<2, BlockAgent_2D > >(agents, map_test_config.at("blk_ins_path"));
+    generateInstance<BlockAgent_2D>(agents,
+                                    map_test_config.at("blk_ins_path"),
+                                    CBS::LargeAgentCBS_func<2, BlockAgent_2D >,
+                                    1e3);
 
 };
 
 bool use_circle_agent = true;
 
-TEST(LoadCircleInstance, test)
+TEST(LoadCircleInstance_CBS, test)
 {
     const std::string file_path = map_test_config.at("crc_ins_path");
 
@@ -91,11 +101,30 @@ TEST(LoadCircleInstance, test)
 
 //    loadInstanceAndPlanning<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > >(file_path, 30);
 
-    loadInstanceAndPlanningLayeredCBS<CircleAgent<2> >(file_path, 60, false);
+    loadInstanceAndPlanningLayeredLAMAPF<CircleAgent<2>>(CBS::LargeAgentCBS_func<2, CircleAgent<2> >,
+                                                        file_path, 60, false);
 
 };
 
-TEST(LoadBlock_2DInstance, test)
+TEST(LoadCircleInstance_LaCAM, test)
+{
+    const std::string file_path = map_test_config.at("crc_ins_path");
+
+//    loadInstanceAndPlanning<CircleAgent<2>,
+//                            LaCAM::LargeAgentLaCAM<2,
+//                            CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >(file_path);
+
+    // LargeAgentConstraintTableForLarge
+    // LargeAgentConstraintTable
+
+//    loadInstanceAndPlanning<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > >(file_path, 30);
+
+    loadInstanceAndPlanningLayeredLAMAPF<CircleAgent<2>>(LaCAM::LargeAgentLaCAM_func<2, CircleAgent<2> >,
+                                                         file_path, 60, false);
+
+};
+
+TEST(LoadBlock_2DInstance_CBS, test)
 {
     const std::string file_path = map_test_config.at("blk_ins_path");
 
@@ -107,7 +136,29 @@ TEST(LoadBlock_2DInstance, test)
 //    loadInstanceAndPlanning<BlockAgent_2D,
 //            CBS::LargeAgentCBS<2, BlockAgent_2D > >(file_path, 100);
 
-    loadInstanceAndPlanningLayeredCBS<BlockAgent_2D >(file_path, 60, false);
+    loadInstanceAndPlanningLayeredLAMAPF<BlockAgent_2D>(CBS::LargeAgentCBS_func<2, BlockAgent_2D>,
+                                                        file_path,
+                                                        60,
+                                                        false);
+
+};
+
+TEST(LoadBlock_2DInstance_LaCAM, test)
+{
+    const std::string file_path = map_test_config.at("blk_ins_path");
+
+//    ok
+//    loadInstanceAndPlanning<BlockAgent_2D,
+//                            LaCAM::LargeAgentLaCAM<2,
+//                            BlockAgent_2D, LaCAM::LargeAgentConstraintTable<2, BlockAgent_2D > > >(file_path);
+
+//    loadInstanceAndPlanning<BlockAgent_2D,
+//            CBS::LargeAgentCBS<2, BlockAgent_2D > >(file_path, 100);
+
+    loadInstanceAndPlanningLayeredLAMAPF<BlockAgent_2D>(LaCAM::LargeAgentLaCAM_func<2, BlockAgent_2D>,
+                                                        file_path,
+                                                        60,
+                                                        false);
 
 };
 
@@ -129,21 +180,23 @@ TEST(max_size_t, test) {
 TEST(Multi_GenerateCircleInstance, test) {
     for(int i=0; i<100; i++) {
         const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(16,
-                                                                       .4, 2.3,
+                                                                       .4, 1.4,
                                                                        .1,
                                                                        dim);
 
-        generateInstance<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > > (agents,
-                                                                                   map_test_config.at("crc_ins_path"),
-                                                                                   1e4);
+        generateInstance<CircleAgent<2> > (agents,
+                                           map_test_config.at("crc_ins_path"),
+                                           //CBS::LargeAgentCBS_func<2, CircleAgent<2> >,
+                                           LaCAM::LargeAgentLaCAM_func<2, CircleAgent<2> >,
+                                           1e4);
     }
 }
 
 TEST(Multi_GenerateBlock_2DInstance, test) {
     int count_of_test = 100;
-    for (int i = 0; i < 1; i++) {
+    for (int i = 0; i < 2; i++) {
         for (int i = 0; i < count_of_test; i++) {
-            const BlockAgents_2D &agents = RandomBlock2DAgentsGenerator(16,
+            const BlockAgents_2D &agents = RandomBlock2DAgentsGenerator(15,
                                                                         -1.4, -.2,
                                                                         .2, 1.4,
                                                                         .2, 1.4,
@@ -155,12 +208,14 @@ TEST(Multi_GenerateBlock_2DInstance, test) {
 //                                                                        .2, 1.4,
 //                                                                        .1, dim);
 
-            generateInstance<BlockAgent_2D, CBS::LargeAgentCBS<2, BlockAgent_2D> >(agents,
-                                                                                   map_test_config.at("blk_ins_path"),
-                                                                                   1e4);
+            generateInstance<BlockAgent_2D>(agents,
+                                            map_test_config.at("blk_ins_path"),
+                                            //CBS::LargeAgentCBS_func<2, BlockAgent_2D>,
+                                            LaCAM::LargeAgentLaCAM_func<2, BlockAgent_2D >,
+                                            1e4);
         }
         for (int i = 0; i < count_of_test; i++) {
-            const CircleAgents<2> &agents = RandomCircleAgentsGenerator<2>(16,
+            const CircleAgents<2> &agents = RandomCircleAgentsGenerator<2>(15,
                                                                            .4, 2.3,
                                                                            .1,
                                                                            dim);
@@ -170,10 +225,11 @@ TEST(Multi_GenerateBlock_2DInstance, test) {
 //                                                                           .1,
 //                                                                           dim);
 
-            generateInstance<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > >(agents,
-                                                                                      map_test_config.at(
-                                                                                              "crc_ins_path"),
-                                                                                      1e4);
+            generateInstance<CircleAgent<2> >(agents,
+                                              map_test_config.at("crc_ins_path"),
+                                              //CBS::LargeAgentCBS_func<2, CircleAgent<2> >,
+                                              LaCAM::LargeAgentLaCAM_func<2, CircleAgent<2> >,
+                                              1e4);
         }
     }
 }
