@@ -234,7 +234,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                    std::vector<std::vector<int> >& grid_visit_count_table,
                                                    double cutoff_time = 60,
                                                    LargeAgentMAPFInstanceDecompositionPtr<2, AgentType>& decomposer_copy = nullptr,
-                                                   bool use_path_constraint = false
+                                                   bool use_path_constraint = false,
+                                                   bool debug_mode = true
                                                    ) {
 
         struct timezone tz;
@@ -244,7 +245,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         LargeAgentMAPFInstanceDecompositionPtr<2, AgentType> decomposer =
                 std::make_shared<LargeAgentMAPFInstanceDecomposition<2, AgentType> >(instances,
-                                                                     agents, dim, isoc);
+                                                                     agents, dim, isoc, true, 3, debug_mode);
 
         decomposer_copy = decomposer;
 

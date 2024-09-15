@@ -56,15 +56,15 @@ int canvas_size_x = 1000, canvas_size_y = 700;
 
 TEST(GenerateCircleInstance, test)
 {
-    const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(18,
+    const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(20,
                                                                    .4, 2.3,
                                                                    .1,
                                                                    dim);
 
-    generateInstance<CircleAgent<2> > (agents,
+    generateInstanceAndPlanning<CircleAgent<2> > (agents,
                                        map_test_config.at("crc_ins_path"),
                                        CBS::LargeAgentCBS_func<2, CircleAgent<2> >,
-                                               1e3);
+                                               1e4, true, true);
 
 //    generateInstance<CircleAgent<2>,
 //        LaCAM::LargeAgentLaCAM<2, CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >
@@ -74,15 +74,15 @@ TEST(GenerateCircleInstance, test)
 
 TEST(GenerateBlock_2DInstance, test)
 {
-    const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(3,
+    const BlockAgents_2D& agents = RandomBlock2DAgentsGenerator(16,
                                                                 -1.4, -.2,
                                                                 .2, 1.4,
                                                                 .2, 1.4,
                                                                 .1, dim);
-    generateInstance<BlockAgent_2D>(agents,
+    generateInstanceAndPlanning<BlockAgent_2D>(agents,
                                     map_test_config.at("blk_ins_path"),
                                     CBS::LargeAgentCBS_func<2, BlockAgent_2D >,
-                                    1e3);
+                                    1e4, true, true);
 
 };
 
@@ -102,7 +102,7 @@ TEST(LoadCircleInstance_CBS, test)
 //    loadInstanceAndPlanning<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > >(file_path, 30);
 
     loadInstanceAndPlanningLayeredLAMAPF<CircleAgent<2>>(CBS::LargeAgentCBS_func<2, CircleAgent<2> >,
-                                                        file_path, 60, false);
+                                                        file_path, 60, false, true);
 
 };
 
@@ -120,7 +120,7 @@ TEST(LoadCircleInstance_LaCAM, test)
 //    loadInstanceAndPlanning<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > >(file_path, 30);
 
     loadInstanceAndPlanningLayeredLAMAPF<CircleAgent<2>>(LaCAM::LargeAgentLaCAM_func<2, CircleAgent<2> >,
-                                                         file_path, 60, false);
+                                                         file_path, 60, false, true);
 
 };
 
@@ -139,6 +139,7 @@ TEST(LoadBlock_2DInstance_CBS, test)
     loadInstanceAndPlanningLayeredLAMAPF<BlockAgent_2D>(CBS::LargeAgentCBS_func<2, BlockAgent_2D>,
                                                         file_path,
                                                         60,
+                                                        false,
                                                         false);
 
 };
@@ -158,6 +159,7 @@ TEST(LoadBlock_2DInstance_LaCAM, test)
     loadInstanceAndPlanningLayeredLAMAPF<BlockAgent_2D>(LaCAM::LargeAgentLaCAM_func<2, BlockAgent_2D>,
                                                         file_path,
                                                         60,
+                                                        false,
                                                         false);
 
 };
@@ -179,57 +181,59 @@ TEST(max_size_t, test) {
 
 TEST(Multi_GenerateCircleInstance, test) {
     for(int i=0; i<100; i++) {
-        const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(16,
+        const CircleAgents<2>& agents = RandomCircleAgentsGenerator<2>(15,
                                                                        .4, 1.4,
                                                                        .1,
                                                                        dim);
 
-        generateInstance<CircleAgent<2> > (agents,
+        generateInstanceAndPlanning<CircleAgent<2> > (agents,
                                            map_test_config.at("crc_ins_path"),
                                            //CBS::LargeAgentCBS_func<2, CircleAgent<2> >,
                                            LaCAM::LargeAgentLaCAM_func<2, CircleAgent<2> >,
-                                           1e4);
+                                           1e4, true, false);
     }
 }
 
 TEST(Multi_GenerateBlock_2DInstance, test) {
     int count_of_test = 100;
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 4; i++) {
         for (int i = 0; i < count_of_test; i++) {
-            const BlockAgents_2D &agents = RandomBlock2DAgentsGenerator(15,
-                                                                        -1.4, -.2,
-                                                                        .2, 1.4,
-                                                                        .2, 1.4,
-                                                                        .1, dim);
-
-//            const BlockAgents_2D &agents = RandomBlock2DAgentsGenerator(5,
+//            const BlockAgents_2D &agents = RandomBlock2DAgentsGenerator(15,
 //                                                                        -1.4, -.2,
 //                                                                        .2, 1.4,
 //                                                                        .2, 1.4,
 //                                                                        .1, dim);
 
-            generateInstance<BlockAgent_2D>(agents,
+            const BlockAgents_2D &agents = RandomBlock2DAgentsGenerator(20,
+                                                                        -1.4, -.2,
+                                                                        .2, 1.4,
+                                                                        .2, 1.4,
+                                                                        .1, dim);
+
+            generateInstanceAndPlanning<BlockAgent_2D>(agents,
                                             map_test_config.at("blk_ins_path"),
-                                            //CBS::LargeAgentCBS_func<2, BlockAgent_2D>,
-                                            LaCAM::LargeAgentLaCAM_func<2, BlockAgent_2D >,
-                                            1e4);
+                                            CBS::LargeAgentCBS_func<2, BlockAgent_2D>,
+                                            //LaCAM::LargeAgentLaCAM_func<2, BlockAgent_2D >,
+                                            1e4,
+                                            true, false);
         }
         for (int i = 0; i < count_of_test; i++) {
-            const CircleAgents<2> &agents = RandomCircleAgentsGenerator<2>(15,
-                                                                           .4, 2.3,
-                                                                           .1,
-                                                                           dim);
-
-//            const CircleAgents<2> &agents = RandomCircleAgentsGenerator<2>(5,
-//                                                                           .4, 1.4,
+//            const CircleAgents<2> &agents = RandomCircleAgentsGenerator<2>(15,
+//                                                                           .4, 2.3,
 //                                                                           .1,
 //                                                                           dim);
 
-            generateInstance<CircleAgent<2> >(agents,
+            const CircleAgents<2> &agents = RandomCircleAgentsGenerator<2>(20,
+                                                                           .4, 1.4,
+                                                                           .1,
+                                                                           dim);
+
+            generateInstanceAndPlanning<CircleAgent<2> >(agents,
                                               map_test_config.at("crc_ins_path"),
-                                              //CBS::LargeAgentCBS_func<2, CircleAgent<2> >,
-                                              LaCAM::LargeAgentLaCAM_func<2, CircleAgent<2> >,
-                                              1e4);
+                                              CBS::LargeAgentCBS_func<2, CircleAgent<2> >,
+                                              //LaCAM::LargeAgentLaCAM_func<2, CircleAgent<2> >,
+                                              1e4,
+                                              true, false);
         }
     }
 }
@@ -320,4 +324,64 @@ TEST(Decomposition_BlockAgent_2D, test) {
 
 TEST(Decomposition_Circle, test) {
     Decomposition_test<CircleAgent<2> >();
+}
+
+TEST(Multi_Generate_Circle_And_Compare, test) {
+    int count_of_test = 2;
+    int maximum_agents = 20;
+    int agent_interval = 4;
+    clearFile(map_test_config.at("crc_comp_path"));
+    for (int i = 0; i < count_of_test; i++) {
+        for(int count_of_agent = agent_interval; count_of_agent<= maximum_agents; count_of_agent += agent_interval) {
+
+
+            const CircleAgents<2> &agents = RandomCircleAgentsGenerator<2>(count_of_agent,
+                                                                           .4, 1.4,
+                                                                           .1,
+                                                                           dim);
+
+            auto strs = generateInstanceAndCompare<2, CircleAgent<2> >(agents,
+                                                                     map_test_config.at("crc_ins_path"),
+                                                                     CBS::LargeAgentCBS_func<2, CircleAgent<2> >, //LaCAM::LargeAgentLaCAM_func<2, BlockAgent_2D >,
+                                                                     std::string("LA_CBS"),
+                                                                     30,
+                                                                     false,
+                                                                     1e4, true);
+
+            for (const auto &str : strs) {
+                std::cout << str << std::endl;
+            }
+            writeStrsToEndOfFile(strs, map_test_config.at("crc_comp_path"));
+        }
+    }
+}
+
+TEST(Multi_Generate_Block_2D_And_Compare, test) {
+    int count_of_test = 2;
+    int maximum_agents = 4;
+    int agent_interval = 2;
+    clearFile(map_test_config.at("blk_comp_path"));
+    for (int i = 0; i < count_of_test; i++) {
+        for(int count_of_agent = agent_interval; count_of_agent<= maximum_agents; count_of_agent += agent_interval) {
+
+            const BlockAgents_2D &agents = RandomBlock2DAgentsGenerator(count_of_agent,
+                                                                        -1.4, -.2,
+                                                                        .2, 1.4,
+                                                                        .2, 1.4,
+                                                                        .1, dim);
+
+            auto strs = generateInstanceAndCompare<2, BlockAgent_2D>(agents,
+                                                                     map_test_config.at("blk_ins_path"),
+                                                                     CBS::LargeAgentCBS_func<2, BlockAgent_2D>, //LaCAM::LargeAgentLaCAM_func<2, BlockAgent_2D >,
+                                                                     std::string("LA_CBS"),
+                                                                     30,
+                                                                     false,
+                                                                     1e4, true);
+
+            for (const auto &str : strs) {
+                std::cout << str << std::endl;
+            }
+            writeStrsToEndOfFile(strs, map_test_config.at("blk_comp_path"));
+        }
+    }
 }

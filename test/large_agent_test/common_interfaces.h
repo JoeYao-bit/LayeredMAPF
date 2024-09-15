@@ -64,7 +64,7 @@ bool draw_visit_grid_table = false;
 // MAPFTestConfig_AR0014SR
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
-auto map_test_config = MAPFTestConfig_Berlin_1_256;
+auto map_test_config = MAPFTestConfig_AR0011SR;
 // MAPFTestConfig_Paris_1_256 //  pass
 // MAPFTestConfig_Berlin_1_256; // pass
 // MAPFTestConfig_maze_32_32_4; // pass
@@ -500,12 +500,16 @@ void loadInstanceAndPlanning(const std::string& file_path, double time_limit = 3
 //    InstanceVisualization<AgentType>(deserializer.getAgents(), generator.getAllPoses(), deserializer.getInstances(), {});
 
 }
+
+
 //LaCAM::LargeAgentConstraints<2, BlockAgent_2D>
 template<typename AgentType>
 void loadInstanceAndPlanningLayeredLAMAPF(const LA_MAPF_FUNC<2, AgentType>& mapf_func,
                                           const std::string& file_path,
                                           double time_limit = 30,
-                                          bool path_constraint = false) {
+                                          bool path_constraint = false,
+                                          bool debug_mode = true,
+                                          bool visualize = false) {
     InstanceDeserializer<2, AgentType> deserializer;
     if(deserializer.loadInstanceFromFile(file_path, dim)) {
         std::cout << "load from path " << file_path << " success" << std::endl;
@@ -532,24 +536,27 @@ void loadInstanceAndPlanningLayeredLAMAPF(const LA_MAPF_FUNC<2, AgentType>& mapf
     LargeAgentMAPFInstanceDecompositionPtr<2, AgentType > decomposer_ptr = nullptr;
     auto start_t = clock();
     auto layered_paths = layeredLargeAgentMAPF<2, AgentType>(deserializer.getInstances(),
-                                                            deserializer.getAgents(),
-                                                            dim, is_occupied,
-                                                            mapf_func, //CBS::LargeAgentCBS_func<2, AgentType >,
-                                                            grid_visit_count_table,
-                                                            time_limit, decomposer_ptr,
-                                                            path_constraint);
+                                                             deserializer.getAgents(),
+                                                             dim, is_occupied,
+                                                             mapf_func, //CBS::LargeAgentCBS_func<2, AgentType >,
+                                                             grid_visit_count_table,
+                                                             time_limit, decomposer_ptr,
+                                                             path_constraint,
+                                                             debug_mode);
     auto end_t = clock();
     double total_time_cost = ((double)end_t - start_t)/CLOCKS_PER_SEC;
     std::cout << "instance has " << deserializer.getAgents().size() << " agents, find solution ? " << !layered_paths.empty()
               << " in " << total_time_cost << "s " << std::endl;
 
-//    LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(deserializer.getAgents(), is_occupied, dim);
-//
-//    InstanceVisualization<AgentType>(deserializer.getAgents(),
-//                                     generator.getAllPoses(),
-//                                     deserializer.getInstances(),
-//                                     layered_paths,
-//                                     grid_visit_count_table);
+    if(visualize) {
+        LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(deserializer.getAgents(), is_occupied, dim);
+
+        InstanceVisualization<AgentType>(deserializer.getAgents(),
+                                         generator.getAllPoses(),
+                                         deserializer.getInstances(),
+                                         layered_paths,
+                                         grid_visit_count_table);
+    }
 }
 
 
@@ -622,11 +629,21 @@ void generateInstance(const std::vector<AgentType>& agents,
         std::cout << "save to path " << file_path << " failed" << std::endl;
         return;
     }
+}
 
-//    InstanceVisualization<AgentType>(agents, generator.getAllPoses(), instances, solution);
-//    loadInstanceAndPlanning<AgentType, MethodType>(file_path);
-    loadInstanceAndPlanningLayeredLAMAPF<AgentType>(mapf_func, file_path, 60, false);
+// maximum_sample_count: max times of sample start and target for an agent
+template<typename AgentType>
+void generateInstanceAndPlanning(const std::vector<AgentType>& agents,
+                                 const std::string& file_path,
+                                 const LA_MAPF_FUNC<2, AgentType>& mapf_func,
+                                 int maximum_sample_count = 1e7,
+                                 bool debug_mode = true,
+                                 bool visualize = false) {
 
+    //    InstanceVisualization<AgentType>(agents, generator.getAllPoses(), instances, solution);
+    //    loadInstanceAndPlanning<AgentType, MethodType>(file_path);
+    generateInstance(agents, file_path, mapf_func, maximum_sample_count);
+    loadInstanceAndPlanningLayeredLAMAPF<AgentType>(mapf_func, file_path, 60, false, debug_mode, visualize);
 }
 
 template<typename AgentType>
@@ -769,18 +786,23 @@ void InstanceDecompositionVisualization(const LargeAgentMAPFInstanceDecompositio
     }
 }
 
-template<typename AgentType>
+template<Dimension N, typename AgentType>
 void loadInstanceAndDecomposition(const std::string& file_path) {
-    InstanceDeserializer<2, AgentType> deserializer;
+    InstanceDeserializer<N, AgentType> deserializer;
     if (deserializer.loadInstanceFromFile(file_path, dim)) {
         std::cout << "load from path " << file_path << " success" << std::endl;
     } else {
         std::cout << "load from path " << file_path << " failed" << std::endl;
         return;
     }
-    std::cout << "map scale = " << dim[0] << "*" << dim[1] << std::endl;
+    std::cout << " map scale ";
+    for(int i=0; i<N-1; i++) {
+        std::cout << dim[i] << "*";
+    }
+    std::cout << dim[N-1] << std::endl;
+
     gettimeofday(&tv_pre, &tz);
-    LargeAgentMAPFInstanceDecomposition<2, AgentType> decomposer(deserializer.getInstances(),
+    LargeAgentMAPFInstanceDecomposition<N, AgentType> decomposer(deserializer.getInstances(),
                                                                  deserializer.getAgents(),
                                                                  dim, is_occupied);
     gettimeofday(&tv_after, &tz);
@@ -791,5 +813,129 @@ void loadInstanceAndDecomposition(const std::string& file_path) {
 
     InstanceDecompositionVisualization<AgentType>(decomposer);
 }
+
+
+//LaCAM::LargeAgentConstraints<2, BlockAgent_2D>
+template<Dimension N, typename AgentType>
+std::vector<std::string> loadInstanceAndCompareLayeredLAMAPF(const LA_MAPF_FUNC<N, AgentType>& mapf_func,
+                                                             const std::string& func_identifer,
+                                                             const std::string& file_path,
+                                                             double time_limit = 30,
+                                                             bool path_constraint = false,
+                                                             bool debug_mode = true) {
+    InstanceDeserializer<N, AgentType> deserializer;
+    if(deserializer.loadInstanceFromFile(file_path, dim)) {
+        std::cout << "load from path " << file_path << " success" << std::endl;
+    } else {
+        std::cout << "load from path " << file_path << " failed" << std::endl;
+        return {};
+    }
+    std::cout << " map scale ";
+    for(size_t i=0; i<N-1; i++) {
+        std::cout << dim[i] << "*";
+    }
+    std::cout << dim[N-1] << std::endl;
+
+    // debug: print all agents and instance
+    std::cout << "Instance: " << std::endl;
+    std::vector<std::string> strs = deserializer.getTextString();
+    for(const auto& str : strs) {
+        std::cout << str << std::endl;
+    }
+    std::cout << std::endl;
+
+//    LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(deserializer.getAgents(), is_occupied, dim, 1e7);
+//
+//    std::cout << " solvable ?  " << !((generator.getConnectionBetweenNode(7, 89773, 108968)).empty()) << std::endl;
+
+    std::vector<std::vector<int> > grid_visit_count_table_layered;
+
+    LargeAgentMAPFInstanceDecompositionPtr<N, AgentType > decomposer_ptr = nullptr;
+    auto start_t = clock();
+    auto layered_paths = layeredLargeAgentMAPF<N, AgentType>(deserializer.getInstances(),
+                                                             deserializer.getAgents(),
+                                                             dim, is_occupied,
+                                                             mapf_func, //CBS::LargeAgentCBS_func<2, AgentType >,
+                                                             grid_visit_count_table_layered,
+                                                             time_limit, decomposer_ptr,
+                                                             path_constraint,
+                                                             debug_mode);
+    auto end_t = clock();
+    double total_time_cost = ((double)end_t - start_t)/CLOCKS_PER_SEC;
+    std::cout << "instance has " << deserializer.getAgents().size() << " agents, layered CBS find solution ? " << !layered_paths.empty()
+              << " in " << total_time_cost << "s " << std::endl;
+
+    // agents size / time cost / success / SOC / makespan / decom 1 time cost / decom 2 time cost / decom 3 time cost
+    std::stringstream ss_layered;
+    ss_layered << "LAYERED "  << func_identifer << " " << deserializer.getAgents().size() << " "
+               << total_time_cost << " " << !layered_paths.empty() << " "
+               << getSOC(layered_paths) << " " << getMakeSpan(layered_paths) << " "
+
+               << decomposer_ptr->initialize_time_cost_ << " "
+               << decomposer_ptr->instance_decomposition_time_cost_ << " "
+               << decomposer_ptr->cluster_bipartition_time_cost_ << " "
+               << decomposer_ptr->level_sorting_time_cost_;
+
+    start_t = clock();
+    std::vector<std::vector<int> > grid_visit_count_table_raw;
+    auto raw_paths = mapf_func(deserializer.getInstances(),
+                               deserializer.getAgents(),
+                               dim, is_occupied,
+                               nullptr,
+                               grid_visit_count_table_raw,
+                               time_limit,
+                               {}, nullptr, {}, {}, {}, nullptr); // default null config for layered MAPF
+    end_t = clock();
+    total_time_cost = ((double)end_t - start_t)/CLOCKS_PER_SEC;
+    std::cout << "instance has " << deserializer.getAgents().size() << " agents, raw CBS find solution ? " << !raw_paths.empty()
+              << " in " << total_time_cost << "s " << std::endl;
+
+    // agents size / time cost / success / SOC / makespan
+    std::stringstream ss_raw;
+    ss_raw << "RAW " << func_identifer << " " << deserializer.getAgents().size() << " "
+           << total_time_cost << " " << !raw_paths.empty() << " "
+           << getSOC(raw_paths) << " " << getMakeSpan(raw_paths);
+
+    std::vector<std::string> retv;
+    retv.push_back(ss_layered.str());
+    retv.push_back(ss_raw.str());
+
+    return retv;
+}
+
+// maximum_sample_count: max times of sample start and target for an agent
+template<Dimension N, typename AgentType>
+std::vector<std::string> generateInstanceAndCompare(const std::vector<AgentType>& agents,
+                                                    const std::string& file_path,
+                                                    const LA_MAPF_FUNC<N, AgentType>& mapf_func,
+                                                    const std::string& func_identifer,
+                                                    double time_limit = 30,
+                                                    bool path_constraint = false,
+                                                    int maximum_sample_count = 1e7,
+                                                    bool debug_mode = false) {
+    generateInstance(agents, file_path, mapf_func, maximum_sample_count);
+    auto retv = loadInstanceAndCompareLayeredLAMAPF<N, AgentType>(mapf_func,
+                                                                  func_identifer,
+                                                                  file_path,
+                                                                  time_limit,
+                                                                  path_constraint,
+                                                                  debug_mode);
+    return retv;
+}
+
+void clearFile(const std::string& file_path) {
+    std::ofstream os(file_path, std::ios::trunc);
+    os.close();
+}
+
+void writeStrsToEndOfFile(const std::vector<std::string>& strs, const std::string& file_path) {
+    std::ofstream os(file_path, std::ios::app);
+    if(!os.is_open()) { return; }
+    for(int i=0; i<strs.size(); i++) {
+        os << strs[i] << "\n";
+    }
+    os.close();
+}
+
 
 #endif //LAYEREDMAPF_COMMON_INTERFACES_H
