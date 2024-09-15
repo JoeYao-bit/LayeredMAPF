@@ -31,11 +31,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                             DimensionLength* dim,
                                             const IS_OCCUPIED_FUNC<N> & isoc,
                                             bool directed_graph = true, // whether edge between poses is always reversible
-                                            int decompose_level=3)
+                                            int decompose_level=3,
+                                            bool debug_mode = true)
                                             : LargeAgentMAPF<N, AgentType>(instances, agents, dim, isoc),
-                                              directed_graph_(directed_graph) {
+                                              directed_graph_(directed_graph),
+                                              debug_mode_(debug_mode) {
 
             assert(decompose_level >= 0 && decompose_level <= 3);
+
+            std::cout << "debug_mode: " << debug_mode_ << std::endl;
 
             struct timezone tz;
             struct timeval  tv_pre;
@@ -109,12 +113,16 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
             assert(total_count == this->instances_.size());
             std::cout << "-- max/total size " << max_cluster_size << " / " << this->instances_.size() << std::endl;
-            std::cout << "-- Decomposition completeness ? " << decompositionValidCheck(all_clusters_) << std::endl;
-
+            if(debug_mode_) {
+                std::cout << "-- Decomposition completeness ? " << decompositionValidCheck(all_clusters_) << std::endl;
+            }
             grid_paths_.resize(agents.size(), {});
             agent_visited_grids_.resize(agents.size(), std::vector<int>(this->all_poses_.size(), MAX<int>));
-            std::cout << "-- Decomposition completeness (grid map) ? " << decompositionValidCheckGridMap(all_clusters_) << std::endl;
 
+            if(debug_mode_) {
+                std::cout << "-- Decomposition completeness (grid map) ? "
+                          << decompositionValidCheckGridMap(all_clusters_) << std::endl;
+            }
         }
 
         bool decompositionValidCheck(const std::vector<std::set<int> >& all_levels) const {
@@ -454,64 +462,68 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             assert(graph.related_agents_map_[this->instance_node_ids_[agent_id].second].size() >= 1);
 
             // 2, construct connectivity graph and record boundary (where different hyper node converge)
-            const std::vector<std::set<size_t> >& strong_components
-                                    = getStrongComponentFromSubGraph(current_subgraph.all_nodes_,
-                                                                     current_subgraph.all_edges_,
-                                                                     current_subgraph.all_backward_edges_,
-                                                                     graph.related_agents_map_,
-                                                                     directed_graph_);
+            const auto& retv_pair = getStrongComponentFromSubGraph(current_subgraph.all_nodes_,
+                                                                   current_subgraph.all_edges_,
+                                                                   current_subgraph.all_backward_edges_,
+                                                                   graph.related_agents_map_,
+                                                                   directed_graph_);
+
+
+            const auto& strong_components = retv_pair.first;
+            const auto& component_id_map  = retv_pair.second;
 
 //            TarjanForSCC tarjan(current_subgraph.all_edges_);
 //            const std::vector<std::set<size_t> >& strong_components = tarjan.tarjanForSCC();
 
-            // debug
-            int non_null_count = 0;
-            for(int i=0; i<this->agent_sub_graphs_[agent_id].all_nodes_.size(); i++) {
-                if(current_subgraph.all_nodes_[i] != nullptr) {
-                    non_null_count ++;
-                }
-            }
-            int component_count = 0;
-            for(int i=0; i<strong_components.size(); i++) {
-                // ignore component that consists of nullptr
-                bool find_nullptr = false, find_non_nullptr = false;
-                for(const auto& temp_node_id : strong_components[i]) {
-                    if(this->agent_sub_graphs_[agent_id].all_nodes_[temp_node_id] != nullptr) {
-                        find_non_nullptr = true;
-                    } else {
-                        find_nullptr = true;
+            if(debug_mode_) {
+                // debug
+                int non_null_count = 0;
+                for (int i = 0; i < this->agent_sub_graphs_[agent_id].all_nodes_.size(); i++) {
+                    if (current_subgraph.all_nodes_[i] != nullptr) {
+                        non_null_count++;
                     }
                 }
-                assert(find_nullptr ^ find_non_nullptr); // a component cannot have both ptr and nullptr
-                if(find_non_nullptr) {
-                    component_count = component_count + strong_components[i].size();
+                int component_count = 0;
+                for (int i = 0; i < strong_components.size(); i++) {
+                    // ignore component that consists of nullptr
+                    bool find_nullptr = false, find_non_nullptr = false;
+                    for (const auto &temp_node_id : strong_components[i]) {
+                        if (this->agent_sub_graphs_[agent_id].all_nodes_[temp_node_id] != nullptr) {
+                            find_non_nullptr = true;
+                        } else {
+                            find_nullptr = true;
+                        }
+                    }
+                    assert(find_nullptr ^ find_non_nullptr); // a component cannot have both ptr and nullptr
+                    if (find_non_nullptr) {
+                        component_count = component_count + strong_components[i].size();
+                    }
                 }
-            }
 //            std::cout << " non_null_count = " << non_null_count << " / component_count = " << component_count
 //                      << " / total_node_count = " << getTotalIndexOfSpace<N>(this->dim_)*2*N << std::endl;
 
-            // debug
-            if(non_null_count != component_count) {
-                std::vector<bool> in_component_state(this->agent_sub_graphs_[agent_id].all_nodes_.size(), false);
-                for(int i=0; i<strong_components.size(); i++) {
-                    for(const auto& temp_node_id : strong_components[i]) {
-                        in_component_state[temp_node_id] = true;
-                    }
-                }
-                for(int i=0; i<this->agent_sub_graphs_[agent_id].all_nodes_.size(); i++) {
-                    if(current_subgraph.all_nodes_[i] != nullptr) {
-                        if(!in_component_state[i]) {
-                            std::cout << " node " << i << *this->all_poses_[i] << " not in component" << std::endl;
-                        }
-                    } else {
-                        if(in_component_state[i]) {
-                            std::cout << " node " << i << " is nullptr but in component" << std::endl;
+                // debug
+                if (non_null_count != component_count) {
+                    std::vector<bool> in_component_state(this->agent_sub_graphs_[agent_id].all_nodes_.size(), false);
+                    for (int i = 0; i < strong_components.size(); i++) {
+                        for (const auto &temp_node_id : strong_components[i]) {
+                            in_component_state[temp_node_id] = true;
                         }
                     }
+                    for (int i = 0; i < this->agent_sub_graphs_[agent_id].all_nodes_.size(); i++) {
+                        if (current_subgraph.all_nodes_[i] != nullptr) {
+                            if (!in_component_state[i]) {
+                                std::cout << " node " << i << *this->all_poses_[i] << " not in component" << std::endl;
+                            }
+                        } else {
+                            if (in_component_state[i]) {
+                                std::cout << " node " << i << " is nullptr but in component" << std::endl;
+                            }
+                        }
+                    }
                 }
+                assert(non_null_count == component_count);
             }
-            assert(non_null_count == component_count);
-
             // debug
 //            for(int i=0; i<strong_components.size(); i++) {
 //                if(strong_components[i].size() == 1) { continue; }
@@ -580,7 +592,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                             for (const auto &neighbor_node_id : current_subgraph.all_edges_[cur_node]) {
 
                                 // if belong to different component
-                                if(cur_component.find(neighbor_node_id) == cur_component.end()) {
+                                //if(cur_component.find(neighbor_node_id) == cur_component.end())
+                                if(component_id_map[cur_node] != component_id_map[neighbor_node_id]) {
                                     // when two node belong to different component
                                     size_t node_from = MAX<size_t>, node_to = MAX<size_t>;
                                     node_from = cur_node;
@@ -634,14 +647,16 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             // debug
             // all node belong to the same each hyper node should have the same related_agents_map_
-            assert(node_in_hyper_node.size() == max_hyper_node_id);
-            for(int cid = 0; cid<max_hyper_node_id; cid++) {
-                assert(!node_in_hyper_node[cid].empty());
-                for(const auto& another_id : node_in_hyper_node[cid]) {
-                    assert(graph.related_agents_map_[node_in_hyper_node[cid].front()] == graph.related_agents_map_[another_id]);
+            if(debug_mode_) {
+                assert(node_in_hyper_node.size() == max_hyper_node_id);
+                for (int cid = 0; cid < max_hyper_node_id; cid++) {
+                    assert(!node_in_hyper_node[cid].empty());
+                    for (const auto &another_id : node_in_hyper_node[cid]) {
+                        assert(graph.related_agents_map_[node_in_hyper_node[cid].front()] ==
+                               graph.related_agents_map_[another_id]);
+                    }
                 }
             }
-
 //            for(int node_id=0; node_id<current_subgraph.all_nodes_.size(); node_id++) {
 //                const auto &current_pose_ptr = current_subgraph.all_nodes_[node_id];
 //                if (current_pose_ptr == nullptr) { continue; }
@@ -649,14 +664,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
 
             // debug // pass
-            for(int i=0; i<this->all_poses_.size(); i++) {
-                if(current_subgraph.all_nodes_[i] != nullptr) {
-                    assert(graph.hyper_node_id_map_[i] != MAX<size_t>);
-                } else {
-                    assert(graph.hyper_node_id_map_[i] == MAX<size_t>);
+            if(debug_mode_) {
+                for (int i = 0; i < this->all_poses_.size(); i++) {
+                    if (current_subgraph.all_nodes_[i] != nullptr) {
+                        assert(graph.hyper_node_id_map_[i] != MAX<size_t>);
+                    } else {
+                        assert(graph.hyper_node_id_map_[i] == MAX<size_t>);
+                    }
                 }
             }
-
             graph.all_edges_set_.resize(max_hyper_node_id);
             graph.all_edges_vec_.resize(max_hyper_node_id);
             graph.all_edges_vec_backward_.resize(max_hyper_node_id);
@@ -753,7 +769,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
 
         // BUG: seems component may add un connected node
-        std::vector<std::set<size_t> > getStrongComponentFromSubGraph(const std::vector<PosePtr<int, N>>& all_poses,
+        std::pair<std::vector<std::set<size_t> >, std::vector<int> > getStrongComponentFromSubGraph(
+                                                                      const std::vector<PosePtr<int, N>>& all_poses,
                                                                       const std::vector<std::vector<size_t> >& all_edges,
                                                                       const std::vector<std::vector<size_t> >& all_backward_edges,
                                                                       const std::vector<std::set<int> >& related_agents_map,
@@ -799,7 +816,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //
 //                    }
 //                }
-                return retv;
+                return {retv, component};
             } else {
                 typedef adjacency_list<vecS, vecS, undirectedS, size_t> Graph;
                 Graph g;
@@ -817,7 +834,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     std::cout << "Vertex " << i << " is in component " << component[i] << std::endl;
                     retv[component[i]].insert(i);
                 }
-                return retv;
+                return {retv, component};
             }
         }
 
@@ -1482,6 +1499,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         // variables for debug
         LAMAPF_Paths grid_paths_;
         std::vector<std::vector<int> > agent_visited_grids_;
+
+        bool debug_mode_ = true;
 
     };
 
