@@ -64,7 +64,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     public:
 
         BlockAgent_2D(const Pointf<2>& min_pt, const Pointf<2>& max_pt, int id, DimensionLength* dim)
-            :Agent<2>(getOuterRadiusOfBlock<2>(min_pt, max_pt), getInnerRadiusOfBlock<2>(min_pt, max_pt), id, dim),
+            :Agent<2>(getOuterRadiusOfBlock<2>(min_pt, max_pt),
+                      getInnerRadiusOfBlock<2>(min_pt, max_pt),
+                      id, dim,
+                      std::string("Block_2D")),
             min_pt_(min_pt), max_pt_(max_pt),
             grids_(getAllOrientCoverage_2D(getBlockCoverage<2>(min_pt, max_pt))) {
             // require the motion center of block are within the block
@@ -74,6 +77,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
             assert(min_pt_[1] + max_pt_[1] == 0);
             initRotateCoverage();
+        }
+
+        std::shared_ptr<Agent<2> > copy() const {
+            return std::make_shared<BlockAgent_2D >(BlockAgent_2D(this->min_pt_, this->max_pt_, this->id_, this->dim_));
         }
 
         // pre-calculation coverage in all direction
@@ -407,9 +414,17 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return retv;
         }
 
+        std::string serialize() const {
+            std::stringstream ss;
+            ss << type_ << " " << id_ << " "
+               << min_pt_[0] << " " << min_pt_[1] << " "
+               << max_pt_[0] << " " << max_pt_[1] << " ";
+            return ss.str();
+        }
+
         std::string serialize(const Pose<int, 2>& start_pose, const Pose<int, 2>& target_pose) const {
             std::stringstream ss;
-            ss << id_ << " "
+            ss << type_ << " " << id_ << " "
                << min_pt_[0] << " " << min_pt_[1] << " "
                << max_pt_[0] << " " << max_pt_[1] << " "
                << start_pose.pt_[0]  << " " << start_pose.pt_[1]  << " " << start_pose.orient_ << " "
@@ -417,22 +432,23 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return ss.str();
         }
 
-        static std::pair<BlockAgent_2D, InstanceOrient<2> > deserialize(const std::string& string, DimensionLength* dim) {
+        static std::pair<AgentPtr<2>, InstanceOrient<2> > deserialize(const std::string& string, DimensionLength* dim) {
             std::vector<std::string> strs;
             boost::split(strs, string, boost::is_any_of(" "), boost::token_compress_on);
-            assert(strs.size() == 11);
-            int id = atoi(strs[0].c_str());
+            assert(strs.size() == 12);
+            assert(strs[0] == "Block_2D");
+            int id = atoi(strs[1].c_str());
             Pointf<2> min_pt, max_pt;
-            min_pt[0] = atof(strs[1].c_str());
-            min_pt[1] = atof(strs[2].c_str());
+            min_pt[0] = atof(strs[2].c_str());
+            min_pt[1] = atof(strs[3].c_str());
 
-            max_pt[0] = atof(strs[3].c_str());
-            max_pt[1] = atof(strs[4].c_str());
+            max_pt[1] = atof(strs[5].c_str());
+            max_pt[0] = atof(strs[4].c_str());
 
-            BlockAgent_2D agent(min_pt, max_pt, id, dim);
+            auto agent = std::make_shared<BlockAgent_2D>(min_pt, max_pt, id, dim);
 
-            Pose<int, 2> start_pose ({atoi(strs[5].c_str()), atoi(strs[6].c_str())}, atoi(strs[7].c_str()));
-            Pose<int, 2> target_pose({atoi(strs[8].c_str()), atoi(strs[9].c_str())}, atoi(strs[10].c_str()));
+            Pose<int, 2> start_pose ({atoi(strs[6].c_str()), atoi(strs[7].c_str())}, atoi(strs[8].c_str()));
+            Pose<int, 2> target_pose({atoi(strs[9].c_str()), atoi(strs[10].c_str())}, atoi(strs[11].c_str()));
 
             return {agent, {start_pose, target_pose}};
         }
@@ -491,7 +507,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //        return false;
 //    }
 
-    std::ostream& operator << (std::ostream& os, const BlockAgent_2D& block);
 
     // check whether two moving circle are collide with each other
     bool isCollide(const BlockAgent_2D& a1, const Pose<int, 2>& s1, const Pose<int, 2>& e1,

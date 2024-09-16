@@ -10,7 +10,7 @@
 
 namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
-    template<Dimension N, typename AgentType>
+    template<Dimension N>
     struct ConstraintTable {
 
         // agent id / edge id (edge id / node size = from node id, edge id % node size = to node id)
@@ -19,7 +19,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
     public:
 
         ConstraintTable(int agent_id,
-                        const std::vector<AgentType>& agents,
+                        const std::vector<AgentPtr<N> >& agents,
                         const std::vector<PosePtr<int, N> >& all_poses,
                         DimensionLength* dim,
                         const IS_OCCUPIED_FUNC<N> & isoc)
@@ -27,11 +27,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                           all_poses_(all_poses), dim_(dim), isoc_(isoc)  {
             // get max excircle radius /  min incircle radius
             for(const auto& agent : agents) {
-                if(agent.excircle_radius_ > max_excircle_radius_) {
-                    max_excircle_radius_ = agent.excircle_radius_;
+                if(agent->excircle_radius_ > max_excircle_radius_) {
+                    max_excircle_radius_ = agent->excircle_radius_;
                 }
-                if(agent.incircle_radius_ < min_incircle_radius_) {
-                    min_incircle_radius_ = agent.incircle_radius_;
+                if(agent->incircle_radius_ < min_incircle_radius_) {
+                    min_incircle_radius_ = agent->incircle_radius_;
                 }
             }
         }
@@ -143,7 +143,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
         int agent_id_;
 
-        const std::vector<AgentType>& agents_;
+        const std::vector<AgentPtr<N> >& agents_;
 
         const std::vector<PosePtr<int, N> >& all_poses_;
 
@@ -165,8 +165,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
     };
 
-    template<Dimension N, typename AgentType>
-    using ConstraintTablePtr = std::shared_ptr<ConstraintTable<N, AgentType> >;
+    template<Dimension N>
+    using ConstraintTablePtr = std::shared_ptr<ConstraintTable<N> >;
 
 }
 

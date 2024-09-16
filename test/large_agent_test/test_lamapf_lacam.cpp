@@ -22,7 +22,7 @@ using namespace freeNav::LayeredMAPF;
 using namespace freeNav::LayeredMAPF::LA_MAPF;
 
 
-TEST(BlockAgentSubGraph, lacam_test) {
+TEST(AgentSubGraph, lacam_test) {
 
 //    // fake instances
 //    InstanceOrients<2> instances = {
@@ -49,9 +49,9 @@ TEST(BlockAgentSubGraph, lacam_test) {
 //
 //                                });
 
-    const std::string file_path = map_test_config.at("blk_ins_path");
+    const std::string file_path = map_test_config.at("la_ins_path");
 
-    InstanceDeserializer<2, BlockAgent_2D > deserializer;
+    InstanceDeserializer<2> deserializer;
     if (deserializer.loadInstanceFromFile(file_path, dim)) {
         std::cout << "load from path " << file_path << " success" << std::endl;
     } else {
@@ -60,46 +60,8 @@ TEST(BlockAgentSubGraph, lacam_test) {
     }
     std::cout << "map scale = " << dim[0] << "*" << dim[1] << std::endl;
 
-    startLargeAgentMAPFTest<BlockAgent_2D,
-                            LaCAM::LargeAgentLaCAM<2, BlockAgent_2D,
-                            LaCAM::LargeAgentConstraints<2, BlockAgent_2D> > >(deserializer.getAgents(),
+    startLargeAgentMAPFTest<2, LaCAM::LargeAgentLaCAM<2, LaCAM::LargeAgentConstraints<2> > >(deserializer.getAgents(),
                                                                                deserializer.getInstances());
-
-}
-
-
-TEST(CircleAgentSubGraph, lacam_test) {
-
-//    // fake instances
-//    InstanceOrients<2> instances = {
-//            {{{8, 3}, 0}, {{23, 22},0} },
-//            {{{9, 2}, 0}, {{5, 22}, 0}},
-//            {{{2, 5}, 0}, {{17, 22}, 3}}
-//    };
-//    CircleAgents<2> agents({
-//                                   CircleAgent<2>(.3, 0, dim),
-//                                   CircleAgent<2>(.7, 1, dim),
-//                                   CircleAgent<2>(.6, 2, dim)
-//                           });
-//    startLargeAgentMAPFTest<CircleAgent<2>,
-//                            LaCAM::LargeAgentLaCAM<2, CircleAgent<2>,
-//                            LaCAM::LargeAgentConstraints<2, CircleAgent<2> > > >(agents, instances);
-
-    const std::string file_path = map_test_config.at("crc_ins_path");
-
-    InstanceDeserializer<2, CircleAgent<2> > deserializer;
-    if (deserializer.loadInstanceFromFile(file_path, dim)) {
-        std::cout << "load from path " << file_path << " success" << std::endl;
-    } else {
-        std::cout << "load from path " << file_path << " failed" << std::endl;
-        return;
-    }
-    std::cout << "map scale = " << dim[0] << "*" << dim[1] << std::endl;
-
-    startLargeAgentMAPFTest<CircleAgent<2>,
-            LaCAM::LargeAgentLaCAM<2, CircleAgent<2>,
-                    LaCAM::LargeAgentConstraints<2, CircleAgent<2>> > >(deserializer.getAgents(),
-                                                                        deserializer.getInstances());
 
 }
 

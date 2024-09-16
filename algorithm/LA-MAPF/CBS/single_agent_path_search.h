@@ -95,7 +95,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
     };
 
 // yz: find optimal path under constraints
-    template <Dimension N, typename AgentType>
+    template <Dimension N>
     class SingleAgentSolver {
     public:
 
@@ -103,10 +103,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                           const size_t& target_node_id,
                           const std::vector<int>& heuristic,
                           const std::vector<int>& heuristic_ignore_rotate,
-                          const SubGraphOfAgent<N, AgentType>& sub_graph,
-                          const ConstraintTable<N, AgentType>& constraint_table = nullptr,
-                          const ConstraintAvoidanceTablePtr<N, AgentType>& constraint_avoidance_table = nullptr,
-                          const LargeAgentStaticConstraintTablePtr<N, AgentType> & path_constraint = nullptr
+                          const SubGraphOfAgent<N>& sub_graph,
+                          const ConstraintTable<N>& constraint_table = nullptr,
+                          const ConstraintAvoidanceTablePtr<N>& constraint_avoidance_table = nullptr,
+                          const LargeAgentStaticConstraintTablePtr<N> & path_constraint = nullptr
                           ) : start_node_id_(start_node_id), target_node_id_(target_node_id),
                           heuristic_(heuristic),
                           heuristic_ignore_rotate_(heuristic_ignore_rotate),
@@ -124,7 +124,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         const size_t& target_node_id_;
         const std::vector<int>& heuristic_;  // this is the precomputed heuristic for this agent
         const std::vector<int>& heuristic_ignore_rotate_;  // this is the precomputed heuristic for this agent
-        const SubGraphOfAgent<N, AgentType>& sub_graph_;
+        const SubGraphOfAgent<N>& sub_graph_;
 
     //protected:
 
@@ -134,11 +134,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
         LAMAPF_Path solution_;
 
-        const ConstraintTable<N, AgentType>& constraint_table_; // vertex and edge constraint, hard constraint
+        const ConstraintTable<N>& constraint_table_; // vertex and edge constraint, hard constraint
 
-        const ConstraintAvoidanceTablePtr<N, AgentType>& constraint_avoidance_table_; // try to avoid, take as soft constraint
+        const ConstraintAvoidanceTablePtr<N>& constraint_avoidance_table_; // try to avoid, take as soft constraint
 
-        const LargeAgentStaticConstraintTablePtr<N, AgentType>& path_constraint_; // take external path as obstacles, hard constraints
+        const LargeAgentStaticConstraintTablePtr<N>& path_constraint_; // take external path as obstacles, hard constraints
 
     };
 

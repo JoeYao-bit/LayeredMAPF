@@ -13,7 +13,7 @@
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
     // delay a set of paths one step simultaneously at time step t
-    template <Dimension N, typename AgentType>
+    template <Dimension N>
     void delayPathLargeAgent(LAMAPF_Paths& paths, int t, int count = 1) {
 //        std::cout << "delay t = " << t << ", delay count = " << count << std::endl;
         // traversal all path, wait at previous frame
@@ -29,12 +29,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     // return the path have been modified to avoid conflict with lasted_occupied_time_table
     // synchronous is easy but too long, current way
     // asynchronous is not easy to implement, but too
-    template <Dimension N, typename AgentType>
+    template <Dimension N>
     LAMAPF_Paths SingleLayerCompressLargeAgent(const std::vector<PosePtr<int, N> >& all_poses,
                                                const LAMAPF_Paths& pre_paths,
-                                               const std::vector<AgentType>& pre_agents,
+                                               const std::vector<AgentPtr<N> >& pre_agents,
                                                const LAMAPF_Paths& paths,
-                                               const std::vector<AgentType>& agents) {
+                                               const std::vector<AgentPtr<N> >& agents) {
         int t=0;
 //        std::vector<bool> reach_states(paths.size(), false);
         LAMAPF_Paths modified_paths(paths);
@@ -96,7 +96,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                         break;
                                     } else {
                                         std::cout << "FATAL: delay at start cant avoid conflict 1 between agent "
-                                                  << pre_agent.id_ << " and " << cur_agent.id_ << " at t = " << t << std::endl;
+                                                  << pre_agent->id_ << " and " << cur_agent->id_ << " at t = " << t << std::endl;
                                         std::cout << "pre agent = " << pre_agent << " : "
                                                   << *all_poses[pre_path[t]] << "->" << *all_poses[pre_path[t+1]] << std::endl;
                                         std::cout << "cur agent = " << cur_agent << " : "
@@ -178,7 +178,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                    path.insert(path.begin() + t-1, path[t-1]);
 //                }
 //                delayPathLargeAgent<N, AgentType>(modified_paths, delay_start_time, delay_count);
-                delayPathLargeAgent<N, AgentType>(modified_paths, 0, delay_count);
+                delayPathLargeAgent<N>(modified_paths, 0, delay_count);
 
                 //t = delay_start_time;
                 total_delay_count += delay_count;
@@ -192,10 +192,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return pre_paths_copy;
     }
 
-    template <Dimension N, typename AgentType>
+    template <Dimension N>
     LAMAPF_Paths multiLayerCompressLargeAgent(const std::vector<PosePtr<int, N> >& all_poses,
                                           const std::vector<LAMAPF_Paths>& pathss,
-                                          const std::vector<std::vector<AgentType> >& agents) {
+                                          const std::vector<std::vector<AgentPtr<N>> >& agents) {
         assert(pathss.size() == agents.size());
         if(pathss.size() == 1) { return pathss[0]; }
         else if(pathss.empty()) { return {}; }
@@ -208,7 +208,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         // delay other path to avoid conflict with previous
         LAMAPF_Paths mergedPaths = pathss[0];
-        std::vector<AgentType> pre_agents = agents[0];
+        std::vector<AgentPtr<N> > pre_agents = agents[0];
 
         for(int i=1; i<pathss.size(); i++) {
             // debug
@@ -225,15 +225,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     }
 
     // current only considering methods that take external path as constraint, like LA-CBS
-    template<Dimension N, typename AgentType>
+    template<Dimension N>
     std::vector<LAMAPF_Path> layeredLargeAgentMAPF(const InstanceOrients<N> & instances,
-                                                   const std::vector<AgentType>& agents,
+                                                   const std::vector<AgentPtr<N>>& agents,
                                                    DimensionLength* dim,
                                                    const IS_OCCUPIED_FUNC<N> & isoc,
-                                                   const LA_MAPF_FUNC<N, AgentType> & mapf_func,
+                                                   const LA_MAPF_FUNC<N> & mapf_func,
                                                    std::vector<std::vector<int> >& grid_visit_count_table,
                                                    double cutoff_time = 60,
-                                                   LargeAgentMAPFInstanceDecompositionPtr<2, AgentType>& decomposer_copy = nullptr,
+                                                   LargeAgentMAPFInstanceDecompositionPtr<N>& decomposer_copy = nullptr,
                                                    bool use_path_constraint = false,
                                                    bool debug_mode = true
                                                    ) {
@@ -243,8 +243,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         struct timeval  tv_after;
         auto start_t = clock();
 
-        LargeAgentMAPFInstanceDecompositionPtr<2, AgentType> decomposer =
-                std::make_shared<LargeAgentMAPFInstanceDecomposition<2, AgentType> >(instances,
+        LargeAgentMAPFInstanceDecompositionPtr<N> decomposer =
+                std::make_shared<LargeAgentMAPFInstanceDecomposition<N> >(instances,
                                                                      agents, dim, isoc, true, 3, debug_mode);
 
         decomposer_copy = decomposer;
@@ -257,19 +257,19 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         assert(decomposer->all_clusters_.size() >= 1);
 
-        float max_excircle_radius = getMaximumRadius<AgentType>(agents);
+        float max_excircle_radius = getMaximumRadius<N>(agents);
 
 
 
         std::vector<std::vector<std::pair<int, LAMAPF_Path> > > pathss;
         std::vector<LAMAPF_Path> retv(instances.size());
         grid_visit_count_table.resize(instances.size());
-        std::vector<std::vector<AgentType> > all_cluster_agents;
+        std::vector<std::vector<AgentPtr<N> > > all_cluster_agents;
 
         std::vector<LAMAPF_Paths> all_paths;
         std::vector<std::vector<int> > all_cluster_vec;
 
-        std::vector<AgentType> pre_agents;
+        std::vector<AgentPtr<N> > pre_agents;
         std::vector<size_t> pre_targets;
 
         for(int i=0; i<decomposer->all_clusters_.size(); i++) {
@@ -277,14 +277,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             std::set<int> current_id_set = decomposer->all_clusters_[i];
 
             InstanceOrients<N> cluster_instances;
-            std::vector<AgentType> cluster_agents;
+            std::vector<AgentPtr<N> > cluster_agents;
 
             std::vector<int> current_id_vec;
             std::vector<size_t> target_node_ids;
 
             const std::vector<PosePtr<int, N> >& local_all_poses = decomposer->all_poses_;
             const DistanceMapUpdaterPtr<N>&      local_distance_map_updater = decomposer->distance_map_updater_;
-            std::vector<SubGraphOfAgent<N, AgentType> >     local_agent_sub_graphs;
+            std::vector<SubGraphOfAgent<N> >     local_agent_sub_graphs;
             std::vector<std::vector<int> >       local_agents_heuristic_tables;
             std::vector<std::vector<int> >       local_agents_heuristic_tables_ignore_rotate;
 
@@ -308,8 +308,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
             gettimeofday(&tv_pre, &tz);
 
-            LargeAgentStaticConstraintTablePtr<N, AgentType>
-                    new_constraint_table_ptr_ = std::make_shared<LargeAgentStaticConstraintTable<N, AgentType> > (
+            LargeAgentStaticConstraintTablePtr<N>
+                    new_constraint_table_ptr_ = std::make_shared<LargeAgentStaticConstraintTable<N> > (
                             max_excircle_radius, dim, isoc, agents, cluster_agents, decomposer->all_poses_);
 
             new_constraint_table_ptr_->insertPoses(pre_agents, pre_targets);
@@ -333,12 +333,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             // insert previous agents' target as static constraint
             new_constraint_table_ptr_->updateEarliestArriveTimeForAgents(cluster_agents, target_node_ids);
 
-            std::vector<AgentType> local_cluster_agents; // copy of agent, with local id
+            std::vector<AgentPtr<N> > local_cluster_agents; // copy of agent, with local id
             for(int k=0; k<current_id_vec.size(); k++) {
 
                 const auto& agent_id = current_id_vec[k];
-                AgentType local_copy = agents[agent_id];
-                local_copy.id_ = k;
+                AgentPtr<N> local_copy = agents[agent_id]->copy();
+                local_copy->id_ = k;
                 local_cluster_agents.push_back(local_copy);
 
                 pre_agents.push_back(agents[agent_id]);
@@ -347,7 +347,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             std::cout << "-- agent in " << i << " th cluster (layered MAPF): ";
             for(const auto& id : current_id_set) {
-                assert(agents[id].id_ == id);
+                assert(agents[id]->id_ == id);
                 std::cout << id << " ";
             }
             std::cout << std::endl;
@@ -431,7 +431,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             for(int i=0; i<all_cluster_vec.size(); i++) {
                 for(int j=0; j<all_cluster_vec[i].size(); j++) {
                     retv[all_cluster_vec[i][j]] = merged_paths[global_count];
-                    assert(all_cluster_agents[i][j].id_ == all_cluster_vec[i][j]);
+                    assert(all_cluster_agents[i][j]->id_ == all_cluster_vec[i][j]);
                     global_count ++;
                 }
             }

@@ -23,8 +23,7 @@ TEST(getAllCornerOfGrid, test) {
     }
 }
 
-template<typename AgentType>
-void visualizeAgentCoverage(const AgentType& agent, const std::pair<Pointis<2>, Pointis<2> >& coverage_pair) {
+void visualizeAgentCoverage(const AgentPtr<2>& agent, const std::pair<Pointis<2>, Pointis<2> >& coverage_pair) {
     Canvas canvas("Coverage visualize", dim[0], dim[1], .1, zoom_ratio);
     int half_x = dim[0]/2, half_y = dim[1]/2;
     auto mouse_call_back = [](int event, int x, int y, int flags, void *) {
@@ -54,7 +53,7 @@ void visualizeAgentCoverage(const AgentType& agent, const std::pair<Pointis<2>, 
             }
         }
         if(draw_agent) {
-            agent.drawOnCanvas(Pose<int, 2>(Pointi<2>{half_x, half_y}, 0), canvas, COLOR_TABLE[0], false);
+            agent->drawOnCanvas(Pose<int, 2>(Pointi<2>{half_x, half_y}, 0), canvas, COLOR_TABLE[0], false);
         }
         char key = canvas.show(100);
         switch (key) {
@@ -74,16 +73,16 @@ void visualizeAgentCoverage(const AgentType& agent, const std::pair<Pointis<2>, 
 }
 
 TEST(CircleCoverageGrid, test) {
-    CircleAgent<2> agent(2.2, 0, dim);
-    std::pair<Pointis<2>, Pointis<2> > coverage_pair = getCircleCoverage<2>(agent.radius_);
-    visualizeAgentCoverage<CircleAgent<2> >(agent, coverage_pair);
+    auto agent = std::make_shared<CircleAgent<2> >(2.2, 0, dim);
+    std::pair<Pointis<2>, Pointis<2> > coverage_pair = getCircleCoverage<2>(agent->radius_);
+    visualizeAgentCoverage(agent, coverage_pair);
 }
 
 TEST(BlockCoverageGrid, test) {
 //    BlockAgent_2D agent(Pointf<2>{-2.7, -1.2}, Pointf<2>{4.3, 1.2}, 0, nullptr);
-    BlockAgent_2D agent(Pointf<2>{-.2, -.3}, Pointf<2>{.4, .3}, 0, nullptr);
-    std::pair<Pointis<2>, Pointis<2> > coverage_pair = agent.grids_[0];
-    visualizeAgentCoverage<BlockAgent_2D >(agent, coverage_pair);
+    auto agent = std::make_shared<BlockAgent_2D>(Pointf<2>{-.2, -.3}, Pointf<2>{.4, .3}, 0, nullptr);
+    std::pair<Pointis<2>, Pointis<2> > coverage_pair = agent->grids_[0];
+    visualizeAgentCoverage(agent, coverage_pair);
 }
 
 TEST(BlockRotateCoverageGrid, test) {

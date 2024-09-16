@@ -14,23 +14,23 @@
 
 namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
-    template <Dimension N, typename AgentType>
-    class LargeAgentCBS : public LargeAgentMAPF<N, AgentType> {
+    template <Dimension N>
+    class LargeAgentCBS : public LargeAgentMAPF<N> {
     public:
         LargeAgentCBS(const InstanceOrients<N> & instances,
-                      const std::vector<AgentType>& agents,
+                      const std::vector<AgentPtr<N> >& agents,
                       DimensionLength* dim,
                       const IS_OCCUPIED_FUNC<N> & isoc,
-                      const LargeAgentStaticConstraintTablePtr<N, AgentType>& path_constraint = nullptr,
+                      const LargeAgentStaticConstraintTablePtr<N>& path_constraint = nullptr,
 
                       const std::vector<PosePtr<int, N> > all_poses = {},
                       const DistanceMapUpdaterPtr<N> distance_map_updater = nullptr,
-                      const std::vector<SubGraphOfAgent<N, AgentType> > agent_sub_graphs = {},
+                      const std::vector<SubGraphOfAgent<N> > agent_sub_graphs = {},
                       const std::vector<std::vector<int> >& agents_heuristic_tables = {},
                       const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate_ = {},
                       ConnectivityGraph* connect_graph = nullptr
                       )
-                      : LargeAgentMAPF<N, AgentType>(instances, agents, dim, isoc,
+                      : LargeAgentMAPF<N>(instances, agents, dim, isoc,
                                                      all_poses,
                                                      distance_map_updater,
                                                      agent_sub_graphs,
@@ -41,7 +41,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                         connect_graph_(connect_graph) {
             // 1, initial paths
             for(int agent=0; agent<this->instance_node_ids_.size(); agent++) {
-                ConstraintTable<N, AgentType> constraint_table(agent, this->agents_, this->all_poses_, this->dim_, this->isoc_);
+                ConstraintTable<N> constraint_table(agent, this->agents_, this->all_poses_, this->dim_, this->isoc_);
 
 //                for(int another_agent=0; another_agent<this->instance_node_ids_.size(); another_agent++) {
 //                    if(agent == another_agent) { continue; }
@@ -51,7 +51,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 const size_t& start_node_id = this->instance_node_ids_[agent].first,
                               target_node_id = this->instance_node_ids_[agent].second;
 
-                SpaceTimeAstar<N, AgentType> astar(start_node_id, target_node_id,
+                SpaceTimeAstar<N> astar(start_node_id, target_node_id,
                                                    this->agents_heuristic_tables_[agent],
                                                    this->agents_heuristic_tables_ignore_rotate_[agent],
                                                    this->agent_sub_graphs_[agent],
@@ -210,14 +210,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         boost::heap::pairing_heap<CBSNode *, boost::heap::compare<CBSNode::compare_node_by_inadmissible_f> > open_list; // this is used for EES
         boost::heap::pairing_heap<CBSNode *, boost::heap::compare<CBSNode::compare_node_by_d> > focal_list; // this is ued for both ECBS and EES
 
-        ConstraintAvoidanceTablePtr<N, AgentType> constraint_avoidance_table_;
+        ConstraintAvoidanceTablePtr<N> constraint_avoidance_table_;
 
-        const LargeAgentStaticConstraintTablePtr<N, AgentType>& path_constraint_; // take external path as obstacles
+        const LargeAgentStaticConstraintTablePtr<N>& path_constraint_; // take external path as obstacles
 
         // store each agent's occupied grid at each time , update with this->solutions_
 //        std::vector< typename ConstraintAvoidanceTable<N, AgentType>::OccGridLevels > agent_occ_grids;
 
-        std::vector< typename ConstraintAvoidanceTable<N, AgentType>::OccGridLevels > init_agent_occ_grids;
+        std::vector< typename ConstraintAvoidanceTable<N>::OccGridLevels > init_agent_occ_grids;
 
 
         // yz: child node inherit constraint from parent node
@@ -468,7 +468,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         // return whether exist a path satisfied all this constraint
         // if there is, update to solution paths
         bool findPathForSingleAgent(CBSNode *node, int agent, int lowerbound) {
-            ConstraintTable<N, AgentType> constraint_table(agent, this->agents_, this->all_poses_, this->dim_, this->isoc_);
+            ConstraintTable<N> constraint_table(agent, this->agents_, this->all_poses_, this->dim_, this->isoc_);
             auto buffer_node = node;
             while(true) {
                 if(buffer_node == nullptr) { break; }
@@ -491,7 +491,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //                constraint_avoidance_table_.insertAgentPathOccGrids(this->agents_[a], this->solutions_[a]);
 //            }
 //            constraint_avoidance_table_.updateAgent(this->agents_[agent]);
-            SpaceTimeAstar<N, AgentType> astar(start_node_id, target_node_id,
+            SpaceTimeAstar<N> astar(start_node_id, target_node_id,
                                                this->agents_heuristic_tables_[agent],
                                                this->agents_heuristic_tables_ignore_rotate_[agent],
                                                this->agent_sub_graphs_[agent],

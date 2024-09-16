@@ -25,8 +25,27 @@
 #include "../freeNav-base/basic_elements/distance_map_update.h"
 #include "../../freeNav-base/basic_elements/point.h"
 #include "../freeNav-base/basic_elements/point.h"
+#include "../../freeNav-base/visualization/canvas/canvas.h"
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
+
+    template <Dimension N>
+    bool isPointSetOverlap(const Pointis<N>& set1, const Pointis<N>& set2, DimensionLength* dim) {
+        IdSet ids;
+        for(const auto& pt : set1) {
+            if(isOutOfBoundary(pt, dim)) { continue; }
+            ids.insert(PointiToId(pt, dim));
+        }
+        Id id;
+        for(const auto& pt : set2) {
+            if(isOutOfBoundary(pt, dim)) { continue; }
+            id = PointiToId(pt, dim);
+            if(ids.find(id) != ids.end()) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     template<Dimension N>
     using PosePath = std::vector<Pose<int, N> >;
@@ -112,8 +131,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     template <Dimension N>
     struct Agent {
 
-        explicit Agent(float excircle_radius, float incircle_radius, int id, DimensionLength* dim)
-        : excircle_radius_(excircle_radius), incircle_radius_(incircle_radius),id_(id),dim_(dim) {}
+        explicit Agent(float excircle_radius, float incircle_radius, int id, DimensionLength* dim, const std::string& type_name)
+        : excircle_radius_(excircle_radius), incircle_radius_(incircle_radius),
+          id_(id),dim_(dim),type_(type_name) {}
+
+        virtual std::shared_ptr<Agent<N> > copy() const = 0;
 
         virtual bool isCollide(const Pose<int, N>& pose,
                                DimensionLength* dim,
@@ -131,6 +153,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         virtual std::pair<Pointis<N>, Pointis<N>> getPoseOccupiedGrid(const Pose<int, N>& pose) const = 0;
 
+        virtual std::string serialize() const = 0;
+
+        virtual std::string serialize(const Pose<int, N>& start_pose, const Pose<int, N>& target_pose) const = 0;
+
+        virtual void drawOnCanvas(const Pose<int, 2>& pose,
+                          Canvas& canvas, const cv::Vec3b& color, bool fill=true) const = 0;
+
 //        virtual std::pair<Pointis<N>, Pointis<N>> getCoverageGridWithinPose(const Pose<int, N>& pose) const = 0;
 
         float excircle_radius_, incircle_radius_;
@@ -139,11 +168,112 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         DimensionLength* dim_ = nullptr;
 
+        std::string type_ = "DEFAULT"; // what type this agent is, like Circle or Block
+
     };
 
+    template <Dimension N>
+    std::ostream& operator << (std::ostream& os, const Agent<N>& block) {
+        os << block.serialize();
+        return os;
+    }
+
+
+    template<Dimension N>
+    using AgentPtr = std::shared_ptr<Agent<N> >;
+
+    template<Dimension N>
+    using AgentPtrs = std::vector<AgentPtr<N> >;
+
+    template<Dimension N>
+    double DistBetweenTwoLines(const Pose<int, N>& s1, const Pose<int, N>& e1,
+                               const Pose<int, N>& s2, const Pose<int, N>& e2) {
+        assert(N == 2);
+        namespace bg = boost::geometry;
+        using bg_pt = bg::model::point<int, 2, bg::cs::cartesian>;
+        using bg_seg = bg::model::segment<bg_pt>;
+        // calculate the shortest distance between two segments
+        bg_pt pt1(s1.pt_[0], s1.pt_[1]), pt2(e1.pt_[0], e1.pt_[1]),
+                pt3(s2.pt_[0], s2.pt_[1]), pt4(e2.pt_[0], e2.pt_[1]);
+        bg_seg seg1(pt1, pt2), seg2(pt3, pt4);
+        //std::cout << " bg::distance(seg1, seg2) = " << bg::distance(seg1, seg2) << std::endl;
+        return bg::distance(seg1, seg2);
+
+    }
+
+    // check whether one moving circle are collide with one waiting circle
+    template<Dimension N>
+    double DistBetweenPointAndLine(const Pose<int, N>& s1, const Pose<int, N>& e1, const Pose<int, N>& s2) {
+        assert(N == 2);
+
+        namespace bg = boost::geometry;
+        using bg_pt = bg::model::point<int, 2, bg::cs::cartesian>;
+        using bg_seg = bg::model::segment<bg_pt>;
+        // calculate the shortest distance between a point and a segment
+        bg_pt pt1(s1.pt_[0], s1.pt_[1]), pt2(e1.pt_[0], e1.pt_[1]),
+                pt3(s2.pt_[0], s2.pt_[1]);
+        bg_seg seg1(pt1, pt2);
+        //std::cout << " bg::distance(seg1, pt3) = " << bg::distance(seg1, pt3) << std::endl;
+        return bg::distance(seg1, pt3);
+
+//        Pointis<2> pts1 = a1.getTransferOccupiedGrid(s1, e1);
+//        Pointis<2> pts2 = a2.getPoseOccupiedGrid(s2).first;
+//        return isPointSetOverlap(pts1, pts2, a1.dim_);
+    }
 
     template <Dimension N>
     using Agents = std::vector<Agent<N> >;
+
+
+
+    // check whether two moving circle are collide with each other
+    template <Dimension N>
+    bool isCollide(const AgentPtr<N>& a1, const Pose<int, N>& s1, const Pose<int, N>& e1,
+                   const AgentPtr<N>& a2, const Pose<int, N>& s2, const Pose<int, N>& e2) {
+
+        double dist = DistBetweenTwoLines<N>(s1, e1, s2, e2);
+        if(dist > a1->excircle_radius_ + a2->excircle_radius_ + std::numeric_limits<double>::epsilon()) { return false; }
+        if(dist < a1->incircle_radius_ + a2->incircle_radius_ - std::numeric_limits<double>::epsilon()) { return true; }
+
+        Pointis<N> pts1 = a1->getTransferOccupiedGrid(s1, e1);
+        Pointis<N> pts2 = a2->getTransferOccupiedGrid(s2, e2);
+        return isPointSetOverlap(pts1, pts2, a1->dim_);
+    }
+
+    // check whether one moving circle are collide with one waiting circle
+    template <Dimension N>
+    bool isCollide(const AgentPtr<N>& a1, const Pose<int, N>& s1, const Pose<int, N>& e1,
+                   const AgentPtr<N>& a2, const Pose<int, N>& s2) {
+
+        double dist = DistBetweenPointAndLine<N>(s1, e1, s2);
+        if(dist > a1->excircle_radius_ + a2->excircle_radius_ + std::numeric_limits<double>::epsilon()) { return false; }
+        if(dist < a1->incircle_radius_ + a2->incircle_radius_ - std::numeric_limits<double>::epsilon()) { return true; }
+
+        Pointis<N> pts1 = a1->getTransferOccupiedGrid(s1, e1);
+        Pointis<N> pts2 = a2->getPoseOccupiedGrid(s2).first;
+        return isPointSetOverlap(pts1, pts2, a1->dim_);
+    }
+
+    // check whether one moving circle are collide with one waiting circle
+    template <Dimension N>
+    bool isCollide(const AgentPtr<N>& a1, const Pose<int, N>& s1,
+                   const AgentPtr<N>& a2, const Pose<int, N>& s2, const Pose<int, N>& e2) {
+        return isCollide(a2, s2, e2, a1, s1);
+    }
+
+    template <Dimension N>
+    bool isCollide(const AgentPtr<N>& a1, const Pose<int, N>& s1,
+                   const AgentPtr<N>& a2, const Pose<int, N>& s2) {
+
+        double dist = (s1.pt_ - s2.pt_).Norm();
+
+        if(dist > a1->excircle_radius_ + a2->excircle_radius_ + std::numeric_limits<double>::epsilon()) { return false; }
+        if(dist < a1->incircle_radius_ + a2->incircle_radius_ - std::numeric_limits<double>::epsilon()) { return true; }
+
+        Pointis<N> pts1 = a1->getPoseOccupiedGrid(s1).first;
+        Pointis<N> pts2 = a2->getPoseOccupiedGrid(s2).first;
+        return isPointSetOverlap(pts1, pts2, a1->dim_);
+    }
 
     class HighLvNode;
 
@@ -172,23 +302,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return retv;
     }
 
-    template <Dimension N>
-    bool isPointSetOverlap(const Pointis<N>& set1, const Pointis<N>& set2, DimensionLength* dim) {
-        IdSet ids;
-        for(const auto& pt : set1) {
-            if(isOutOfBoundary(pt, dim)) { continue; }
-            ids.insert(PointiToId(pt, dim));
-        }
-        Id id;
-        for(const auto& pt : set2) {
-            if(isOutOfBoundary(pt, dim)) { continue; }
-            id = PointiToId(pt, dim);
-            if(ids.find(id) != ids.end()) {
-                return true;
-            }
-        }
-        return false;
-    }
+
 
     template<typename T, Dimension N>
     bool isRectangleOverlap(const Point<T, N>& r1_min, const Point<T, N>& r1_max,
@@ -287,14 +401,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     // consider static grid map when construct sub graph
     // check each pair of agent to see if they have conflict
-    template<Dimension N, typename AgentType>
+    template<Dimension N>
     struct LargeAgentPathConstraintTable {
     public:
         explicit LargeAgentPathConstraintTable(float max_excircle_radius, // max excircle radius for external and internal agents
                                                DimensionLength* dim,
                                                const IS_OCCUPIED_FUNC<N>& isoc,
-                                               const std::vector<AgentType>& global_agents, // all agents, global level
-                                               const std::vector<AgentType>& local_agents, // all agents, local level
+                                               const std::vector<AgentPtr<N> >& global_agents, // all agents, global level
+                                               const std::vector<AgentPtr<N> >& local_agents, // all agents, local level
                                                const std::vector<PosePtr<int, N> >& all_nodes)
                 : global_agents_(global_agents), all_nodes_(all_nodes), dim_(dim) {
             //
@@ -318,7 +432,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
 
         // called after set all paths
-        void updateEarliestArriveTimeForAgents(const std::vector<AgentType>& agents, const std::vector<size_t>& target_node_ids) {
+        void updateEarliestArriveTimeForAgents(const std::vector<AgentPtr<N> >& agents, const std::vector<size_t>& target_node_ids) {
             assert(agents.size() == target_node_ids.size());
             earliest_arrive_time_map_.clear();
             for(int k=0; k<agents.size(); k++) {
@@ -329,7 +443,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         // call before use bool hasCollide(...)
         // calculate the earliest possible arrive time
-        int calculateEarliestArriveTimeForAgent(const AgentType& agent, const size_t& target_node_id) const {
+        int calculateEarliestArriveTimeForAgent(const AgentPtr<N> & agent, const size_t& target_node_id) const {
             int temp_earliest_arrive_time_ = 0;
             for(const auto& agent_path : constraint_table_) {
                 const auto &path = agent_path.second;
@@ -403,13 +517,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return max_time_stamp_;
         }
 
-        int getEarliestTime(const AgentType& agent) const {
+        int getEarliestTime(const AgentPtr<N> & agent) const {
             return earliest_arrive_time_map_.at(agent.id_);
         }
 
     private:
 
-        const std::vector<AgentType>& global_agents_;
+        const std::vector<AgentPtr<N> >& global_agents_;
 
         const std::vector<PosePtr<int, N> >& all_nodes_;
 
@@ -422,27 +536,27 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         int max_time_stamp_ = 0; // every thing is static after max_tme_stamp
     };
 
-    template<Dimension N, typename AgentType>
-    using LargeAgentPathConstraintTablePtr = std::shared_ptr<LargeAgentPathConstraintTable<N, AgentType> >;
+    template<Dimension N>
+    using LargeAgentPathConstraintTablePtr = std::shared_ptr<LargeAgentPathConstraintTable<N> >;
 
-    template<typename AgentType>
-    float getMaximumRadius(const std::vector<AgentType>& agents) {
+    template<Dimension N>
+    float getMaximumRadius(const std::vector<AgentPtr<N> >& agents) {
         float retv = 0.;
         for(const auto& agent : agents) {
-            retv = std::max(retv, agent.excircle_radius_);
+            retv = std::max(retv, agent->excircle_radius_);
         }
         return retv;
     }
 
     // use as external static constraint
     // avoid each time traversal all path to check conflict
-    template<Dimension N, typename AgentType>
+    template<Dimension N>
     struct LargeAgentStaticConstraintTable {
         LargeAgentStaticConstraintTable(float max_excircle_radius, // max excircle radius for external and internal agents
                                         DimensionLength* dim,
                                         const IS_OCCUPIED_FUNC<N>& isoc,
-                                        const std::vector<AgentType>& global_agents, // all agents, global level
-                                        const std::vector<AgentType>& local_agents, // all agents, local level
+                                        const std::vector<AgentPtr<N> >& global_agents, // all agents, global level
+                                        const std::vector<AgentPtr<N> >& local_agents, // all agents, local level
                                         const std::vector<PosePtr<int, N> >& all_poses)
                                         : max_excircle_radius_(max_excircle_radius),
                                           isoc_(isoc),
@@ -455,9 +569,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             occupied_table_sat_.resize(total_index_, {});
             static_time_ = 0;
             for(const auto& agent : local_agents_) {
-                float radius = max_excircle_radius_ + agent.excircle_radius_;
+                float radius = max_excircle_radius_ + agent->excircle_radius_;
                 // plus one to ensure check including both current node and next node of edge
-                points_in_agent_circles_.insert({agent.id_, GetSphereInflationOffsetGrids<N>((uint)ceil(radius + 1))}); //
+                points_in_agent_circles_.insert({agent->id_, GetSphereInflationOffsetGrids<N>((uint)ceil(radius + 1))}); //
             }
         }
 
@@ -597,10 +711,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return false;
         }
 
-        void insertPoses(const std::vector<AgentType>& agents, const std::vector<size_t>& pose_ids) {
+        void insertPoses(const std::vector<AgentPtr<N> >& agents, const std::vector<size_t>& pose_ids) {
             assert(agents.size() == pose_ids.size());
             for(int i=0; i<pose_ids.size(); i++) {
-                insertPose(agents[i].id_, pose_ids[i]);
+                insertPose(agents[i]->id_, pose_ids[i]);
             }
         }
 
@@ -621,19 +735,19 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //            }
         }
 
-        void updateEarliestArriveTimeForAgents(const std::vector<AgentType>& agents, const std::vector<size_t>& target_node_ids) {
+        void updateEarliestArriveTimeForAgents(const std::vector<AgentPtr<N> >& agents, const std::vector<size_t>& target_node_ids) {
             assert(agents.size() == target_node_ids.size());
             static_time_ = std::max(2, static_time_);
             earliest_arrive_time_map_.clear();
             for(int k=0; k<agents.size(); k++) {
                 int earliest_time = calculateEarliestArriveTimeForAgent(agents[k], target_node_ids[k]);
-                earliest_arrive_time_map_.insert({agents[k].id_, earliest_time});
+                earliest_arrive_time_map_.insert({agents[k]->id_, earliest_time});
             }
         }
 
         // call before use bool hasCollide(...)
         // calculate the earliest possible arrive time
-        int calculateEarliestArriveTimeForAgent(const AgentType& agent, const size_t& target_node_id) const {
+        int calculateEarliestArriveTimeForAgent(const AgentPtr<N>& agent, const size_t& target_node_id) const {
             int temp_earliest_arrive_time_ = 0;
             for(const auto& agent_path : path_constraint_table_) {
                 const auto &path = agent_path.second;
@@ -652,8 +766,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return temp_earliest_arrive_time_;
         }
 
-        const std::vector<AgentType>& global_agents_;
-        const std::vector<AgentType>& local_agents_;
+        const std::vector<AgentPtr<N> >& global_agents_;
+        const std::vector<AgentPtr<N> >& local_agents_;
         const std::vector<PosePtr<int, N> >& all_poses_;
         const float max_excircle_radius_;
         const IS_OCCUPIED_FUNC<N>& isoc_;
@@ -675,15 +789,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     };
 
-    template<Dimension N, typename AgentType>
-    using LargeAgentStaticConstraintTablePtr = std::shared_ptr<LargeAgentStaticConstraintTable<N, AgentType> >;
+    template<Dimension N>
+    using LargeAgentStaticConstraintTablePtr = std::shared_ptr<LargeAgentStaticConstraintTable<N> >;
 
-    template<Dimension N, typename AgentType>
+    template<Dimension N>
     struct SubGraphOfAgent {
 
-        explicit SubGraphOfAgent(const AgentType& agent): agent_(agent) {}
+        explicit SubGraphOfAgent(const AgentPtr<N>& agent): agent_(agent) {}
 
-        const AgentType& agent_;
+        const AgentPtr<N>& agent_;
         size_t start_node_id_ = MAX<size_t>;
         size_t target_node_id_ = MAX<size_t>;
         std::vector<PosePtr<int, N> > all_nodes_;
@@ -693,30 +807,30 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     // input: static occupancy map / current solving problem / previous path as constraints
     // output: what path was found, or empty is failed
-    template<Dimension N, typename AgentType>
+    template<Dimension N>
     using LA_MAPF_FUNC = std::function<std::vector<LAMAPF_Path>(const InstanceOrients<N> &,
-                                                                const std::vector<AgentType>&,
+                                                                const std::vector<AgentPtr<N> >&,
                                                                 DimensionLength* dim,
                                                                 const IS_OCCUPIED_FUNC<N> &,
-                                                                const LargeAgentStaticConstraintTablePtr<N, AgentType>&,
+                                                                const LargeAgentStaticConstraintTablePtr<N>&,
                                                                 std::vector<std::vector<int> >&,
                                                                 double,
                                                                 const std::vector<PosePtr<int, N> >,
                                                                 const DistanceMapUpdaterPtr<N>,
-                                                                const std::vector<SubGraphOfAgent<N, AgentType> >,
+                                                                const std::vector<SubGraphOfAgent<N> >,
                                                                 const std::vector<std::vector<int> >&,
                                                                 const std::vector<std::vector<int> >&,
                                                                 ConnectivityGraph*)>;
 
-    template<Dimension N, typename AgentType>
+    template<Dimension N>
     Conflicts detectAllConflictBetweenPaths(const LAMAPF_Path& p1, const LAMAPF_Path& p2,
-                                            const AgentType& a1, const AgentType& a2,
+                                            const AgentPtr<N>& a1, const AgentPtr<N>& a2,
                                             const std::vector<PosePtr<int, N> >& all_nodes) {
         int t1 = p1.size()-1, t2 = p2.size()-1;
         const auto& longer_agent  = p1.size() > p2.size() ? a1 : a2;
-        const auto& shorter_agent = longer_agent.id_ == a1.id_ ? a2 : a1;
-        const auto& longer_path   = longer_agent.id_ == a1.id_ ? p1 : p2;
-        const auto& shorter_path  = longer_agent.id_ == a1.id_ ? p2 : p1;
+        const auto& shorter_agent = longer_agent->id_ == a1->id_ ? a2 : a1;
+        const auto& longer_path   = longer_agent->id_ == a1->id_ ? p1 : p2;
+        const auto& shorter_path  = longer_agent->id_ == a1->id_ ? p2 : p1;
 
         int common_part = std::min(t1, t2);
         std::vector<std::shared_ptr<Conflict> > cfs;
@@ -728,9 +842,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                                            << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t+1]]
 //                                            << "/t:{" << t << "," << t+1 << "}" << std::endl;
 
-                auto c1 = std::make_shared<Constraint>(a1.id_, p1[t], p1[t+1], t, t+2);
-                auto c2 = std::make_shared<Constraint>(a2.id_, p2[t], p2[t+1], t, t+2);
-                auto cf = std::make_shared<Conflict>(a1.id_, a2.id_, Constraints{c1}, Constraints{c2});
+                auto c1 = std::make_shared<Constraint>(a1->id_, p1[t], p1[t+1], t, t+2);
+                auto c2 = std::make_shared<Constraint>(a2->id_, p2[t], p2[t+1], t, t+2);
+                auto cf = std::make_shared<Conflict>(a1->id_, a2->id_, Constraints{c1}, Constraints{c2});
                 cfs.push_back(cf);
             }
         }
@@ -743,24 +857,24 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                                            << "/t:{" << t << "," << t+1 << "}"
 //                                            << std::endl;
 
-                auto c1 = std::make_shared<Constraint>(longer_agent.id_,  longer_path[t],      longer_path[t+1], t, t+2);
-                auto c2 = std::make_shared<Constraint>(shorter_agent.id_, shorter_path.back(), MAX_NODES,        0, t+2);
-                auto cf = std::make_shared<Conflict>(longer_agent.id_, shorter_agent.id_, Constraints{c1}, Constraints{c2});
+                auto c1 = std::make_shared<Constraint>(longer_agent->id_,  longer_path[t],      longer_path[t+1], t, t+2);
+                auto c2 = std::make_shared<Constraint>(shorter_agent->id_, shorter_path.back(), MAX_NODES,        0, t+2);
+                auto cf = std::make_shared<Conflict>(longer_agent->id_, shorter_agent->id_, Constraints{c1}, Constraints{c2});
                 cfs.push_back(cf);
             }
         }
         return cfs;
     }
 
-    template<Dimension N, typename AgentType>
+    template<Dimension N>
     ConflictPtr detectFirstConflictBetweenPaths(const LAMAPF_Path& p1, const LAMAPF_Path& p2,
-                                                const AgentType& a1, const AgentType& a2,
+                                                const AgentPtr<N>& a1, const AgentPtr<N>& a2,
                                                 const std::vector<PosePtr<int, N> >& all_nodes) {
         int t1 = p1.size()-1, t2 = p2.size()-1;
         const auto& longer_agent  = p1.size() > p2.size() ? a1 : a2;
-        const auto& shorter_agent = longer_agent.id_ == a1.id_ ? a2 : a1;
-        const auto& longer_path   = longer_agent.id_ == a1.id_ ? p1 : p2;
-        const auto& shorter_path  = longer_agent.id_ == a1.id_ ? p2 : p1;
+        const auto& shorter_agent = longer_agent->id_ == a1->id_ ? a2 : a1;
+        const auto& longer_path   = longer_agent->id_ == a1->id_ ? p1 : p2;
+        const auto& shorter_path  = longer_agent->id_ == a1->id_ ? p2 : p1;
 
         int common_part = std::min(t1, t2);
         for(int t=0; t<common_part-1; t++) {
@@ -771,9 +885,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                             << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t+1]]
                                             << "/t:{" << t << "," << t+1 << "}" << std::endl;
 
-                auto c1 = std::make_shared<Constraint>(a1.id_, p1[t], p1[t+1], t, t+2);
-                auto c2 = std::make_shared<Constraint>(a2.id_, p2[t], p2[t+1], t, t+2);
-                auto cf = std::make_shared<Conflict>(a1.id_, a2.id_, Constraints{c1}, Constraints{c2});
+                auto c1 = std::make_shared<Constraint>(a1->id_, p1[t], p1[t+1], t, t+2);
+                auto c2 = std::make_shared<Constraint>(a2->id_, p2[t], p2[t+1], t, t+2);
+                auto cf = std::make_shared<Conflict>(a1->id_, a2->id_, Constraints{c1}, Constraints{c2});
                 return cf;
             }
         }
@@ -786,18 +900,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                             << "/t:{" << t << "," << t+1 << "}"
                                             << std::endl;
 
-                auto c1 = std::make_shared<Constraint>(longer_agent.id_,  longer_path[t],      longer_path[t+1], t, t+2);
-                auto c2 = std::make_shared<Constraint>(shorter_agent.id_, shorter_path.back(), MAX_NODES,        t, t+2);
-                auto cf = std::make_shared<Conflict>(longer_agent.id_, shorter_agent.id_, Constraints{c1}, Constraints{c2});
+                auto c1 = std::make_shared<Constraint>(longer_agent->id_,  longer_path[t],      longer_path[t+1], t, t+2);
+                auto c2 = std::make_shared<Constraint>(shorter_agent->id_, shorter_path.back(), MAX_NODES,        t, t+2);
+                auto cf = std::make_shared<Conflict>(longer_agent->id_, shorter_agent->id_, Constraints{c1}, Constraints{c2});
                 return cf;
             }
         }
         return nullptr;
     }
 
-    template<Dimension N, typename AgentType>
+    template<Dimension N>
     bool isSolutionValid(const LAMAPF_Paths& paths,
-                         const std::vector<AgentType>& agents,
+                         const std::vector<AgentPtr<N> >& agents,
                          const std::vector<PosePtr<int, N> >& all_poses) {
         assert(paths.size() == agents.size());
         bool valid = true;
@@ -842,167 +956,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<std::vector<size_t> > all_backward_edges_;
 
     };
-
-    struct TarjanForSCC
-    {
-        TarjanForSCC(const std::vector<std::vector<size_t> >& all_edges)
-                     : all_edges_(all_edges) {}
-
-        std::vector<std::set<size_t> > tarjanForSCC() {
-            dfn = std::vector<size_t>(all_edges_.size(), MAX<size_t>);
-            low = std::vector<size_t>(all_edges_.size(), MAX<size_t>);
-
-            std::cout << "all_edges_.size() = " << all_edges_.size() << std::endl;
-
-            dfncnt = -1;
-
-            in_stack = std::vector<bool>(all_edges_.size(), false);
-            stack = std::stack<size_t>();
-            retv.clear();
-
-            for(size_t i=0; i<all_edges_.size(); i++) {
-                if(dfn[i] == MAX<size_t>) {
-                    tarjan(i);
-                }
-            }
-//            tarjan(1);
-
-//            std::cout << "DFN/LOW: " << std::endl;
-//            for(int i=0; i<all_edges_.size(); i++) {
-//                std::cout << "node " << i << " in  " << dfn[i] << "/" << low[i]
-//                << std::endl;
-//            }
-            return retv;
-        }
-
-        void tarjan(const size_t& u) {
-            dfncnt ++;
-            dfn[u] = dfncnt;
-            low[u] = dfn[u];
-
-            in_stack[u] = true;
-            stack.push(u);
-
-            for (const size_t &v : all_edges_[u]) {
-                if (dfn[v] == MAX<size_t>) {
-                    tarjan(v);
-                    low[u] = std::min(low[u], low[v]);
-//                    std::cout << "u, v = " << u << ", " << v << ", set_1 low[" << u << "] to " << low[u] << std::endl;
-                }
-                else if (in_stack[v])
-                {
-                    low[u] = std::min(low[u], dfn[v]);
-//                    std::cout << "u, v = " << u << ", " << v << ", set_2 low[" << u << "] to " << low[u] << std::endl;
-                }
-            }
-//            assert(0);
-            if(low[u] == dfn[u]) {
-                std::set<size_t> component;
-                size_t y;
-//                std::cout << " find loop, stack pop all: ";
-                do {
-                    y = stack.top();
-//                    std::cout << stack.top() << " ";
-                    stack.pop();
-                    in_stack[y] = false;
-                    component.insert(y);
-                } while (y != u);
-                retv.push_back(component);
-//                std::cout << std::endl;
-            }
-        }
-
-        std::vector<std::set<size_t> > tarjanForSCC_without_recursion() {
-            dfn = std::vector<size_t>(all_edges_.size(), MAX<size_t>);
-            low = std::vector<size_t>(all_edges_.size(), MAX<size_t>);
-
-            std::cout << "all_edges_.size() = " << all_edges_.size() << std::endl;
-
-            dfncnt = -1;
-            retv.clear();
-
-            ptr_stack.resize(all_edges_.size(), nullptr);
-
-            for(size_t i=0; i<all_edges_.size(); i++) {
-                if(dfn[i] == MAX<size_t>) {
-                    tarjan_without_recursion(i);
-                }
-            }
-            // release data
-            for(int i=0; i<all_edges_.size(); i++) {
-                if(ptr_stack[i] != nullptr) {
-                    delete ptr_stack[i];
-                    ptr_stack[i] = nullptr;
-                }
-            }
-        }
-
-        void tarjan_without_recursion(const size_t& curr) {
-
-//            dfncnt ++;
-//            dfn[curr] = dfncnt;
-//
-//            std::stack<Node*> stack_temp;
-//            auto start_node = new Node{nullptr, curr};
-//            stack_temp.push(start_node);
-//
-//            ptr_stack[curr] = start_node;
-//
-//            while(!stack_temp.empty()) {
-//                const auto& u = stack_temp.top();
-//                stack_temp.pop();
-//                for (const size_t &v : all_edges_[u->curr_]) {
-//                    if(dfn[v] == MAX<size_t>) {
-//                        dfncnt ++;
-//                        dfn[v] = dfncnt;
-//                        auto new_node = new Node{u, v};
-//                        ptr_stack[v] = new_node;
-//
-//                        stack_temp.push(new_node);
-//                    } else if(low[v] < low[u->curr_]) {
-//                        // reverse and get local loop
-//                        auto buffer = ;
-//                        while() {
-//                            //
-//                        }
-//                    }
-//                }
-//            }
-
-        }
-
-
-        struct Node {
-            Node* pa_;
-            size_t curr_;
-        };
-
-        const std::vector<std::vector<size_t> >& all_edges_;
-
-        // traversal graph in DFS mode
-        std::vector<size_t> dfn, // the time index of visit current node
-        low; // the minimum time index of node the node can visit
-
-        size_t dfncnt;
-
-        std::vector<bool> in_stack;
-        std::stack<size_t> stack;
-
-        std::vector<std::set<size_t> > retv;
-
-        std::vector<Node*> ptr_stack;
-
-        std::vector<std::set<size_t> > node_loop_id_map; // a node map in multiple partial map
-
-        size_t tp;
-//        std::vector<size_t> scc;
-//        size_t sc;  // 结点 i 所在 SCC 的编号
-//        std::vector<size_t> sz;       // 强连通 i 的大小
-    };
-
-
-    std::vector<std::set<size_t> > getStrongComponentFromGraph(const std::vector<std::vector<size_t> >& all_edges,
-                                                               const std::vector<std::vector<size_t> >& all_backward_edges);
 
 }
 

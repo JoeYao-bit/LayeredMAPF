@@ -65,10 +65,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     struct CircleAgent : public Agent<N> {
 
         CircleAgent(float radius, int id, DimensionLength* dim)
-        : Agent<N>(radius, radius, id, dim), radius_(radius) {
+        : Agent<N>(radius, radius, id, dim, std::string("Circle")), radius_(radius) {
 
             occupied_grids_ = getCircleCoverage<N>(radius);
 
+        }
+
+        std::shared_ptr<Agent<N> > copy() const {
+            return std::make_shared<CircleAgent<N> >(CircleAgent<N>(radius_, this->id_, this->dim_));
         }
 
         virtual bool isCollide(const Pose<int, N>& pose,
@@ -159,10 +163,17 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return {retv_full, retv_part};
         }
 
+        std::string serialize() const {
+            std::stringstream ss;
+            ss << this->type_ << " " << this->id_ << " "
+               << radius_ << " ";
+            return ss.str();
+        }
+
         // serialize as a mapf problem
         std::string serialize(const Pose<int, N>& start_pose, const Pose<int, N>& target_pose) const {
             std::stringstream ss;
-            ss << this->id_ << " "
+            ss << this->type_ << " " << this->id_ << " "
                << radius_ << " ";
             for(int i=0; i<N; i++) {
                 ss << start_pose.pt_[i] << " ";
@@ -175,21 +186,21 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return ss.str();
         }
 
-        static std::pair<CircleAgent<N>, InstanceOrient<N> > deserialize(const std::string& string, DimensionLength* dim) {
+        static std::pair<AgentPtr<N>, InstanceOrient<N> > deserialize(const std::string& string, DimensionLength* dim) {
             std::vector<std::string> strs;
             boost::split(strs, string, boost::is_any_of(" "), boost::token_compress_on);
-            assert(strs.size() == 4 + 2*N);
-            int id = atoi(strs[0].c_str());
+            assert(strs.size() == 5 + 2*N);
+            int id = atoi(strs[1].c_str());
             Pointi<N> start_pt, target_pt;
             for(int i=0; i<N; i++) {
-                start_pt[i]  = atoi(strs[i+2].c_str());
-                target_pt[i] = atoi(strs[i+2 + N+1].c_str());
+                start_pt[i]  = atoi(strs[i+3].c_str());
+                target_pt[i] = atoi(strs[i+3 + N+1].c_str());
             }
 
-            Pose<int, N> start_pose (start_pt,  atoi(strs[2 + N].c_str()));
-            Pose<int, N> target_pose(target_pt, atoi(strs[3 + 2*N].c_str()));
+            Pose<int, N> start_pose (start_pt,  atoi(strs[3 + N].c_str()));
+            Pose<int, N> target_pose(target_pt, atoi(strs[4 + 2*N].c_str()));
 
-            CircleAgent<N> agent(atof(strs[1].c_str()), id, dim);
+            auto agent = std::make_shared<CircleAgent<N> >(atof(strs[2].c_str()), id, dim);
             return {agent, {start_pose, target_pose}};
         }
 
@@ -199,6 +210,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                              true, fill ? -1 : 1, color);
         }
 
+
         float radius_ = 1.;
 
         // which grid the agent occupied, include full occupied and partially occupied
@@ -206,11 +218,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     };
 
-    template<Dimension N>
-    std::ostream& operator << (std::ostream& os, const CircleAgent<N>& circle) {
-        os << "CircleAgent " << circle.id_ << ": "<< circle.radius_ << " ";
-        return os;
-    }
+
 
     // detect collision between agents
 

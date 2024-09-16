@@ -34,17 +34,17 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return ss.str();
     }
 
-    template<Dimension N, typename AgentType>
+    template<Dimension N>
     class LargeAgentMAPF {
     public:
         LargeAgentMAPF(const InstanceOrients<N> & instances,
-                       const std::vector<AgentType>& agents,
+                       const std::vector<AgentPtr<N> >& agents,
                        DimensionLength* dim,
                        const IS_OCCUPIED_FUNC<N> & isoc,
 
                        const std::vector<PosePtr<int, N> >& all_poses = {},
                        const DistanceMapUpdaterPtr<N>& distance_map_updater = nullptr,
-                       const std::vector<SubGraphOfAgent<N, AgentType> >& agent_sub_graphs = {},
+                       const std::vector<SubGraphOfAgent<N> >& agent_sub_graphs = {},
                        const std::vector<std::vector<int> >& agents_heuristic_tables = {},
                        const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate = {}
 
@@ -181,8 +181,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
 
 
-        SubGraphOfAgent<N, AgentType> constructSubGraphOfAgent(int agent_id) {
-            const AgentType& agent = agents_[agent_id];
+        SubGraphOfAgent<N> constructSubGraphOfAgent(int agent_id) {
+            const AgentPtr<N> & agent = agents_[agent_id];
             Id total_index = getTotalIndexOfSpace<N>(dim_);
 
             assert(all_poses_.size() == total_index*2*N);
@@ -198,7 +198,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             instance_node_ids_.push_back(std::make_pair(start_node_id, target_node_id));
 
 
-            SubGraphOfAgent<N, AgentType> sub_graph(agent);
+            SubGraphOfAgent<N> sub_graph(agent);
 
             sub_graph.all_nodes_.resize(total_index * 2 * N, nullptr);
             sub_graph.start_node_id_ = start_node_id;
@@ -208,7 +208,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             for(size_t id=0; id<all_poses_.size(); id++) {
                 if(all_poses_[id] != nullptr) {
                     const auto& current_pose = all_poses_[id];
-                    if(!agent.isCollide(*current_pose, dim_, isoc_, *distance_map_updater_)) {
+                    if(!agent->isCollide(*current_pose, dim_, isoc_, *distance_map_updater_)) {
                         sub_graph.all_nodes_[id] = current_pose;
                     }
                 }
@@ -257,7 +257,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                        bool reverse_legal = agent.isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, *distance_map_updater_);
 //                        assert(direct_legal == reverse_legal);
 
-                        if(!agent.isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, *distance_map_updater_)) {
+                        if(!agent->isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, *distance_map_updater_)) {
                             sub_graph.all_edges_[pose_id].push_back(another_node_id);
                             sub_graph.all_backward_edges_[another_node_id].push_back(pose_id);
 
@@ -276,7 +276,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         PosePtr<int, N> another_node_ptr = sub_graph.all_nodes_[another_node_id];
                         if(another_node_ptr == nullptr) { continue; }
                         // check whether can transfer to another node
-                        if(!agent.isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, *distance_map_updater_)) {
+                        if(!agent->isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, *distance_map_updater_)) {
                             sub_graph.all_edges_[pose_id].push_back(another_node_id);
                             sub_graph.all_backward_edges_[another_node_id].push_back(pose_id);
 
@@ -307,7 +307,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
 
 
-        std::vector<int> constructHeuristicTable(const SubGraphOfAgent<N, AgentType>& sub_graph, const size_t& goal_id) const {
+        std::vector<int> constructHeuristicTable(const SubGraphOfAgent<N>& sub_graph, const size_t& goal_id) const {
             struct Node {
                 int node_id;
                 int value;
@@ -347,8 +347,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }
             }
 
-            assert(agent_heuristic[instance_node_ids_[sub_graph.agent_.id_].first]  != MAX<int>);
-            assert(agent_heuristic[instance_node_ids_[sub_graph.agent_.id_].second] != MAX<int>);
+            assert(agent_heuristic[instance_node_ids_[sub_graph.agent_->id_].first]  != MAX<int>);
+            assert(agent_heuristic[instance_node_ids_[sub_graph.agent_->id_].second] != MAX<int>);
 
             // debug
 //            for(int i=0; i<sub_graph.all_nodes_.size(); i++) {
@@ -363,7 +363,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return agent_heuristic;
         }
 
-        std::vector<int> constructHeuristicTableIgnoreRotate(const SubGraphOfAgent<N, AgentType>& sub_graph,
+        std::vector<int> constructHeuristicTableIgnoreRotate(const SubGraphOfAgent<N>& sub_graph,
                                                              const size_t& goal_id) const {
             struct Node {
                 Pointi<N> node_pt;
@@ -418,8 +418,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
                 }
             }
-            assert(retv[instance_node_ids_[sub_graph.agent_.id_].first/(2*N)]  != MAX<int>);
-            assert(retv[instance_node_ids_[sub_graph.agent_.id_].second/(2*N)] != MAX<int>);
+            assert(retv[instance_node_ids_[sub_graph.agent_->id_].first/(2*N)]  != MAX<int>);
+            assert(retv[instance_node_ids_[sub_graph.agent_->id_].second/(2*N)] != MAX<int>);
             return retv;
         }
 
@@ -433,9 +433,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     const auto& all_nodes = all_poses_;
                     int t1 = p1.size()-1, t2 = p2.size()-1;
                     const auto& longer_agent  = p1.size() > p2.size() ? agents_[a1] : agents_[a2];
-                    const auto& shorter_agent = longer_agent.id_ == agents_[a1].id_ ? agents_[a2] : agents_[a1];
-                    const auto& longer_path   = longer_agent.id_ == agents_[a1].id_ ? p1 : p2;
-                    const auto& shorter_path  = longer_agent.id_ == agents_[a1].id_ ? p2 : p1;
+                    const auto& shorter_agent = longer_agent->id_ == agents_[a1]->id_ ? agents_[a2] : agents_[a1];
+                    const auto& longer_path   = longer_agent->id_ == agents_[a1]->id_ ? p1 : p2;
+                    const auto& shorter_path  = longer_agent->id_ == agents_[a1]->id_ ? p2 : p1;
 
                     int common_part = std::min(t1, t2);
                     std::vector<std::shared_ptr<Conflict> > cfs;
@@ -516,7 +516,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     //protected:
         // initial constant values
         InstanceOrients<N> instances_;
-        std::vector<AgentType> agents_;
+        std::vector<AgentPtr<N> > agents_;
         DimensionLength* dim_;
         const IS_OCCUPIED_FUNC<N>& isoc_;
 
@@ -526,7 +526,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<PosePtr<int, N> > all_poses_;
         DistanceMapUpdaterPtr<N> distance_map_updater_;
 
-        std::vector<SubGraphOfAgent<N, AgentType> > agent_sub_graphs_;
+        std::vector<SubGraphOfAgent<N> > agent_sub_graphs_;
         std::vector<std::vector<int> > agents_heuristic_tables_;
         std::vector<std::vector<int> > agents_heuristic_tables_ignore_rotate_;
 

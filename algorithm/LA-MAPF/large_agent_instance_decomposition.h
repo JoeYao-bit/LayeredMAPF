@@ -22,18 +22,18 @@
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
     // inherit LargeAgentMAPF to avoid
-    template<Dimension N, typename AgentType>
-    class LargeAgentMAPFInstanceDecomposition : public LargeAgentMAPF<N, AgentType> {
+    template<Dimension N>
+    class LargeAgentMAPFInstanceDecomposition : public LargeAgentMAPF<N> {
     public:
 
         LargeAgentMAPFInstanceDecomposition(const InstanceOrients<N> & instances,
-                                            const std::vector<AgentType>& agents,
+                                            const std::vector<AgentPtr<N> >& agents,
                                             DimensionLength* dim,
                                             const IS_OCCUPIED_FUNC<N> & isoc,
                                             bool directed_graph = true, // whether edge between poses is always reversible
                                             int decompose_level=3,
                                             bool debug_mode = true)
-                                            : LargeAgentMAPF<N, AgentType>(instances, agents, dim, isoc),
+                                            : LargeAgentMAPF<N>(instances, agents, dim, isoc),
                                               directed_graph_(directed_graph),
                                               debug_mode_(debug_mode) {
 
@@ -158,21 +158,21 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         bool decompositionValidCheckGridMap(const std::vector<std::set<int> >& all_levels) {
 
             float max_excircle_radius = getMaximumRadius(this->agents_);
-            std::vector<AgentType> pre_agents;
+            std::vector<AgentPtr<N> > pre_agents;
             std::vector<size_t> pre_targets;
 
             for(int i=0; i<all_levels.size(); i++) {
 //                std::cout << "-- level " << i << " valid check ... " << std::endl;
 
-                std::vector<AgentType> cur_agents;
+                std::vector<AgentPtr<N> > cur_agents;
                 std::vector<size_t> cur_targets;
                 for(const auto& agent_id : all_levels[i]) {
                     cur_agents.push_back(this->agents_[agent_id]);
                     cur_targets.push_back(this->instance_node_ids_[agent_id].second);
                 }
 
-                LargeAgentStaticConstraintTablePtr<N, AgentType>
-                        new_constraint_table_ptr_ = std::make_shared<LargeAgentStaticConstraintTable<N, AgentType> > (
+                LargeAgentStaticConstraintTablePtr<N>
+                        new_constraint_table_ptr_ = std::make_shared<LargeAgentStaticConstraintTable<N> > (
                         max_excircle_radius, this->dim_, this->isoc_, this->agents_, cur_agents, this->all_poses_);
 
                 new_constraint_table_ptr_->insertPoses(pre_agents, pre_targets);
@@ -191,13 +191,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 new_constraint_table_ptr_->updateEarliestArriveTimeForAgents(cur_agents, cur_targets);
                 for(const auto& agent_id : all_levels[i]) {
 //                    std::cout << "-- agent " << agent_id << " valid check ... " << std::endl;
-                    CBS::ConstraintTable<N, AgentType> constraint_table(agent_id,
+                    CBS::ConstraintTable<N> constraint_table(agent_id,
                                                                         this->agents_,
                                                                         this->all_poses_,
                                                                         this->dim_,
                                                                         this->isoc_);
 
-                    CBS::SpaceTimeAstar<N, AgentType> solver(this->instance_node_ids_[agent_id].first,
+                    CBS::SpaceTimeAstar<N> solver(this->instance_node_ids_[agent_id].first,
                                                              this->instance_node_ids_[agent_id].second,
                                                              this->agents_heuristic_tables_[agent_id],
                                                              this->agents_heuristic_tables_ignore_rotate_[agent_id],
@@ -274,7 +274,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 const auto& another_agent_target_pt = another_agent_target_pose.pt_;
 
                 // get the maximum range of conflict
-                float max_range_radius = agent.excircle_radius_ + another_agent.excircle_radius_;
+                float max_range_radius = agent->excircle_radius_ + another_agent->excircle_radius_;
                 int maximum_ralated_range = ceil(max_range_radius + sqrt(N) + 1); // considering the boundary of two shape in one grid
 
 //                if(agent_id == 4 && i == 3) {
@@ -451,7 +451,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         ConnectivityGraph getAgentConnectivityGraph(const int& agent_id) const {
             ConnectivityGraph graph(this->all_poses_.size());
-            SubGraphOfAgent<N, AgentType> current_subgraph = this->agent_sub_graphs_[agent_id];
+            SubGraphOfAgent<N> current_subgraph = this->agent_sub_graphs_[agent_id];
             assert(current_subgraph.all_nodes_[this->instance_node_ids_[agent_id].first] != nullptr);
             assert(current_subgraph.all_nodes_[this->instance_node_ids_[agent_id].second] != nullptr);
 
@@ -846,7 +846,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                   bool distinguish_sat = false,
                                   const std::vector<bool>& ignore_cost_set = {}) const {
             assert(!heuristic_tables_.empty() && !heuristic_tables_sat_.empty());
-            DependencyPathSearch<N, AgentType> search_machine;
+            DependencyPathSearch<N> search_machine;
             /*
              * DependencyPathSearch::search(int agent_id,
                                             int start_hyper_node_id,
@@ -1504,8 +1504,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     };
 
-    template<Dimension N, typename AgentType>
-    using LargeAgentMAPFInstanceDecompositionPtr = std::shared_ptr<LargeAgentMAPFInstanceDecomposition<N, AgentType> >;
+    template<Dimension N>
+    using LargeAgentMAPFInstanceDecompositionPtr = std::shared_ptr<LargeAgentMAPFInstanceDecomposition<N> >;
 
 }
 #endif //LAYEREDMAPF_LARGE_AGENT_INSTANCE_DECOMPOSITION_H

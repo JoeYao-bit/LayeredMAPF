@@ -12,7 +12,7 @@
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
-    template<Dimension N, typename AgentType>
+    template<Dimension N>
     struct ConstraintAvoidanceTable {
     public:
         struct OccGrid {
@@ -53,12 +53,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         typedef std::vector<OccGridSet> OccGridSets;
 
-        explicit ConstraintAvoidanceTable(DimensionLength* dim, const std::vector<PosePtr<int, N> >& all_poses, const AgentType& agent)
+        explicit ConstraintAvoidanceTable(DimensionLength* dim,
+                                          const std::vector<PosePtr<int, N> >& all_poses,
+                                          const AgentPtr<N>& agent)
         : dim_(dim), all_poses_(all_poses), agent_(agent) {
             //
         }
 
-        void updateAgent(const AgentType& agent) {
+        void updateAgent(const AgentPtr<N>& agent) {
             agent_ = agent;
         }
 
@@ -98,36 +100,36 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //        }
 
         // for test only
-        void insertAgentPathOccGrids(const AgentType& agent, const LAMAPF_Path& path) {
+        void insertAgentPathOccGrids(const AgentPtr<N>& agent, const LAMAPF_Path& path) {
             // resize will keep previous element
             makespan_ = std::max(makespan_, (int)path.size());
             Id total_index = getTotalIndexOfSpace<N>(dim_);
             occ_table_.resize(makespan_);
             for(int t=0; t<path.size()-1; t++) {
-                Pointis<N> grids = agent.getTransferOccupiedGrid(*all_poses_[path[t]], *all_poses_[path[t+1]]);
+                Pointis<N> grids = agent->getTransferOccupiedGrid(*all_poses_[path[t]], *all_poses_[path[t+1]]);
                 for(const auto& grid : grids) {
                     Id id = PointiToId(grid, dim_);
-                    occ_table_[t].insert(OccGrid{id, agent.id_});
+                    occ_table_[t].insert(OccGrid{id, agent->id_});
                 }
             }
-            auto grid_pairs = agent.getPoseOccupiedGrid(*all_poses_[path.back()]);
+            auto grid_pairs = agent->getPoseOccupiedGrid(*all_poses_[path.back()]);
             for(const auto& grid : grid_pairs.first) {
                 Id id = PointiToId(grid, dim_);
-                occ_table_[path.size()-1].insert(OccGrid{id, agent.id_});
+                occ_table_[path.size()-1].insert(OccGrid{id, agent->id_});
             }
         }
 
-        static OccGridLevels getAgentPathOccGrids(const AgentType& agent,
+        static OccGridLevels getAgentPathOccGrids(const AgentPtr<N>& agent,
                                                   const LAMAPF_Path& path,
                                                   const std::vector<PosePtr<int, N> >& all_nodes,
                                                   DimensionLength* dim) {
             OccGridLevels retv;
             for(int t=0; t<path.size()-1; t++) {
-                Pointis<N> grids = agent.getTransferOccupiedGrid(*all_nodes[path[t]], *all_nodes[path[t+1]]);
+                Pointis<N> grids = agent->getTransferOccupiedGrid(*all_nodes[path[t]], *all_nodes[path[t+1]]);
                 OccGridLevel current_grids;
                 for(const auto& grid : grids) {
                     Id id = PointiToId(grid, dim);
-                    current_grids.push_back(OccGrid{id, agent.id_});
+                    current_grids.push_back(OccGrid{id, agent->id_});
                 }
                 retv.push_back(current_grids);
             }
@@ -136,8 +138,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
 
         int getNumOfConflictsForStep(const Pose<int, N>& curr_node, const Pose<int, N>& next_node, int current_timestep) const {
-            Pointis<N> occ_grids = agent_.getTransferOccupiedGrid(curr_node, next_node);
-            return getNumOfConflictsForStep(occ_grids, agent_.id_, current_timestep);
+            Pointis<N> occ_grids = agent_->getTransferOccupiedGrid(curr_node, next_node);
+            return getNumOfConflictsForStep(occ_grids, agent_->id_, current_timestep);
         }
 
         // get how many agent current agent collide with
@@ -177,7 +179,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
         }
 
-        AgentType agent_; // current agent
+        AgentPtr<N> agent_; // current agent
 
     private:
 
@@ -204,8 +206,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         DimensionLength * dim_;
     };
 
-    template<Dimension N, typename AgentType>
-    using ConstraintAvoidanceTablePtr = std::shared_ptr<ConstraintAvoidanceTable<N, AgentType> >;
+    template<Dimension N>
+    using ConstraintAvoidanceTablePtr = std::shared_ptr<ConstraintAvoidanceTable<N> >;
 
 }
 

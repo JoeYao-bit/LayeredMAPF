@@ -15,9 +15,8 @@
 
 using namespace freeNav::LayeredMAPF::LA_MAPF;
 
-template<typename AgentType>
 void layeredLargeAgentMAPFTest(const std::string& file_path) {
-    InstanceDeserializer<2, AgentType> deserializer;
+    InstanceDeserializer<2> deserializer;
     if (deserializer.loadInstanceFromFile(file_path, dim)) {
         std::cout << "load from path " << file_path << " success" << std::endl;
     } else {
@@ -28,12 +27,12 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
 
     auto start_t = clock();
 
-    LargeAgentMAPFInstanceDecompositionPtr<2, AgentType> decomposer_ptr = nullptr;
+    LargeAgentMAPFInstanceDecompositionPtr<2> decomposer_ptr = nullptr;
     std::vector<std::vector<int> > grid_visit_count_table;
-    auto layered_paths = layeredLargeAgentMAPF<2, AgentType>(deserializer.getInstances(),
+    auto layered_paths = layeredLargeAgentMAPF<2>(deserializer.getInstances(),
                                                              deserializer.getAgents(),
                                                              dim, is_occupied,
-                                                             CBS::LargeAgentCBS_func<2, AgentType >,
+                                                             CBS::LargeAgentCBS_func<2>,
                                                              grid_visit_count_table,
                                                              60, decomposer_ptr,
                                                              true);
@@ -58,13 +57,13 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
 //    std::cout << (raw_path.size() == deserializer.getAgents().size() ? "success" : "failed")
 //              << " raw large agent mapf in " << time_cost1 << "ms " << std::endl;
 
-    InstanceVisualization<AgentType>(deserializer.getAgents(), decomposer_ptr->getAllPoses(),
+    InstanceVisualization(deserializer.getAgents(), decomposer_ptr->getAllPoses(),
                                      deserializer.getInstances(), layered_paths, grid_visit_count_table);
 }
 
 TEST(test, layered_large_agent_CBS) {
 
-    layeredLargeAgentMAPFTest<CircleAgent<2> >(map_test_config.at("crc_ins_path"));
+    layeredLargeAgentMAPFTest(map_test_config.at("la_ins_path"));
 
 }
 

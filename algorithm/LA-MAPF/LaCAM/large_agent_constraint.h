@@ -11,11 +11,11 @@
 
 namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
 
-    template<Dimension N, typename AgentType>
+    template<Dimension N>
     struct LargeAgentConstraints {
     public:
         explicit LargeAgentConstraints(const std::vector<PosePtr<int, N>>& all_nodes,
-                                       const std::vector<AgentType>& agents,
+                                       const std::vector<AgentPtr<N> >& agents,
                                        const std::vector<size_t>& occupied_now,
                                        DimensionLength* dim)
         : agents(agents), all_nodes(all_nodes), occupied_now(occupied_now) {
@@ -89,7 +89,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
         }
 
     private:
-        const std::vector<AgentType>& agents;
+        const std::vector<AgentPtr<N> >& agents;
         const std::vector<PosePtr<int, N>>& all_nodes;
         std::vector<size_t> occupied_now;
         std::vector<size_t> occupied_next;
@@ -98,11 +98,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
 
     // consider static grid map when construct sub graph
     // 24-0809: lots of small agent should project into a map while a few large agent need agent-by-agent
-    template<Dimension N, typename AgentType>
+    template<Dimension N>
     struct LargeAgentConstraintTable {
     public:
         explicit LargeAgentConstraintTable(const std::vector<PosePtr<int, N>>& all_nodes,
-                                           const std::vector<AgentType>& agents,
+                                           const std::vector<AgentPtr<N> >& agents,
                                            const std::vector<size_t>& occupied_now,
                                            DimensionLength* dim)
         : agents_(agents), all_nodes_(all_nodes), occupied_now_(occupied_now), dim_(dim) {
@@ -182,7 +182,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
             // need check overlap between agent and agent if they both partially occupied the same grid
         };
 
-        const std::vector<AgentType>& agents_;
+        const std::vector<AgentPtr<N> >& agents_;
 
         const std::vector<PosePtr<int, N> >& all_nodes_;
 
@@ -197,11 +197,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
 
     // consider static grid map when construct sub graph
     // heck each pair of agent to see if they have conflict
-    template<Dimension N, typename AgentType>
+    template<Dimension N>
     struct LargeAgentConstraintTableForLarge {
     public:
         explicit LargeAgentConstraintTableForLarge(const std::vector<PosePtr<int, N>>& all_nodes,
-                                                   const std::vector<AgentType>& agents,
+                                                   const std::vector<AgentPtr<N> >& agents,
                                                    const std::vector<size_t>& occupied_now,
                                                    DimensionLength* dim)
         : agents_(agents), all_nodes_(all_nodes), occupied_now_(occupied_now), dim_(dim) {
@@ -258,7 +258,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
             occupied_now_[agent_id] = node_id;
         }
 
-        const std::vector<AgentType>& agents_;
+        const std::vector<AgentPtr<N> >& agents_;
 
         const std::vector<PosePtr<int, N> >& all_nodes_;
 

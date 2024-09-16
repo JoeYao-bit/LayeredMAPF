@@ -113,14 +113,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
     using Nodes = std::vector<Node *>;
 
     // PIBT agent
-    struct Agent {
+    struct AgentLaCAM {
         const int id;
         size_t v_now;   // current location
         size_t v_next;  // next location
-        Agent(int _id) : id(_id), v_now(-1), v_next(-1) {}
+        AgentLaCAM(int _id) : id(_id), v_now(-1), v_next(-1) {}
     };
 
-    using Agents = std::vector<Agent *>;
+    using AgentLaCAMs = std::vector<AgentLaCAM *>;
 
 // next location candidates, for saving memory allocation
     template <Dimension N>

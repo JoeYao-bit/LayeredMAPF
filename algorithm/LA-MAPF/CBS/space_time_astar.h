@@ -53,19 +53,19 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
     // debug: record all visited node during expansion and visualize,
     //       to find out why in some cases 10^7 nodes are created
-    template <Dimension N, typename AgentType>
-    class SpaceTimeAstar : public SingleAgentSolver<N, AgentType> {
+    template <Dimension N>
+    class SpaceTimeAstar : public SingleAgentSolver<N> {
     public:
         SpaceTimeAstar(const size_t& start_pose_id,
                        const size_t& target_pose_id,
                        const std::vector<int>& heuristic,
                        const std::vector<int>& heuristic_ignore_rotate,
-                       const SubGraphOfAgent<N, AgentType>& sub_graph,
-                       const ConstraintTable<N, AgentType>& constraint_table,
-                       const ConstraintAvoidanceTablePtr<N, AgentType>& constraint_avoidance_table,
-                       const LargeAgentStaticConstraintTablePtr<N, AgentType>& path_constraint,
+                       const SubGraphOfAgent<N>& sub_graph,
+                       const ConstraintTable<N>& constraint_table,
+                       const ConstraintAvoidanceTablePtr<N>& constraint_avoidance_table,
+                       const LargeAgentStaticConstraintTablePtr<N>& path_constraint,
                        ConnectivityGraph* connect_graph = nullptr
-        ) : SingleAgentSolver<N, AgentType>(start_pose_id, target_pose_id, heuristic, heuristic_ignore_rotate, sub_graph,
+        ) : SingleAgentSolver<N>(start_pose_id, target_pose_id, heuristic, heuristic_ignore_rotate, sub_graph,
                                         constraint_table, constraint_avoidance_table, path_constraint),
             connect_graph_(connect_graph) {
             //
@@ -213,7 +213,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                     // avoid conflict     with external paths
 //                    std::cout << " reach target = " << (next_node_id == this->target_node_id_) << std::endl;
                     if(this->path_constraint_ != nullptr &&
-                        this->path_constraint_->hasCollide(this->sub_graph_.agent_.id_, curr->timestep,
+                        this->path_constraint_->hasCollide(this->sub_graph_.agent_->id_, curr->timestep,
                                                            curr->node_id, next_node_id, next_node_id == this->target_node_id_)) {
                         continue;
                     }

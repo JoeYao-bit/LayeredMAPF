@@ -27,26 +27,26 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     // generator random agents and random start and target
     // interval: minimum resolution of sample
     template<Dimension N>
-    CircleAgents<N> RandomCircleAgentsGenerator(const int& num_of_agents,
+    AgentPtrs<N> RandomCircleAgentsGenerator(const int& num_of_agents,
                                                 const float& min_radius,
                                                 const float& max_radius,
                                                 const float& resolution,
                                                 DimensionLength* dim) {
         assert(min_radius <= max_radius);
 
-        CircleAgents<N> agents;
+        AgentPtrs<N> agents;
 
 
         float radius;
         for(int i=0; i<num_of_agents; i++) {
             radius = getValueWithResolution<float>(min_radius, max_radius, resolution);
-            agents.push_back(CircleAgent<N>(radius, i, dim));
+            agents.push_back(std::make_shared<CircleAgent<N> >(radius, i, dim));
         }
         agents.shrink_to_fit();
         return agents;
     }
 
-    BlockAgents_2D RandomBlock2DAgentsGenerator(const int& num_of_agents,
+    AgentPtrs<2> RandomBlock2DAgentsGenerator(const int& num_of_agents,
                                                 const float& min_min_x,
                                                 const float& max_min_x,
                                                 const float& min_max_x,
@@ -63,7 +63,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         assert(min_max_x <= max_max_x);
         assert(min_width <= max_width);
 
-        BlockAgents_2D agents;
+        AgentPtrs<2> agents;
         agents.reserve(num_of_agents);
         std::random_device rd;
         std::mt19937 *MT = new std::mt19937(rd());
@@ -83,7 +83,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             Pointf<2> min_pt, max_pt;
             min_pt[0] = min_x, min_pt[1] = -width;
             max_pt[0] = max_x, max_pt[1] = width;
-            BlockAgent_2D agent(min_pt, max_pt, i, dim);
+            auto agent = std::make_shared<BlockAgent_2D>(min_pt, max_pt, i, dim);
             agents.push_back(agent);
         }
         delete MT;
@@ -94,10 +94,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     // 1, all agent's start and target shouldn't conflict with other's start and target
     // 2, every agent can found a way to target
     // max_sample, sample for each agent, avoid infinite sample
-    template<Dimension N, typename AgentType>
+    template<Dimension N>
     struct LargeAgentMAPF_InstanceGenerator {
     public:
-            LargeAgentMAPF_InstanceGenerator(const std::vector<AgentType> &agents,
+            LargeAgentMAPF_InstanceGenerator(const std::vector<AgentPtr<N> > &agents,
                                              const IS_OCCUPIED_FUNC<N> &isoc,
                                              DimensionLength *dim,
                                              int max_sample = 100000)
@@ -333,7 +333,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
 //    private:
 
-        SubGraphOfAgent<N, AgentType> constructSubGraphOfAgent(const AgentType& agent) const {
+        SubGraphOfAgent<N> constructSubGraphOfAgent(const AgentPtr<N>& agent) const {
 //            Id total_index = getTotalIndexOfSpace<N>(dim_);
 //            assert(all_poses_.size() == total_index*2*N);
 //            SubGraphOfAgent<N> sub_graph;
@@ -397,7 +397,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             assert(all_poses_.size() == total_index*2*N);
 
-            SubGraphOfAgent<N, AgentType> sub_graph(agent);
+            SubGraphOfAgent<N> sub_graph(agent);
 
 
             sub_graph.all_nodes_.resize(total_index * 2 * N, nullptr);
@@ -408,7 +408,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             for(size_t id=0; id<all_poses_.size(); id++) {
                 if(all_poses_[id] != nullptr) {
                     const auto& current_pose = all_poses_[id];
-                    if(!agent.isCollide(*current_pose, dim_, isoc_, distance_map_updater_)) {
+                    if(!agent->isCollide(*current_pose, dim_, isoc_, distance_map_updater_)) {
                         sub_graph.all_nodes_[id] = current_pose;
                         count_of_nodes ++;
                     }
@@ -435,7 +435,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         PosePtr<int, N> another_node_ptr = sub_graph.all_nodes_[another_node_id];
                         if(another_node_ptr == nullptr) { continue; }
 
-                        if(!agent.isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, distance_map_updater_)) {
+                        if(!agent->isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, distance_map_updater_)) {
                             count_of_edges ++;
                             sub_graph.all_edges_[pose_id].push_back(another_node_id);
                             sub_graph.all_backward_edges_[another_node_id].push_back(pose_id);
@@ -451,7 +451,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         PosePtr<int, N> another_node_ptr = sub_graph.all_nodes_[another_node_id];
                         if(another_node_ptr == nullptr) { continue; }
                         // check whether can transfer to another node
-                        if(!agent.isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, distance_map_updater_)) {
+                        if(!agent->isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, distance_map_updater_)) {
                             count_of_edges ++;
                             sub_graph.all_edges_[pose_id].push_back(another_node_id);
                             sub_graph.all_backward_edges_[another_node_id].push_back(pose_id);
@@ -467,14 +467,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         InstanceOrients<N> instance_;
 
-        const std::vector<AgentType>& agents_;
+        const std::vector<AgentPtr<N> >& agents_;
         DimensionLength* dim_;
         const IS_OCCUPIED_FUNC<N>& isoc_;
 
         // intermediate variables
         std::vector<PosePtr<int, N> > all_poses_;
         DistanceMapUpdater<N> distance_map_updater_;
-        std::vector<SubGraphOfAgent<N, AgentType> > agent_sub_graphs_;
+        std::vector<SubGraphOfAgent<N> > agent_sub_graphs_;
         int max_sample_ = 1e5;
 
     };

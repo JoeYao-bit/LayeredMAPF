@@ -166,10 +166,10 @@ TEST(pointer, test) {
 
 }
 
-TEST(CircleAgentSubGraph, cbs_test) {
-    const std::string file_path = map_test_config.at("crc_ins_path");
+TEST(AgentSubGraph, cbs_test) {
+    const std::string file_path = map_test_config.at("la_ins_path");
 
-    InstanceDeserializer<2, CircleAgent<2> > deserializer;
+    InstanceDeserializer<2> deserializer;
     if (deserializer.loadInstanceFromFile(file_path, dim)) {
         std::cout << "load from path " << file_path << " success" << std::endl;
     } else {
@@ -178,32 +178,12 @@ TEST(CircleAgentSubGraph, cbs_test) {
     }
     std::cout << "map scale = " << dim[0] << "*" << dim[1] << std::endl;
 
-    LargeAgentMAPFInstanceDecompositionPtr<2, CircleAgent<2>> decomposer_ptr = nullptr;
+    LargeAgentMAPFInstanceDecompositionPtr<2> decomposer_ptr = nullptr;
     std::vector<std::vector<int> > grid_visit_count_table;
 
 
-    startLargeAgentMAPFTest<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2>> >(deserializer.getAgents(),
+    startLargeAgentMAPFTest<2, CBS::LargeAgentCBS<2> >(deserializer.getAgents(),
                                                                                     deserializer.getInstances());
-}
-
-TEST(BlockAgentSubGraph, cbs_test) {
-
-    const std::string file_path = map_test_config.at("blk_ins_path");
-
-    InstanceDeserializer<2, BlockAgent_2D > deserializer;
-    if (deserializer.loadInstanceFromFile(file_path, dim)) {
-        std::cout << "load from path " << file_path << " success" << std::endl;
-    } else {
-        std::cout << "load from path " << file_path << " failed" << std::endl;
-        return;
-    }
-    std::cout << "map scale = " << dim[0] << "*" << dim[1] << std::endl;
-
-    LargeAgentMAPFInstanceDecompositionPtr<2, BlockAgent_2D > decomposer_ptr = nullptr;
-    std::vector<std::vector<int> > grid_visit_count_table;
-
-    startLargeAgentMAPFTest<BlockAgent_2D, CBS::LargeAgentCBS<2, BlockAgent_2D> >(deserializer.getAgents(),
-                                                                                  deserializer.getInstances());
 }
 
 TEST(constraint_avoidance_table, test) {
@@ -213,13 +193,13 @@ TEST(constraint_avoidance_table, test) {
             {{{9, 2}, 0}, {{5, 22}, 0}},
             {{{2, 5}, 0}, {{17, 22}, 3}}
     };
-    CircleAgents<2> agents({
-                                   CircleAgent<2>(.3, 0, dim),
-                                   CircleAgent<2>(.7, 1, dim),
-                                   CircleAgent<2>(.6, 2, dim)
+    AgentPtrs<2> agents({
+                                   std::make_shared<CircleAgent<2> >(.3, 0, dim),
+                                   std::make_shared<CircleAgent<2> >(.7, 1, dim),
+                                   std::make_shared<CircleAgent<2> >(.6, 2, dim)
                            });
 
-    CBS::LargeAgentCBS<2, CircleAgent<2> > lacbs(instances, agents, dim, is_occupied);
+    CBS::LargeAgentCBS<2> lacbs(instances, agents, dim, is_occupied);
 
     if(!lacbs.solve(30)) {
         std::cout << "failed to solve" << std::endl;
@@ -227,7 +207,7 @@ TEST(constraint_avoidance_table, test) {
     std::cout << "validation of solution " << lacbs.solutionValidation() << std::endl;
     int agent_id = 2;
 
-    ConstraintAvoidanceTable<2, CircleAgent<2> > table(dim, lacbs.all_poses_, agents[0]);
+    ConstraintAvoidanceTable<2> table(dim, lacbs.all_poses_, agents[0]);
 
     table.insertAgentPathOccGrids(agents[0], lacbs.getSolution()[0]);
     table.insertAgentPathOccGrids(agents[1], lacbs.getSolution()[1]);
@@ -243,7 +223,7 @@ TEST(constraint_avoidance_table, test) {
 //        std::cout << " curr_node_id node " << *lacbs.all_poses_[curr_node_id]
 //                  << ", next_node_id node " << *lacbs.all_poses_[next_node_id] << std::endl;
 
-        Pointis<2> occ_grids = agents[agent_id].getTransferOccupiedGrid(*lacbs.all_poses_[curr_node_id],
+        Pointis<2> occ_grids = agents[agent_id]->getTransferOccupiedGrid(*lacbs.all_poses_[curr_node_id],
                                                                         *lacbs.all_poses_[next_node_id]);
 
         int num_of_conf = table.getNumOfConflictsForStep(occ_grids, 3, t);
