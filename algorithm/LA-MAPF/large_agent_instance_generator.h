@@ -91,6 +91,40 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return agents;
     }
 
+    AgentPtrs<2> RandomMixedAgentsGenerator(const int& num_of_circle_agents,
+                                            const float& min_radius,
+                                            const float& max_radius,
+                                            const int& num_of_block_agents,
+                                            const float& min_min_x,
+                                            const float& max_min_x,
+                                            const float& min_max_x,
+                                            const float& max_max_x,
+                                            const float& min_width,
+                                            const float& max_width,
+                                            const float& resolution,
+                                            DimensionLength* dim) {
+
+        AgentPtrs<2> circle_agents = RandomCircleAgentsGenerator<2>(num_of_circle_agents,
+                                                                    min_radius, max_radius,
+                                                                    resolution,
+                                                                    dim);
+
+        AgentPtrs<2> block_agents = RandomBlock2DAgentsGenerator(num_of_block_agents,
+                                                                 min_min_x, max_min_x,
+                                                                 min_max_x, max_max_x,
+                                                                 min_width, max_width,
+                                                                 resolution, dim);
+
+        // update inner id of agent
+        for(int i=0; i<block_agents.size(); i++) {
+            block_agents[i]->id_ += circle_agents.size();
+        }
+
+        circle_agents.insert(circle_agents.end(), block_agents.begin(), block_agents.end());
+
+        return circle_agents;
+    }
+
     // 1, all agent's start and target shouldn't conflict with other's start and target
     // 2, every agent can found a way to target
     // max_sample, sample for each agent, avoid infinite sample

@@ -68,6 +68,8 @@ namespace freeNav::LayeredMAPF{
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"}, // in second
                     {"la_ins_path", "../test/test_data/large_agent_instance/maze-32-32-4_la.txt"},
+                    {"la_comp_path", "../test/test_data/large_agent_instance/maze-32-32-4_la_comp.txt"}
+
             };
 
     SingleMapTestConfig<2> MAPFTestConfig_Berlin_1_256 =
@@ -82,7 +84,9 @@ namespace freeNav::LayeredMAPF{
                     {"agent_num",    "900"}, // 600
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"}, // in second
-                    {"la_ins_path", "../test/test_data/large_agent_instance/Berlin_1_256_la.txt"}
+                    {"la_ins_path", "../test/test_data/large_agent_instance/Berlin_1_256_la.txt"},
+                    {"la_comp_path", "../test/test_data/large_agent_instance/Berlin_1_256_la_comp.txt"}
+
             };
 
     SingleMapTestConfig<2> MAPFTestConfig_den520d =
@@ -111,7 +115,9 @@ namespace freeNav::LayeredMAPF{
                     {"agent_num",    "1000"},
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"}, // in second
-                    {"la_ins_path", "../test/test_data/large_agent_instance/Paris_1_256_la.txt"}
+                    {"la_ins_path", "../test/test_data/large_agent_instance/Paris_1_256_la.txt"},
+                    {"la_comp_path", "../test/test_data/large_agent_instance/Paris_1_256_la_comp.txt"}
+
             };
 
     SingleMapTestConfig<2> MAPFTestConfig_Boston_0_256 =
@@ -142,6 +148,7 @@ namespace freeNav::LayeredMAPF{
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"}, // in second
                     {"la_ins_path", "../test/test_data/large_agent_instance/warehouse-10-20-10-2-1_la.txt"},
+                    {"la_comp_path", "../test/test_data/large_agent_instance/warehouse-10-20-10-2-1_la_comp.txt"}
             };
 
     // empty-32-32
@@ -187,6 +194,8 @@ namespace freeNav::LayeredMAPF{
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"}, // in second
                     {"la_ins_path", "../test/test_data/large_agent_instance/empty-48-48_la.txt"},
+                    {"la_comp_path", "../test/test_data/large_agent_instance/empty-48-48_la_comp.txt"}
+
             };
 
     // simple

@@ -87,9 +87,34 @@ TEST(GenerateBlock_2DInstance, test)
 
 };
 
-bool use_circle_agent = true;
+TEST(GenerateMixedInstance, test)
+{
 
-TEST(LoadleInstance_CBS, test)
+    AgentPtrs<2> agents = RandomMixedAgentsGenerator(10, .4, 2.3,
+                                                     10,
+                                                     -1.4, -.2,
+                                                     .2, 1.4,
+                                                     .2, 1.4,
+                                                     .1, dim);
+
+    generateInstanceAndPlanning<2> (agents,
+                                    map_test_config.at("la_ins_path"),
+                                    CBS::LargeAgentCBS_func<2>,
+                                    1e4, true, true);
+
+//    generateInstance<CircleAgent<2>,
+//        LaCAM::LargeAgentLaCAM<2, CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >
+//        (agents, map_test_config.at("la_ins_path"));
+
+};
+
+TEST(LoadInstanceAndVisualize, test) {
+    const std::string file_path = map_test_config.at("la_ins_path");
+
+    loadInstanceAndVisualize<2>(file_path);
+}
+
+TEST(LoadInstance_CBS, test)
 {
     const std::string file_path = map_test_config.at("la_ins_path");
 
@@ -99,8 +124,6 @@ TEST(LoadleInstance_CBS, test)
 
     // LargeAgentConstraintTableForLarge
     // LargeAgentConstraintTable
-
-//    loadInstanceAndPlanning<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > >(file_path, 30);
 
     loadInstanceAndPlanningLayeredLAMAPF<2>(CBS::LargeAgentCBS_func<2>,
                                                         file_path, 60, false, true);
@@ -269,17 +292,25 @@ TEST(Decomposition, test) {
 
 TEST(Multi_Generate_Agent_And_Compare, test) {
     int count_of_test = 2;
-    int maximum_agents = 1;
-    int agent_interval = 1;
+    int maximum_agents = 20;
+    int agent_interval = 2;
     clearFile(map_test_config.at("la_comp_path"));
     for (int i = 0; i < count_of_test; i++) {
         for(int count_of_agent = agent_interval; count_of_agent<= maximum_agents; count_of_agent += agent_interval) {
 
 
-            const AgentPtrs<2> &agents = RandomCircleAgentsGenerator<2>(count_of_agent,
-                                                                           .4, 1.4,
-                                                                           .1,
-                                                                           dim);
+//            const AgentPtrs<2> &agents = RandomCircleAgentsGenerator<2>(count_of_agent,
+//                                                                           .4, 1.4,
+//                                                                           .1,
+//                                                                           dim);
+
+            AgentPtrs<2> agents = RandomMixedAgentsGenerator(count_of_agent/2,
+                                                             .4, 2.3,
+                                                             count_of_agent/2,
+                                                             -1.4, -.2,
+                                                             .2, 1.4,
+                                                             .2, 1.4,
+                                                             .1, dim);
 
             auto strs = generateInstanceAndCompare<2>(agents,
                                                                      map_test_config.at("la_ins_path"),

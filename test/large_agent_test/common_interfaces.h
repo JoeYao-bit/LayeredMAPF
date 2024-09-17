@@ -53,7 +53,7 @@ bool draw_visit_grid_table = false;
 // MAPFTestConfig_warehouse_10_20_10_2_2
 // MAPFTestConfig_Paris_1_256
 // MAPFTestConfig_simple
-// MAPFTestConfig_empty_48_48 // error
+// MAPFTestConfig_empty_48_48 //
 // MAPFTestConfig_warehouse_20_40_10_2_1
 // MAPFTestConfig_warehouse_20_40_10_2_2
 // MAPFTestConfig_room_32_32_4
@@ -64,7 +64,7 @@ bool draw_visit_grid_table = false;
 // MAPFTestConfig_AR0014SR
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
-auto map_test_config = MAPFTestConfig_AR0011SR;
+auto map_test_config = MAPFTestConfig_empty_48_48;
 // MAPFTestConfig_Paris_1_256 //  pass
 // MAPFTestConfig_Berlin_1_256; // pass
 // MAPFTestConfig_maze_32_32_4; // pass
@@ -503,6 +503,36 @@ void loadInstanceAndPlanning(const std::string& file_path, double time_limit = 3
 
 //LaCAM::LargeAgentConstraints<2, BlockAgent_2D>
 template<Dimension N>
+void loadInstanceAndVisualize(const std::string& file_path) {
+    InstanceDeserializer<N> deserializer;
+    if(deserializer.loadInstanceFromFile(file_path, dim)) {
+        std::cout << "load from path " << file_path << " success" << std::endl;
+    } else {
+        std::cout << "load from path " << file_path << " failed" << std::endl;
+        return;
+    }
+    std::cout << " map scale " << dim[0] << "*" << dim[1] << std::endl;
+
+    // debug: print all agents and instance
+    std::cout << "Instance: " << std::endl;
+    std::vector<std::string> strs = deserializer.getTextString();
+    for(const auto& str : strs) {
+        std::cout << str << std::endl;
+    }
+    std::cout << std::endl;
+
+    LargeAgentMAPF_InstanceGenerator<N> generator(deserializer.getAgents(), is_occupied, dim);
+
+    InstanceVisualization(deserializer.getAgents(),
+                          generator.getAllPoses(),
+                          deserializer.getInstances(),
+                          {},
+                          {});
+
+}
+
+//LaCAM::LargeAgentConstraints<2, BlockAgent_2D>
+template<Dimension N>
 void loadInstanceAndPlanningLayeredLAMAPF(const LA_MAPF_FUNC<N>& mapf_func,
                                           const std::string& file_path,
                                           double time_limit = 30,
@@ -639,7 +669,6 @@ void generateInstanceAndPlanning(const std::vector<AgentPtr<N> >& agents,
                                  bool debug_mode = true,
                                  bool visualize = false) {
 
-    //    InstanceVisualization<AgentType>(agents, generator.getAllPoses(), instances, solution);
     //    loadInstanceAndPlanning<AgentType, MethodType>(file_path);
     generateInstance(agents, file_path, mapf_func, maximum_sample_count);
     loadInstanceAndPlanningLayeredLAMAPF<N>(mapf_func, file_path, 60, false, debug_mode, visualize);
