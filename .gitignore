@@ -18,3 +18,4 @@ venv/
 pic/
 *.txt
 *.zip
+test_data/
