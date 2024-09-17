@@ -68,7 +68,8 @@ namespace freeNav::LayeredMAPF{
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"}, // in second
                     {"la_ins_path", "../test/test_data/large_agent_instance/maze-32-32-4_la.txt"},
-                    {"la_comp_path", "../test/test_data/large_agent_instance/maze-32-32-4_la_comp.txt"}
+                    {"la_comp_path", "../test/test_data/large_agent_instance/maze-32-32-4_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/maze-32-32-4_la_dec.txt"}
 
             };
 
@@ -85,7 +86,8 @@ namespace freeNav::LayeredMAPF{
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"}, // in second
                     {"la_ins_path", "../test/test_data/large_agent_instance/Berlin_1_256_la.txt"},
-                    {"la_comp_path", "../test/test_data/large_agent_instance/Berlin_1_256_la_comp.txt"}
+                    {"la_comp_path", "../test/test_data/large_agent_instance/Berlin_1_256_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/Berlin_1_256_la_dec.txt"}
 
             };
 
@@ -116,7 +118,8 @@ namespace freeNav::LayeredMAPF{
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"}, // in second
                     {"la_ins_path", "../test/test_data/large_agent_instance/Paris_1_256_la.txt"},
-                    {"la_comp_path", "../test/test_data/large_agent_instance/Paris_1_256_la_comp.txt"}
+                    {"la_comp_path", "../test/test_data/large_agent_instance/Paris_1_256_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/Paris_1_256_la_dec.txt"}
 
             };
 
@@ -148,7 +151,8 @@ namespace freeNav::LayeredMAPF{
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"}, // in second
                     {"la_ins_path", "../test/test_data/large_agent_instance/warehouse-10-20-10-2-1_la.txt"},
-                    {"la_comp_path", "../test/test_data/large_agent_instance/warehouse-10-20-10-2-1_la_comp.txt"}
+                    {"la_comp_path", "../test/test_data/large_agent_instance/warehouse-10-20-10-2-1_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/warehouse-10-20-10-2-1_la_dec.txt"}
             };
 
     // empty-32-32
@@ -194,7 +198,8 @@ namespace freeNav::LayeredMAPF{
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"}, // in second
                     {"la_ins_path", "../test/test_data/large_agent_instance/empty-48-48_la.txt"},
-                    {"la_comp_path", "../test/test_data/large_agent_instance/empty-48-48_la_comp.txt"}
+                    {"la_comp_path", "../test/test_data/large_agent_instance/empty-48-48_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/empty-48-48_la_dec.txt"}
 
             };
 
@@ -213,6 +218,7 @@ namespace freeNav::LayeredMAPF{
                     {"max_run_time", "60"}, // in second
                     {"la_ins_path", "../test/test_data/large_agent_instance/simple_la.txt"},
                     {"la_comp_path", "../test/test_data/large_agent_instance/simple_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/simple_la_dec.txt"}
             };
 
     //
@@ -335,6 +341,7 @@ namespace freeNav::LayeredMAPF{
                     {"max_run_time", "60"}, // in second
                     {"la_ins_path", "../test/test_data/large_agent_instance/room-64-64-8_la.txt"},
                     {"la_comp_path", "../test/test_data/large_agent_instance/room-64-64-8_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/room-64-64-8_la_dec.txt"}
             };
 
     // room-32-32-4
@@ -352,6 +359,8 @@ namespace freeNav::LayeredMAPF{
                     {"max_run_time", "60"}, // in second
                     {"la_ins_path", "../test/test_data/large_agent_instance/room-32-32-4_la.txt"},
                     {"la_comp_path", "../test/test_data/large_agent_instance/room-32-32-4_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/room-32-32-4_la_dec.txt"}
+
             };
 
     // warehouse-10-20-10-2-2
@@ -369,6 +378,7 @@ namespace freeNav::LayeredMAPF{
                     {"max_run_time", "60"}, // in second
                     {"la_ins_path", "../test/test_data/large_agent_instance/warehouse-10-20-10-2-2_la.txt"},
                     {"la_comp_path", "../test/test_data/large_agent_instance/warehouse-10-20-10-2-2_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/warehouse-10-20-10-2-2_la_dec.txt"}
             };
 
     // warehouse-20-40-10-2-1
@@ -386,6 +396,7 @@ namespace freeNav::LayeredMAPF{
                     {"max_run_time", "60"}, // in second
                     {"la_ins_path", "../test/test_data/large_agent_instance/warehouse-20-40-10-2-1_la.txt"},
                     {"la_comp_path", "../test/test_data/large_agent_instance/warehouse-20-40-10-2-1_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/warehouse-20-40-10-2-1_la_dec.txt"}
             };
 
     // warehouse-20-40-10-2-2
@@ -402,7 +413,8 @@ namespace freeNav::LayeredMAPF{
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"}, // in second
                     {"la_ins_path", "../test/test_data/large_agent_instance/warehouse-20-40-10-2-2_la.txt"},
-                    {"la_comp_path", "../test/test_data/large_agent_instance/warehouse-20-40-10-2-2_la_comp.txt"}
+                    {"la_comp_path", "../test/test_data/large_agent_instance/warehouse-20-40-10-2-2_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/warehouse-20-40-10-2-2_la_dec.txt"}
             };
 
     // lt_gallowstemplar_n
@@ -420,6 +432,7 @@ namespace freeNav::LayeredMAPF{
                     {"max_run_time", "60"}, // in second
                     {"la_ins_path", "../test/test_data/large_agent_instance/lt_gallowstemplar_n_la.txt"},
                     {"la_comp_path", "../test/test_data/large_agent_instance/lt_gallowstemplar_n_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/lt_gallowstemplar_n_la_dec.txt"}
             };
 
     // ost003d
@@ -452,6 +465,8 @@ namespace freeNav::LayeredMAPF{
                     {"max_run_time", "60"}, // in second
                     {"la_ins_path", "../test/test_data/large_agent_instance/AR0011SR_la.txt"},
                     {"la_comp_path", "../test/test_data/large_agent_instance/AR0011SR_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/AR0011SR_la_dec.txt"}
+
             };
 
     // AR0012SR
@@ -468,7 +483,9 @@ namespace freeNav::LayeredMAPF{
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"}, // in second
                     {"la_ins_path", "../test/test_data/large_agent_instance/AR0012SR_la.txt"},
-                    {"la_comp_path", "../test/test_data/large_agent_instance/AR0012SR_la_comp.txt"}
+                    {"la_comp_path", "../test/test_data/large_agent_instance/AR0012SR_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/AR0012SR_la_dec.txt"}
+
             };
 
     // AR0013SR
@@ -485,7 +502,9 @@ namespace freeNav::LayeredMAPF{
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"}, // in second
                     {"la_ins_path", "../test/test_data/large_agent_instance/AR0013SR_la.txt"},
-                    {"la_comp_path", "../test/test_data/large_agent_instance/AR0013SR_la_comp.txt"}
+                    {"la_comp_path", "../test/test_data/large_agent_instance/AR0013SR_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/AR0013SR_la_dec.txt"}
+
             };
 
     // AR0014SR
@@ -502,7 +521,9 @@ namespace freeNav::LayeredMAPF{
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"}, // in second
                     {"la_ins_path", "../test/test_data/large_agent_instance/AR0014SR_la.txt"},
-                    {"la_comp_path", "../test/test_data/large_agent_instance/AR0014SR_la_comp.txt"}
+                    {"la_comp_path", "../test/test_data/large_agent_instance/AR0014SR_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/AR0014SR_la_dec.txt"}
+
             };
 
     // AR0015SR
@@ -519,7 +540,9 @@ namespace freeNav::LayeredMAPF{
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"}, // in second
                     {"la_ins_path", "../test/test_data/large_agent_instance/AR0015SR_la.txt"},
-                    {"la_comp_path", "../test/test_data/large_agent_instance/AR0015SR_la_comp.txt"}
+                    {"la_comp_path", "../test/test_data/large_agent_instance/AR0015SR_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/AR0015SR_la_dec.txt"}
+
             };
 
     // AR0016SR
@@ -536,7 +559,9 @@ namespace freeNav::LayeredMAPF{
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"}, // in second
                     {"la_ins_path", "../test/test_data/large_agent_instance/AR0016SR_la.txt"},
-                    {"la_comp_path", "../test/test_data/large_agent_instance/AR0016SR_la_comp.txt"}
+                    {"la_comp_path", "../test/test_data/large_agent_instance/AR0016SR_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/AR0016SR_la_dec.txt"}
+
             };
 
     // TODO: add map from Baldurs Gate II (published September, 2000), like AR0011SR.map

@@ -24,7 +24,7 @@
 #include "../../algorithm/LA-MAPF/CBS/layered_large_agent_CBS.h"
 
 #include "../../algorithm/LA-MAPF/laryered_large_agent_mapf.h"
-
+#include "../../freeNav-base/dependencies/memory_analysis.h"
 
 using namespace freeNav;
 using namespace freeNav::LayeredMAPF;
@@ -593,7 +593,6 @@ void loadInstanceAndPlanningLayeredLAMAPF(const LA_MAPF_FUNC<N>& mapf_func,
 template<Dimension N>
 void generateInstance(const std::vector<AgentPtr<N> >& agents,
                       const std::string& file_path,
-                      const LA_MAPF_FUNC<2>& mapf_func,
                       int maximum_sample_count = 1e7) {
     gettimeofday(&tv_pre, &tz);
 
@@ -670,7 +669,7 @@ void generateInstanceAndPlanning(const std::vector<AgentPtr<N> >& agents,
                                  bool visualize = false) {
 
     //    loadInstanceAndPlanning<AgentType, MethodType>(file_path);
-    generateInstance(agents, file_path, mapf_func, maximum_sample_count);
+    generateInstance(agents, file_path, maximum_sample_count);
     loadInstanceAndPlanningLayeredLAMAPF<N>(mapf_func, file_path, 60, false, debug_mode, visualize);
 }
 
@@ -842,6 +841,7 @@ void loadInstanceAndDecomposition(const std::string& file_path) {
     InstanceDecompositionVisualization(decomposer);
 }
 
+MemoryRecorder memory_recorder(1);
 
 //LaCAM::LargeAgentConstraints<2, BlockAgent_2D>
 template<Dimension N>
@@ -879,6 +879,9 @@ std::vector<std::string> loadInstanceAndCompareLayeredLAMAPF(const LA_MAPF_FUNC<
     std::vector<std::vector<int> > grid_visit_count_table_layered;
 
     LargeAgentMAPFInstanceDecompositionPtr<N> decomposer_ptr = nullptr;
+    memory_recorder.clear();
+    sleep(1);
+    float base_usage = memory_recorder.getCurrentMemoryUsage();
     auto start_t = clock();
     auto layered_paths = layeredLargeAgentMAPF<N>(deserializer.getInstances(),
                                                              deserializer.getAgents(),
@@ -889,21 +892,29 @@ std::vector<std::string> loadInstanceAndCompareLayeredLAMAPF(const LA_MAPF_FUNC<
                                                              path_constraint,
                                                              debug_mode);
     auto end_t = clock();
+    sleep(1);
+    float peak_usage = memory_recorder.getMaximalMemoryUsage();
+    float memory_usage = peak_usage - base_usage;
+
     double total_time_cost = ((double)end_t - start_t)/CLOCKS_PER_SEC;
     std::cout << "instance has " << deserializer.getAgents().size() << " agents, layered CBS find solution ? " << !layered_paths.empty()
               << " in " << total_time_cost << "s " << std::endl;
 
     // agents size / time cost / success / SOC / makespan / decom 1 time cost / decom 2 time cost / decom 3 time cost
     std::stringstream ss_layered;
-    ss_layered << "LAYERED "  << func_identifer << " " << deserializer.getAgents().size() << " "
-               << total_time_cost << " " << !layered_paths.empty() << " "
+    ss_layered << "LAYERED_"  << func_identifer << " " << deserializer.getAgents().size() << " "
+               << total_time_cost << " "
                << getSOC(layered_paths) << " " << getMakeSpan(layered_paths) << " "
+               << !layered_paths.empty() << " " << memory_usage << " "
 
-               << decomposer_ptr->initialize_time_cost_ << " "
-               << decomposer_ptr->instance_decomposition_time_cost_ << " "
+               //<< decomposer_ptr->initialize_time_cost_ << " "
+               //<< decomposer_ptr->instance_decomposition_time_cost_ << " "
                << decomposer_ptr->cluster_bipartition_time_cost_ << " "
                << decomposer_ptr->level_sorting_time_cost_;
 
+    memory_recorder.clear();
+    sleep(1);
+    base_usage = memory_recorder.getCurrentMemoryUsage();
     start_t = clock();
     std::vector<std::vector<int> > grid_visit_count_table_raw;
     auto raw_paths = mapf_func(deserializer.getInstances(),
@@ -914,15 +925,20 @@ std::vector<std::string> loadInstanceAndCompareLayeredLAMAPF(const LA_MAPF_FUNC<
                                time_limit,
                                {}, nullptr, {}, {}, {}, nullptr); // default null config for layered MAPF
     end_t = clock();
+    sleep(1);
+    peak_usage = memory_recorder.getMaximalMemoryUsage();
+    memory_usage = peak_usage - base_usage;
+
     total_time_cost = ((double)end_t - start_t)/CLOCKS_PER_SEC;
     std::cout << "instance has " << deserializer.getAgents().size() << " agents, raw CBS find solution ? " << !raw_paths.empty()
               << " in " << total_time_cost << "s " << std::endl;
 
     // agents size / time cost / success / SOC / makespan
     std::stringstream ss_raw;
-    ss_raw << "RAW " << func_identifer << " " << deserializer.getAgents().size() << " "
-           << total_time_cost << " " << !raw_paths.empty() << " "
-           << getSOC(raw_paths) << " " << getMakeSpan(raw_paths);
+    ss_raw << "RAW_" << func_identifer << " " << deserializer.getAgents().size() << " "
+           << total_time_cost << " "
+           << getSOC(raw_paths) << " " << getMakeSpan(raw_paths) << " "
+           << !raw_paths.empty() << " " << memory_usage;
 
     std::vector<std::string> retv;
     retv.push_back(ss_layered.str());
@@ -941,7 +957,7 @@ std::vector<std::string> generateInstanceAndCompare(const std::vector<AgentPtr<N
                                                     bool path_constraint = false,
                                                     int maximum_sample_count = 1e7,
                                                     bool debug_mode = false) {
-    generateInstance(agents, file_path, mapf_func, maximum_sample_count);
+    generateInstance(agents, file_path, maximum_sample_count);
     auto retv = loadInstanceAndCompareLayeredLAMAPF<N>(mapf_func,
                                                                   func_identifer,
                                                                   file_path,
@@ -963,6 +979,62 @@ void writeStrsToEndOfFile(const std::vector<std::string>& strs, const std::strin
         os << strs[i] << "\n";
     }
     os.close();
+}
+
+
+template<Dimension N>
+bool decompositionOfSingleInstance(const InstanceOrients<N> & instances,
+                                   const std::vector<AgentPtr<N> >& agents,
+                                   DimensionLength* dim,
+                                   const IS_OCCUPIED_FUNC<N> & isoc,
+                                   OutputStream& outputStream, int level=3) {
+
+    struct timezone tz;
+    struct timeval tv_pre;
+    struct timeval tv_after;
+
+    memory_recorder.clear();
+    sleep(1);
+    float basic_usage = memory_recorder.getMaximalMemoryUsage();
+    gettimeofday(&tv_pre, &tz);
+
+    auto instance_decompose = std::make_shared<LargeAgentMAPFInstanceDecomposition<N> >(instances,
+                                                                                        agents,
+                                                                                        dim,
+                                                                                        is_occupied,
+                                                                                        true,
+                                                                                        level,
+                                                                                        true);
+
+    gettimeofday(&tv_after, &tz);
+    sleep(1);
+    float peak_usage = memory_recorder.getMaximalMemoryUsage();
+    float memory_usage = peak_usage - basic_usage;
+    double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
+    bool is_legal = true;//instance_decompose->decompositionValidCheck(instance_decompose->all_clusters_);
+
+    int max_cluster_size = 0, total_count = 0;
+    for(int i=0; i<instance_decompose->all_clusters_.size(); i++) {
+        total_count += instance_decompose->all_clusters_[i].size();
+        if(instance_decompose->all_clusters_[i].size() > max_cluster_size) {
+            max_cluster_size = instance_decompose->all_clusters_[i].size();
+        }
+        //if(all_clusters_[i].size() == 1) { continue; }
+        //std::cout << "-- clusters " << i << " size " << all_clusters_[i].size() << ": " << all_clusters_[i] << std::endl;
+    }
+    assert(total_count == instances.size());
+    outputStream.clear();
+    std::stringstream ss;
+    ss << " " << time_cost << " " << max_cluster_size << " " << instances.size() << " "
+       << is_legal << " " << level << " " << memory_usage << " "
+       << instance_decompose->all_clusters_.size() << " "
+       << instance_decompose->instance_decomposition_time_cost_ << " "
+       << instance_decompose->cluster_bipartition_time_cost_ << " "
+       << instance_decompose->level_sorting_time_cost_ << " ";
+
+    outputStream = ss.str();
+    std::cout << " memory_usage = " << memory_usage << std::endl;
+    return is_legal;
 }
 
 

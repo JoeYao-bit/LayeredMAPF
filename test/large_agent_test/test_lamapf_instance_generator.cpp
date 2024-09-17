@@ -290,10 +290,13 @@ TEST(Decomposition, test) {
     Decomposition_test();
 }
 
-TEST(Multi_Generate_Agent_And_Compare, test) {
-    int count_of_test = 2;
-    int maximum_agents = 20;
-    int agent_interval = 2;
+void multiGenerateAgentAndCompare(const SingleMapTestConfig<2>& map_file,
+                                  int count_of_test,
+                                  int maximum_agents,
+                                  int agent_interval) {
+    map_test_config = map_file;
+    loader = TextMapLoader(map_test_config.at("map_path"), is_char_occupied1);
+
     clearFile(map_test_config.at("la_comp_path"));
     for (int i = 0; i < count_of_test; i++) {
         for(int count_of_agent = agent_interval; count_of_agent<= maximum_agents; count_of_agent += agent_interval) {
@@ -313,17 +316,101 @@ TEST(Multi_Generate_Agent_And_Compare, test) {
                                                              .1, dim);
 
             auto strs = generateInstanceAndCompare<2>(agents,
-                                                                     map_test_config.at("la_ins_path"),
-                                                                     CBS::LargeAgentCBS_func<2>, //LaCAM::LargeAgentLaCAM_func<2>,
-                                                                     std::string("LA_CBS"),
-                                                                     30,
-                                                                     false,
-                                                                     1e4, true);
+                                                      map_test_config.at("la_ins_path"),
+                                                      CBS::LargeAgentCBS_func<2>, //LaCAM::LargeAgentLaCAM_func<2>,
+                                                      std::string("CBS"),
+                                                      30,
+                                                      false,
+                                                      1e4, true);
 
             for (const auto &str : strs) {
                 std::cout << str << std::endl;
             }
             writeStrsToEndOfFile(strs, map_test_config.at("la_comp_path"));
         }
+    }
+
+}
+
+TEST(Multi_Generate_Agent_And_Compare, test) {
+
+
+    std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int> >
+            map_configs = {{MAPFTestConfig_Paris_1_256, 1, 12, 4},
+                           {MAPFTestConfig_empty_48_48, 1, 12, 4},
+                           };
+
+    for(const auto& file_config : map_configs) {
+        multiGenerateAgentAndCompare(std::get<0>(file_config), std::get<1>(file_config),
+                                     std::get<2>(file_config), std::get<3>(file_config));
+    }
+}
+
+void multiGenerateAgentAndDecomposition(const SingleMapTestConfig<2>& map_file,
+                                        int count_of_test,
+                                        int maximum_agents,
+                                        int agent_interval) {
+    map_test_config = map_file;
+    loader = TextMapLoader(map_test_config.at("map_path"), is_char_occupied1);
+
+    clearFile(map_test_config.at("la_dec_path"));
+    for (int i = 0; i < count_of_test; i++) {
+        for(int count_of_agent = agent_interval; count_of_agent<= maximum_agents; count_of_agent += agent_interval) {
+
+
+//            const AgentPtrs<2> &agents = RandomCircleAgentsGenerator<2>(count_of_agent,
+//                                                                           .4, 1.4,
+//                                                                           .1,
+//                                                                           dim);
+
+            AgentPtrs<2> agents = RandomMixedAgentsGenerator(count_of_agent/2,
+                                                             .4, 2.3,
+                                                             count_of_agent/2,
+                                                             -1.4, -.2,
+                                                             .2, 1.4,
+                                                             .2, 1.4,
+                                                             .1, dim);
+
+            generateInstance<2>(agents, map_test_config.at("la_ins_path"), 1e4);
+
+            InstanceDeserializer<2> deserializer;
+            if(deserializer.loadInstanceFromFile(map_test_config.at("la_ins_path"), dim)) {
+                std::cout << "load from path " << map_test_config.at("la_ins_path") << " success" << std::endl;
+            } else {
+                std::cout << "load from path " << map_test_config.at("la_ins_path") << " failed" << std::endl;
+                return;
+            }
+
+            std::vector<OutputStream> strs;
+            OutputStream str;
+            decompositionOfSingleInstance<2>(deserializer.getInstances(), deserializer.getAgents(),
+                                             dim, is_occupied, str, 1);
+            strs.push_back(str);
+
+            decompositionOfSingleInstance<2>(deserializer.getInstances(), deserializer.getAgents(),
+                                             dim, is_occupied, str, 2);
+            strs.push_back(str);
+
+            decompositionOfSingleInstance<2>(deserializer.getInstances(), deserializer.getAgents(),
+                                             dim, is_occupied, str, 3);
+            strs.push_back(str);
+
+            for (const auto &str : strs) {
+                std::cout << str << std::endl;
+            }
+            writeStrsToEndOfFile(strs, map_test_config.at("la_dec_path"));
+        }
+    }
+}
+
+TEST(Multi_Generate_Agent_And_Decomposition, test) {
+    std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int> >
+            map_configs = {{MAPFTestConfig_Paris_1_256, 1, 12, 4},
+                           {MAPFTestConfig_empty_48_48, 1, 12, 4},
+    };
+
+    for(const auto& file_config : map_configs) {
+        multiGenerateAgentAndDecomposition(std::get<0>(file_config), std::get<1>(file_config),
+                                           std::get<2>(file_config), std::get<3>(file_config));
     }
 }

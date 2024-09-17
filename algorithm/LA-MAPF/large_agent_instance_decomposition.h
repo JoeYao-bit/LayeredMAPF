@@ -40,6 +40,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             assert(decompose_level >= 0 && decompose_level <= 3);
 
             std::cout << "debug_mode: " << debug_mode_ << std::endl;
+            std::cout << "level: " << decompose_level << std::endl;
 
             struct timezone tz;
             struct timeval  tv_pre;
