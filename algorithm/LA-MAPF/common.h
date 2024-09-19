@@ -178,6 +178,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return os;
     }
 
+    template <typename T>
+    std::ostream& operator << (std::ostream& os, const std::set<T>& set_to_print) {
+        for(const auto& data : set_to_print) {
+            os << data << " ";
+        }
+        return os;
+    }
+
 
     template<Dimension N>
     using AgentPtr = std::shared_ptr<Agent<N> >;

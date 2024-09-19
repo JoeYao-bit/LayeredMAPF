@@ -235,6 +235,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                    double cutoff_time = 60,
                                                    LargeAgentMAPFInstanceDecompositionPtr<N>& decomposer_copy = nullptr,
                                                    bool use_path_constraint = false,
+                                                   bool level_of_decomposition = 4,
                                                    bool debug_mode = true
                                                    ) {
 
@@ -245,7 +246,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         LargeAgentMAPFInstanceDecompositionPtr<N> decomposer =
                 std::make_shared<LargeAgentMAPFInstanceDecomposition<N> >(instances,
-                                                                     agents, dim, isoc, true, 3, debug_mode);
+                                                                     agents, dim, isoc, true, level_of_decomposition, debug_mode);
 
         decomposer_copy = decomposer;
 

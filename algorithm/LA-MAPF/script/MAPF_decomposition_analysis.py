@@ -26,10 +26,12 @@ def loadDataFromfile(file_path):
                 new_data.memory_usage      = float(splited_line[5])
                 new_data.num_of_subproblem = float(splited_line[6])
                 
-                new_data.level_1           = float(splited_line[7])
-                new_data.level_2           = float(splited_line[8])
-                new_data.level_3           = float(splited_line[9])
-                
+                new_data.init_time_cost    = float(splited_line[7])
+                new_data.level_1_time_cost = float(splited_line[8])
+                new_data.level_2_time_cost = float(splited_line[9])
+                new_data.level_3_time_cost = float(splited_line[10])
+                new_data.level_4_time_cost = float(splited_line[11])
+
                 data_list.append(new_data)
     except Exception as e:            
         print(e)       
@@ -43,10 +45,12 @@ class LineData:
     level             = 0
     memory_usage      = 0.
     num_of_subproblem = 0
-    level_1           = 0.
-    level_2           = 0.
-    level_3           = 0.
-        
+    
+    init_time_cost    = 0.
+    level_1_time_cost = 0.
+    level_2_time_cost = 0.
+    level_3_time_cost = 0.
+    level_4_time_cost = 0.    
 
 # all data in a txt file
 class SingleTestData:
@@ -58,7 +62,7 @@ def drawMethodMap(single_map_data, value_type):
     fig = plt.figure(figsize=(5,3.5)) #添加绘图框
     map_name = single_map_data.map_name
     
-    all_raw_data = [dict(), dict(), dict()]
+    all_raw_data = [dict(), dict(), dict(), dict()]
 
 
     for data in single_map_data.data_list:
@@ -73,8 +77,9 @@ def drawMethodMap(single_map_data, value_type):
             all_raw_data[0][total_size] = list()
             all_raw_data[1][total_size] = list()
             all_raw_data[2][total_size] = list()            
-        
-        assert(data.level>= 1 and data.level <= 3)
+            all_raw_data[3][total_size] = list()            
+
+        assert(data.level>= 1 and data.level <= 4)
         
         if value_type == "decomposition_rate":
             all_raw_data[data.level-1][total_size].append(max_cluster / total_size)    
@@ -85,7 +90,7 @@ def drawMethodMap(single_map_data, value_type):
         elif value_type == "num_of_subproblem":
             all_raw_data[data.level-1][total_size].append(num_of_subproblem)     
     label_buffer = "1"        
-    for i in range(0,3):    
+    for i in range(0,4):    
         x = list()
         y = list()    
         std_val = list()
@@ -128,7 +133,7 @@ def drawMethodMap(single_map_data, value_type):
     print("save picture to "+save_path)
 
     
-step_fmt = ["x-","o-.","^--"]    
+step_fmt = ["x-","o-.","^--","s--"]    
     
 data_path_dir = '../../../test/test_data/large_agent_instance/'
 all_map_name = [

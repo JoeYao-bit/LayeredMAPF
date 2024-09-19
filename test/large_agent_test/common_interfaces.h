@@ -64,7 +64,7 @@ bool draw_visit_grid_table = false;
 // MAPFTestConfig_AR0014SR
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
-auto map_test_config = MAPFTestConfig_empty_48_48;
+auto map_test_config = MAPFTestConfig_Paris_1_256;
 // MAPFTestConfig_Paris_1_256 //  pass
 // MAPFTestConfig_Berlin_1_256; // pass
 // MAPFTestConfig_maze_32_32_4; // pass
@@ -591,7 +591,7 @@ void loadInstanceAndPlanningLayeredLAMAPF(const LA_MAPF_FUNC<N>& mapf_func,
 
 // maximum_sample_count: max times of sample start and target for an agent
 template<Dimension N>
-void generateInstance(const std::vector<AgentPtr<N> >& agents,
+bool generateInstance(const std::vector<AgentPtr<N> >& agents,
                       const std::string& file_path,
                       int maximum_sample_count = 1e7) {
     gettimeofday(&tv_pre, &tz);
@@ -611,12 +611,12 @@ void generateInstance(const std::vector<AgentPtr<N> >& agents,
     InstanceSerializer<N> fake_serializer(agents, fake_instances);
     if(!fake_serializer.saveToFile(file_path)) {
         std::cout << "fake_serializer save to path " << file_path << " failed" << std::endl;
-        return;
+        return false;
     }
     InstanceDeserializer<N> fake_deserializer;
     if(!fake_deserializer.loadInstanceFromFile(file_path, dim)) {
         std::cout << "load from path " << file_path << " failed" << std::endl;
-        return;
+        return false;
     }
     auto new_agents = fake_deserializer.getAgents();
 
@@ -638,7 +638,7 @@ void generateInstance(const std::vector<AgentPtr<N> >& agents,
     std::cout << "find instance ? " << !instances_and_path.empty() << " in " << time_cost << "ms " << std::endl;
 
     if(instances_and_path.empty()) {
-        return;
+        return false;
     }
 
     InstanceOrients<2> instances;
@@ -653,9 +653,10 @@ void generateInstance(const std::vector<AgentPtr<N> >& agents,
     InstanceSerializer<N> serializer(new_agents, instances);
     if(serializer.saveToFile(file_path)) {
         std::cout << "save to path " << file_path << " success" << std::endl;
+        return true;
     } else {
         std::cout << "save to path " << file_path << " failed" << std::endl;
-        return;
+        return false;
     }
 }
 
@@ -669,9 +670,11 @@ void generateInstanceAndPlanning(const std::vector<AgentPtr<N> >& agents,
                                  bool visualize = false) {
 
     //    loadInstanceAndPlanning<AgentType, MethodType>(file_path);
-    generateInstance(agents, file_path, maximum_sample_count);
-    loadInstanceAndPlanningLayeredLAMAPF<N>(mapf_func, file_path, 60, false, debug_mode, visualize);
+    if(generateInstance(agents, file_path, maximum_sample_count)) {
+        loadInstanceAndPlanningLayeredLAMAPF<N>(mapf_func, file_path, 60, false, debug_mode, visualize);
+    }
 }
+
 
 template<Dimension N>
 void InstanceDecompositionVisualization(const LargeAgentMAPFInstanceDecomposition<N>& decomposer) {
@@ -841,6 +844,20 @@ void loadInstanceAndDecomposition(const std::string& file_path) {
     InstanceDecompositionVisualization(decomposer);
 }
 
+
+template<Dimension N>
+void generateInstanceAndDecomposition(const std::vector<AgentPtr<N> >& agents,
+                                      const std::string& file_path,
+                                      const LA_MAPF_FUNC<N>& mapf_func,
+                                      int maximum_sample_count = 1e7,
+                                      bool debug_mode = true,
+                                      bool visualize = false) {
+    if(generateInstance(agents, file_path, maximum_sample_count)) {
+        loadInstanceAndDecomposition<N>(file_path);
+    }
+}
+
+
 MemoryRecorder memory_recorder(1);
 
 //LaCAM::LargeAgentConstraints<2, BlockAgent_2D>
@@ -850,6 +867,7 @@ std::vector<std::string> loadInstanceAndCompareLayeredLAMAPF(const LA_MAPF_FUNC<
                                                              const std::string& file_path,
                                                              double time_limit = 30,
                                                              bool path_constraint = false,
+                                                             bool level_of_decomposition = 4,
                                                              bool debug_mode = true) {
     InstanceDeserializer<N> deserializer;
     if(deserializer.loadInstanceFromFile(file_path, dim)) {
@@ -890,6 +908,7 @@ std::vector<std::string> loadInstanceAndCompareLayeredLAMAPF(const LA_MAPF_FUNC<
                                                              grid_visit_count_table_layered,
                                                              time_limit, decomposer_ptr,
                                                              path_constraint,
+                                                             level_of_decomposition,
                                                              debug_mode);
     auto end_t = clock();
     sleep(1);
@@ -957,14 +976,17 @@ std::vector<std::string> generateInstanceAndCompare(const std::vector<AgentPtr<N
                                                     bool path_constraint = false,
                                                     int maximum_sample_count = 1e7,
                                                     bool debug_mode = false) {
-    generateInstance(agents, file_path, maximum_sample_count);
-    auto retv = loadInstanceAndCompareLayeredLAMAPF<N>(mapf_func,
-                                                                  func_identifer,
-                                                                  file_path,
-                                                                  time_limit,
-                                                                  path_constraint,
-                                                                  debug_mode);
-    return retv;
+    if(generateInstance(agents, file_path, maximum_sample_count)) {
+        auto retv = loadInstanceAndCompareLayeredLAMAPF<N>(mapf_func,
+                                                           func_identifer,
+                                                           file_path,
+                                                           time_limit,
+                                                           path_constraint,
+                                                           debug_mode);
+        return retv;
+    } else {
+        return {};
+    }
 }
 
 void clearFile(const std::string& file_path) {
@@ -987,7 +1009,7 @@ bool decompositionOfSingleInstance(const InstanceOrients<N> & instances,
                                    const std::vector<AgentPtr<N> >& agents,
                                    DimensionLength* dim,
                                    const IS_OCCUPIED_FUNC<N> & isoc,
-                                   OutputStream& outputStream, int level=3) {
+                                   OutputStream& outputStream, int level=4) {
 
     struct timezone tz;
     struct timeval tv_pre;
@@ -1025,12 +1047,17 @@ bool decompositionOfSingleInstance(const InstanceOrients<N> & instances,
     assert(total_count == instances.size());
     outputStream.clear();
     std::stringstream ss;
-    ss << " " << time_cost << " " << max_cluster_size << " " << instances.size() << " "
-       << is_legal << " " << level << " " << memory_usage << " "
+    ss << time_cost << " "
+       << max_cluster_size << " "
+       << instances.size() << " "
+       << is_legal << " " << level << " "
+       << memory_usage << " "
        << instance_decompose->all_clusters_.size() << " "
+       << instance_decompose->initialize_time_cost_ << " "
        << instance_decompose->instance_decomposition_time_cost_ << " "
        << instance_decompose->cluster_bipartition_time_cost_ << " "
-       << instance_decompose->level_sorting_time_cost_ << " ";
+       << instance_decompose->level_sorting_time_cost_ << " "
+       << instance_decompose->level_bipartition_time_cost_;
 
     outputStream = ss.str();
     std::cout << " memory_usage = " << memory_usage << std::endl;

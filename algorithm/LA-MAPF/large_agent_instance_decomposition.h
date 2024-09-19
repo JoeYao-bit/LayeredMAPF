@@ -31,13 +31,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                             DimensionLength* dim,
                                             const IS_OCCUPIED_FUNC<N> & isoc,
                                             bool directed_graph = true, // whether edge between poses is always reversible
-                                            int decompose_level=3,
+                                            int decompose_level=4,
                                             bool debug_mode = true)
                                             : LargeAgentMAPF<N>(instances, agents, dim, isoc),
                                               directed_graph_(directed_graph),
                                               debug_mode_(debug_mode) {
 
-            assert(decompose_level >= 0 && decompose_level <= 3);
+            assert(decompose_level >= 0 && decompose_level <= 4);
 
             std::cout << "debug_mode: " << debug_mode_ << std::endl;
             std::cout << "level: " << decompose_level << std::endl;
@@ -66,6 +66,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             gettimeofday(&tv_after, &tz);
             initialize_time_cost_ =
                     (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
+
+            // initialize all subproblem with only the raw problem
+            all_clusters_ = {{}};
+            for(int i=0; i<agents.size(); i++) {
+                all_clusters_.front().insert(i);
+            }
 
             // 3, decompose all instances into multiple cluster
             if(decompose_level >= 1) {
@@ -97,6 +103,16 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 //printAllSubProblem(std::string("level sorting"));
             }
 
+            // 6，level bipartition
+            if(decompose_level >= 4) {
+                gettimeofday(&tv_pre, &tz);
+                levelDecomposition();
+                gettimeofday(&tv_after, &tz);
+                level_bipartition_time_cost_ =
+                        (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
+                //printAllSubProblem(std::string("level bipartition"));
+            }
+
             //printAllSubProblem(std::string("decomposition final"));
 
             // initialize_time_cost_
@@ -104,6 +120,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             std::cout << "-- instance_decomposition_time_cost_ (ms) = " << instance_decomposition_time_cost_ << std::endl;
             std::cout << "-- cluster_bipartition_time_cost_    (ms) = " << cluster_bipartition_time_cost_ << std::endl;
             std::cout << "-- level_sorting_time_cost_          (ms) = " << level_sorting_time_cost_ << std::endl;
+            std::cout << "-- level_bipartition_time_cost_      (ms) = " << level_bipartition_time_cost_ << std::endl;
 
             /* print details of decomposition */
             int total_count = 0;
@@ -112,6 +129,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 total_count += all_clusters_[i].size();
                 if(all_clusters_[i].size() > max_cluster_size) { max_cluster_size = all_clusters_[i].size(); }
             }
+            std::cout << "total_count = " << total_count << std::endl;
             assert(total_count == this->instances_.size());
             std::cout << "-- max/total size " << max_cluster_size << " / " << this->instances_.size() << std::endl;
             if(debug_mode_) {
@@ -953,10 +971,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 const std::set<int>& agent_path = id_agent_pair.second;
 
                 for(const int& other_agent : agent_path) {
-
                     if(all_unavoidable_agent.find(agent_id) == all_unavoidable_agent.end()) {
-                        all_unavoidable_agent.insert(std::pair<int, std::set<int> >(agent_id, {}));
+                        all_unavoidable_agent.insert(std::pair<int, std::set<int> >(agent_id, {agent_id}));
                     }
+
+                    if(other_agent == agent_id) { continue; }
 
                     std::vector<bool> avoid_list(2*this->instances_.size(), false);
                     avoid_list[other_agent*2] = true, avoid_list[other_agent*2 + 1] = true;
@@ -973,8 +992,51 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return all_unavoidable_agent;
         }
 
+        std::map<int, std::set<int> > searchUnAvoidSATForEachAgent(const std::map<int, std::set<int> >& all_passing_agent,
+                                                                   const std::set<int>& instance_id_set,
+                                                                   const std::set<int>& external_pre,
+                                                                   const std::set<int>& external_next) const {
+            std::map<int, std::set<int> > all_unavoidable_agent;
+            std::vector<bool> within_set = AgentIdsToSATID(instance_id_set);
+            // set external_pre's start to passable
+            for(const auto& agent : external_pre) {
+                within_set[2*agent] = true;
+            }
+            // set external_next's target to passable
+            for(const auto& agent : external_next) {
+                within_set[2*agent + 1] = true;
+            }
+
+            for(const auto& id_agent_pair : all_passing_agent) {
+                const int& agent_id = id_agent_pair.first;
+//                std::cout << __FUNCTION__ << " agent_id = " << agent_id << std::endl;
+                const std::set<int>& agent_path = id_agent_pair.second;
+
+                for(const int& other_sat : agent_path) {
+                    if(all_unavoidable_agent.find(agent_id) == all_unavoidable_agent.end()) {
+                        all_unavoidable_agent.insert(std::pair<int, std::set<int> >(agent_id, {2*agent_id, 2*agent_id + 1}));
+                    }
+
+                    if(other_sat == 2*agent_id || other_sat == 2*agent_id + 1) { continue; }
+
+                    std::vector<bool> avoid_list(2*this->instances_.size(), false);
+                    avoid_list[other_sat] = true;
+//                    std::cout << __FUNCTION__ << " try avoid  " << other_agent << std::endl;
+
+                    if((searchAgent(agent_id, avoid_list, within_set)).empty()) {
+                        all_unavoidable_agent.at(agent_id).insert(other_sat);
+                        //std::cout << " failed " << std::endl;
+                    } else {
+                        //std::cout << " success " << std::endl;
+                    }
+                }
+            }
+            return all_unavoidable_agent;
+        }
+
         // check whether current set is self-relevant, the first is self-relevant, the second is which agent depend external agent
-        std::pair<std::set<int>, std::set<int>> clusterIndependentCheck(const std::set<int>& instance_id_set, const std::set<int>& specific_agents = {}) {
+        std::pair<std::set<int>, std::set<int>> clusterIndependentCheck(const std::set<int>& instance_id_set,
+                                                                        const std::set<int>& specific_agents = {}) {
             std::set<int> success_in_set, failed_in_set;
             auto set_need_check = specific_agents.empty() ? instance_id_set : specific_agents;
             std::vector<bool> buffer_sat = AgentIdsToSATID(instance_id_set);
@@ -1016,6 +1078,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             std::vector<bool> buffer_sat = AgentIdsToSATID(agents);
             for(const int& agent_id : agents) {
                 auto passing_agents = searchAgent(agent_id, {}, buffer_sat); // pass test
+                assert(!passing_agents.empty());
                 all_agents_path.insert({agent_id, passing_agents});
             }
 //            std::cout << "all_agents_path 0: " << std::endl;
@@ -1063,7 +1126,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 // till here, the remaining set is independent, it related no external agent to keep completeness
                 std::set<int> specific_set_unavoidable = {};
                 while (1) {
-                    // when add new agent to unavoidable set, only check new added agent, to save time cost
+                    // when add new agent to unavoidable set, only check new added agent, to save time
                     auto retv = clusterIndependentCheck(cluster_pair.first, specific_set_unavoidable);
                     specific_set_unavoidable.clear();
                     std::set<int> success_in_unavoid = retv.first, failed_in_unavoid = retv.second;
@@ -1083,6 +1146,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     // there are multiple solution path, pick one with least modification to unavoid set, i.e., involve less new agent
                     //const auto& alternative_path = searchAgent(failed_shortest_agent_id, {}, AgentIdsToSATID(agents), false, AgentIdsToSATID(cluster_pair.first));
                     const auto& alternative_path = all_agents_path.at(failed_shortest_agent_id);
+                    assert(!alternative_path.empty());
                     for (const int &new_agent_to_unavoid : alternative_path) {
                         if(cluster_pair.first.find(new_agent_to_unavoid) == cluster_pair.first.end()) {
                             cluster_pair.first.insert(new_agent_to_unavoid);
@@ -1284,7 +1348,272 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return sorted_levels; // sorted levels
         }
 
+        void levelDecomposition() {
+            std::vector<std::set<int> > all_clusters;
+            auto cluster_of_agents = all_clusters_;
+            int count_top_cluster = 0;
+            std::set<int> buffer_agents;
+            for(int i=0; i<cluster_of_agents.size(); i++) {
+                const auto& top_cluster = cluster_of_agents[i];
+                assert(top_cluster.size() >= 1);
+                if(top_cluster.size() == 1) {
+                    // add small clusters at this stage to all_clusters, no need to join further bi-partition
+                    all_clusters.push_back(top_cluster);
+                } else {
+                    count_top_cluster ++;
+                    int count = 0;
+                    buffer_agents = top_cluster;
+                    std::set<int> external_pre = {}, external_next = {};
+                    if(!all_level_pre_and_next_.empty()) {
+                        assert(all_level_pre_and_next_.size() == all_clusters_.size());
+                        external_pre.insert(all_level_pre_and_next_[i].first.begin(), all_level_pre_and_next_[i].first.end());
+                        external_next.insert(all_level_pre_and_next_[i].second.begin(), all_level_pre_and_next_[i].second.end());
+                    }
+                    // bi-partition until can not bi-partition
+                    //if(count_top_cluster == 1)
+                    {
+                        while (buffer_agents.size() > 1) {
+//                            std::cout << "start biPartition of level: " << buffer_agents << std::endl;
+                            auto agents_pair = biPartitionLevel(buffer_agents, external_pre, external_next);
+                            std::swap(buffer_agents, agents_pair.second);
+                            all_clusters.push_back(agents_pair.first);
+                            external_pre.insert(agents_pair.first.begin(), agents_pair.first.end());
+                            count++;
+                        }
+                    }
+                    if (!buffer_agents.empty()) {
+                        all_clusters.push_back(buffer_agents);
+                    }
+                }
+            }
+            // no sorting in increase size, as order of agent matters
+            all_clusters_ = all_clusters;
 
+        }
+
+        // (decompose a level (old level) into two) and check whether the two level are complete
+        bool isLevelIndependentCheck(const std::set<int>& level,
+                                     const std::vector<bool>& cluster_sat_sat,
+                                     const std::vector<bool>& avoid_sat_set) {
+            // check pre level's independence
+            for(const auto& agent : level) {
+                auto passing_agents = searchAgent(agent, avoid_sat_set, cluster_sat_sat, true);
+                if(passing_agents.empty()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // check whether current set is self-relevant, the first is self-relevant, the second is which agent depend external agent
+        std::pair<std::set<int>, std::set<int>> levelIndependentCheck(const std::set<int>& level_agent_set,
+                                                                      const std::vector<bool>& cluster_sat_sat,
+                                                                      const std::vector<bool>& avoid_sat_set,
+                                                                      const std::set<int>& specific_agents = {}
+                                                                      ) {
+            std::set<int> success_in_set, failed_in_set;
+
+            auto cur_level_agent_set = specific_agents.empty()? level_agent_set : specific_agents;
+
+            for (const auto &agent : cur_level_agent_set) {
+                auto passing_agents = searchAgent(agent, avoid_sat_set, cluster_sat_sat); // pass test
+                if (passing_agents.empty()) {
+                    // failed always caused by cluster in remaining set that block the whole way
+                    failed_in_set.insert(agent);
+                } else {
+                    success_in_set.insert(agent);
+                }
+            }
+            return {success_in_set, failed_in_set};
+        }
+
+        void setTargetSATToUnpassable(std::vector<bool>& avoid_table, const std::set<int>& avoid_set) {
+             assert(avoid_table.size() == 2*this->agents_.size());
+             for(const auto& agent : avoid_set) {
+                 avoid_table[2*agent + 1] = true;
+             }
+        }
+
+        void setStartSATToUnpassable(std::vector<bool>& avoid_table, const std::set<int>& avoid_set) {
+            assert(avoid_table.size() == 2*this->agents_.size());
+            for(const auto& agent : avoid_set) {
+                avoid_table[2*agent] = true;
+            }
+        }
+
+        // try decompose a level into two level, and the first level should be as small as possible
+        // the combination of the three input is a cluster
+        std::pair<std::set<int>, std::set<int> > biPartitionLevel(const std::set<int>& agents,
+                                                                  const std::set<int>& external_pre,
+                                                                  const std::set<int>& external_next) {
+            // get initial paths
+            std::vector<bool> cluster_buffer_sat = AgentIdsToSATID(agents);
+            // set external_pre's start to passable
+            for(const auto& agent : external_pre) {
+                cluster_buffer_sat[2*agent] = true;
+            }
+            // set external_next's target to passable
+            for(const auto& agent : external_next) {
+                cluster_buffer_sat[2*agent + 1] = true;
+            }
+            std::map<int, std::set<int> > all_agents_path;
+            for(const int& agent_id : agents) {
+                auto passing_agents = searchAgent(agent_id, {}, cluster_buffer_sat, true); // pass test
+                assert(!passing_agents.empty());
+                all_agents_path.insert({agent_id, passing_agents});
+            }
+            // get each set's unavoidable start and target (of other agent)
+            std::map<int, std::set<int> > all_agent_and_unavoid_sat = searchUnAvoidSATForEachAgent(all_agents_path,
+                                                                                                   agents,
+                                                                                                   external_pre,
+                                                                                                   external_next);
+            // find the agent that have the fewest start dependency and related agent as seed of previous level
+            int global_min_target_count_ = MAX<int>, local_min_target_count_;
+            int global_min_target_count_agent_;
+            for(const auto& temp_pair : all_agent_and_unavoid_sat) {
+                local_min_target_count_ = 0;
+                // count number of start
+                for(const auto& sat : temp_pair.second) {
+                    if(sat%2 == 1) {
+                        local_min_target_count_ ++;
+                    }
+                }
+                if(local_min_target_count_ < global_min_target_count_) {
+                    global_min_target_count_ = local_min_target_count_;
+                    global_min_target_count_agent_ = temp_pair.first;
+                }
+            }
+            // start from the global_min_start_count_agent_, get pre_level
+            // get what not in pre_level as next_level
+            std::set<int> pre_level = {global_min_target_count_agent_}, next_level = agents;
+            next_level.erase(global_min_target_count_agent_);
+            std::vector<int> buffer = {global_min_target_count_agent_}, next_buffer;
+//            std::cout << "global_min_target_count_agent_ " << global_min_target_count_agent_ << std::endl;
+            while(!buffer.empty()) {
+                next_buffer.clear();
+                for(const auto& agent : buffer) {
+                    // as pre_level, it can't pass next_level's start,
+                    // so move all it need to pass start as pre_level
+                    for(const auto& sat : all_agent_and_unavoid_sat.at(agent)) {
+                        // do not add sat from agent not in current cluster
+                        if(agents.find(sat/2) == agents.end()) { continue; }
+                        if(sat % 2 == 0 && pre_level.find(sat/2) == pre_level.end()) {
+                            pre_level.insert(sat/2);
+                            next_level.erase(sat/2);
+
+                            next_buffer.push_back(sat/2);
+
+//                            std::cout << "pre_level = " << pre_level << std::endl;
+//                            std::cout << "cluster_level = " << next_level << std::endl;
+
+                        }
+                    }
+                }
+                std::swap(next_buffer, buffer);
+            }
+            assert(agents.size() == pre_level.size() +  next_level.size());
+            // if have no room for next level, return
+            if(next_level.empty()) { return {agents, {}}; }
+
+            // move agent from next_level to pre_level, util both of them are independent or no room for next_level
+            std::pair<std::set<int>, std::set<int> > level_pair = {pre_level, next_level};
+            int count_of_phase = 0;
+//            std::cout << "flag 1" << std::endl;
+            while(1) {
+                assert(agents.size() == level_pair.first.size() + level_pair.second.size());
+                int count_of_first_step = 0;
+                while (1) {
+//                    std::cout << "flag 2" << std::endl;
+                    count_of_first_step ++;
+                    std::vector<bool> local_avoid_set(2*this->agents_.size(), false);
+                    setTargetSATToUnpassable(local_avoid_set, level_pair.first);
+                    auto retv = levelIndependentCheck(level_pair.second, cluster_buffer_sat, local_avoid_set);
+                    std::set<int> keep_in_next_level = retv.first, move_to_pre_level = retv.second;
+                    // move agent that cannot stay in remaining set to unavoidable set
+                    for (const int &moved_agent_id : move_to_pre_level) {
+                        level_pair.first.insert(moved_agent_id);
+                        level_pair.second.erase(moved_agent_id);
+                    }
+                    assert(agents.size() == level_pair.first.size() + level_pair.second.size());
+                    // move agent to remaining set to unavoidable cluster
+                    if (move_to_pre_level.empty()) {
+                        break;
+                    }
+                }
+//                if(count_of_first_step > 1) {
+//                    std::cout << "biPartitionLevel step 1 exit after " << count_of_first_step << std::endl;
+//                }
+                int count_of_second_step = 0;
+                // till here, the remaining set is independent, it related no external agent to keep completeness
+//                std::cout << "flag 3" << std::endl;
+
+                while (1) {
+//                    std::cout << "flag 4" << std::endl;
+//                    std::cout << "level.first = " << level_pair.first << " / level.second = " << level_pair.second << std::endl;
+                    count_of_second_step ++;
+                    // when add new agent to unavoidable set, only check new added agent, to save time
+                    std::vector<bool> local_avoid_set(2*this->agents_.size(), false);
+                    setStartSATToUnpassable(local_avoid_set, level_pair.second);
+
+                    auto retv = levelIndependentCheck(level_pair.first, cluster_buffer_sat, local_avoid_set);
+
+                    std::set<int> success_in_pre = retv.first, failed_in_pre = retv.second;
+//                    std::cout << "failed_in_pre = " << failed_in_pre << std::endl;
+                    if (failed_in_pre.empty()) {
+                        break;
+                    }
+                    // pick the shortest failed path's agent
+                    int failed_shortest_agent_id;
+                    int shortest_path_size = MAX<int>;
+                    for (const int &failed_agent : failed_in_pre) {
+                        if (shortest_path_size > all_agents_path.at(failed_agent).size()) {
+                            shortest_path_size = all_agents_path.at(failed_agent).size();
+                            failed_shortest_agent_id = failed_agent;
+                        }
+                    }
+                    // add all related agent of the shortest (containing fewer agents) path into unavoidable set
+                    // there are multiple solution path, pick one with least modification to unavoid set, i.e., involve less new agent
+                    //const auto& alternative_path = searchAgent(failed_shortest_agent_id, {}, AgentIdsToSATID(agents), false, AgentIdsToSATID(cluster_pair.first));
+                    const auto& alternative_path = all_agents_path.at(failed_shortest_agent_id);
+//                    std::cout << "alternative_path = " << alternative_path << std::endl;
+                    assert(!alternative_path.empty());
+                    for (const int &new_sat_to_unavoid : alternative_path) {
+                        // do not add sat from agent not in current cluster
+                        if(agents.find(new_sat_to_unavoid/2) == agents.end()) { continue; }
+                        if(level_pair.first.find(new_sat_to_unavoid/2) == level_pair.first.end()) {
+                            level_pair.first.insert(new_sat_to_unavoid/2);
+                            level_pair.second.erase(new_sat_to_unavoid/2);
+                        }
+                    }
+                    assert(agents.size() == level_pair.first.size() + level_pair.second.size());
+                    count_of_second_step ++;
+
+                }
+//                if(count_of_second_step > 1) {
+//                    std::cout << "biPartitionLevel step 2 exit after " << count_of_second_step << std::endl;
+//                }
+                std::vector<bool> local_avoid_set_pre(2*this->agents_.size(), false);
+                setStartSATToUnpassable(local_avoid_set_pre, level_pair.second);
+
+                std::vector<bool> local_avoid_set_next(2*this->agents_.size(), false);
+                setTargetSATToUnpassable(local_avoid_set_next, level_pair.first);
+
+                bool pre_level_independent = isLevelIndependentCheck(level_pair.first,  cluster_buffer_sat, local_avoid_set_pre),
+                     nex_level_independent = isLevelIndependentCheck(level_pair.second, cluster_buffer_sat, local_avoid_set_next);
+
+                count_of_phase ++;
+                // if both remaining set and unavoid set is independent, we find a legal bi-partition
+                if(pre_level_independent && nex_level_independent) {
+                    break;
+                }
+
+            }
+//            if(count_of_phase > 1) {
+//                std::cout << "biPartitionLevel exit after " << count_of_phase << std::endl;
+//            }
+            assert(agents.size() == level_pair.first.size() + level_pair.second.size());
+            return level_pair;
+        }
 
         std::pair<std::vector<std::set<int> >, std::map<int, int>>
         getStrongComponentFromAheadSequence(const std::map<int, std::set<int> >& ahead_sequence) const {
@@ -1382,13 +1711,31 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         void levelSorting() {
             // decompose each cluster into multiple time indexed sequence
             // cluster decomposition into level
+            all_level_pre_and_next_.clear();
+            all_level_pre_and_next_.reserve(this->agents_.size()); // maximum number of levels
             std::vector<std::set<int> > all_levels_;
             for(const auto& cluster : all_clusters_) {
                 if(cluster.size() > 1) {
                     auto current_levels = clusterDecomposeToLevel(cluster);
                     all_levels_.insert(all_levels_.end(), current_levels.begin(), current_levels.end());
+                    for(int i=0; i<current_levels.size(); i++) {
+                        std::pair<std::set<int>, std::set<int> > pre_and_next;
+                        for(int j=0; j<current_levels.size(); j++) {
+                            if(i == j) { continue; }
+                            else if(j < i) {
+                                // insert level in same cluster and early than current level as pre_level
+                                pre_and_next.first.insert(current_levels[j].begin(), current_levels[j].end());
+                            } else {
+                                // insert level in same cluster and later than current level as next_level
+                                pre_and_next.second.insert(current_levels[j].begin(), current_levels[j].end());
+                            }
+                        }
+                        all_level_pre_and_next_.push_back(pre_and_next);
+                    }
                 } else {
                     all_levels_.push_back(cluster);
+                    std::pair<std::set<int>, std::set<int> > pre_and_next;
+                    all_level_pre_and_next_.push_back(pre_and_next);
                 }
             }
             all_clusters_ = all_levels_;
@@ -1446,6 +1793,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                     std::cerr << " different cluster intersect " <<
                                               cluster_id_of_agents.at(depended_agent_id) << " and " << cluster_of_agents.size()
                                               << std::endl;
+                                    assert(0);
                                 }
                             } else{
                                 cluster_id_of_agents.at(depended_agent_id) = cluster_of_agents.size();
@@ -1488,6 +1836,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         std::vector<std::set<int> > all_clusters_;
 
+        // save each level's pre level and next level (belong to the same cluster) after clusterDecomposeToLevel(...)
+        std::vector<std::pair<std::set<int>, std::set<int> > > all_level_pre_and_next_;
+
         // store which agents current agent passing, may change after method
         // NOTICE: the goal of the method is to partition this matrix into lots of small block, thus MAPF is more efficient
         std::map<int, std::set<int> > all_passing_agent_;
@@ -1496,6 +1847,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         float instance_decomposition_time_cost_ = 0;
         float cluster_bipartition_time_cost_    = 0;
         float level_sorting_time_cost_          = 0;
+        float level_bipartition_time_cost_      = 0;
 
         // variables for debug
         LAMAPF_Paths grid_paths_;

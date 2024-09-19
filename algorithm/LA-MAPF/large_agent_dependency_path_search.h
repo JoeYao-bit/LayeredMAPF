@@ -23,7 +23,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     explicit HyperGraphNodeData(const size_t & current_node,
                                 const HyperGraphNodeDataPtr<N>& parent,
                                 const ConnectivityGraph& graph,
-                                bool distinguish_sat = false,
+                                bool distinguish_sat = false, // whether visited grid distinguish start or target
                                 const std::vector<bool>& ignore_cost_agent_ids = {}) :
             current_node_(current_node), graph_(graph), TreeNode<N, HyperGraphNodeDataPtr<N>>(parent) {
             if(parent != nullptr) {
