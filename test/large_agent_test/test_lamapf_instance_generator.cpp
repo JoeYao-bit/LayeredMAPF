@@ -149,8 +149,8 @@ TEST(GenerateBlock_2DInstance, test)
 TEST(GenerateMixedInstance, test)
 {
 
-    AgentPtrs<2> agents = RandomMixedAgentsGenerator(10, .4, 2.3,
-                                                     10,
+    AgentPtrs<2> agents = RandomMixedAgentsGenerator(20, .4, 2.3,
+                                                     20,
                                                      -1.4, -.2,
                                                      .2, 1.4,
                                                      .2, 1.4,

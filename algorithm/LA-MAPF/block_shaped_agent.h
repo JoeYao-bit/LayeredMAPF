@@ -249,7 +249,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         void drawOnCanvas(const Pose<int, 2>& pose,
                           Canvas& canvas, const cv::Vec3b& color, bool fill=true) const {
             const auto& rect = getPosedRectangle(pose); // agents
-            canvas.drawRectangleFloat(rect.first, rect.second, true, fill ? -1 : 1, color);
+            canvas.drawRectangleFloat(rect.first, rect.second, true, fill ? -1 : 1, color, 1.0);
         }
 
         // get half of the coverage (when x>= 0)
