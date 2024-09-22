@@ -10,7 +10,6 @@
 #include "../../freeNav-base/basic_elements/point.h"
 #include "CBS/space_time_astar.h"
 
-
 #include <sys/time.h>
 #include <boost/graph/subgraph.hpp>
 #include <boost/graph/adjacency_list.hpp>
@@ -41,6 +40,24 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             std::cout << "debug_mode: " << debug_mode_ << std::endl;
             std::cout << "level: " << decompose_level << std::endl;
+
+            /*
+
+               ss << time_cost << " "
+               << max_cluster_size << " "
+               << instances.size() << " "
+               << is_legal << " " << level << " "
+               << memory_usage << " "
+               << instance_decompose->all_clusters_.size() << " "
+               << instance_decompose->initialize_time_cost_ << " "
+               << instance_decompose->instance_decomposition_time_cost_ << " "
+               << instance_decompose->cluster_bipartition_time_cost_ << " "
+               << instance_decompose->level_sorting_time_cost_ << " "
+               << instance_decompose->level_bipartition_time_cost_;
+
+             * */
+
+            debug_data_.resize(4);
 
             struct timezone tz;
             struct timeval  tv_pre;
@@ -73,43 +90,107 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 all_clusters_.front().insert(i);
             }
 
+            float base_usage = 0, peak_usage = 0;
+
             // 3, decompose all instances into multiple cluster
             if(decompose_level >= 1) {
+                memory_recorder.clear();
+                base_usage = memory_recorder.getCurrentMemoryUsage();
                 gettimeofday(&tv_pre, &tz);
                 instanceDecomposition();
                 gettimeofday(&tv_after, &tz);
+                //peak_usage = memory_recorder.getMaximalMemoryUsage();
                 instance_decomposition_time_cost_ =
                         (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
+
+
+
+                debug_data_[0] = {instance_decomposition_time_cost_,
+                                  getMaxSubProblemSize(),
+                                  this->agents_.size(),
+                                  1, 1,
+                                  peak_usage - base_usage,
+                                  all_clusters_.size(),
+                                  initialize_time_cost_,
+                                  instance_decomposition_time_cost_,
+                                  0,
+                                  0,
+                                  0};
                 //printAllSubProblem(std::string("instance decomposition"));
             }
 
             // 4，bi-partition clusters till cannot bi-partition
             if(decompose_level >= 2) {
+                memory_recorder.clear();
+                base_usage = memory_recorder.getCurrentMemoryUsage();
                 gettimeofday(&tv_pre, &tz);
                 clusterDecomposition();
                 gettimeofday(&tv_after, &tz);
+                //peak_usage = memory_recorder.getMaximalMemoryUsage();
                 cluster_bipartition_time_cost_ =
                         (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
+                debug_data_[1] = {instance_decomposition_time_cost_ +
+                                  cluster_bipartition_time_cost_,
+                                  getMaxSubProblemSize(),
+                                  this->agents_.size(),
+                                  1, 2,
+                                  peak_usage - base_usage,
+                                  all_clusters_.size(),
+                                  initialize_time_cost_,
+                                  instance_decomposition_time_cost_,
+                                  cluster_bipartition_time_cost_,
+                                  0,
+                                  0};
                 //printAllSubProblem(std::string("cluster bi-partition"));
             }
 
             // 5, level sorting
             if(decompose_level >= 3) {
+                memory_recorder.clear();
+                base_usage = memory_recorder.getCurrentMemoryUsage();
                 gettimeofday(&tv_pre, &tz);
                 levelSorting();
                 gettimeofday(&tv_after, &tz);
+                peak_usage = memory_recorder.getMaximalMemoryUsage();
                 level_sorting_time_cost_ =
                         (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
+                debug_data_[2] = {instance_decomposition_time_cost_ +
+                                  cluster_bipartition_time_cost_ + level_sorting_time_cost_,
+                                  getMaxSubProblemSize(),
+                                  this->agents_.size(),
+                                  1, 3,
+                                  peak_usage - base_usage,
+                                  all_clusters_.size(),
+                                  initialize_time_cost_,
+                                  instance_decomposition_time_cost_,
+                                  cluster_bipartition_time_cost_,
+                                  level_sorting_time_cost_,
+                                  0};
                 //printAllSubProblem(std::string("level sorting"));
             }
 
             // 6，level bipartition
             if(decompose_level >= 4) {
+                memory_recorder.clear();
+                base_usage = memory_recorder.getCurrentMemoryUsage();
                 gettimeofday(&tv_pre, &tz);
                 levelDecomposition();
                 gettimeofday(&tv_after, &tz);
+                peak_usage = memory_recorder.getMaximalMemoryUsage();
                 level_bipartition_time_cost_ =
                         (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
+                debug_data_[3] = {instance_decomposition_time_cost_ +
+                                  cluster_bipartition_time_cost_ + level_sorting_time_cost_ + level_bipartition_time_cost_,
+                                  getMaxSubProblemSize(),
+                                  this->agents_.size(),
+                                  1, 4,
+                                  peak_usage - base_usage,
+                                  all_clusters_.size(),
+                                  initialize_time_cost_,
+                                  instance_decomposition_time_cost_,
+                                  cluster_bipartition_time_cost_,
+                                  level_sorting_time_cost_,
+                                  level_bipartition_time_cost_};
                 //printAllSubProblem(std::string("level bipartition"));
             }
 
@@ -142,6 +223,16 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 std::cout << "-- Decomposition completeness (grid map) ? "
                           << decompositionValidCheckGridMap(all_clusters_) << std::endl;
             }
+        }
+
+        int getMaxSubProblemSize() const {
+            int max_cluster_size = 0;
+            for(int i=0; i<all_clusters_.size(); i++) {
+                if(all_clusters_[i].size() > max_cluster_size) {
+                    max_cluster_size = all_clusters_[i].size();
+                }
+            }
+            return max_cluster_size;
         }
 
         bool decompositionValidCheck(const std::vector<std::set<int> >& all_levels) const {
@@ -1854,6 +1945,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<std::vector<int> > agent_visited_grids_;
 
         bool debug_mode_ = true;
+
+        std::vector<std::vector<double> > debug_data_;
 
     };
 
