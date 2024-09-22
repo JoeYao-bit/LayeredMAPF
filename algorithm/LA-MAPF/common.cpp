@@ -6,6 +6,8 @@
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
+    MemoryRecorder memory_recorder(1);
+
     // yz: determine priority of conflicts
     bool operator<(const Conflict &conflict1, const Conflict &conflict2) // return true if conflict2 has higher priority
     {

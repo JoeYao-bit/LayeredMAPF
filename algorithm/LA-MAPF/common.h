@@ -26,6 +26,7 @@
 #include "../../freeNav-base/basic_elements/point.h"
 #include "../freeNav-base/basic_elements/point.h"
 #include "../../freeNav-base/visualization/canvas/canvas.h"
+#include "../../freeNav-base/dependencies/memory_analysis.h"
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
@@ -964,6 +965,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<std::vector<size_t> > all_backward_edges_;
 
     };
+
+    extern MemoryRecorder memory_recorder;
 
 }
 

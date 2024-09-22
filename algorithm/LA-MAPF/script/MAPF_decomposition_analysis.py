@@ -91,21 +91,27 @@ def drawMethodMap(single_map_data, value_type):
             all_raw_data[data.level-1][total_size].append(num_of_subproblem)     
     label_buffer = "1"        
     for i in range(0,4):    
-        x = list()
-        y = list()    
-        std_val = list()
+        
+        dict_x_y = dict()
+        dict_x_error = dict()
+
         if value_type == "decomposition_rate":
             for data_key, data_val in all_raw_data[i].items():
-                x.append(data_key)        
-                y.append(np.mean(data_val))
-                std_val.append(np.std(data_val))
+                dict_x_y[data_key] = np.mean(data_val)
+                dict_x_error[data_key] = np.std(data_val)
         else:
             for data_key, data_val in all_raw_data[i].items():
-                x.append(data_key)        
-                y.append(np.mean(data_val))
-                std_val.append(np.std(data_val))
+                dict_x_y[data_key] = np.mean(data_val)
+                dict_x_error[data_key] = np.std(data_val)
+
         # yerr=std_val
-        plt.errorbar(x, y, label=label_buffer, markersize=14, fmt=step_fmt[i], linewidth= 4, elinewidth=4, capsize=4)
+        sorted_x = sorted (dict_x_y)
+        sorted_y = list()
+        sorted_error = list()
+        for temp_x in sorted_x:
+            sorted_y.append(dict_x_y[temp_x])
+            sorted_error.append(dict_x_error[temp_x])
+        plt.errorbar(sorted_x, sorted_y, label=label_buffer, markersize=14, fmt=step_fmt[i], linewidth= 4, elinewidth=4, capsize=4)
         label_buffer = label_buffer + ", " + str(i+2)          
 
     plt.legend(loc='best')    
@@ -133,7 +139,7 @@ def drawMethodMap(single_map_data, value_type):
     print("save picture to "+save_path)
 
     
-step_fmt = ["x-","o-.","^--","s--"]    
+step_fmt = ["x-","X-.","*--","2--"] # ["x-","o-.","^--","s--"]       
     
 data_path_dir = '../../../test/test_data/large_agent_instance/'
 all_map_name = [
@@ -148,7 +154,7 @@ all_map_name = [
                 # "den520d",
                 
                 # "Berlin_1_256",
-                # "Paris_1_256",
+                "Paris_1_256",
                 
                 # "ht_chantry",
                 # "lak303d",

@@ -858,7 +858,6 @@ void generateInstanceAndDecomposition(const std::vector<AgentPtr<N> >& agents,
 }
 
 
-MemoryRecorder memory_recorder(1);
 
 //LaCAM::LargeAgentConstraints<2, BlockAgent_2D>
 template<Dimension N>
