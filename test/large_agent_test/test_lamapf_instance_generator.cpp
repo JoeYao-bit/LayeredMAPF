@@ -372,11 +372,11 @@ void multiGenerateAgentAndDecomposition(const SingleMapTestConfig<2>& map_file,
 //                                                                           dim);
 
             AgentPtrs<2> agents = RandomMixedAgentsGenerator(count_of_agent/2,
-                                                             .4, 2.3,
+                                                             .4, 2.,
                                                              count_of_agent/2,
-                                                             -2.4, -.2,
-                                                             .2, 2.4,
-                                                             .2, 2.4,
+                                                             -2., -.2,
+                                                             .2, 2.,
+                                                             .2, 2.,
                                                              .1, dim);
 
             if(!generateInstance<2>(agents, map_test_config.at("la_ins_path"), maximum_sample_count)) {
@@ -459,7 +459,7 @@ void multiGenerateAgentAndDecomposition(const SingleMapTestConfig<2>& map_file,
 TEST(Multi_Generate_Agent_And_Decomposition, test) {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int, int> >
-            map_configs = {{MAPFTestConfig_Paris_1_256, 10000, 80, 10, 10, 2e5},
+            map_configs = {{MAPFTestConfig_Paris_1_256, 100, 80, 60, 10, 2e6},
                            //{MAPFTestConfig_empty_48_48, 10000, 50, 10, 1e4},
     };
 
@@ -485,7 +485,7 @@ void multiGenerateAgentAndCompare(const SingleMapTestConfig<2>& map_file,
 
     clearFile(map_test_config.at("la_comp_path"));
     for (int i = 0; i < count_of_test; i++) {
-        for(int count_of_agent = agent_interval; count_of_agent<= maximum_agents; count_of_agent += agent_interval) {
+        for(int count_of_agent = minimum_agents; count_of_agent<= maximum_agents; count_of_agent += agent_interval) {
 
 
 //            const AgentPtrs<2> &agents = RandomCircleAgentsGenerator<2>(count_of_agent,

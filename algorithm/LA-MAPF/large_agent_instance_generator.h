@@ -176,6 +176,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         ~LargeAgentMAPF_InstanceGenerator() {
         }
 
+
+        struct ComponentIdMap {
+            std::vector<int> component_id_map_; // each node's component id
+            std::vector<std::vector<size_t> > components_; // store all node in the same component
+        };
+
         // if agent failed to find legal instance, repick
         std::vector< std::pair<InstanceOrient<N>, LAMAPF_Path> > getNewInstance() const {
             Id total_index = getTotalIndexOfSpace<N>(dim_);
@@ -186,15 +192,24 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             int count_of_pick = 0;
             for (int i=0; i<agents_.size(); i++) {
                 const auto &agent = agents_[i];
+                const auto& component_id_map = agent_component_id_maps_[i].component_id_map_;
+
                 size_t start_id, target_id;
                 Pointis<N> start_occ_grids, target_occ_grids;
                 count_of_pick = 0;
                 while (true) {
                     count_of_pick ++;
+                    if(count_of_pick > max_sample_) {
+                        std::cout << "failed to get start for agent " << i << std::endl;
+                        return {};
+                    }
                     // 1, pick start nodes from its subgraph
                     start_id = rd() % all_poses_.size();
 
                     if(agent_sub_graphs_[i].all_nodes_[start_id] == nullptr) {
+                        continue;
+                    }
+                    if(agent_component_id_maps_[agent->id_].components_[component_id_map[start_id]].size() <= 1) {
                         continue;
                     }
 //                    std::cout << "pick agent " << i << "'s start " << *all_poses_[start_id] <<  std::endl;
@@ -222,10 +237,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                        }
 //                    }
                     if(repick) {
-                        if(count_of_pick > max_sample_) {
-                            std::cout << "failed to get start for agent " << i << std::endl;
-                            return {};
-                        }
                         continue;
                     } else {
                         break;
@@ -236,9 +247,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 count_of_pick = 0;
                 while (true) {
                     count_of_pick ++;
+                    if(count_of_pick > max_sample_) {
+                        std::cout << "failed to get start for agent " << i << std::endl;
+                        return {};
+                    }
+                    // 1, pick start nodes from the component it in
+                    const auto& component = agent_component_id_maps_[agent->id_].components_[component_id_map[start_id]];
 
-                    // 1, pick start nodes from its subgraph
-                    target_id = rd() % all_poses_.size();
+                    target_id = component[rd() % component.size()];
                     if(agent_sub_graphs_[i].all_nodes_[target_id] == nullptr) {
                         continue;
                     }
@@ -273,28 +289,25 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                        }
 //                    }
                     if(repick) {
-                        if(count_of_pick > max_sample_) {
-                            //std::cout << "failed to get start for agent " << i << std::endl;
-                            return {};
-                        }
                         continue;
                     }
                     assert(agent_sub_graphs_[i].all_nodes_[start_id] != nullptr &&
                            agent_sub_graphs_[i].all_nodes_[target_id] != nullptr);
                     // 3, check whether there is a path connect them, otherwise re-pick
                     //LAMAPF_Path path = getConnectionBetweenNode(i, start_id, target_id);
-                    bool connected = agent_component_id_maps_[agent->id_][start_id] ==
-                                     agent_component_id_maps_[agent->id_][target_id];
+//                    bool connected = agent_component_id_maps_[agent->id_].component_id_map_[start_id] ==
+//                                     agent_component_id_maps_[agent->id_].component_id_map_[target_id];
                     //if(path.empty())
-                    if(!connected){
-//                        std::cout << "find no connection between start and target, repick target" << std::endl;
-                        count_of_pick ++;
-                        if(count_of_pick > max_sample_) {
-                            //std::cout << "failed to get start for agent " << i << std::endl;
-                            return {};
-                        }
-                        continue;
-                    } else {
+//                    if(!connected){
+////                        std::cout << "find no connection between start and target, repick target" << std::endl;
+//                        count_of_pick ++;
+//                        if(count_of_pick > max_sample_) {
+//                            //std::cout << "failed to get start for agent " << i << std::endl;
+//                            return {};
+//                        }
+//                        continue;
+//                    } else
+                    {
 //                        std::cout << "find agent " << i << "'s instance (" << *all_poses_[start_id] << "->"
 //                                  << *all_poses_[target_id]<< ") success" << std::endl;
                         // 4, insert as a success instance
@@ -544,7 +557,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return sub_graph;
         }
 
-        std::vector<int> getStrongComponentIdOfAgent(const SubGraphOfAgent<N>& sub_graph) {
+        ComponentIdMap getStrongComponentIdOfAgent(const SubGraphOfAgent<N>& sub_graph) {
             using namespace boost;
             using Vertex = size_t;
 
@@ -553,6 +566,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             const auto& all_poses = sub_graph.all_nodes_;
             const auto& all_edges = sub_graph.all_edges_;
             const auto& all_backward_edges = sub_graph.all_backward_edges_;
+
+            ComponentIdMap cmap;
 
             Graph g(all_poses.size());
             for(size_t i=0; i<all_edges.size(); i++) {
@@ -569,13 +584,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
             std::vector<int> component(num_vertices(g));
             int num = strong_components(g, &component[0]);
-            std::vector<std::set<size_t> > retv(num);
+            std::vector<std::vector<size_t> > retv(num);
 //                std::cout << "Total number of strong components: " << num << std::endl;
             for (size_t i = 0; i < component.size(); i++) {
 //                    std::cout << "Vertex " << i << " is in component " << component[i] << std::endl;
-                retv[component[i]].insert(i);
+                retv[component[i]].push_back(i);
             }
-            return component;
+            cmap.component_id_map_ = component;
+            cmap.components_ = retv;
+            return cmap;
         }
 
         InstanceOrients<N> instance_;
@@ -588,7 +605,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<PosePtr<int, N> > all_poses_;
         DistanceMapUpdater<N> distance_map_updater_;
         std::vector<SubGraphOfAgent<N> > agent_sub_graphs_;
-        std::vector<std::vector<int> > agent_component_id_maps_; // current node in which component
+        std::vector<ComponentIdMap> agent_component_id_maps_; // current node in which component
         int max_sample_ = 1e5;
 
     };
