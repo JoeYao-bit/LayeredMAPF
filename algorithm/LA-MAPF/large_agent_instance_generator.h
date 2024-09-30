@@ -173,8 +173,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
         }
 
-        ~LargeAgentMAPF_InstanceGenerator() {
-        }
+        ~LargeAgentMAPF_InstanceGenerator() {}
 
 
         struct ComponentIdMap {
@@ -333,45 +332,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         LAMAPF_Path getConnectionBetweenNode(const int& agent_id, const size_t& start_id, const size_t& target_id) const {
 //            std::cout << " run getConnectionBetweenNode " << std::endl;
 
-//            LAMAPF_Path retv;
-//            const auto& sub_graph = agent_sub_graphs_[agent_id];
-//            assert(sub_graph.all_nodes_[start_id] != nullptr && sub_graph.all_nodes_[target_id] != nullptr);
-//            std::vector<size_t> pre_visited(all_poses_.size(), MAX<size_t>);
-//            pre_visited[start_id] = start_id;
-//            std::vector<size_t> current_nodes = {start_id}, next_nodes;
-//            bool reach_target = false;
-//            while (!current_nodes.empty()) {
-//                next_nodes.clear();
-//                for(const auto& node : current_nodes) {
-//                    const auto& neighbors = sub_graph.all_edges_[node];
-//                    for(const auto& another_node : neighbors) {
-//                        if(pre_visited[another_node] != MAX<size_t>) { continue; }
-//
-//                        if(another_node == target_id) {
-//                            pre_visited[another_node] = node;
-////                            std::cout << "find path " << std::endl;
-//                            // retrieve path
-//                            LAMAPF_Path path;
-//                            size_t buffer_node = another_node;
-//                            while (buffer_node != start_id) {
-////                                std::cout << "buffer_node " << buffer_node << std::endl;
-//                                path.push_back(buffer_node);
-//                                buffer_node = pre_visited[buffer_node];
-//                            }
-//                            path.push_back(start_id);
-//                            std::reverse(path.begin(), path.end());
-////                            std::cout << "find path size = " << path.size() << std::endl;
-//                            return path;
-//                        }
-//
-//                        next_nodes.push_back(another_node);
-//                        pre_visited[another_node] = node;
-//                    }
-//                }
-//                std::swap(current_nodes, next_nodes);
-//            }
-//            return {};
-//
             struct Node {
                 int node_id;
                 int value;

@@ -147,13 +147,13 @@ all_map_name = [
                 
                 # "maze-32-32-2",
                 # "maze-32-32-4",
-                # "maze-128-128-10",
+                "maze-128-128-10",
                 # "maze-128-128-2",
                 
                 # "den312d",
-                # "den520d",
+                "den520d",
                 
-                # "Berlin_1_256",
+                "Berlin_1_256",
                 "Paris_1_256",
                 
                 # "ht_chantry",
@@ -174,7 +174,7 @@ all_map_name = [
                 
                 # "Boston_0_256",
                 # "lt_gallowstemplar_n",
-                # "ost003d"
+                "ost003d"
                 ]
 
 all_single_data = list()

@@ -64,14 +64,15 @@ bool draw_visit_grid_table = false;
 // MAPFTestConfig_AR0014SR
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
-auto map_test_config = MAPFTestConfig_Paris_1_256;
+auto map_test_config = MAPFTestConfig_ost003d;
 // MAPFTestConfig_Paris_1_256 //  pass
 // MAPFTestConfig_Berlin_1_256; // pass
 // MAPFTestConfig_maze_32_32_4; // pass
 // MAPFTestConfig_simple;
 // MAPFTestConfig_AR0011SR; // pass
 // MAPFTestConfig_empty_48_48 // pass
-
+// MAPFTestConfig_maze_128_128_10
+// MAPFTestConfig_ost003d
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
     return true;
@@ -866,7 +867,7 @@ std::vector<std::string> loadInstanceAndCompareLayeredLAMAPF(const LA_MAPF_FUNC<
                                                              const std::string& file_path,
                                                              double time_limit = 30,
                                                              bool path_constraint = false,
-                                                             bool level_of_decomposition = 4,
+                                                             int level_of_decomposition = 4,
                                                              bool debug_mode = true) {
     InstanceDeserializer<N> deserializer;
     if(deserializer.loadInstanceFromFile(file_path, dim)) {
@@ -888,8 +889,26 @@ std::vector<std::string> loadInstanceAndCompareLayeredLAMAPF(const LA_MAPF_FUNC<
         std::cout << str << std::endl;
     }
     std::cout << std::endl;
+    return LayeredLAMAPFCompare(deserializer.getInstances(),
+                                deserializer.getAgents(),
+                                mapf_func,
+                                func_identifer,
+                                time_limit,
+                                path_constraint,
+                                level_of_decomposition,
+                                debug_mode);
+}
 
-//    LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(deserializer.getAgents(), is_occupied, dim, 1e7);
+template<Dimension N>
+std::vector<std::string> LayeredLAMAPFCompare(const InstanceOrients<N>& instances,
+                                              const AgentPtrs<N>& agents,
+                                              const LA_MAPF_FUNC<N>& mapf_func,
+                                              const std::string& func_identifer,
+                                              double time_limit = 30,
+                                              bool path_constraint = false,
+                                              int level_of_decomposition = 4,
+                                              bool debug_mode = true) {
+    //    LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(deserializer.getAgents(), is_occupied, dim, 1e7);
 //
 //    std::cout << " solvable ?  " << !((generator.getConnectionBetweenNode(7, 89773, 108968)).empty()) << std::endl;
 
@@ -900,27 +919,27 @@ std::vector<std::string> loadInstanceAndCompareLayeredLAMAPF(const LA_MAPF_FUNC<
     sleep(1);
     float base_usage = memory_recorder.getCurrentMemoryUsage();
     auto start_t = clock();
-    auto layered_paths = layeredLargeAgentMAPF<N>(deserializer.getInstances(),
-                                                             deserializer.getAgents(),
-                                                             dim, is_occupied,
-                                                             mapf_func, //CBS::LargeAgentCBS_func<2, AgentType >,
-                                                             grid_visit_count_table_layered,
-                                                             time_limit, decomposer_ptr,
-                                                             path_constraint,
-                                                             level_of_decomposition,
-                                                             debug_mode);
+    auto layered_paths = layeredLargeAgentMAPF<N>(instances,
+                                                  agents,
+                                                  dim, is_occupied,
+                                                  mapf_func, //CBS::LargeAgentCBS_func<2, AgentType >,
+                                                  grid_visit_count_table_layered,
+                                                  time_limit, decomposer_ptr,
+                                                  path_constraint,
+                                                  level_of_decomposition,
+                                                  debug_mode);
     auto end_t = clock();
     sleep(1);
     float peak_usage = memory_recorder.getMaximalMemoryUsage();
     float memory_usage = peak_usage - base_usage;
 
     double total_time_cost = ((double)end_t - start_t)/CLOCKS_PER_SEC;
-    std::cout << "instance has " << deserializer.getAgents().size() << " agents, layered CBS find solution ? " << !layered_paths.empty()
+    std::cout << "instance has " << agents.size() << " agents, layered CBS find solution ? " << !layered_paths.empty()
               << " in " << total_time_cost << "s " << std::endl;
 
     // agents size / time cost / success / SOC / makespan / decom 1 time cost / decom 2 time cost / decom 3 time cost
     std::stringstream ss_layered;
-    ss_layered << "LAYERED_"  << func_identifer << " " << deserializer.getAgents().size() << " "
+    ss_layered << "LAYERED_"  << func_identifer << " " << agents.size() << " "
                << total_time_cost << " "
                << getSOC(layered_paths) << " " << getMakeSpan(layered_paths) << " "
                << !layered_paths.empty() << " " << memory_usage << " "
@@ -935,8 +954,8 @@ std::vector<std::string> loadInstanceAndCompareLayeredLAMAPF(const LA_MAPF_FUNC<
     base_usage = memory_recorder.getCurrentMemoryUsage();
     start_t = clock();
     std::vector<std::vector<int> > grid_visit_count_table_raw;
-    auto raw_paths = mapf_func(deserializer.getInstances(),
-                               deserializer.getAgents(),
+    auto raw_paths = mapf_func(instances,
+                               agents,
                                dim, is_occupied,
                                nullptr,
                                grid_visit_count_table_raw,
@@ -948,12 +967,12 @@ std::vector<std::string> loadInstanceAndCompareLayeredLAMAPF(const LA_MAPF_FUNC<
     memory_usage = peak_usage - base_usage;
 
     total_time_cost = ((double)end_t - start_t)/CLOCKS_PER_SEC;
-    std::cout << "instance has " << deserializer.getAgents().size() << " agents, raw CBS find solution ? " << !raw_paths.empty()
+    std::cout << "instance has " << agents.size() << " agents, raw CBS find solution ? " << !raw_paths.empty()
               << " in " << total_time_cost << "s " << std::endl;
 
     // agents size / time cost / success / SOC / makespan
     std::stringstream ss_raw;
-    ss_raw << "RAW_" << func_identifer << " " << deserializer.getAgents().size() << " "
+    ss_raw << "RAW_" << func_identifer << " " << agents.size() << " "
            << total_time_cost << " "
            << getSOC(raw_paths) << " " << getMakeSpan(raw_paths) << " "
            << !raw_paths.empty() << " " << memory_usage;

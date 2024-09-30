@@ -10,6 +10,7 @@
 #include "block_shaped_agent.h"
 #include <ostream>
 #include <istream>
+#include "../basic.h"
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
@@ -54,6 +55,25 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         InstanceOrients<N> getInstances() const {
             return instances_;
+        }
+
+        std::vector<std::pair<AgentPtrs<N>, InstanceOrients<N> > > getTestInstance(const std::vector<int>& required_counts,
+                                                                                   int instance_count) {
+            std::vector<std::set<int> > case_id_set = pickCasesFromScene<N>(agents_.size(), required_counts, instance_count);
+            std::vector<std::pair<std::vector<AgentPtr<N> >, InstanceOrients<N> > > retv;
+            for(int i=0; i<case_id_set.size(); i++) {
+                std::pair<std::vector<AgentPtr<N> >, InstanceOrients<N> > instance;
+                int local_id = 0;
+                for(const auto& agent_id : case_id_set[i]) {
+                    auto agent_copy = agents_[agent_id]->copy();
+                    agent_copy->id_ = local_id;
+                    instance.first.push_back(agent_copy);
+                    local_id ++;
+                    instance.second.push_back(instances_[agent_id]);
+                }
+                retv.push_back(instance);
+            }
+            return retv;
         }
 
         std::vector<std::string> getTextString() const {

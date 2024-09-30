@@ -235,7 +235,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                    double cutoff_time = 60,
                                                    LargeAgentMAPFInstanceDecompositionPtr<N>& decomposer_copy = nullptr,
                                                    bool use_path_constraint = false,
-                                                   bool level_of_decomposition = 4,
+                                                   int level_of_decomposition = 4,
                                                    bool debug_mode = true
                                                    ) {
 

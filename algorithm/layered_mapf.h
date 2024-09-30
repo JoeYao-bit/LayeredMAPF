@@ -403,28 +403,6 @@ namespace freeNav::LayeredMAPF {
         return retv;
     }
 
-    template<Dimension N>
-    std::vector<std::set<int> > pickCasesFromScene(int test_count,
-                                                   const std::vector<int>& required_counts,
-                                                   int instance_count) {
-        std::vector<std::set<int> > retv;
-        for(int i=0; i<instance_count; i++) {
-            for(const int& required_count : required_counts) {
-                std::set<int> instance;
-                while(1) {
-                    int current_pick = rand() % test_count;
-                    if(instance.find(current_pick) == instance.end()) {
-                        instance.insert(current_pick);
-                        if(instance.size() == required_count) {
-                            retv.push_back(instance);
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        return retv;
-    }
 
 }
 

@@ -345,12 +345,12 @@ map_format_map = {
                 #  "maze-32-32-2":'*',
                 #  "maze-32-32-4":'*',
                 #  "maze-128-128-2":'*',
-                #  "maze-128-128-10":'*',
+                  "maze-128-128-10":'*',
                  
                 #  "den312d":'v',
-                #  "den520d":'v',
+                  "den520d":'v',
                  
-                #  "Berlin_1_256":'<',
+                  "Berlin_1_256":'<',
                   "Paris_1_256":'<',
                  
                 #  "ht_chantry":'H',
@@ -370,7 +370,7 @@ map_format_map = {
                  
                 #  "Boston_0_256":'<',
                 #  "lt_gallowstemplar_n":'H',
-                #  "ost003d":'H'
+                  "ost003d":'H'
 
 }
 
@@ -473,14 +473,14 @@ for single_data in all_single_data:
 
 for method_key, method_value in all_method_time_cost_map.items(): 
     # draw at each agent size
-    drawMethodMaps(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)           
+    drawMethodMaps(all_method_time_cost_map[method_key], "Number of agents", "Time cost(s)", "time_cost/"+method_key)           
     drawMethodMaps(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
     drawMethodMaps(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
     drawMethodMaps(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
     drawMethodMaps(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)        
     
     # draw summary of maps
-    drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)    
+    drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(s)", "time_cost/"+method_key)    
     drawSummaryOfMap(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
     drawSummaryOfMap(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
     drawSummaryOfMap(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           

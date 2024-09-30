@@ -102,7 +102,10 @@ namespace freeNav::LayeredMAPF{
                     {"decomposition_output_path", "../test/test_data/decomposition/den520d_de.txt"},
                     {"agent_num",    "900"}, // up to 500
                     {"cut_off_time", "200"},
-                    {"max_run_time", "60"} // in second
+                    {"max_run_time", "60"}, // in second
+                    {"la_ins_path", "../test/test_data/large_agent_instance/den520d_la.txt"},
+                    {"la_comp_path", "../test/test_data/large_agent_instance/den520d_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/den520d_la_dec.txt"}
             };
 
     SingleMapTestConfig<2> MAPFTestConfig_Paris_1_256 =
@@ -277,7 +280,10 @@ namespace freeNav::LayeredMAPF{
                     {"decomposition_output_path", "../test/test_data/decomposition/maze-128-128-10_de.txt"},
                     {"agent_num",    "1000"}, // 330
                     {"cut_off_time", "200"},
-                    {"max_run_time", "60"} // in second
+                    {"max_run_time", "60"}, // in second
+                    {"la_ins_path", "../test/test_data/large_agent_instance/maze-128-128-10_la.txt"},
+                    {"la_comp_path", "../test/test_data/large_agent_instance/maze-128-128-10_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/maze-128-128-10_la_dec.txt"}
             };
 
     // random-64-64-10
@@ -447,7 +453,10 @@ namespace freeNav::LayeredMAPF{
                     {"decomposition_output_path", "../test/test_data/decomposition/ost003d_de.txt"},
                     {"agent_num",    "1000"}, // 330
                     {"cut_off_time", "200"},
-                    {"max_run_time", "60"} // in second
+                    {"max_run_time", "60"}, // in second
+                    {"la_ins_path", "../test/test_data/large_agent_instance/ost003d_la.txt"},
+                    {"la_comp_path", "../test/test_data/large_agent_instance/ost003d_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/ost003d_la_dec.txt"}
             };
 
     // AR0011SR
