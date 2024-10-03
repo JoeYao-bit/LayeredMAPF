@@ -25,7 +25,6 @@
 #include "../freeNav-base/basic_elements/distance_map_update.h"
 #include "../../freeNav-base/basic_elements/point.h"
 #include "../freeNav-base/basic_elements/point.h"
-#include "../../freeNav-base/visualization/canvas/canvas.h"
 #include "../../freeNav-base/dependencies/memory_analysis.h"
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
@@ -158,8 +157,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         virtual std::string serialize(const Pose<int, N>& start_pose, const Pose<int, N>& target_pose) const = 0;
 
-        virtual void drawOnCanvas(const Pose<int, 2>& pose,
-                          Canvas& canvas, const cv::Vec3b& color, bool fill=true) const = 0;
 
 //        virtual std::pair<Pointis<N>, Pointis<N>> getCoverageGridWithinPose(const Pose<int, N>& pose) const = 0;
 

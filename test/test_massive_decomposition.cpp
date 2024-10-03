@@ -183,10 +183,10 @@ bool decompositionOfSingleInstance(const freeNav::Instances<N>& ists, DimensionL
     outputStream.clear();
     std::stringstream ss;
     ss << " " << time_cost << " " << max_cluster_size << " " << ists.size() << " " << is_legal << " " << level << " " << memory_usage << " "
-       << instance_decompose->all_clusters_.size() << " "
-       << instance_decompose->instance_decomposition_time_cost_ << " "
-       << instance_decompose->cluster_decomposition_time_cost_ << " "
-       << instance_decompose->sort_level_time_cost_ << " ";
+    << instance_decompose->all_clusters_.size() << " "
+    << instance_decompose->instance_decomposition_time_cost_ << " "
+    << instance_decompose->cluster_decomposition_time_cost_ << " "
+    << instance_decompose->sort_level_time_cost_ << " ";
 
     outputStream = ss.str();
     std::cout << " memory_usage = " << memory_usage << std::endl;
@@ -209,8 +209,8 @@ bool getProcessResourceUsage()
 
 int count_of_instance_total = 0;
 bool SingleMapDecompositionTest(const SingleMapTestConfig <2> &map_test_config,
-                                const std::vector<int>& agent_in_instances,
-                                const int& count_of_instance) {
+                                  const std::vector<int>& agent_in_instances,
+                                  const int& count_of_instance) {
 
     count_of_instance_total += agent_in_instances.size();
     // 0, load scenerio

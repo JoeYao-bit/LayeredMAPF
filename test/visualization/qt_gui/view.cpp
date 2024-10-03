@@ -681,7 +681,7 @@ void View::drawHeuristicTable() {
             Grid *grid = all_grid_[grid_id];
             const int& hyper_node_id = layered_mapf->grid_map_[grid_id]->hyper_node_id_;
             std::stringstream ss_heuristic_value;
-            ss_heuristic_value << layered_mapf->all_heuristic_table_agent_[current_shown_agent_][hyper_node_id];
+            ss_heuristic_value << layered_mapf->all_heuristic_table_sat_[current_shown_agent_][hyper_node_id];
             grid->strs_.push_back(ss_heuristic_value.str());
         }
     }

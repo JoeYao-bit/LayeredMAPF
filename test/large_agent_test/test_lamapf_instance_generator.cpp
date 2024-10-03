@@ -4,7 +4,6 @@
 #include <gtest/gtest.h>
 #include <random>
 #include "../../algorithm/LA-MAPF/large_agent_instance_generator.h"
-#include "../../freeNav-base/visualization/canvas/canvas.h"
 #include "../../freeNav-base/dependencies/2d_grid/text_map_loader.h"
 #include "../../algorithm/LA-MAPF/CBS/large_agent_CBS.h"
 #include "../../algorithm/LA-MAPF/LaCAM/large_agent_lacam.h"
@@ -56,140 +55,6 @@ int canvas_size_x = 1000, canvas_size_y = 700;
 
 // generateInstanceAndDecomposition
 
-TEST(GenerateCircleInstance_decomposition, test)
-{
-    const AgentPtrs<2>& agents = RandomCircleAgentsGenerator<2>(30,
-                                                                .4, 2.3,
-                                                                .1,
-                                                                dim);
-
-    generateInstanceAndDecomposition<2> (agents,
-                                        map_test_config.at("la_ins_path"),
-                                        CBS::LargeAgentCBS_func<2>,
-                                        1e4, true, true);
-
-//    generateInstance<CircleAgent<2>,
-//        LaCAM::LargeAgentLaCAM<2, CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >
-//        (agents, map_test_config.at("la_ins_path"));
-
-};
-
-TEST(GenerateBlockInstance_decomposition, test)
-{
-    const AgentPtrs<2>& agents = RandomBlock2DAgentsGenerator(40,
-                                                              -2.4, -.2,
-                                                              .2, 2.4,
-                                                              .2, 2.4,
-                                                              .1, dim);
-
-    generateInstanceAndDecomposition<2> (agents,
-                                         map_test_config.at("la_ins_path"),
-                                         CBS::LargeAgentCBS_func<2>,
-                                         1e4, true, true);
-
-//    generateInstance<CircleAgent<2>,
-//        LaCAM::LargeAgentLaCAM<2, CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >
-//        (agents, map_test_config.at("la_ins_path"));
-
-};
-
-TEST(GenerateMixedInstance_decomposition, test)
-{
-    AgentPtrs<2> agents = RandomMixedAgentsGenerator(50,
-                                                     .4, 2.,
-                                                     50,
-                                                     -2., -.2,
-                                                     .2, 2.,
-                                                     .2, 2.,
-                                                     .1, dim);
-    generateInstanceAndDecomposition<2> (agents,
-                                         map_test_config.at("la_ins_path"),
-                                         CBS::LargeAgentCBS_func<2>,
-                                         1e8, true, true);
-
-//    generateInstance<CircleAgent<2>,
-//        LaCAM::LargeAgentLaCAM<2, CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >
-//        (agents, map_test_config.at("la_ins_path"));
-
-};
-
-TEST(GenerateCircleInstance, test)
-{
-    const AgentPtrs<2>& agents = RandomCircleAgentsGenerator<2>(40,
-                                                                   .4, 2.3,
-                                                                   .1,
-                                                                   dim);
-
-    generateInstanceAndPlanning<2> (agents,
-                                       map_test_config.at("la_ins_path"),
-                                       CBS::LargeAgentCBS_func<2>,
-                                               1e4, true, true);
-
-//    generateInstance<CircleAgent<2>,
-//        LaCAM::LargeAgentLaCAM<2, CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >
-//        (agents, map_test_config.at("la_ins_path"));
-
-};
-
-
-TEST(GenerateBlock_2DInstance, test)
-{
-    const AgentPtrs<2>& agents = RandomBlock2DAgentsGenerator(10,
-                                                                -1.4, -.2,
-                                                                .2, 1.4,
-                                                                .2, 1.4,
-                                                                .1, dim);
-    generateInstanceAndPlanning<2>(agents,
-                                    map_test_config.at("la_ins_path"),
-                                    CBS::LargeAgentCBS_func<2>,
-                                    1e4, true, true);
-
-};
-
-TEST(GenerateMixedInstanceAndPlanning, test)
-{
-
-    AgentPtrs<2> agents = RandomMixedAgentsGenerator(10,
-                                                     .4, 2.3,
-                                                     10,
-                                                     -1.4, -.2,
-                                                     .2, 1.4,
-                                                     .2, 1.4,
-                                                     .1, dim);
-
-    generateInstanceAndPlanning<2> (agents,
-                                    map_test_config.at("la_ins_path"),
-                                    CBS::LargeAgentCBS_func<2>,
-                                    1e4, true, true);
-
-//    generateInstanceAndPlanning<2>(agents,
-//                                   map_test_config.at("la_ins_path"),
-//                                   LaCAM::LargeAgentLaCAM_func<2>,
-//                                   1e4, true, true);
-
-};
-
-TEST(LoadInstanceAndVisualize, test) {
-    const std::string file_path = map_test_config.at("la_ins_path");
-
-    loadInstanceAndVisualize<2>(file_path);
-}
-
-TEST(LoadInstance_CBS, test)
-{
-    const std::string file_path = map_test_config.at("la_ins_path");
-
-//    loadInstanceAndPlanning<CircleAgent<2>,
-//                            LaCAM::LargeAgentLaCAM<2,
-//                            CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >(file_path);
-
-    // LargeAgentConstraintTableForLarge
-    // LargeAgentConstraintTable
-
-    loadInstanceAndPlanningLayeredLAMAPF<2>(CBS::LargeAgentCBS_func<2>,
-                                                        file_path, 60, false, true, true);
-
-};
 
 TEST(LoadInstance_LaCAM, test)
 {
@@ -236,7 +101,7 @@ TEST(Multi_GenerateCircleInstance, test) {
                                            map_test_config.at("la_ins_path"),
                                            //CBS::LargeAgentCBS_func<2, CircleAgent<2> >,
                                            LaCAM::LargeAgentLaCAM_func<2>,
-                                           1e4, true, false);
+                                           1e4, true);
     }
 }
 
@@ -262,7 +127,7 @@ TEST(Multi_GenerateBlock_2DInstance, test) {
                                             CBS::LargeAgentCBS_func<2>,
                                             //LaCAM::LargeAgentLaCAM_func<2, BlockAgent_2D >,
                                             1e4,
-                                            true, false);
+                                            true);
         }
 
     }
@@ -338,12 +203,6 @@ void Decomposition_test() {
                                                               deserializer.getAgents(),
                                                               dim,
                                                               is_occupied);
-
-    InstanceVisualization(deserializer.getAgents(),
-                                     decomposer.getAllPoses(),
-                                     deserializer.getInstances(),
-                                     decomposer.grid_paths_,
-                                     decomposer.agent_visited_grids_);
 
 }
 
@@ -575,15 +434,14 @@ TEST(Multi_Generate_Agent_And_Decomposition, test) { // 2360 count
 
 
 TEST(Multi_Generate_Agent_And_Compare, test) {
-
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
-            map_configs = {{MAPFTestConfig_Paris_1_256,     1, 2, 1, 1},
-                           {MAPFTestConfig_empty_48_48,     1, 2, 1, 1},
-                           {MAPFTestConfig_Berlin_1_256,    1, 2, 1, 1},
-                           {MAPFTestConfig_maze_128_128_10, 1, 2, 1, 1},
-                           {MAPFTestConfig_den520d,         1, 2, 1, 1},
-                           {MAPFTestConfig_ost003d,         1, 2, 1, 1},
+            map_configs = {//{MAPFTestConfig_Paris_1_256,     1, 2, 1, 1},
+                           //{MAPFTestConfig_empty_48_48,     1, 2, 1, 1},
+                           //{MAPFTestConfig_Berlin_1_256,    1, 2, 1, 1},
+                           //{MAPFTestConfig_maze_128_128_10, 1, 2, 1, 1},
+                           //{MAPFTestConfig_den520d,         1, 2, 1, 1},
+                           //{MAPFTestConfig_ost003d,         1, 2, 1, 1},
     };
 
     for(const auto& file_config : map_configs) {

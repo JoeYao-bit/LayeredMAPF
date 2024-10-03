@@ -115,7 +115,7 @@ namespace PIBT_2 {
         P.ct_ = ct;
 
         // solve
-        std::unique_ptr<MAPF_Solver> solver = std::make_unique<HCA>(&P);
+        std::unique_ptr<MAPF_Solver> solver = std::make_unique<HCA>(&P, ct);
         solver->setLogShort(true);
         solver->solve();
         if (solver->succeed() && !solver->getSolution().validate(&P)) {

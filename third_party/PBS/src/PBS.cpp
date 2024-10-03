@@ -44,6 +44,11 @@ namespace PBS_Li {
 
         generateRoot();
 
+//        freeNav::DimensionLength dim[2];
+//        dim[0] = search_engines[0]->instance.num_of_cols;
+//        dim[1] = search_engines[0]->instance.num_of_rows;
+//        std::cout << " root node: "  << dummy_start->toString(dim) << std::endl;
+
         while (!open_list.empty()) {
             auto curr = selectNode();
 
@@ -59,10 +64,14 @@ namespace PBS_Li {
             auto t1 = clock();
             std::vector < CBS_Li::MAPFPath * > copy(paths);
             generateChild(0, curr, curr->conflict->a1, curr->conflict->a2);
+
+//            std::cout << " new node: "  << curr->children[0]->toString(dim) << std::endl;
             paths = copy;
             generateChild(1, curr, curr->conflict->a2, curr->conflict->a1);
             runtime_generate_child += (double) (clock() - t1) / CLOCKS_PER_SEC;
             pushNodes(curr->children[0], curr->children[1]);
+//            std::cout << " new node: "  << curr->children[1]->toString(dim) << std::endl;
+
             curr->clear();
         }  // end of while loop
         return solution_found;
@@ -77,13 +86,14 @@ namespace PBS_Li {
         priority_graph[low][high] = true;
         if (screen > 2)
             printPriorityGraph();
-        topologicalSort(ordered_agents);
+        topologicalSort(ordered_agents); // yz: update sort of prioriry based on priority_graph
         if (screen > 2) {
             std::cout << "Ordered agents: ";
             for (int i : ordered_agents)
                 std::cout << i << ",";
             std::cout << std::endl;
         }
+        // yz: set order of each agents
         std::vector<int> topological_orders(num_of_agents); // map agent i to its position in ordered_agents
         auto i = num_of_agents - 1;
         for (const auto &a : ordered_agents) {
@@ -93,11 +103,12 @@ namespace PBS_Li {
 
         std::priority_queue<std::pair < int, int>>
         to_replan; // <position in ordered_agents, agent id>
+        // yz: store whether agent have insert into replan, avoid repeat
         std::vector<bool> lookup_table(num_of_agents, false);
         to_replan.emplace(topological_orders[low], low);
         lookup_table[low] = true;
         { // find conflicts where one agent is higher than high and the other agent is lower than low
-            std::set<int> higher_agents;
+            std::set<int> higher_agents; // yz: higher agent is not update ?
             auto p = ordered_agents.rbegin();
             std::advance(p, topological_orders[high]);
             assert(*p == high);
@@ -106,6 +117,7 @@ namespace PBS_Li {
 
             std::set<int> lower_agents;
             auto p2 = ordered_agents.begin();
+            // yz: advance() 函数用于将迭代器前进（或者后退）指定长度的距离。
             std::advance(p2, num_of_agents - 1 - topological_orders[low]);
             assert(*p2 == low);
             getLowerPriorityAgents(p2, lower_agents);
@@ -113,11 +125,13 @@ namespace PBS_Li {
             for (const auto &conflict : node->conflicts) {
                 int a1 = conflict->a1;
                 int a2 = conflict->a2;
+                // yz: avoid repeat of insert into replan
                 if (a1 == low or a2 == low)
                     continue;
                 if (topological_orders[a1] > topological_orders[a2]) {
-                    std::swap(a1, a2);
+                    std::swap(a1, a2); // yz: make a1 < a2
                 }
+                // yz: if a1 is lower than current and high is higher than current, then replan a1
                 if (!lookup_table[a1] and lower_agents.find(a1) != lower_agents.end() and
                     higher_agents.find(a2) != higher_agents.end()) {
                     to_replan.emplace(topological_orders[a1], a1);
@@ -136,7 +150,7 @@ namespace PBS_Li {
             // Re-plan path
             std::set<int> higher_agents;
             auto p = ordered_agents.rbegin();
-            std::advance(p, rank);
+            std::advance(p, rank); // yz: get current agent in priority queue
             assert(*p == a);
             getHigherPriorityAgents(p, higher_agents);
             assert(!higher_agents.empty());
@@ -154,6 +168,7 @@ namespace PBS_Li {
             }
 
             // Delete old conflicts
+            // yz: if an agent is replanned, delete all conflicts about it
             for (auto c = node->conflicts.begin(); c != node->conflicts.end();) {
                 if ((*c)->a1 == a or (*c)->a2 == a)
                     c = node->conflicts.erase(c);
@@ -175,6 +190,7 @@ namespace PBS_Li {
             }
 
             // Find new conflicts
+            // yz: after an agent is replanned, update conflict about it
             for (auto a2 = 0; a2 < num_of_agents; a2++) {
                 if (a2 == a or lookup_table[a2] or
                     higher_agents.count(a2) > 0) // already in to_replan or has higher priority
@@ -186,6 +202,7 @@ namespace PBS_Li {
                     {
                         if (screen > 1)
                             std::cout << "\t" << a2 << " needs to be replanned due to collisions with " << a << std::endl;
+                        // yz: if find new agent that lower than current agent, it need to be replan
                         to_replan.emplace(topological_orders[a2], a2);
                         lookup_table[a2] = true;
                     }
@@ -232,7 +249,9 @@ namespace PBS_Li {
 
 // takes the paths_found_initially and UPDATE all (constrained) paths found for agents from curr to start
     inline void PBS::update(PBSNode *node) {
+        // yz: reset path to previous updated path
         paths.assign(num_of_agents, nullptr);
+        // yz: reset priority_graph and set it according to it and its parent nodes' priority constraint
         priority_graph.assign(num_of_agents, std::vector<bool>(num_of_agents, false));
         for (auto curr = node; curr != nullptr; curr = curr->parent) {
             for (auto &path : curr->paths) {
@@ -583,6 +602,7 @@ namespace PBS_Li {
         }
         auto t = clock();
         root->depth = 0;
+        // yz: detect conflicts
         for (int a1 = 0; a1 < num_of_agents; a1++) {
             for (int a2 = a1 + 1; a2 < num_of_agents; a2++) {
                 if (hasConflicts(a1, a2)) {
@@ -601,7 +621,6 @@ namespace PBS_Li {
         {
             printPaths();
         }
-
         return true;
     }
 

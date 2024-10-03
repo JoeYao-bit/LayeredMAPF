@@ -16,7 +16,7 @@ namespace freeNav::LayeredMAPF {
 
 #define MAX_TIMESTEP INT_MAX / 2
 #define MAX_COST INT_MAX / 2
-#define MAX_NODES INT_MAX / 2
+#define MAX_NODES MAX<size_t> / 2
 
     template <Dimension N, typename NODE>
     struct TreeNode {
@@ -82,6 +82,28 @@ namespace freeNav::LayeredMAPF {
         return true;
     }
 
+    template<Dimension N>
+    std::vector<std::set<int> > pickCasesFromScene(int total_case_count,
+                                                   const std::vector<int>& required_counts,
+                                                   int instance_count) {
+        std::vector<std::set<int> > retv;
+        for(int i=0; i<instance_count; i++) {
+            for(const int& required_count : required_counts) {
+                std::set<int> instance; // current instance, id set of instance
+                while(1) {
+                    int current_pick = rand() % total_case_count;
+                    if(instance.find(current_pick) == instance.end()) {
+                        instance.insert(current_pick);
+                        if(instance.size() == required_count) {
+                            retv.push_back(instance);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return retv;
+    }
 
 }
 

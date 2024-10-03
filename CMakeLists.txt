@@ -34,28 +34,43 @@ aux_source_directory(third_party/CBSH2-RTC/src              CBSH2-RTC_src)
 aux_source_directory(third_party/PBS/src                    PBS_src)
 aux_source_directory(third_party/lacam/src                  lacam_src)
 aux_source_directory(third_party/lacam2/src                 lacam2_src)
+aux_source_directory(third_party/lacam3/src                 lacam3_src)
 aux_source_directory(third_party/MAPF-LNS2/src              MAPF_LNS2_src)
 aux_source_directory(third_party/MAPF-LNS2/src/CBS          MAPF_LNS2_CBS_src)
 aux_source_directory(third_party/MAPF-LNS2/src/PIBT         MAPF_LNS2_PIBT_src)
 aux_source_directory(third_party/pibt2/src                  PIBT2_src)
 
-add_library(EECBS_lib  ${EECBS_src} ${PBS_src} ${lacam_src} ${CBSH2-RTC_src} ${lacam2_src}
-        ${MAPF_LNS2_src} ${MAPF_LNS2_CBS_src} ${MAPF_LNS2_PIBT_src} ${PIBT2_src} )
+
+add_library(EECBS_lib  ${EECBS_src} ${PBS_src} ${lacam_src} ${CBSH2-RTC_src}
+        ${lacam2_src} ${lacam3_src}
+        ${MAPF_LNS2_src} ${MAPF_LNS2_CBS_src} ${MAPF_LNS2_PIBT_src} ${PIBT2_src})
 
 target_link_libraries(EECBS_lib freeNav-base)
 
 aux_source_directory(algorithm alg_src)
-add_library(alg_lib ${alg_src})
+
+aux_source_directory(algorithm/LA-MAPF lamapf_src)
+add_library(alg_lib ${alg_src} ${lamapf_src})
 target_link_libraries(alg_lib EECBS_lib lib-graph)
 #add_library(external_lib ${third1_src} ${third2_src} ${third3_src})
 
 add_executable(test_single_layered_MAPF test/test_single_layered_MAPF.cpp)
 target_link_libraries(test_single_layered_MAPF alg_lib)
 
-add_executable(test_memory_check test/test_massive_decomposition.cpp)
-target_link_libraries(test_memory_check alg_lib)
+add_executable(test_lacam3 test/test_lacam3.cpp)
+target_link_libraries(test_lacam3 freeNav-base alg_lib)
+
+add_executable(test_massive_decomposition test/test_massive_decomposition.cpp)
+target_link_libraries(test_massive_decomposition freeNav-base alg_lib)
 
 add_executable(test_massive_layered_mapf test/test_massive_layered_mapf.cpp)
 target_link_libraries(test_massive_layered_mapf alg_lib)
 
+add_executable(test_lamapf_instance_generator test/large_agent_test/test_lamapf_instance_generator.cpp)
+target_link_libraries(test_lamapf_instance_generator freeNav-base alg_lib)
 
+add_executable(test_large_agent_mapf_decomposition test/large_agent_test/test_large_agent_mapf_decomposition.cpp)
+target_link_libraries(test_large_agent_mapf_decomposition freeNav-base alg_lib)
+
+add_executable(test_layered_large_agent_mapf test/large_agent_test/test_layered_large_agent_mapf.cpp)
+target_link_libraries(test_layered_large_agent_mapf freeNav-base alg_lib)

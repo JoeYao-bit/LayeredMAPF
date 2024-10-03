@@ -13,7 +13,7 @@ namespace path_pathfinding {
     Graph::Graph() {}
 
     Graph::~Graph() {
-        for (auto v : V) delete v;
+        for (auto v : V) if(v != nullptr) delete v;
         if (!PATH_TABLE.empty()) {
             for (auto table : PATH_TABLE) delete table;
         }

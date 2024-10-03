@@ -57,8 +57,6 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
 //    std::cout << (raw_path.size() == deserializer.getAgents().size() ? "success" : "failed")
 //              << " raw large agent mapf in " << time_cost1 << "ms " << std::endl;
 
-    InstanceVisualization(deserializer.getAgents(), decomposer_ptr->getAllPoses(),
-                                     deserializer.getInstances(), layered_paths, grid_visit_count_table);
 }
 
 TEST(test, layered_large_agent_CBS) {

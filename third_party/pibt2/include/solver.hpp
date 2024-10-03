@@ -71,6 +71,8 @@ namespace PIBT_2 {
             return retv;
         }
 
+        CBS_Li::ConstraintTable *ct_ = nullptr;
+
         // -------------------------------
         // utilities for debug
     protected:
@@ -154,7 +156,7 @@ namespace PIBT_2 {
         virtual void exec() {};  // main
 
     public:
-        MinimumSolver(Problem *_P);
+        MinimumSolver(Problem *_P, CBS_Li::ConstraintTable *ct=nullptr);
 
         virtual ~MinimumSolver() {};
 
@@ -215,6 +217,29 @@ namespace PIBT_2 {
 
         // -------------------------------
         // log
+
+        // yz: add all static paths into path table
+        void updateStaticPaths() {
+
+            if(ct_ != nullptr) {
+                for(const auto& static_path : ct_->static_paths) {
+                    updateStaticPath(static_path);
+                }
+            }
+        }
+
+        // yz: add single CBS style path into path table
+        void updateStaticPath(const CBS_Li::MAPFPath& path) {
+            int makespan = path.size();
+            const int nodes_size = G->getNodesSize();
+            // extend PATH_TABLE
+            while ((int) PATH_TABLE.size() < makespan + 1)
+                PATH_TABLE.push_back(std::vector<int>(nodes_size, NIL));
+            // update locations
+            for (int t = 0; t < makespan; t++) PATH_TABLE[t][path[t].location] = P->getNum() + 1;
+        }
+
+
     public:
         virtual void makeLog(const std::string &logfile = "./result.txt");
 
@@ -282,7 +307,7 @@ namespace PIBT_2 {
         std::vector<std::vector<int>> PATH_TABLE;
 
     public:
-        MAPF_Solver(MAPF_Instance *_P);
+        MAPF_Solver(MAPF_Instance *_P, CBS_Li::ConstraintTable *ct=nullptr);
 
         virtual ~MAPF_Solver();
 

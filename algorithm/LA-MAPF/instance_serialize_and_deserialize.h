@@ -11,6 +11,8 @@
 #include <ostream>
 #include <istream>
 #include "../basic.h"
+#include <iostream>
+#include <fstream>
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 

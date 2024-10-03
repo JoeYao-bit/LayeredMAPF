@@ -37,7 +37,8 @@ namespace PIBT_2 {
                 int id = dim[0] * y + x;
                 if(!isoc(pt)) {
                     if(ct_ != nullptr) {
-                        if(ct->getHoldingTime(id, 0) != 0) { continue; }
+                        //if(ct->getHoldingTime(id, 0) != 0) { continue; }
+                        //std::cout << " ct->getHoldingTime(id, 0) " << ct->getHoldingTime(id, 0) << std::endl;
                     }
                     Node* v = new Node(id, x, y);
                     G->V[id] = v;

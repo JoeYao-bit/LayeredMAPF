@@ -231,7 +231,7 @@ namespace MAPF_LNS {
                 ("agentNum,k", po::value<int>()->default_value(0), "number of agents")
                 ("output,o", po::value<string>(), "output file name (no extension)")
                 ("outputPaths", po::value<string>(), "output file for paths")
-                ("cutoffTime,t", po::value<double>()->default_value(2*cutoff_time), "cutoff time (seconds)")
+                ("cutoffTime,t", po::value<double>()->default_value(cutoff_time), "cutoff time (seconds)")
                 ("screen,s", po::value<int>()->default_value(0),
                  "screen option (0: none; 1: LNS results; 2:LNS detailed results; 3: MAPF detailed results)")
                 ("stats", po::value<string>(), "output stats file")

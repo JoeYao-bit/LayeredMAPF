@@ -33,22 +33,28 @@ namespace LaCAM {
         // set priorities
         if (parent == nullptr) {
             // initialize
+            // yz: set initial priority by each agent's distance to target
             for (size_t i = 0; i < N; ++i) priorities[i] = (float) D.get(i, C[i]) / N;
             t = 0;
         } else {
             // dynamic priorities, akin to PIBT
             for (size_t i = 0; i < N; ++i) {
+                // yz: inherit priority from previous agent
+                // yz: if not reach target, priority + 1
                 if (D.get(i, C[i]) != 0) {
                     priorities[i] = parent->priorities[i] + 1;
                 } else {
+                    // yz: if reach target, decreases priority to (0, 1)
                     priorities[i] = parent->priorities[i] - (int) parent->priorities[i];
                 }
             }
+            // yz: time step + 1
             t = _parent->t + 1;
         }
 
         // set order
-        std::iota(order.begin(), order.end(), 0);
+        std::iota(order.begin(), order.end(), 0); // yz: fill with incremental sequence 0, 1, 2,
+        // yz: the order of fill is determine by priorities
         std::sort(order.begin(), order.end(),
                   [&](int i, int j) { return priorities[i] > priorities[j]; });
     }
@@ -69,7 +75,7 @@ namespace LaCAM {
               N(ins->N),
               V_size(ins->G.size()),
               D(DistTable(ins)),
-              C_next(Candidates(N, std::array<Vertex *, 5>())),
+              C_next(Candidates(N, std::array<Vertex *, 5>())), // yz: 5 means 4 direction + 1 wait
               tie_breakers(std::vector<float>(V_size, 0)),
               A(Agents(N, nullptr)),
               occupied_now(Agents(V_size, nullptr)),
@@ -83,7 +89,7 @@ namespace LaCAM {
         for (auto i = 0; i < N; ++i) A[i] = new Agent(i);
 
         // setup search queues
-        std::stack<Node *> OPEN;
+        std::stack<Node *> OPEN; // yz: std::stack 先进后出（FILO）
         std::unordered_map<Config, Node *, ConfigHasher> CLOSED;
         std::vector<Constraint *> GC;  // garbage collection of constraints
 
@@ -99,7 +105,7 @@ namespace LaCAM {
         visited_grid_.clear();
 
         while (!OPEN.empty() && !is_expired(deadline)) {
-            //std::cout << " loop count " << loop_cnt << " size " << OPEN.size() << std::endl;
+//            std::cout << "-- high level count " << loop_cnt << " size " << OPEN.size() << std::endl;
             loop_cnt += 1;
 
             // do not pop here!
@@ -108,7 +114,7 @@ namespace LaCAM {
             // check goal condition
             if (is_same_config(S->C, ins->goals)) {
                 // backtrack
-                // yz: seems high level search in increasing time index
+                // yz: high level search in increasing time index, all agents move simultaneously
                 while (S != nullptr) {
                     solution.push_back(S->C);
                     S = S->parent;
@@ -125,23 +131,31 @@ namespace LaCAM {
             }
 
             // create successors at the low-level search
+            // yz: search_tree update in a DFS mode,
+            // yz: if can move to next depth, keep move, otherwise current state is pop out
+            // yz: constraint will traversal all current possible combination of agent move
+            // yz: so current config is part of solution, it can always find next solution,
+            // yz: so this algorithm is complete
             auto M = S->search_tree.front();
             GC.push_back(M);
             S->search_tree.pop();
             if (M->depth < N) {
-                auto i = S->order[M->depth];
+                auto i = S->order[M->depth]; // yz: add constraint in order of priority, which is fixed
                 auto C = S->C[i]->neighbor;
                 C.push_back(S->C[i]);
                 if (MT != nullptr) std::shuffle(C.begin(), C.end(), *MT);  // randomize
                 for (auto u : C) {
-                    //yz: considering avoid static constraint
+                    //yz: add current agent's all possible candidates as constraint
                     S->search_tree.push(new Constraint(M, i, u));
                 }
             }
             // create successors at the high-level search
+            // yz: try search next config under current config S and constraint M
+            // yz: if failed, try add more constraint and find again
             if (!get_new_config(S, M)) continue;
 
             //yz: considering avoid static constraint
+            /*
             if(ins->ct != nullptr) {
                 bool is_legal = true;
                 for(auto a : A) {
@@ -167,6 +181,7 @@ namespace LaCAM {
                     continue;
                 }
             }
+             */
 
             // create new configuration
             auto C = Config(N, nullptr);
@@ -216,11 +231,12 @@ namespace LaCAM {
             }
 
             // set occupied now
-            a->v_now = S->C[a->id];
+            a->v_now = S->C[a->id]; // yz: current config is saved in S->C
             occupied_now[a->v_now->id] = a;
         }
 
         // add constraints
+        // // yz: constraint determine next config without search, which is saved M
         for (auto k = 0; k < M->depth; ++k) {
             const auto i = M->who[k];        // agent
             const auto l = M->where[k]->id;  // loc
@@ -240,6 +256,8 @@ namespace LaCAM {
 
 
         // perform PIBT
+        // yz: perform PIBT for each agent in predefined order
+        // yz: but as PIBT is recursive, the REAL of search path is not deterministic
         for (auto k : S->order) {
             //std::cout << " perform PIBT " << ins->N << std::endl;
             auto a = A[k];
@@ -265,31 +283,38 @@ namespace LaCAM {
         C_next[i][K] = ai->v_now;
 
         // sort, note: K + 1 is sufficient
+        // yz: randomize future locations candidates
         std::sort(C_next[i].begin(), C_next[i].begin() + K + 1,
                   [&](Vertex *const v, Vertex *const u) {
                       return D.get(i, v) + tie_breakers[v->id] <
                              D.get(i, u) + tie_breakers[u->id];
                   });
 
+        // yz: for all current agent's neighbor and wait
         for (size_t k = 0; k < K + 1; ++k) {
             auto u = C_next[i][k];
 
             // avoid vertex conflicts
             if (occupied_next[u->id] != nullptr) continue;
 
-            auto &ak = occupied_now[u->id];
+            auto &ak = occupied_now[u->id]; // yz: who occupied this neighbor
 
             // avoid swap conflicts with constraints
+            // yz: avoid swap conflicts with neighbor agents
             if (ak != nullptr && ak->v_next == ai->v_now) continue;
 
             // reserve next location
+            // yz: assume current agent can move to next location
             occupied_next[u->id] = ai;
             ai->v_next = u;
 
             // empty or stay
+            // yz: if not all neighbor are occupied or current agent just stay
             if (ak == nullptr || u == ai->v_now) return true;
 
             // priority inheritance
+            // yz: if neighboring agent is not move yet
+            // yz: then try to move it
             if (ak->v_next == nullptr && !funcPIBT(ak, next_t)) continue;
 
             // success to plan next one step
@@ -297,6 +322,7 @@ namespace LaCAM {
         }
 
         // failed to secure node
+        // yz: when search new config failed,
         occupied_next[ai->v_now->id] = ai;
         ai->v_next = ai->v_now;
         return false;
@@ -330,7 +356,7 @@ namespace LaCAM {
             return {};
         }
 
-         ins.ct = ct;
+        //ins.ct = ct;
         // solve
         const Deadline deadline = Deadline(time_limit_sec * 1000);
         //std::cout << " ins->ct " << ins.ct << std::endl;

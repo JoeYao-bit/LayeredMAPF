@@ -71,9 +71,6 @@ namespace freeNav::LayeredMAPF {
                     lasted_occupied_time_table[temp_id] = t;
                 }
             } else {
-//                if(t == 0) {
-//                    std::cout << "ERROR: illegal start " << std::endl;
-//                }
                 // traversal all path, wait at previous frame
                 for(auto& path : modified_paths) {
                     if(t-1 > path.size()-1) { continue; }
@@ -111,6 +108,147 @@ namespace freeNav::LayeredMAPF {
         return mergedPaths;
     }
 
+//    struct ConflictInfo {
+//        int wait_t_; // time index when wait can avoid conflict
+//        int delay_count_; // how many step it needs wait to avoid conflict
+//    };
+
+//    template<Dimension N>
+//    int getDiffPrePointIndex(const Path<N>& path, int start) {
+//        assert(start <= path.size());
+//        for(int i=start-1; i>=0; i--) {
+//            if(path[i] != path[start])
+//                return i;
+//        }
+//        //std::cout << "ERROR: find no diff point" << std::endl;
+//        return MAX<int>;
+//    }
+
+
+    // two paths, the first are planed earlier than the second
+//    template <Dimension N>
+//    ConflictInfo getMinConflictTimeBetweenTwoPath(const Path<N>& p1, const Path<N>& p2, int begin_time_step) {
+//        // yz: check conflicts in common part
+//        const auto& longer_path  = p1.size() > p2.size() ? p1 : p2;
+//        const auto& shorter_path = p1.size() > p2.size() ? p2 : p1;
+//
+//        int min_path_length = shorter_path.size();
+//        // yz: determine constraint of current hyper node in increasing time order
+//
+//        for (int timestep = begin_time_step; timestep < min_path_length; timestep++) {
+//            const auto& loc1 = p1[timestep], loc2 = p2[timestep];
+//            // yz: check whether existing node conflict
+//            if (loc1 == loc2) {
+//                int diff_index_2 = getDiffPrePointIndex(p2, timestep);
+//                ConflictInfo retv{diff_index_2, timestep - diff_index_2};
+//                return retv;
+//            }
+//            // yz: check whether existing edge conflict
+//            else if (timestep < min_path_length - 1
+//                     && loc1 == p2[timestep + 1]
+//                     && loc2 == p1[timestep + 1]) {
+//
+//                int diff_index_2 = getDiffPrePointIndex(p2, timestep);
+//                ConflictInfo retv{diff_index_2, timestep - diff_index_2 + 1};
+//                return retv;
+//            }
+//        }
+//        // yz: check conflict that not in common part
+//        if (longer_path.size() != shorter_path.size()) {
+//            const auto& loc1 = shorter_path.back();
+//            for (int timestep = std::max(min_path_length, begin_time_step);
+//                 timestep < (int) longer_path.size();
+//                 timestep++) {
+//                Pointi<N> loc2 = longer_path[timestep];
+//                if (loc1 == loc2) {
+//                    assert(p1.size() > p2.size()); // ensured by decomposition of mapf instance
+//                    int diff_index_2 = getDiffPrePointIndex(p2, p2.size()-1);
+//                    ConflictInfo retv{diff_index_2, timestep - diff_index_2};
+//                    return retv;
+//                }
+//            }
+//        }
+//        return ConflictInfo{MAX<int>, MAX<int>};
+//    }
+
+    // two group of paths, the first are planed earlier than the second
+//    template <Dimension N>
+//    ConflictInfo getMinConflictTimeBetweenTwoGroupOfPaths(const Paths<N>& paths_1, const Paths<N>& paths_2, int begin_time_step) {
+//        ConflictInfo min_conflict_time_step = {MAX<int>, MAX<int>};
+//        for(int i=0; i<paths_1.size(); i++) {
+//            for(int j=0; j<paths_2.size(); j++) {
+//                ConflictInfo local_min_conf_time_step = getMinConflictTimeBetweenTwoPath(paths_1[i], paths_2[j], begin_time_step);
+//                if(local_min_conf_time_step.wait_t_ < min_conflict_time_step.wait_t_) {
+//                    min_conflict_time_step = local_min_conf_time_step;
+//                } else if(local_min_conf_time_step.wait_t_ == min_conflict_time_step.wait_t_) {
+//                    if(local_min_conf_time_step.delay_count_ > min_conflict_time_step.delay_count_) {
+//                        min_conflict_time_step = local_min_conf_time_step;
+//                    }
+//                }
+//            }
+//        }
+////        std::cout << "local min_conflict_time_step = " << min_conflict_time_step.t1_ << ", " << min_conflict_time_step.t2_ << std::endl;
+//        return min_conflict_time_step;
+//    }
+
+    // delay a set of paths one step simultaneously at time step t
+    template <Dimension N>
+    void delayPath(Paths<N>& paths, int t, int count = 1) {
+//        std::cout << "delay t = " << t << ", delay count = " << count << std::endl;
+        // traversal all path, wait at previous frame
+        for(auto& path : paths) {
+            // do not delay which have arrived target
+            if(t > path.size()-1) { continue; }
+            for(int i=0; i<count; i++) {
+                path.insert(path.begin() + t, path[t]);
+            }
+        }
+    }
+
+    // merge two group of paths and the first are planed earlier than the second
+//    template <Dimension N>
+//    Paths<N> mergeTwoGroupOfPath(const Paths<N>& paths_1, const Paths<N>& paths_2) {
+//        Paths<N> copy_1 = paths_1, copy_2 = paths_2;
+//        int count = 0;
+//        while(1) {
+//            count ++;
+//            ConflictInfo info = getMinConflictTimeBetweenTwoGroupOfPaths<N>(copy_1, copy_2, 0);
+//            if(info.wait_t_ != MAX<int> || info.wait_t_ != MAX<int>) {
+//                // delay the second group to fix conflict
+//                delayPath<N>(copy_2, info.wait_t_, info.delay_count_);
+//            } else {
+//                break;
+//            }
+//        }
+//        std::cout << __FUNCTION__ << " take " << count << " step " << std::endl;
+//        copy_1.insert(copy_1.end(), copy_2.begin(), copy_2.end());
+//        return copy_1;
+//    }
+
+    template<Dimension N>
+    std::ostream & operator<<(std::ostream& os, const Paths<N>& paths) {
+        for(const auto& path : paths) {
+            os << path << "\n";
+        }
+        return os;
+    }
+
+    // slow when there are lots of clusters
+//    template <Dimension N>
+//    Paths<N> multiLayerCompressAnother(const std::vector<Paths<N> >& pathss) {
+//        if(pathss.size() == 1) { return pathss.front(); }
+//        else if(pathss.empty()) { return {}; }
+//        Paths<N> mergedPaths = pathss.front();
+////        std::cout << "--level 0: " << std::endl;
+//        std::cout << mergedPaths;
+//        for(int i=1; i<pathss.size(); i++) {
+//            mergedPaths = mergeTwoGroupOfPath(mergedPaths, pathss[i]);
+////            std::cout << "--level " << i << ": " << std::endl;
+////            std::cout << mergedPaths;
+//        }
+//        return mergedPaths;
+//    }
+
 
     // input: static occupancy map / current solving problem / previous path as constraints
     // output: what path was found, or empty is failed
@@ -122,17 +260,8 @@ namespace freeNav::LayeredMAPF {
                                   DimensionLength* dim,
                                   const IS_OCCUPIED_FUNC<N> & isoc) {
 
-//        struct timezone tz;
-//        struct timeval  tv_pre;
-//        struct timeval  tv_after;
-//        gettimeofday(&tv_pre, &tz);
-
         MAPFInstanceDecompositionPtr<N> instance_decompose = std::make_shared<MAPFInstanceDecomposition<N> >(instances, dim, isoc);
 
-//        gettimeofday(&tv_after, &tz);
-//        double decomposition_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
-//        std::cout << "-- decomposition take " << decomposition_cost << " ms to get "
-//                  << instance_decompose->all_clusters_.size() << " clusters " << std::endl;
         return instance_decompose->all_clusters_;
     }
 
@@ -191,16 +320,8 @@ namespace freeNav::LayeredMAPF {
                 const auto& current_cluster = instance_decompose->all_clusters_[j];
                 for(const int& agent_id : current_cluster) {
                     if(j < i) {
-//                        layered_ct->insert2CT(dim[0] * instances[agent_id].second[1] + instances[agent_id].second[0], 0, MAX_TIMESTEP);
-//                        CBS_Li::MAPFPath path_eecbs;
-//                        path_eecbs.push_back(CBS_Li::PathEntry(dim[0] * instances[agent_id].second[1] + instances[agent_id].second[0]));
-//                        layered_ct->insert2CT(path_eecbs);
                         avoid_locs[instances[agent_id].second[1]][instances[agent_id].second[0]] = true;
                     } else {
-//                        layered_ct->insert2CT(dim[0] * instances[agent_id].first[1] + instances[agent_id].first[0], 0, MAX_TIMESTEP);
-//                        CBS_Li::MAPFPath path_eecbs;
-//                        path_eecbs.push_back(CBS_Li::PathEntry(dim[0] * instances[agent_id].first[1] + instances[agent_id].first[0]));
-//                        layered_ct->insert2CT(path_eecbs);
                         avoid_locs[instances[agent_id].first[1]][instances[agent_id].first[0]] = true;
                     }
                 }
@@ -213,7 +334,6 @@ namespace freeNav::LayeredMAPF {
                 }
                 return {};
             }
-            //std::cout << " current ists size " << ists.size() << std::endl;
 
             auto new_isoc = [&](const Pointi<2> & pt) -> bool {
                 if(pt[0] < 0 || pt[0] >= dim[0] || pt[1] < 0 || pt[1] >= dim[1]) { return true; }
@@ -230,8 +350,6 @@ namespace freeNav::LayeredMAPF {
                         layered_ct = nullptr;
                     }
                     return {};
-                } else {
-                    //std::cout << " layered EECBS MAPF varify success, " << i << " th cluster: " << current_id_set << std::endl;
                 }
             }
             gettimeofday(&tv_after, &tz);
@@ -271,13 +389,14 @@ namespace freeNav::LayeredMAPF {
                     }
                 }
             }
-            //std::cout << " layered MAPF success " << i << " th cluster " << std::endl;
+
             retv.insert(retv.end(), next_paths.begin(), next_paths.end());
             pathss.push_back(next_paths);
 
         }
         assert(instances.size() == retv.size());
         if(!use_path_constraint) { retv = multiLayerCompress(dim, pathss); }
+        //if(!use_path_constraint) { retv = multiLayerCompressAnother(pathss); }
         std::cout << " layered mapf success " << !retv.empty() << std::endl;
         if(layered_ct != nullptr) {
             delete layered_ct;
@@ -286,28 +405,6 @@ namespace freeNav::LayeredMAPF {
         return retv;
     }
 
-    template<Dimension N>
-    std::vector<std::set<int> > pickCasesFromScene(int test_count,
-                                                   const std::vector<int>& required_counts,
-                                                   int instance_count) {
-        std::vector<std::set<int> > retv;
-        for(int i=0; i<instance_count; i++) {
-            for(const int& required_count : required_counts) {
-                std::set<int> instance;
-                while(1) {
-                    int current_pick = rand() % test_count;
-                    if(instance.find(current_pick) == instance.end()) {
-                        instance.insert(current_pick);
-                        if(instance.size() == required_count) {
-                            retv.push_back(instance);
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        return retv;
-    }
 
 }
 

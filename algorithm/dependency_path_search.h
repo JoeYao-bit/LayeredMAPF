@@ -92,9 +92,6 @@ namespace freeNav::LayeredMAPF {
 
     };
 
-    //template<Dimension N>
-    //using HyperGraphNodePtr = HyperGraphNode<N>*;
-
     template<Dimension N>
     using HyperGraphNodePtrs = std::vector<HyperGraphNodePtr<N> >;
 
@@ -123,7 +120,6 @@ namespace freeNav::LayeredMAPF {
         int start_id = target_id - 1;
         int count = 0;
         while(!current_set.empty()) {
-            //std::cout << "-- " << count << " iteration, current_set size " << current_set.size() << std::endl;
             HyperGraphNodeDataPtrs<N> next_set;
             for(const auto& node_ptr : current_set) {
 

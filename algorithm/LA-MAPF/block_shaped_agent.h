@@ -5,7 +5,6 @@
 #ifndef LAYEREDMAPF_BLOCK_SHAPED_AGENT_H
 #define LAYEREDMAPF_BLOCK_SHAPED_AGENT_H
 #include "common.h"
-#include "../../freeNav-base/visualization/canvas/canvas.h"
 #include <sstream>
 #include <boost/algorithm/string/split.hpp>
 
@@ -246,11 +245,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return false;
         }
 
-        void drawOnCanvas(const Pose<int, 2>& pose,
-                          Canvas& canvas, const cv::Vec3b& color, bool fill=true) const {
-            const auto& rect = getPosedRectangle(pose); // agents
-            canvas.drawRectangleFloat(rect.first, rect.second, true, fill ? -1 : 1, color, 1.0);
-        }
 
         // get half of the coverage (when x>= 0)
         std::vector<std::pair<Pointis<2>, Pointis<2> > > getInitRotateCoverage(Pointf<2> pt, bool reverse = false) const {

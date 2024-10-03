@@ -1,6 +1,7 @@
 #pragma once
 #include "EECBS/inc/common.h"
 #include "Conflict.h"
+#include "../freeNav-base/basic_elements/point.h"
 
 namespace PBS_Li {
 
@@ -42,6 +43,28 @@ namespace PBS_Li {
                 rst.push_back(path.first);
             return rst;
         }
+
+        std::string toString(freeNav::DimensionLength* dim) {
+            std::stringstream ss;
+            ss << "ptr = " << this << ", parent " << parent << " \n";
+            ss << "cfs = " << this->conflicts.size() << ": ";
+            for(const auto& cf : this->conflicts) {
+                ss << cf->a1 << "*" << cf->a2 << ", ";
+            }
+            ss << "\n";
+            ss << "cs: ag " << constraint.high << " > " << constraint.low << "\n";
+
+            for(const auto& path : paths) {
+                ss << "ag: " << path.first << ", path = ";
+                for(const auto& wp : path.second) {
+                    freeNav::Pointi<2> pt = freeNav::IdToPointi<2>(wp.location, dim);
+                    ss << pt << "->";
+                }
+                ss << "\n";
+            }
+            return ss.str();
+        }
+
     };
 
     std::ostream& operator<<(std::ostream& os, const PBSNode& node);

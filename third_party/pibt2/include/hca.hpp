@@ -37,7 +37,7 @@ namespace PIBT_2 {
         std::vector<bool> table_goals;
 
     public:
-        HCA(MAPF_Instance *_P);
+        HCA(MAPF_Instance *_P, CBS_Li::ConstraintTable *ct=nullptr);
 
         ~HCA() {};
 

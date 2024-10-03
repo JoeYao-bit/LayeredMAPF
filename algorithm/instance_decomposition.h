@@ -89,7 +89,6 @@ namespace freeNav::LayeredMAPF {
         //                 = 2: decompose initial cluster to smaller cluster
         //                 = 3: decompose cluster into smaller sort level
         MAPFInstanceDecomposition(const Instances<N>& instance, DimensionLength* dim, const IS_OCCUPIED_FUNC<N>& is_occupied, int decompose_level=3) {
-            //std::cout << "start " << __FUNCTION__ << std::endl;
             assert(decompose_level >= 0 && decompose_level <= 3);
             struct timezone tz;
             struct timeval  tv_pre;
@@ -139,7 +138,6 @@ namespace freeNav::LayeredMAPF {
 
             /* print details of decomposition */
             int total_count = 0;
-            //std::cout << "get " << all_clusters_.size() << " levels(>1): " << std::endl;
             int max_cluster_size = 0;
             for(int i=0; i<all_clusters_.size(); i++) {
                 total_count += all_clusters_[i].size();
@@ -420,7 +418,6 @@ namespace freeNav::LayeredMAPF {
                 if(cluster.size() > 1) {
                     auto current_levels = clusterDecomposeToLevel(cluster);
                     all_levels_.insert(all_levels_.end(), current_levels.begin(), current_levels.end());
-                    //break;
                 } else {
                     all_levels_.push_back(cluster);
                 }
@@ -481,10 +478,9 @@ namespace freeNav::LayeredMAPF {
 #else
             for(const auto& agent_id : cluster) {
 #endif
-                //std::cout << " agent_id " << agent_id << " and sat path length " << temp_pair.second << std::endl;
+
                 auto passing_sats = searchAgent(agent_id, {}, cluster_sat, true); // pass test
                 assert(!passing_sats.empty());
-                //std::cout << agent_id << " agent passing_sats " << passing_sats << std::endl;
 
                 // add agent's sat path in an incremental way
                 all_agents_path.insert({agent_id, passing_sats});
@@ -675,30 +671,6 @@ namespace freeNav::LayeredMAPF {
                 }
             }
             assert(all_strong_components.size() == sorted_levels.size());
-            //const std::vector<std::set<int> >& sorted_levels = sorted_levels;//(sorted_sub_graphs.size());
-
-            // debug check
-            //std::cout << " debug check " << std::endl;
-//            std::map<int, int> agent_and_level;
-//            for(int i=0; i<sorted_levels.size(); i++) {
-//                for(const int& agent_id : sorted_levels[i]) {
-//                    agent_and_level.insert({agent_id, i});
-//                }
-//            }
-//            for(const auto& temp_pair : ahead_sequence) {
-//                const int& agent_id = temp_pair.first;
-//                const std::set<int>& later_agents = temp_pair.second;
-//                for(const int& later_agent : later_agents) {
-//                    if(agent_and_level.find(agent_id) == agent_and_level.end()) { continue; }
-//                    if(agent_and_level.find(later_agent) == agent_and_level.end()) { continue; }
-//                    if(agent_and_level[agent_id] > agent_and_level[later_agent]) {
-//                        //std::cout << agent_id << " should > " << toString(later_agents) << std::endl;
-//                        std::cout << "ERROR: but wrong sorted level " << agent_id << "(" << agent_and_level[agent_id] << ") < "
-//                        << later_agent << "(" << agent_and_level[later_agent] << ")" << std::endl;
-//                    }
-//                }
-//            }
-
             return sorted_levels; // sorted levels
         }
 
@@ -713,7 +685,6 @@ namespace freeNav::LayeredMAPF {
             std::vector<int> id_to_node_table;
             std::map<int, int> node_to_id_table;
             for(const auto& temp_pair : ahead_sequence) {
-                //std::cout << " agent " << temp_pair.first << " is earlier than " << temp_pair.second << std::endl;
                 node_to_id_table.insert({temp_pair.first, id_to_node_table.size()});
                 id_to_node_table.push_back(temp_pair.first);
             }
@@ -725,7 +696,6 @@ namespace freeNav::LayeredMAPF {
                 count_of_node ++;
                 if(temp_pair.second.empty()) {
                     //std::cerr << " empty node " << node_to_id_table[node] << std::endl;
-                    //boost::add_edge(node_to_id_table[node], node_to_id_table[node], g);
                 } else {
                     for (const int &next_node : temp_pair.second) {
                         boost::add_edge(node_to_id_table[node], node_to_id_table[next_node], g);
@@ -952,7 +922,6 @@ namespace freeNav::LayeredMAPF {
                     all_hyper_nodes_.push_back(new_group);
                 }
             }
-            //std::cout << " add " << free_groups << " hyper nodes of free groups " << std::endl;
         }
 
         void updateConnectionToNearbyHyperNode(const Pointi<N>& pt) {

@@ -295,27 +295,27 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 
     bool all_success = SingleMapMAPFPathPlanningsTest<2>(dim, is_occupied_func, istss,
                                                          {
-                                                                 EECBS,
-                                                                 EECBS_LAYERED,
+                                                          EECBS,
+                                                          EECBS_LAYERED,
 
-                                                                 PBS,
-                                                                 PBS_LAYERED,
+                                                          PBS,
+                                                          PBS_LAYERED,
 
-                                                                 LNS,
-                                                                 LNS_LAYERED,
+                                                          LNS,
+                                                          LNS_LAYERED,
 
-                                                                 LaCAM,
-                                                                 LaCAM_LAYERED,
+                                                          LaCAM,
+                                                          LaCAM_LAYERED,
 
-                                                                 PIBT2,
-                                                                 PIBT2_LAYERED,
+                                                          PIBT2,
+                                                          PIBT2_LAYERED,
 
-                                                                 HCA,
-                                                                 HCA_LAYERED,
+                                                          HCA,
+                                                          HCA_LAYERED,
 
-                                                                 PushAndSwap,
-                                                                 PushAndSwap_LAYERED
-                                                         },
+                                                          PushAndSwap,
+                                                          PushAndSwap_LAYERED
+                                                          },
                                                          map_test_config.at("output_path"),
                                                          prune);
 
