@@ -18,3 +18,4 @@ venv/
 *.zip
 remote_yz
 remote_yz.pub
+pic/
