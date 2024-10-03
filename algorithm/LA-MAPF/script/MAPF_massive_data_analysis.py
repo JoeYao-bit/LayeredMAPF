@@ -299,40 +299,40 @@ method_marker_map2 = {
     name_of_decomposition:"-."
 }
 map_format_list = [
-                 "empty-16-16",
-                 "empty-32-32",
+                 # "empty-16-16",
+                 # "empty-32-32",
                  "empty-48-48",
 
                  # 2
-                 "maze-32-32-2",
-                 "maze-32-32-4",
-                 "maze-128-128-2",
+                 # "maze-32-32-2",
+                 # "maze-32-32-4",
+                 # "maze-128-128-2",
                  "maze-128-128-10",
                  # 6
-                 "den312d",
+                 # "den312d",
                  "den520d",
                  # 8
                  "Berlin_1_256",
                  "Paris_1_256",
                  # 10
-                 "ht_chantry",
-                 "lak303d",
+                 # "ht_chantry",
+                 # "lak303d",
                  # 12
-                 "random-32-32-20",
-                 "random-64-64-10",  # maximum 8s
+                 # "random-32-32-20",
+                 # "random-64-64-10",  # maximum 8s
                  #"random-64-64-20",
                  # 14
-                 "room-32-32-4",
-                 "room-64-64-8",
-                 "room-64-64-16",
+                 # "room-32-32-4",
+                 # "room-64-64-8",
+                 # "room-64-64-16",
                  # 17
-                 "warehouse-10-20-10-2-1",
-                 "warehouse-10-20-10-2-2",
-                 "warehouse-20-40-10-2-1",
-                 "warehouse-20-40-10-2-2",
+                 # "warehouse-10-20-10-2-1",
+                 # "warehouse-10-20-10-2-2",
+                 # "warehouse-20-40-10-2-1",
+                 # "warehouse-20-40-10-2-2",
                  # 21
-                 "Boston_0_256",
-                 "lt_gallowstemplar_n",
+                 # "Boston_0_256",
+                 # "lt_gallowstemplar_n",
                  "ost003d"
 
 ]
