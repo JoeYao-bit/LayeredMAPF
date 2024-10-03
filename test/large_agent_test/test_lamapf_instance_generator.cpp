@@ -411,15 +411,16 @@ TEST(generateLargeAgentInstanceForMap, test) {
 }
 
 
-TEST(Multi_Generate_Agent_And_Decomposition, test) { // 2360 count
+//TEST(Multi_Generate_Agent_And_Decomposition, test) { // 2360 count
+int main() {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
-            map_configs = {//{MAPFTestConfig_Paris_1_256,     100, 200, 10, 10},
-                           //{MAPFTestConfig_empty_48_48,     100, 200, 10, 10},
-//                           {MAPFTestConfig_Berlin_1_256,    100, 200, 10, 10},
-//                           {MAPFTestConfig_maze_128_128_10, 100, 200, 10, 10},
-                           {MAPFTestConfig_den520d,         100, 200, 10, 10},
-                           {MAPFTestConfig_ost003d,         100, 200, 10, 10},
+            map_configs = {{MAPFTestConfig_Paris_1_256,     1, 20, 10, 10},
+                           {MAPFTestConfig_empty_48_48,     1, 20, 10, 10},
+                           {MAPFTestConfig_Berlin_1_256,    1, 20, 10, 10},
+                           {MAPFTestConfig_maze_128_128_10, 1, 20, 10, 10},
+                           {MAPFTestConfig_den520d,         1, 20, 10, 10},
+                           {MAPFTestConfig_ost003d,         1, 20, 10, 10},
     };
 
     for(const auto& file_config : map_configs) {
@@ -433,15 +434,16 @@ TEST(Multi_Generate_Agent_And_Decomposition, test) { // 2360 count
 
 
 
-TEST(Multi_Generate_Agent_And_Compare, test) {
+//TEST(Multi_Generate_Agent_And_Compare, test)
+int main1() {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
-            map_configs = {//{MAPFTestConfig_Paris_1_256,     1, 2, 1, 1},
-                           //{MAPFTestConfig_empty_48_48,     1, 2, 1, 1},
-                           //{MAPFTestConfig_Berlin_1_256,    1, 2, 1, 1},
-                           //{MAPFTestConfig_maze_128_128_10, 1, 2, 1, 1},
-                           //{MAPFTestConfig_den520d,         1, 2, 1, 1},
-                           //{MAPFTestConfig_ost003d,         1, 2, 1, 1},
+            map_configs = {{MAPFTestConfig_Paris_1_256,     1, 2, 1, 1},
+                           {MAPFTestConfig_empty_48_48,     1, 2, 1, 1},
+                           {MAPFTestConfig_Berlin_1_256,    1, 2, 1, 1},
+                           {MAPFTestConfig_maze_128_128_10, 1, 2, 1, 1},
+                           {MAPFTestConfig_den520d,         1, 2, 1, 1},
+                           {MAPFTestConfig_ost003d,         1, 2, 1, 1},
     };
 
     for(const auto& file_config : map_configs) {
