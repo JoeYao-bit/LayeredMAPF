@@ -457,7 +457,7 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
 
     for (int i = 0; i < agent_and_instances.size(); i++) {
 
-        auto strs = LayeredLAMAPFCompare<2>(agent_and_instances[i].second,
+        auto strs1 = LayeredLAMAPFCompare<2>(agent_and_instances[i].second,
                                             agent_and_instances[i].first,
                                             CBS::LargeAgentCBS_func<2>, //LaCAM::LargeAgentLaCAM_func<2>,
                                             std::string("CBS"),
@@ -466,10 +466,25 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                                             4,
                                             true);
 
-        for (const auto &str : strs) {
+        for (const auto &str : strs1) {
             std::cout << str << std::endl;
         }
-        writeStrsToEndOfFile(strs, map_test_config.at("la_comp_path"));
+        writeStrsToEndOfFile(strs1, map_test_config.at("la_comp_path"));
+
+        auto strs2 = LayeredLAMAPFCompare<2>(agent_and_instances[i].second,
+                                            agent_and_instances[i].first,
+                                            LaCAM::LargeAgentLaCAM_func<2>,
+                                            std::string("LaCAM"),
+                                            30,
+                                            false,
+                                            4,
+                                            true);
+
+        for (const auto &str : strs2) {
+            std::cout << str << std::endl;
+        }
+
+        writeStrsToEndOfFile(strs2, map_test_config.at("la_comp_path"));
     }
 
 }
@@ -563,12 +578,12 @@ TEST(Multi_Generate_Agent_And_Compare, test) {
 
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
-            map_configs = {{MAPFTestConfig_Paris_1_256,     100, 50, 10, 10},
-                           //{MAPFTestConfig_empty_48_48,     100, 50, 10, 10},
-                           {MAPFTestConfig_Berlin_1_256,    100, 50, 10, 10},
-                           {MAPFTestConfig_maze_128_128_10, 50,  50, 10, 10},
-                           //{MAPFTestConfig_den520d,         100, 50, 10, 10},
-                           //{MAPFTestConfig_ost003d,         100, 50, 10, 10},
+            map_configs = {{MAPFTestConfig_Paris_1_256,     1, 2, 1, 1},
+                           {MAPFTestConfig_empty_48_48,     1, 2, 1, 1},
+                           {MAPFTestConfig_Berlin_1_256,    1, 2, 1, 1},
+                           {MAPFTestConfig_maze_128_128_10, 1, 2, 1, 1},
+                           {MAPFTestConfig_den520d,         1, 2, 1, 1},
+                           {MAPFTestConfig_ost003d,         1, 2, 1, 1},
     };
 
     for(const auto& file_config : map_configs) {
