@@ -76,6 +76,18 @@ make
 # Install the library
 sudo make install
 ```
+## KaHyPar
+
+Clone the repository including submodules:
+
+git clone --depth=1 --recursive git@github.com:SebastianSchlag/kahypar.git
+
+Create a build directory: mkdir build && cd build
+
+Run cmake: cmake .. -DCMAKE_BUILD_TYPE=RELEASE
+
+Run make: make
+
 
 ## Python (Optional, if you want to run Python scripts)
 ```
