@@ -16,7 +16,6 @@ CMakeFiles/
 build/
 venv/
 pic/
-*.txt
 *.zip
 remote_yz
 remote_yz.pub
