@@ -9,10 +9,7 @@ Motivated by the exponential growth in the cost of solving MAPF instances (in te
 ```
 git clone git@github.com:JoeYao-bit/LayeredMAPF.git
 cd LayeredMAPF
-<<<<<<< HEAD
 git checkout minimize_dependence
-=======
->>>>>>> main
 git submodule update --init  --recursive
 mkdir build
 cd build
@@ -22,18 +19,9 @@ make
 
 
 # Install Dependencies
-<<<<<<< HEAD
 This branch is a simplified version of Layered MAPF, which have minimized dependencies.
 A full version is branch "main", including visualization, but have lots of dependencies.
 
-=======
-This branch is a full version of Layered MAPF, which have lots of dependencies, for visualization and develop convinience.
-<font color=red>If you want a quick start, swtich to branch "minimum_dependence"  would be a wise choice, follow its README.</font>
-
-```
-git checkout minimize_dependence
-```
->>>>>>> main
 ## Git
 ```
 sudo apt-get install libgoogle-glog-dev
@@ -49,96 +37,17 @@ sudo apt-get install libboost-system-dev
 sudo apt-get install libboost-program-options-dev
 ```
 
-<<<<<<< HEAD
 # Eigen
 sudo apt-get install libeigen3-dev
 
 ## Gtest
-=======
-## Visualization tools
 
-### OpenCV
-```
-sudo apt-get install libopencv-dev
-```
-
-### OpenGL
-```
-sudo apt-get install libglfw3-dev
-```
-
-### Pangolin 
-Down load source code from https://github.com/stevenlovegrove/Pangolin
-And unzip it.
-```
-sudo apt-get install libglew-dev
-sudo apt-get install libboost-dev libboost-thread-dev libboost-filesystem-dev
-cd Pangolin
-mkdir build
-cd build
-cmake ..
-make -j2
-sudo make install
-```
-
-### Qt5
-```
-sudo apt-get install build-essential
-sudo apt-get install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
-sudo apt-get install qtcreator
-sudo apt-get install qt5*
-```
-
-## Calculation tools
-
-### Eigen
-```
-sudo apt-get install libeigen3-dev
-
-### SuiteSparse
-sudo apt-get install libsuitesparse-dev
-```
-
-### G2O
-```
-sudo apt-get install qt5-qmake qt5-default libqglviewer-dev-qt5 libsuitesparse-dev libcxsparse3 libcholmod3
-mkdir build
-cd build
-cmake ..
-make
-sudo make install
-```
-
-### CGAL
-```
-sudo apt-get install libcgal-dev
-```
-
-### Octomap
-```
-git clone https://github.com/OctoMap/octomap
-cd octomap/octomap
-mkdir build
-cd build
-cmake ..
-make
-sudo make install
-```
-
-##  Auxiliary tools
-
-### Gtest
->>>>>>> main
 ```
 sudo apt-get install libgoogle-glog-dev
 sudo apt-get install libgtest-dev
 ```
 
-<<<<<<< HEAD
 ## Glog
-=======
-### Glog
->>>>>>> main
 ```
 git clone https://github.com/google/glog
 cd glog
@@ -148,45 +57,36 @@ make
 sudo make install
 ```
 
-<<<<<<< HEAD
+## argparse
+
+```
+# Clone the repository
+git clone https://github.com/p-ranav/argparse
+cd argparse
+
+# Build the tests
+mkdir build
+cd build
+cmake -DARGPARSE_BUILD_SAMPLES=on -DARGPARSE_BUILD_TESTS=on ..
+make
+
+# Run tests
+./test/tests
+
+# Install the library
+sudo make install
+```
+
 ## Python (Optional, if you want to run Python scripts)
-=======
-### Python
->>>>>>> main
 ```
 sudo apt install python3-pip
 pip install matplotlib
 ```
 
-<<<<<<< HEAD
-=======
-### yaml-cpp
-```
-tar zxvf yaml-cpp-0.5.1.tar.gz
-mkdir build
-cd build
-cmake -DBUILD_SHARED_LIBS=ON ..
-make
-sudo make install
-sudo ldconfig
-```
-
-### libxml2
-```
-sudo apt-get install libxml2-dev
-```
-
-### argparse
-```
-https://github.com/jarro2783/cxxopts
-```
-
->>>>>>> main
 # Usage
 
 ## LayeredMAPF with single MAPF instance
 
-<<<<<<< HEAD
 
 ```
 ./test_single_layered_MAPF
@@ -220,17 +120,7 @@ layered EECBS maximum_single_cost = 469 \
 EECBS total cost          = 64594 \
 EECBS maximum_single_cost = 478 
 ```
-=======
-OpenCV viewer:
-```
-./test_2d_mapf_viewer
-```
-Qt:
-```
- ./test_2d_mapf_viewer
-```
 
->>>>>>> main
 ## Massive Decomposition of MAPF instance test
 ```
 ./test_massive_decomposition
