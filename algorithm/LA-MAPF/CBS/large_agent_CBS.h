@@ -111,7 +111,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 auto current_time = clock();
                 if((double)((current_time - start_time)/CLOCKS_PER_SEC) >= time_limit) {
                     // run out of time
-                    std::cout << "NOTICE: run out of time " << std::endl;
+                    std::cout << "NOTICE: LA-CBS run out of time " << std::endl;
                     return false;
                 }
                 count ++;
