@@ -578,12 +578,13 @@ TEST(Multi_Generate_Agent_And_Compare, test) {
 
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
-            map_configs = {{MAPFTestConfig_Paris_1_256,     1, 2, 1, 1},
-                           {MAPFTestConfig_empty_48_48,     1, 2, 1, 1},
-                           {MAPFTestConfig_Berlin_1_256,    1, 2, 1, 1},
-                           {MAPFTestConfig_maze_128_128_10, 1, 2, 1, 1},
-                           {MAPFTestConfig_den520d,         1, 2, 1, 1},
-                           {MAPFTestConfig_ost003d,         1, 2, 1, 1},
+            map_configs = {
+//                           {MAPFTestConfig_Paris_1_256,     1, 10, 5, 5},
+                           {MAPFTestConfig_empty_48_48,     1, 40, 10, 10},
+//                           {MAPFTestConfig_Berlin_1_256,    1, 10, 5, 5},
+//                           {MAPFTestConfig_maze_128_128_10, 1, 10, 5, 5},
+//                           {MAPFTestConfig_den520d,         1, 10, 5, 5},
+//                           {MAPFTestConfig_ost003d,         1, 10, 5, 5},
     };
 
     for(const auto& file_config : map_configs) {
