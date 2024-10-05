@@ -71,6 +71,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
         }
 
         bool solve(double time_limit, int cost_lowerbound = 0, int cost_upperbound = MAX_COST) override {
+            auto start_time = clock();
 
             // setup agents
             for (auto i = 0; i < this->instance_node_ids_.size(); ++i) A[i] = new AgentLaCAM(i);
@@ -93,7 +94,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
             while (!OPEN.empty()) {
                 //std::cout << "-- high level count " << loop_cnt << " size " << OPEN.size() << std::endl;
                 loop_cnt += 1;
-
+                if(loop_cnt >= 100) {
+                    auto current_time = clock();
+                    if((double)((current_time - start_time)/CLOCKS_PER_SEC) >= time_limit) {
+                        // run out of time
+                        std::cout << "NOTICE: LA-LaCAM run out of time " << std::endl;
+                        return false;
+                    }
+                }
                 // do not pop here!
                 S = OPEN.top();
                 // check goal condition
