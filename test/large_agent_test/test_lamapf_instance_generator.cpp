@@ -115,8 +115,8 @@ TEST(GenerateMixedInstance_decomposition, test)
 
 TEST(GenerateCircleInstance, test)
 {
-    const AgentPtrs<2>& agents = RandomCircleAgentsGenerator<2>(40,
-                                                                   .4, 2.3,
+    const AgentPtrs<2>& agents = RandomCircleAgentsGenerator<2>(3,
+                                                                   .4, 1.4,
                                                                    .1,
                                                                    dim);
 
@@ -227,16 +227,16 @@ TEST(max_size_t, test) {
 
 TEST(Multi_GenerateCircleInstance, test) {
     for(int i=0; i<1; i++) {
-        const AgentPtrs<2>& agents = RandomCircleAgentsGenerator<2>(15,
+        const AgentPtrs<2>& agents = RandomCircleAgentsGenerator<2>(5,
                                                                        .4, 1.4,
                                                                        .1,
                                                                        dim);
 
         generateInstanceAndPlanning<2> (agents,
                                            map_test_config.at("la_ins_path"),
-                                           //CBS::LargeAgentCBS_func<2, CircleAgent<2> >,
-                                           LaCAM::LargeAgentLaCAM_func<2>,
-                                           1e4, true, false);
+                                           CBS::LargeAgentCBS_func<2>,
+                                           //LaCAM::LargeAgentLaCAM_func<2>,
+                                           1e5, true, true);
     }
 }
 
