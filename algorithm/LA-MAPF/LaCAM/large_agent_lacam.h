@@ -99,6 +99,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
                     if((double)((current_time - start_time)/CLOCKS_PER_SEC) >= time_limit) {
                         // run out of time
                         std::cout << "NOTICE: LA-LaCAM run out of time " << std::endl;
+                        for (auto a : A) delete a;
+                        for (auto M : GC) delete M;
+                        for (auto p : CLOSED) delete p.second;
                         return false;
                     }
                 }

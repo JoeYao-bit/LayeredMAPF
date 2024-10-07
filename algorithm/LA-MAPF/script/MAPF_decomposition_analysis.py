@@ -59,7 +59,7 @@ class SingleTestData:
     
     
 def drawMethodMap(single_map_data, value_type):
-    fig = plt.figure(figsize=(5,3.5)) #添加绘图框
+    fig = plt.figure(figsize=(5,3.5)) 
     map_name = single_map_data.map_name
     
     all_raw_data = [dict(), dict(), dict(), dict()]

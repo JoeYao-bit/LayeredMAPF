@@ -29,11 +29,11 @@ def loadDataFromfile(file_path):
                 if np.isnan(new_data.max_single_cost):
                     continue
                 
-                if new_data.time_cost > 35000:
-                    new_data.success = 0
-                
-                if new_data.time_cost > 30000:
-                    new_data.time_cost = 30000
+                #if new_data.time_cost > 35:
+                    #new_data.success = 0
+                    #continue
+                if new_data.time_cost > 30:
+                    new_data.time_cost = 30
                     
 
                 if head_split[0] == 'LAYERED':
