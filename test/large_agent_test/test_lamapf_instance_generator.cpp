@@ -412,7 +412,7 @@ TEST(generateLargeAgentInstanceForMap, test) {
 
 
 //TEST(Multi_Generate_Agent_And_Decomposition, test) { // 2360 count
-int main1() {
+int main() {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
             map_configs = {{MAPFTestConfig_Paris_1_256,     1, 200, 10, 10},
@@ -438,15 +438,15 @@ int main1() {
 
 
 //TEST(Multi_Generate_Agent_And_Compare, test)
-int main() {
+int main1() {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
-            map_configs = {{MAPFTestConfig_Paris_1_256,     1, 100, 20, 20},
-                           {MAPFTestConfig_empty_48_48,     1, 100, 20, 20},
-                           {MAPFTestConfig_Berlin_1_256,    1, 100, 20, 20},
-                           {MAPFTestConfig_maze_128_128_10, 1, 100, 20, 20},
-                           {MAPFTestConfig_den520d,         1, 100, 20, 20},
-                           {MAPFTestConfig_ost003d,         1, 100, 20, 20},
+            map_configs = {{MAPFTestConfig_Paris_1_256,     1, 100, 20, 10},
+                           {MAPFTestConfig_empty_48_48,     1, 100, 20, 10},
+                           {MAPFTestConfig_Berlin_1_256,    1, 100, 20, 10},
+                           {MAPFTestConfig_maze_128_128_10, 1, 100, 20, 10},
+                           {MAPFTestConfig_den520d,         1, 100, 20, 10},
+                           {MAPFTestConfig_ost003d,         1, 100, 20, 10},
     };
     for(int i=0; i<200; i++) {
         std::cout << " global_index = " << i << std::endl;
