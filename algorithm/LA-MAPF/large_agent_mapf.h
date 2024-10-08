@@ -46,13 +46,16 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                        const DistanceMapUpdaterPtr<N>& distance_map_updater = nullptr,
                        const std::vector<SubGraphOfAgent<N> >& agent_sub_graphs = {},
                        const std::vector<std::vector<int> >& agents_heuristic_tables = {},
-                       const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate = {}
+                       const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate = {},
 
+                       double time_limit = 60
                        ) : instances_(instances), agents_(agents), dim_(dim), isoc_(isoc),
                            all_poses_(all_poses), distance_map_updater_(distance_map_updater),
                            agent_sub_graphs_(agent_sub_graphs),
                            agents_heuristic_tables_(agents_heuristic_tables),
-                           agents_heuristic_tables_ignore_rotate_(agents_heuristic_tables_ignore_rotate)
+                           agents_heuristic_tables_ignore_rotate_(agents_heuristic_tables_ignore_rotate),
+                           time_limit_(time_limit),
+                           remaining_time_(time_limit)
                        {
             assert(instances.size() == agents.size());
 
@@ -149,11 +152,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
            }
             gettimeofday(&tv_after, &tz);
             subgraph_and_heuristic_time_cost_ =
-                    (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
-            std::cout << "-- construct subgraph and heuristic table in " << subgraph_and_heuristic_time_cost_ << "ms" << std::endl;
+                    (tv_after.tv_sec - tv_pre.tv_sec) + (tv_after.tv_usec - tv_pre.tv_usec)/1e6;
+            std::cout << "-- construct subgraph and heuristic table in " << subgraph_and_heuristic_time_cost_ << "s" << std::endl;
+            remaining_time_ = remaining_time_ - subgraph_and_heuristic_time_cost_;
         }
 
-        virtual bool solve(double time_limit, int cost_lowerbound = 0, int cost_upperbound = MAX_COST) = 0;
+        virtual bool solve(int cost_lowerbound = 0, int cost_upperbound = MAX_COST) = 0;
 
         virtual std::vector<LAMAPF_Path> getSolution() const {
             return solutions_;
@@ -535,6 +539,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         double subgraph_and_heuristic_time_cost_ = 0; // time cost of get subgraph and heuristic table for each agent
 
+        double time_limit_ = 60;
+        double remaining_time_ = 0;
     };
 
 

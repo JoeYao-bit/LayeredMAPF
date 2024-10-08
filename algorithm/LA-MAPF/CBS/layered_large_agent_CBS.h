@@ -31,11 +31,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                                                                   agent_sub_graphs,
                                                                   agents_heuristic_tables,
                                                                   agents_heuristic_tables_ignore_rotate,
-                                                                  connect_graph);
+                                                                  connect_graph,
+                                                                  cutoff_time);
 
         grid_visit_count_table = solver.grid_visit_count_tables_;
 
-        if(solver.solve(cutoff_time)) {
+        if(solver.solve()) {
             return solver.getSolution();
         } else {
             return {};
