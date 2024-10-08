@@ -205,6 +205,24 @@ namespace freeNav::LayeredMAPF{
 
             };
 
+    SingleMapTestConfig<2> MAPFTestConfig_simple_10_10 =
+
+            {
+                    {"map_name",     "simple-10-10"},
+                    {"map_path",     "../test/test_data/simple-10-10.map"},
+                    //{"scene_path",   "../test/test_data/empty-48-48-random-1.scen"}, // no available
+                    {"ct_path",   "../test/test_data/simple-10-10.ct"},
+                    {"output_path", "../test/test_data/layered_mapf/simple-10-10.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/simple-10-10_de.txt"},
+                    {"agent_num",    "10"}, // 330
+                    {"cut_off_time", "200"},
+                    {"max_run_time", "60"}, // in second
+                    {"la_ins_path", "../test/test_data/large_agent_instance/simple-10-10_la.txt"},
+                    {"la_comp_path", "../test/test_data/large_agent_instance/simple-10-10_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/simple-10-10_la_dec.txt"}
+
+            };
+
     // simple
     SingleMapTestConfig<2> MAPFTestConfig_simple =
 

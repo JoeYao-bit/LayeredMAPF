@@ -26,15 +26,17 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
                         const DistanceMapUpdaterPtr<N>& distance_map_updater = nullptr,
                         const std::vector<SubGraphOfAgent<N> >& agent_sub_graphs = {},
                         const std::vector<std::vector<int> >& agents_heuristic_tables = {},
-                        const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate = {}
+                        const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate = {},
 
+                        double time_limit = 60
                         )
                         : LargeAgentMAPF<N>(instances, agents, dim, isoc,
                                                        all_poses,
                                                        distance_map_updater,
                                                        agent_sub_graphs,
                                                        agents_heuristic_tables,
-                                                       agents_heuristic_tables_ignore_rotate),
+                                                       agents_heuristic_tables_ignore_rotate,
+                                                       time_limit),
                           V_size(LargeAgentLaCAM<N, ConstraintTable>::all_poses_.size()),
                           C_next(Candidates<N>(agents.size(), std::array<size_t , 2*N*2*N + 1>())), // yz: possible rotation multiple possible transition plus wait
                           tie_breakers(std::vector<float>(V_size, 0)),
@@ -70,7 +72,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
             return retv;
         }
 
-        bool solve(double time_limit, int cost_lowerbound = 0, int cost_upperbound = MAX_COST) override {
+        bool solve(int cost_lowerbound = 0, int cost_upperbound = MAX_COST) override {
+            if(this->remaining_time_ <= 0) { return false; }
             auto start_time = clock();
 
             // setup agents
@@ -96,7 +99,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
                 loop_cnt += 1;
                 if(loop_cnt >= 100) {
                     auto current_time = clock();
-                    if((double)((current_time - start_time)/CLOCKS_PER_SEC) >= time_limit) {
+                    if(((double)((current_time - start_time))/CLOCKS_PER_SEC) >= this->remaining_time_) {
                         // run out of time
                         std::cout << "NOTICE: LA-LaCAM run out of time " << std::endl;
                         for (auto a : A) delete a;

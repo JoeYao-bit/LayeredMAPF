@@ -31,8 +31,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                             const IS_OCCUPIED_FUNC<N> & isoc,
                                             bool directed_graph = true, // whether edge between poses is always reversible
                                             int decompose_level=4,
-                                            bool debug_mode = true)
-                                            : LargeAgentMAPF<N>(instances, agents, dim, isoc),
+                                            bool debug_mode = true,
+                                            double time_limit = 60)
+                                            : LargeAgentMAPF<N>(instances, agents, dim, isoc,
+                                                                {}, nullptr, {}, {}, {},
+                                                                time_limit),
                                               directed_graph_(directed_graph),
                                               debug_mode_(debug_mode) {
 
@@ -1900,7 +1903,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return cluster_of_agents;
         }
 
-        bool solve(double time_limit, int cost_lowerbound = 0, int cost_upperbound = MAX_COST) {
+        bool solve(int cost_lowerbound = 0, int cost_upperbound = MAX_COST) {
             return false;
         }
 

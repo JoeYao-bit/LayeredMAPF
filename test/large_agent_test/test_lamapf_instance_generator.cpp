@@ -294,7 +294,8 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                               int count_of_test,
                               int maximum_agents,
                               int minimum_agents,
-                              int agent_interval) {
+                              int agent_interval,
+                              double time_limit = 60) {
     map_test_config = map_file;
     loader = TextMapLoader(map_test_config.at("map_path"), is_char_occupied1);
 
@@ -320,7 +321,7 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                                             agent_and_instances[i].first,
                                             CBS::LargeAgentCBS_func<2>, //LaCAM::LargeAgentLaCAM_func<2>,
                                             std::string("CBS"),
-                                            60,
+                                            time_limit,
                                             false,
                                             4,
                                             true);
@@ -334,7 +335,7 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                                             agent_and_instances[i].first,
                                             LaCAM::LargeAgentLaCAM_func<2>,
                                             std::string("LaCAM"),
-                                            60,
+                                            time_limit,
                                             false,
                                             4,
                                             true);
@@ -412,7 +413,7 @@ TEST(generateLargeAgentInstanceForMap, test) {
 
 
 //TEST(Multi_Generate_Agent_And_Decomposition, test) { // 2360 count
-int main() {
+int main1() {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
             map_configs = {{MAPFTestConfig_Paris_1_256,     1, 200, 10, 10},
@@ -438,7 +439,7 @@ int main() {
 
 
 //TEST(Multi_Generate_Agent_And_Compare, test)
-int main1() {
+int main() {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
             map_configs = {{MAPFTestConfig_Paris_1_256,     1, 100, 20, 10},
@@ -455,7 +456,8 @@ int main1() {
                                      1, //std::get<1>(file_config),
                                      std::get<2>(file_config),
                                      std::get<3>(file_config),
-                                     std::get<4>(file_config));
+                                     std::get<4>(file_config),
+                                     60);
         }
     }
 }
