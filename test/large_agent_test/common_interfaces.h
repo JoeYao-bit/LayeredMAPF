@@ -374,7 +374,7 @@ std::vector<std::string> LayeredLAMAPFCompare(const InstanceOrients<N>& instance
     float memory_usage = peak_usage - base_usage;
 
     double total_time_cost = ((double)end_t - start_t)/CLOCKS_PER_SEC;
-    std::cout << "instance has " << agents.size() << " agents, layered CBS find solution ? " << !layered_paths.empty()
+    std::cout << "instance has " << agents.size() << " agents, layered " << func_identifer << " find solution ? " << !layered_paths.empty()
               << " in " << total_time_cost << "s " << std::endl;
 
     // agents size / time cost / success / SOC / makespan / decom 1 time cost / decom 2 time cost / decom 3 time cost
@@ -383,11 +383,13 @@ std::vector<std::string> LayeredLAMAPFCompare(const InstanceOrients<N>& instance
                << total_time_cost << " "
                << getSOC(layered_paths) << " " << getMakeSpan(layered_paths) << " "
                << !layered_paths.empty() << " " << memory_usage << " "
+               << decomposer_ptr->subgraph_and_heuristic_time_cost_ << " "
 
-               //<< decomposer_ptr->initialize_time_cost_ << " "
-               //<< decomposer_ptr->instance_decomposition_time_cost_ << " "
-               << decomposer_ptr->cluster_bipartition_time_cost_ << " "
-               << decomposer_ptr->level_sorting_time_cost_;
+               << decomposer_ptr->initialize_time_cost_  +
+                  decomposer_ptr->instance_decomposition_time_cost_ +
+                  decomposer_ptr->cluster_bipartition_time_cost_ +
+                  decomposer_ptr->level_sorting_time_cost_ +
+                  decomposer_ptr->level_bipartition_time_cost_;
 
     memory_recorder.clear();
     sleep(1);
@@ -407,7 +409,7 @@ std::vector<std::string> LayeredLAMAPFCompare(const InstanceOrients<N>& instance
     memory_usage = peak_usage - base_usage;
 
     total_time_cost = ((double)end_t - start_t)/CLOCKS_PER_SEC;
-    std::cout << "instance has " << agents.size() << " agents, raw CBS find solution ? " << !raw_paths.empty()
+    std::cout << "instance has " << agents.size() << " agents, raw " << func_identifer << " find solution ? " << !raw_paths.empty()
               << " in " << total_time_cost << "s " << std::endl;
 
     // agents size / time cost / success / SOC / makespan
