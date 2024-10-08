@@ -28,14 +28,16 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                       const std::vector<SubGraphOfAgent<N> > agent_sub_graphs = {},
                       const std::vector<std::vector<int> >& agents_heuristic_tables = {},
                       const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate_ = {},
-                      ConnectivityGraph* connect_graph = nullptr
+                      ConnectivityGraph* connect_graph = nullptr,
+                      double time_limit = 60
                       )
                       : LargeAgentMAPF<N>(instances, agents, dim, isoc,
                                                      all_poses,
                                                      distance_map_updater,
                                                      agent_sub_graphs,
                                                      agents_heuristic_tables,
-                                                     agents_heuristic_tables_ignore_rotate_),
+                                                     agents_heuristic_tables_ignore_rotate_,
+                                                     time_limit),
                         constraint_avoidance_table_(nullptr), //ConstraintAvoidanceTable<N, AgentType>(dim, this->all_poses_, agents.front())),
                         path_constraint_(path_constraint),
                         connect_graph_(connect_graph) {
@@ -92,7 +94,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             releaseNodes();
         }
 
-        virtual bool solve(double time_limit, int cost_lowerbound = 0, int cost_upperbound = MAX_COST) override {
+        virtual bool solve(int cost_lowerbound = 0, int cost_upperbound = MAX_COST) override {
+            if(this->remaining_time_ <= 0) { return false;}
             auto start_time = clock();
             if(!this->solvable) {
                 std::cout << "-- unsolvable instance " << std::endl;
@@ -100,7 +103,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             }
             this->cost_lowerbound = cost_lowerbound;
             this->cost_upperbound = cost_upperbound;
-            this->time_limit = time_limit;
             // yz: generate a init node of CT
             generateRoot();
 //            std::cout << "-- generate root node " << std::endl;
@@ -109,7 +111,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //                if(count >= 2000) { break; }
 //                std::cout << "-- " << count << " iteration, open size " << cleanup_list.size() << std::endl;
                 auto current_time = clock();
-                if((double)((current_time - start_time)/CLOCKS_PER_SEC) >= time_limit) {
+                if((((double)(current_time - start_time))/CLOCKS_PER_SEC) >= this->remaining_time_) {
                     // run out of time
                     std::cout << "NOTICE: LA-CBS run out of time " << std::endl;
                     return false;
@@ -189,7 +191,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
     private:
 
         // implement
-        double time_limit;
         int cost_lowerbound = 0;
         int cost_upperbound = MAX_COST;
 

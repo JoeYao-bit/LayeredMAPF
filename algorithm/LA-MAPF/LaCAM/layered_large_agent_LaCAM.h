@@ -32,10 +32,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
                                                                                 distance_map_updater,
                                                                                 agent_sub_graphs,
                                                                                 agents_heuristic_tables,
-                                                                                agents_heuristic_tables_ignore_rotate);
+                                                                                agents_heuristic_tables_ignore_rotate,
+                                                                                cutoff_time);
 
 
-        if(solver.solve(cutoff_time)) {
+        if(solver.solve()) {
             return solver.getSolution();
         } else {
             return {};
