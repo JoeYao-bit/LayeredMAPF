@@ -45,8 +45,8 @@ def loadDataFromfile(file_path):
                     
 
                 if head_split[0] == 'LAYERED':
-                    new_data.cluster_decomposition_time_cost = float(splited_line[7])
-                    new_data.sort_level_time_cost = float(splited_line[8])
+                    new_data.subgraph_init_time_cost = float(splited_line[7])
+                    new_data.decomposition_time_cost = float(splited_line[8])
                 
                 data_list.append(new_data)
             #print(new_data.method, ' ', new_data.path_count, ' ', new_data.real_path_count, ' ', new_data.time_cost)
@@ -63,8 +63,8 @@ class LineData:
     success = 0
     max_memory_usage = 0.
     # specific time component for layered MAPF
-    cluster_decomposition_time_cost = 0.
-    sort_level_time_cost = 0.
+    subgraph_init_time_cost = 0.
+    decomposition_time_cost = 0.
         
 
 # all data in a txt file
@@ -555,7 +555,7 @@ for single_data in all_single_data:
 
             
         all_method_time_cost_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.time_cost)
-        all_method_time_cost_map[method_name][single_data.map_name][name_of_decomposition][line_data.agent_count].append(line_data.cluster_decomposition_time_cost + line_data.sort_level_time_cost)
+        all_method_time_cost_map[method_name][single_data.map_name][name_of_decomposition][line_data.agent_count].append(line_data.subgraph_init_time_cost)
         all_method_success_rate_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.success)    
         all_method_memory_usage_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.max_memory_usage)
 
