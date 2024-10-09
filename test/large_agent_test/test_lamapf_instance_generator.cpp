@@ -442,12 +442,12 @@ int main1() {
 int main() {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
-            map_configs = {{MAPFTestConfig_Paris_1_256,     1, 100, 20, 10},
-                           {MAPFTestConfig_empty_48_48,     1, 100, 20, 10},
-                           {MAPFTestConfig_Berlin_1_256,    1, 100, 20, 10},
-                           {MAPFTestConfig_maze_128_128_10, 1, 100, 20, 10},
-                           {MAPFTestConfig_den520d,         1, 100, 20, 10},
-                           {MAPFTestConfig_ost003d,         1, 100, 20, 10},
+            map_configs = {//{MAPFTestConfig_Paris_1_256,     1, 100, 20, 10},
+                          // {MAPFTestConfig_empty_48_48,     1, 100, 20, 10},
+                            //{MAPFTestConfig_Berlin_1_256,    1, 100, 20, 10},
+                            //{MAPFTestConfig_maze_128_128_10, 1, 100, 20, 10},
+                            {MAPFTestConfig_den520d,         1, 100, 20, 10},
+                            {MAPFTestConfig_ost003d,         1, 100, 20, 10},
     };
     for(int i=0; i<200; i++) {
         std::cout << " global_index = " << i << std::endl;
