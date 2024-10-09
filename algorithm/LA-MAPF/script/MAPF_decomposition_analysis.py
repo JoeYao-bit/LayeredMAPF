@@ -59,11 +59,11 @@ class SingleTestData:
     
     
 def drawMethodMap(single_map_data, value_type):
-    fig = plt.figure(figsize=(5,3.5)) #添加绘图框
+    fig = plt.figure(figsize=(5,3.5)) 
     map_name = single_map_data.map_name
     
     all_raw_data = [dict(), dict(), dict(), dict()]
-
+    all_init_time_cost = dict() # only use when draw time cost of initialize cconnectivity graph
 
     for data in single_map_data.data_list:
         total_size        = data.total_size
@@ -85,6 +85,9 @@ def drawMethodMap(single_map_data, value_type):
             all_raw_data[data.level-1][total_size].append(max_cluster / total_size)    
         elif value_type == "time_cost":
             all_raw_data[data.level-1][total_size].append(time_cost)    
+            if all_init_time_cost.get(total_size)  == None:
+                all_init_time_cost[total_size] = list()   
+            all_init_time_cost[total_size].append(data.init_time_cost)
         elif value_type == "memory_usage":
             all_raw_data[data.level-1][total_size].append(memory_usage)        
         elif value_type == "num_of_subproblem":
@@ -114,6 +117,20 @@ def drawMethodMap(single_map_data, value_type):
         plt.errorbar(sorted_x, sorted_y, label=label_buffer, markersize=14, fmt=step_fmt[i], linewidth= 4, elinewidth=4, capsize=4)
         label_buffer = label_buffer + ", " + str(i+2)          
 
+    # add time cost about construct connectivity graph
+    if value_type == "time_cost":
+        #print(all_init_time_cost)
+        for data_key, data_val in all_init_time_cost.items():
+            dict_x_y[data_key] = np.mean(data_val)
+            dict_x_error[data_key] = np.std(data_val)
+        sorted_x = sorted (dict_x_y)
+        sorted_y = list()
+        sorted_error = list()
+        for temp_x in sorted_x:
+            sorted_y.append(dict_x_y[temp_x])
+            sorted_error.append(dict_x_error[temp_x])
+        plt.errorbar(sorted_x, sorted_y, label="init_cost", markersize=14, fmt=step_fmt[4], linewidth= 4, elinewidth=4, capsize=4)
+        
     plt.legend(loc='best')    
     plt.tick_params(axis='both', labelsize=18)
     #plt.ticklabel_format(style='sci', scilimits=(0,0), axis='y')
@@ -121,8 +138,10 @@ def drawMethodMap(single_map_data, value_type):
     formater = ticker.ScalarFormatter(useMathText=True) 
     formater.set_scientific(True)
     formater.set_powerlimits((0,0))
-    
+
     ax = plt.gca()
+    if value_type == "time_cost":
+        ax.set_yscale('log')  
     ax.yaxis.offsetText.set_fontsize(18)
     ax.yaxis.set_major_formatter(formater)
     y_range = plt.ylim()
@@ -131,6 +150,8 @@ def drawMethodMap(single_map_data, value_type):
         plt.ylim(0, 1)
 
     plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5)
+    plt.title(title_dict[value_type])
+
     #plt.grid()
     plt.tight_layout()
     save_path = '../../../test/test_data/large_agent_instance/decomposition/'+value_type+'/'+map_name+"-"+value_type+'.png'
@@ -139,7 +160,12 @@ def drawMethodMap(single_map_data, value_type):
     print("save picture to "+save_path)
 
     
-step_fmt = ["x-","X-.","*--","2--"] # ["x-","o-.","^--","s--"]       
+step_fmt = ["x-","X-.","*--","2--","r-"] # ["x-","o-.","^--","s--"]       
+title_dict = {"time_cost":"Time cost(ms)",
+              "decomposition_rate":"Decomposition rate",
+              "memory_usage":"Memory usage(MB)",
+              "num_of_subproblem":"Number of subproblem"
+              }
     
 data_path_dir = '../../../test/test_data/large_agent_instance/'
 all_map_name = [
