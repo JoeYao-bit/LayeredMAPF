@@ -32,8 +32,8 @@ def loadDataFromfile(file_path):
                 #if new_data.time_cost > 35:
                     #new_data.success = 0
                     #continue
-                #if new_data.time_cost > 60:
-                 #   new_data.time_cost = 60
+                if new_data.time_cost > 60:
+                   new_data.time_cost = 60
                     #new_data.success = 0
                     
 
