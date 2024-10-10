@@ -338,13 +338,16 @@ void Decomposition_test() {
             LargeAgentMAPFInstanceDecomposition<2>(deserializer.getInstances(),
                                                               deserializer.getAgents(),
                                                               dim,
-                                                              is_occupied);
+                                                              is_occupied,
+                                                              true,
+                                                              4,
+                                                              false);
 
-    InstanceVisualization(deserializer.getAgents(),
-                                     decomposer.getAllPoses(),
-                                     deserializer.getInstances(),
-                                     decomposer.grid_paths_,
-                                     decomposer.agent_visited_grids_);
+//    InstanceVisualization(deserializer.getAgents(),
+//                                     decomposer.getAllPoses(),
+//                                     deserializer.getInstances(),
+//                                     decomposer.grid_paths_,
+//                                     decomposer.agent_visited_grids_);
 
 }
 
