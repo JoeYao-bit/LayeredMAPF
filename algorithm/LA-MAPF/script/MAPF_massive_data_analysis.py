@@ -105,7 +105,7 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
             plt.ylim(1, y_range[1]*10)  
         else:    
             plt.ylim(0, y_range[1])
-        plt.title(ylable)
+        # plt.title(ylable)
         if is_percentage:
             plt.ylim(0, 1)
                 
