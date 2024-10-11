@@ -64,7 +64,7 @@ bool draw_visit_grid_table = false;
 // MAPFTestConfig_AR0014SR
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
-auto map_test_config = MAPFTestConfig_Paris_1_256;
+auto map_test_config = MAPFTestConfig_AR0203SR;
 // MAPFTestConfig_Paris_1_256 //  pass
 // MAPFTestConfig_Berlin_1_256; // pass
 // MAPFTestConfig_maze_32_32_4; // pass
@@ -74,6 +74,17 @@ auto map_test_config = MAPFTestConfig_Paris_1_256;
 // MAPFTestConfig_maze_128_128_10
 // MAPFTestConfig_ost003d
 // MAPFTestConfig_simple_10_10
+// MAPFTestConfig_AR0203SR
+// MAPFTestConfig_AR0072SR
+// MAPFTestConfig_AR0044SR
+// MAPFTestConfig_Denver_2_256
+// MAPFTestConfig_Boston_2_256
+// MAPFTestConfig_Sydney_2_256
+
+
+
+
+
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
     return true;

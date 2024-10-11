@@ -34,7 +34,7 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
                                                              dim, is_occupied,
                                                              CBS::LargeAgentCBS_func<2>,
                                                              grid_visit_count_table,
-                                                             60, decomposer_ptr,
+                                                             20, decomposer_ptr,
                                                              true);
 
     auto end_t = clock();
