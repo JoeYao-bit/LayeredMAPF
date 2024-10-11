@@ -38,7 +38,64 @@ namespace freeNav::LayeredMAPF{
                     {"decomposition_output_path", "../test/test_data/decomposition/den312d_de.txt"},
                     {"agent_num",    "800"},
                     {"cut_off_time", "200"},
-                    {"max_run_time", "60"} // in second
+                    {"max_run_time", "60"}, // in second
+                    {"la_ins_path", "../test/test_data/large_agent_instance/den312d_la.txt"},
+                    {"la_comp_path", "../test/test_data/large_agent_instance/den312d_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/den312d_la_dec.txt"}
+            };
+
+    // AR0203SR.map
+    SingleMapTestConfig<2> MAPFTestConfig_AR0203SR =
+
+            {
+                    {"map_name",     "AR0203SR"},
+                    {"map_path",     "../test/test_data/AR0203SR.map"},
+                    {"scene_path",   "../test/test_data/AR0203SR-random-1.scen"},
+                    {"ct_path",   "../test/test_data/AR0203SR.ct"},
+                    {"output_path", "../test/test_data/layered_mapf/AR0203SR.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/AR0203SR_de.txt"},
+                    {"agent_num",    "800"},
+                    {"cut_off_time", "200"},
+                    {"max_run_time", "60"}, // in second
+                    {"la_ins_path", "../test/test_data/large_agent_instance/AR0203SR_la.txt"},
+                    {"la_comp_path", "../test/test_data/large_agent_instance/AR0203SR_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/AR0203SR_la_dec.txt"}
+            };
+
+    // AR0072SR.map
+    SingleMapTestConfig<2> MAPFTestConfig_AR0072SR =
+
+            {
+                    {"map_name",     "AR0072SR"},
+                    {"map_path",     "../test/test_data/AR0072SR.map"},
+                    {"scene_path",   "../test/test_data/AR0072SR-random-1.scen"},
+                    {"ct_path",   "../test/test_data/AR0203SR.ct"},
+                    {"output_path", "../test/test_data/layered_mapf/AR0072SR.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/AR0072SR_de.txt"},
+                    {"agent_num",    "800"},
+                    {"cut_off_time", "200"},
+                    {"max_run_time", "60"}, // in second
+                    {"la_ins_path", "../test/test_data/large_agent_instance/AR0072SR_la.txt"},
+                    {"la_comp_path", "../test/test_data/large_agent_instance/AR0072SR_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/AR0072SR_la_dec.txt"}
+            };
+
+    // AR0044SR
+    SingleMapTestConfig<2> MAPFTestConfig_AR0044SR =
+
+            {
+                    {"map_name",     "AR0044SR"},
+                    {"map_path",     "../test/test_data/AR0044SR.map"},
+                    {"scene_path",   "../test/test_data/AR0044SR-random-1.scen"},
+                    {"ct_path",   "../test/test_data/AR0203SR.ct"},
+                    {"output_path", "../test/test_data/layered_mapf/AR0044SR.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/AR0044SR_de.txt"},
+                    {"agent_num",    "800"},
+                    {"cut_off_time", "200"},
+                    {"max_run_time", "60"}, // in second
+                    {"la_ins_path", "../test/test_data/large_agent_instance/AR0044SR_la.txt"},
+                    {"la_comp_path", "../test/test_data/large_agent_instance/AR0044SR_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/AR0044SR_la_dec.txt"}
             };
 
     SingleMapTestConfig<2> MAPFTestConfig_maze_32_32_2 =
@@ -137,6 +194,58 @@ namespace freeNav::LayeredMAPF{
                     {"agent_num",    "1000"},
                     {"cut_off_time", "200"},
                     {"max_run_time", "60"} // in second
+            };
+
+    SingleMapTestConfig<2> MAPFTestConfig_Boston_2_256 =
+
+            {
+                    {"map_name",     "Boston_2_256"},
+                    {"map_path",     "../test/test_data/Boston_2_256.map"},
+                    {"scene_path",   "../test/test_data/Boston_2_256-random-1.scen"},
+                    {"ct_path",   "../test/test_data/Boston_0_256.ct"},
+                    {"output_path", "../test/test_data/layered_mapf/Boston_2_256.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/Boston_2_256_de.txt"},
+                    {"agent_num",    "1000"},
+                    {"cut_off_time", "200"},
+                    {"max_run_time", "60"}, // in second
+                    {"la_ins_path", "../test/test_data/large_agent_instance/Boston_2_256_la.txt"},
+                    {"la_comp_path", "../test/test_data/large_agent_instance/Boston_2_256_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/Boston_2_256_la_dec.txt"}
+            };
+
+    SingleMapTestConfig<2> MAPFTestConfig_Sydney_2_256 =
+
+            {
+                    {"map_name",     "Sydney_2_256"},
+                    {"map_path",     "../test/test_data/Sydney_2_256.map"},
+                    {"scene_path",   "../test/test_data/Sydney_2_256-random-1.scen"},
+                    {"ct_path",   "../test/test_data/Sydney_2_256.ct"},
+                    {"output_path", "../test/test_data/layered_mapf/Sydney_2_256.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/Sydney_2_256_de.txt"},
+                    {"agent_num",    "1000"},
+                    {"cut_off_time", "200"},
+                    {"max_run_time", "60"}, // in second
+                    {"la_ins_path", "../test/test_data/large_agent_instance/Sydney_2_256_la.txt"},
+                    {"la_comp_path", "../test/test_data/large_agent_instance/Sydney_2_256_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/Sydney_2_256_la_dec.txt"}
+            };
+
+    // Denver_2_256
+    SingleMapTestConfig<2> MAPFTestConfig_Denver_2_256 =
+
+            {
+                    {"map_name",     "Denver_2_256"},
+                    {"map_path",     "../test/test_data/Denver_2_256.map"},
+                    {"scene_path",   "../test/test_data/Denver_2_256-random-1.scen"},
+                    {"ct_path",   "../test/test_data/Denver_2_256.ct"},
+                    {"output_path", "../test/test_data/layered_mapf/Denver_2_256.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/Denver_2_256_de.txt"},
+                    {"agent_num",    "1000"},
+                    {"cut_off_time", "200"},
+                    {"max_run_time", "60"}, // in second
+                    {"la_ins_path", "../test/test_data/large_agent_instance/Denver_2_256_la.txt"},
+                    {"la_comp_path", "../test/test_data/large_agent_instance/Denver_2_256_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/Denver_2_256_la_dec.txt"}
             };
 
     // warehouse-10-20-10-2-1

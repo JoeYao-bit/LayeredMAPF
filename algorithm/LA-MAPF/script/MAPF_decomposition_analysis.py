@@ -200,7 +200,14 @@ all_map_name = [
                 
                 # "Boston_0_256",
                 # "lt_gallowstemplar_n",
-                "ost003d"
+                "ost003d",
+                
+                "Boston_2_256",
+                "Sydney_2_256", 
+                "AR0044SR", 
+                "AR0203SR", 
+                "AR0072SR",
+                "Denver_2_256"
                 ]
 
 all_single_data = list()
