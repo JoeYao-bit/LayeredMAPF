@@ -558,8 +558,9 @@ TEST(generateLargeAgentInstanceForMap, test) {
 }
 
 
-TEST(Multi_Generate_Agent_And_Decomposition, test) { // 2360 count
-    // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
+//TEST(Multi_Generate_Agent_And_Decomposition, test) { // 2360 count
+int main1() {
+// file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
             map_configs = {//{MAPFTestConfig_Paris_1_256,     100, 200, 10, 10},
                            //{MAPFTestConfig_empty_48_48,     100, 200, 10, 10},
@@ -567,14 +568,15 @@ TEST(Multi_Generate_Agent_And_Decomposition, test) { // 2360 count
 //                           {MAPFTestConfig_maze_128_128_10, 100, 200, 10, 10},
 //                           {MAPFTestConfig_den520d,         100, 200, 10, 10},
 //                           {MAPFTestConfig_ost003d,         100, 200, 10, 10},
-                            {MAPFTestConfig_Boston_2_256, 1, 200, 10, 10}, // ok
-                            {MAPFTestConfig_Sydney_2_256, 1, 200, 10, 10}, // ok
-                            {MAPFTestConfig_AR0044SR, 1, 200, 10, 10}, // ok
-                            {MAPFTestConfig_AR0203SR, 1, 200, 10, 10}, // ok
-                            {MAPFTestConfig_AR0072SR, 1, 200, 10, 10}, // ok
+                            // {MAPFTestConfig_Boston_2_256, 1, 200, 10, 10}, // ok
+                            // {MAPFTestConfig_Sydney_2_256, 1, 200, 10, 10}, // ok
+                            // {MAPFTestConfig_AR0044SR, 1, 200, 10, 5}, // ok
+                            // {MAPFTestConfig_AR0203SR, 1, 200, 10, 5}, // ok
+                            {MAPFTestConfig_AR0072SR, 1, 200, 10, 5}, // ok
                             {MAPFTestConfig_Denver_2_256, 1, 200, 10, 10} // ok
     };
     for(int i=0; i<200; i++) {
+        std::cout << "global decom " << i << std::endl;
         for (const auto &file_config : map_configs) {
             multiLoadAgentAndDecomposition(std::get<0>(file_config),
                                            1, //std::get<1>(file_config),
@@ -587,26 +589,37 @@ TEST(Multi_Generate_Agent_And_Decomposition, test) { // 2360 count
 
 
 
-TEST(Multi_Generate_Agent_And_Compare, test) {
-
+//TEST(Multi_Generate_Agent_And_Compare, test) {
+int main() {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
             map_configs = {
-                           {MAPFTestConfig_Paris_1_256,     1, 60, 20, 20},
+//                           {MAPFTestConfig_Paris_1_256,     1, 60, 20, 20},
 //                           {MAPFTestConfig_empty_48_48,     1, 40, 10, 10},
 //                           {MAPFTestConfig_Berlin_1_256,    1, 10, 5, 5},
 //                           {MAPFTestConfig_maze_128_128_10, 1, 10, 5, 5},
 //                           {MAPFTestConfig_den520d,         1, 10, 5, 5},
 //                           {MAPFTestConfig_ost003d,         1, 10, 5, 5},
-    };
 
-    for(const auto& file_config : map_configs) {
-        multiLoadAgentAndCompare(std::get<0>(file_config),
-                                 std::get<1>(file_config),
-                                 std::get<2>(file_config),
-                                 std::get<3>(file_config),
-                                 std::get<4>(file_config),
-                                 10);
+                            //{MAPFTestConfig_Boston_2_256, 1, 200, 10, 10}, // ok
+                            //{MAPFTestConfig_Sydney_2_256, 1, 200, 10, 10}, // ok
+                            //{MAPFTestConfig_AR0044SR, 1, 200, 10, 5}, // ok
+                             //{MAPFTestConfig_AR0203SR, 1, 200, 10, 5}, // ok
+                             //{MAPFTestConfig_AR0072SR, 1, 200, 10, 5}, // ok
+                            {MAPFTestConfig_Denver_2_256, 1, 200, 10, 10} // ok
+
+    };
+    for(int i=0; i<200;i++)
+    {
+        std::cout << "global layered" << i << std::endl;
+        for(const auto& file_config : map_configs) {
+            multiLoadAgentAndCompare(std::get<0>(file_config),
+                                     std::get<1>(file_config),
+                                     std::get<2>(file_config),
+                                     std::get<3>(file_config),
+                                     std::get<4>(file_config),
+                                     60);
+        }
     }
 }
 
