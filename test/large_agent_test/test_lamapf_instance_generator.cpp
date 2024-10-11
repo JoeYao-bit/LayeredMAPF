@@ -538,12 +538,20 @@ void generateLargeAgentInstanceForMap(const SingleMapTestConfig<2>& map_file,
 TEST(generateLargeAgentInstanceForMap, test) {
     // file_path, times_of_try, required_agents, maximum_sample_count
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int> >
-            map_configs = {//{MAPFTestConfig_Paris_1_256, 140, 100, 1e7}, // ok
-                           //{MAPFTestConfig_empty_48_48, 60,  100, 1e7}, // ok
-                           //{MAPFTestConfig_Berlin_1_256, 140, 100, 5e7}, // ok
-                           //{MAPFTestConfig_maze_128_128_10, 100, 100, 5e7}, // ok
-                           //{MAPFTestConfig_den520d, 140, 100, 5e7}, // load failed
-                           {MAPFTestConfig_ost003d, 100, 100, 5e7} // target overlap
+            map_configs = {
+//                           {MAPFTestConfig_Paris_1_256, 140, 100, 1e7}, // ok
+//                           {MAPFTestConfig_empty_48_48, 60,  100, 1e7}, // ok
+//                           {MAPFTestConfig_Berlin_1_256, 140, 100, 5e7}, // ok
+//                           {MAPFTestConfig_maze_128_128_10, 100, 100, 5e7}, // ok
+//                           {MAPFTestConfig_den520d, 140, 100, 5e7}, // load failed
+//                           {MAPFTestConfig_ost003d, 100, 100, 5e7} // target overlap
+
+                            //{MAPFTestConfig_Boston_2_256, 140, 100, 1e7}, // ok
+                            //{MAPFTestConfig_Sydney_2_256, 140,  100, 1e7}, // ok
+                            //{MAPFTestConfig_AR0044SR, 50, 100, 5e7}, // ok
+                            //{MAPFTestConfig_AR0203SR, 50, 100, 5e7}, // ok
+                            //{MAPFTestConfig_AR0072SR, 70, 100, 5e7}, // ok
+//                            {MAPFTestConfig_Denver_2_256, 140, 100, 5e7} // ok
 
     };
 
@@ -564,16 +572,23 @@ TEST(Multi_Generate_Agent_And_Decomposition, test) { // 2360 count
                            //{MAPFTestConfig_empty_48_48,     100, 200, 10, 10},
 //                           {MAPFTestConfig_Berlin_1_256,    100, 200, 10, 10},
 //                           {MAPFTestConfig_maze_128_128_10, 100, 200, 10, 10},
-                           {MAPFTestConfig_den520d,         100, 200, 10, 10},
-                           {MAPFTestConfig_ost003d,         100, 200, 10, 10},
+//                           {MAPFTestConfig_den520d,         100, 200, 10, 10},
+//                           {MAPFTestConfig_ost003d,         100, 200, 10, 10},
+                            {MAPFTestConfig_Boston_2_256, 1, 200, 10, 10}, // ok
+                            {MAPFTestConfig_Sydney_2_256, 1, 200, 10, 10}, // ok
+                            {MAPFTestConfig_AR0044SR, 1, 200, 10, 10}, // ok
+                            {MAPFTestConfig_AR0203SR, 1, 200, 10, 10}, // ok
+                            {MAPFTestConfig_AR0072SR, 1, 200, 10, 10}, // ok
+                            {MAPFTestConfig_Denver_2_256, 1, 200, 10, 10} // ok
     };
-
-    for(const auto& file_config : map_configs) {
-        multiLoadAgentAndDecomposition(std::get<0>(file_config),
-                                       std::get<1>(file_config),
-                                       std::get<2>(file_config),
-                                       std::get<3>(file_config),
-                                       std::get<4>(file_config));
+    for(int i=0; i<200; i++) {
+        for (const auto &file_config : map_configs) {
+            multiLoadAgentAndDecomposition(std::get<0>(file_config),
+                                           1, //std::get<1>(file_config),
+                                           std::get<2>(file_config),
+                                           std::get<3>(file_config),
+                                           std::get<4>(file_config));
+        }
     }
 }
 
