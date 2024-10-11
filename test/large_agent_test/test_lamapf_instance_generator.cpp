@@ -55,6 +55,135 @@ int canvas_size_x = 1000, canvas_size_y = 700;
 
 // generateInstanceAndDecomposition
 
+TEST(GenerateCircleInstance_decomposition, test)
+{
+    const AgentPtrs<2>& agents = RandomCircleAgentsGenerator<2>(30,
+                                                                .4, 2.3,
+                                                                .1,
+                                                                dim);
+
+    generateInstanceAndDecomposition<2> (agents,
+                                        map_test_config.at("la_ins_path"),
+                                        CBS::LargeAgentCBS_func<2>,
+                                        1e4, true);
+
+//    generateInstance<CircleAgent<2>,
+//        LaCAM::LargeAgentLaCAM<2, CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >
+//        (agents, map_test_config.at("la_ins_path"));
+
+};
+
+TEST(GenerateBlockInstance_decomposition, test)
+{
+    const AgentPtrs<2>& agents = RandomBlock2DAgentsGenerator(40,
+                                                              -2.4, -.2,
+                                                              .2, 2.4,
+                                                              .2, 2.4,
+                                                              .1, dim);
+
+    generateInstanceAndDecomposition<2> (agents,
+                                         map_test_config.at("la_ins_path"),
+                                         CBS::LargeAgentCBS_func<2>,
+                                         1e4, true);
+
+//    generateInstance<CircleAgent<2>,
+//        LaCAM::LargeAgentLaCAM<2, CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >
+//        (agents, map_test_config.at("la_ins_path"));
+
+};
+
+TEST(GenerateMixedInstance_decomposition, test)
+{
+    AgentPtrs<2> agents = RandomMixedAgentsGenerator(50,
+                                                     .4, 2.,
+                                                     50,
+                                                     -2., -.2,
+                                                     .2, 2.,
+                                                     .2, 2.,
+                                                     .1, dim);
+    generateInstanceAndDecomposition<2> (agents,
+                                         map_test_config.at("la_ins_path"),
+                                         CBS::LargeAgentCBS_func<2>,
+                                         1e8, true);
+
+//    generateInstance<CircleAgent<2>,
+//        LaCAM::LargeAgentLaCAM<2, CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >
+//        (agents, map_test_config.at("la_ins_path"));
+
+};
+
+TEST(GenerateCircleInstance, test)
+{
+    const AgentPtrs<2>& agents = RandomCircleAgentsGenerator<2>(10,
+                                                                   .4, 1.4,
+                                                                   .1,
+                                                                   dim);
+
+//    generateInstanceAndPlanning<2> (agents,
+//                                       map_test_config.at("la_ins_path"),
+//                                       CBS::LargeAgentCBS_func<2>,
+//                                               1e4, true, true);
+
+    generateInstanceAndPlanning<2> (agents,
+                                    map_test_config.at("la_ins_path"),
+                                    LaCAM::LargeAgentLaCAM_func<2>,
+                                    1e4, true);
+
+};
+
+
+TEST(GenerateBlock_2DInstance, test)
+{
+    const AgentPtrs<2>& agents = RandomBlock2DAgentsGenerator(10,
+                                                                -1.4, -.2,
+                                                                .2, 1.4,
+                                                                .2, 1.4,
+                                                                .1, dim);
+    generateInstanceAndPlanning<2>(agents,
+                                    map_test_config.at("la_ins_path"),
+                                    CBS::LargeAgentCBS_func<2>,
+                                    1e4, true);
+
+};
+
+TEST(GenerateMixedInstanceAndPlanning, test)
+{
+
+    AgentPtrs<2> agents = RandomMixedAgentsGenerator(10,
+                                                     .4, 2.3,
+                                                     10,
+                                                     -1.4, -.2,
+                                                     .2, 1.4,
+                                                     .2, 1.4,
+                                                     .1, dim);
+
+    generateInstanceAndPlanning<2> (agents,
+                                    map_test_config.at("la_ins_path"),
+                                    CBS::LargeAgentCBS_func<2>,
+                                    1e4, true);
+
+//    generateInstanceAndPlanning<2>(agents,
+//                                   map_test_config.at("la_ins_path"),
+//                                   LaCAM::LargeAgentLaCAM_func<2>,
+//                                   1e4, true, true);
+
+};
+
+TEST(LoadInstance_CBS, test)
+{
+    const std::string file_path = map_test_config.at("la_ins_path");
+
+//    loadInstanceAndPlanning<CircleAgent<2>,
+//                            LaCAM::LargeAgentLaCAM<2,
+//                            CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >(file_path);
+
+    // LargeAgentConstraintTableForLarge
+    // LargeAgentConstraintTable
+
+    loadInstanceAndPlanningLayeredLAMAPF<2>(CBS::LargeAgentCBS_func<2>,
+                                                        file_path, 60, false, true);
+
+};
 
 TEST(LoadInstance_LaCAM, test)
 {
@@ -92,16 +221,16 @@ TEST(max_size_t, test) {
 
 TEST(Multi_GenerateCircleInstance, test) {
     for(int i=0; i<1; i++) {
-        const AgentPtrs<2>& agents = RandomCircleAgentsGenerator<2>(15,
+        const AgentPtrs<2>& agents = RandomCircleAgentsGenerator<2>(5,
                                                                        .4, 1.4,
                                                                        .1,
                                                                        dim);
 
         generateInstanceAndPlanning<2> (agents,
                                            map_test_config.at("la_ins_path"),
-                                           //CBS::LargeAgentCBS_func<2, CircleAgent<2> >,
-                                           LaCAM::LargeAgentLaCAM_func<2>,
-                                           1e4, true);
+                                           CBS::LargeAgentCBS_func<2>,
+                                           //LaCAM::LargeAgentLaCAM_func<2>,
+                                           1e5, true);
     }
 }
 
@@ -202,7 +331,16 @@ void Decomposition_test() {
             LargeAgentMAPFInstanceDecomposition<2>(deserializer.getInstances(),
                                                               deserializer.getAgents(),
                                                               dim,
-                                                              is_occupied);
+                                                              is_occupied,
+                                                              true,
+                                                              4,
+                                                              false);
+
+//    InstanceVisualization(deserializer.getAgents(),
+//                                     decomposer.getAllPoses(),
+//                                     deserializer.getInstances(),
+//                                     decomposer.grid_paths_,
+//                                     decomposer.agent_visited_grids_);
 
 }
 
@@ -321,7 +459,7 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                                             agent_and_instances[i].first,
                                             CBS::LargeAgentCBS_func<2>, //LaCAM::LargeAgentLaCAM_func<2>,
                                             std::string("CBS"),
-                                             time_limit,
+                                            time_limit,
                                             false,
                                             4,
                                             true);
@@ -335,7 +473,7 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                                             agent_and_instances[i].first,
                                             LaCAM::LargeAgentLaCAM_func<2>,
                                             std::string("LaCAM"),
-                                             time_limit,
+                                            time_limit,
                                             false,
                                             4,
                                             true);
@@ -393,12 +531,20 @@ void generateLargeAgentInstanceForMap(const SingleMapTestConfig<2>& map_file,
 TEST(generateLargeAgentInstanceForMap, test) {
     // file_path, times_of_try, required_agents, maximum_sample_count
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int> >
-            map_configs = {//{MAPFTestConfig_Paris_1_256, 140, 100, 1e7}, // ok
-                           //{MAPFTestConfig_empty_48_48, 60,  100, 1e7}, // ok
-                           //{MAPFTestConfig_Berlin_1_256, 140, 100, 5e7}, // ok
-                           //{MAPFTestConfig_maze_128_128_10, 100, 100, 5e7}, // ok
-                           //{MAPFTestConfig_den520d, 140, 100, 5e7}, // load failed
-                           {MAPFTestConfig_ost003d, 100, 100, 5e7} // target overlap
+            map_configs = {
+//                           {MAPFTestConfig_Paris_1_256, 140, 100, 1e7}, // ok
+//                           {MAPFTestConfig_empty_48_48, 60,  100, 1e7}, // ok
+//                           {MAPFTestConfig_Berlin_1_256, 140, 100, 5e7}, // ok
+//                           {MAPFTestConfig_maze_128_128_10, 100, 100, 5e7}, // ok
+//                           {MAPFTestConfig_den520d, 140, 100, 5e7}, // load failed
+//                           {MAPFTestConfig_ost003d, 100, 100, 5e7} // target overlap
+
+                            //{MAPFTestConfig_Boston_2_256, 140, 100, 1e7}, // ok
+                            //{MAPFTestConfig_Sydney_2_256, 140,  100, 1e7}, // ok
+                            //{MAPFTestConfig_AR0044SR, 50, 100, 5e7}, // ok
+                            //{MAPFTestConfig_AR0203SR, 50, 100, 5e7}, // ok
+                            //{MAPFTestConfig_AR0072SR, 70, 100, 5e7}, // ok
+//                            {MAPFTestConfig_Denver_2_256, 140, 100, 5e7} // ok
 
     };
 
@@ -412,39 +558,46 @@ TEST(generateLargeAgentInstanceForMap, test) {
 }
 
 
-//TEST(Multi_Generate_Agent_And_Decomposition, test) { // 2360 count
-int main1() {
+TEST(Multi_Generate_Agent_And_Decomposition, test) { // 2360 count
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
-            map_configs = {{MAPFTestConfig_Paris_1_256,     1, 20, 10, 10},
-                           {MAPFTestConfig_empty_48_48,     1, 20, 10, 10},
-                           {MAPFTestConfig_Berlin_1_256,    1, 20, 10, 10},
-                           {MAPFTestConfig_maze_128_128_10, 1, 20, 10, 10},
-                           {MAPFTestConfig_den520d,         1, 20, 10, 10},
-                           {MAPFTestConfig_ost003d,         1, 20, 10, 10},
+            map_configs = {//{MAPFTestConfig_Paris_1_256,     100, 200, 10, 10},
+                           //{MAPFTestConfig_empty_48_48,     100, 200, 10, 10},
+//                           {MAPFTestConfig_Berlin_1_256,    100, 200, 10, 10},
+//                           {MAPFTestConfig_maze_128_128_10, 100, 200, 10, 10},
+//                           {MAPFTestConfig_den520d,         100, 200, 10, 10},
+//                           {MAPFTestConfig_ost003d,         100, 200, 10, 10},
+                            {MAPFTestConfig_Boston_2_256, 1, 200, 10, 10}, // ok
+                            {MAPFTestConfig_Sydney_2_256, 1, 200, 10, 10}, // ok
+                            {MAPFTestConfig_AR0044SR, 1, 200, 10, 10}, // ok
+                            {MAPFTestConfig_AR0203SR, 1, 200, 10, 10}, // ok
+                            {MAPFTestConfig_AR0072SR, 1, 200, 10, 10}, // ok
+                            {MAPFTestConfig_Denver_2_256, 1, 200, 10, 10} // ok
     };
-
-    for(const auto& file_config : map_configs) {
-        multiLoadAgentAndDecomposition(std::get<0>(file_config),
-                                       std::get<1>(file_config),
-                                       std::get<2>(file_config),
-                                       std::get<3>(file_config),
-                                       std::get<4>(file_config));
+    for(int i=0; i<200; i++) {
+        for (const auto &file_config : map_configs) {
+            multiLoadAgentAndDecomposition(std::get<0>(file_config),
+                                           1, //std::get<1>(file_config),
+                                           std::get<2>(file_config),
+                                           std::get<3>(file_config),
+                                           std::get<4>(file_config));
+        }
     }
 }
 
 
 
-//TEST(Multi_Generate_Agent_And_Compare, test)
-int main() {
+TEST(Multi_Generate_Agent_And_Compare, test) {
+
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
-            map_configs = {{MAPFTestConfig_Paris_1_256,     1, 100, 40, 20},
-//                           {MAPFTestConfig_empty_48_48,     1, 2, 1, 1},
-//                           {MAPFTestConfig_Berlin_1_256,    1, 2, 1, 1},
-//                           {MAPFTestConfig_maze_128_128_10, 1, 2, 1, 1},
-//                           {MAPFTestConfig_den520d,         1, 2, 1, 1},
-//                           {MAPFTestConfig_ost003d,         1, 2, 1, 1},
+            map_configs = {
+                           {MAPFTestConfig_Paris_1_256,     1, 60, 20, 20},
+//                           {MAPFTestConfig_empty_48_48,     1, 40, 10, 10},
+//                           {MAPFTestConfig_Berlin_1_256,    1, 10, 5, 5},
+//                           {MAPFTestConfig_maze_128_128_10, 1, 10, 5, 5},
+//                           {MAPFTestConfig_den520d,         1, 10, 5, 5},
+//                           {MAPFTestConfig_ost003d,         1, 10, 5, 5},
     };
 
     for(const auto& file_config : map_configs) {

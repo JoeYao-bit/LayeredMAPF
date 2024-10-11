@@ -29,16 +29,17 @@ def loadDataFromfile(file_path):
                 if np.isnan(new_data.max_single_cost):
                     continue
                 
-                if new_data.time_cost > 35000:
-                    new_data.success = 0
-                
-                if new_data.time_cost > 30000:
-                    new_data.time_cost = 30000
+                #if new_data.time_cost > 35:
+                    #new_data.success = 0
+                    #continue
+                #if new_data.time_cost > 60:
+                 #   new_data.time_cost = 60
+                    #new_data.success = 0
                     
 
                 if head_split[0] == 'LAYERED':
-                    new_data.cluster_decomposition_time_cost = float(splited_line[7])
-                    new_data.sort_level_time_cost = float(splited_line[8])
+                    new_data.get_subgraph_time_cost = float(splited_line[7])
+                    new_data.decomposition_time_cost = float(splited_line[8])
                 
                 data_list.append(new_data)
             #print(new_data.method, ' ', new_data.path_count, ' ', new_data.real_path_count, ' ', new_data.time_cost)
@@ -55,8 +56,8 @@ class LineData:
     success = 0
     max_memory_usage = 0.
     # specific time component for layered MAPF
-    cluster_decomposition_time_cost = 0.
-    sort_level_time_cost = 0.
+    get_subgraph_time_cost = 0.
+    decomposition_time_cost = 0.
         
 
 # all data in a txt file
@@ -81,10 +82,15 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
                 else:
                     y.append(0)
             if len(splited_method_name) == 1:
-                plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[name_of_decomposition], markersize=14, label=map_key+"/"+name_of_decomposition, linewidth=2, elinewidth=4, capsize=4)
+                ##plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[name_of_get_subgraph], markersize=14, label=map_key+"/"+name_of_get_subgraph, linewidth=2, elinewidth=4, capsize=4)
+                if method_key == name_of_get_subgraph:
+                    plt.errorbar(x, y, fmt=method_marker_map2[name_of_get_subgraph], markersize=14, label=map_key+"/"+name_of_get_subgraph, linewidth=2, elinewidth=4, capsize=4)
+                if method_key == name_of_decomposition:
+                    plt.errorbar(x, y, fmt=method_marker_map2[name_of_decomposition], markersize=14, label=map_key+"/"+name_of_decomposition, linewidth=2, elinewidth=4, capsize=4)
             else:
-                plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[splited_method_name[0]], markersize=14, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4)
-                
+                #plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[splited_method_name[0]], markersize=14, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4)
+                plt.errorbar(x, y, fmt=method_marker_map2[splited_method_name[0]], markersize=14, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4)
+
         plt.tick_params(axis='both', labelsize=18)
         formater = ticker.ScalarFormatter(useMathText=True) 
         formater.set_scientific(True)
@@ -276,27 +282,29 @@ data_path_dir = '../../../test/test_data/large_agent_instance/'
 
 all_single_data = list()
 
+name_of_get_subgraph = "GETSUBGRAPH"
 name_of_decomposition = "DECOMPOSITION"
 
-method_marker_map = {"RAW_CBS":'p-',       "LAYERED_CBS":'p--',
-                  "RAW_LaCAM":'P-',       "LAYERED_LaCAM":'P--',
-                  "RAW_PBS":'D-',         "LAYERED_PBS":'D--',
-                  "RAW_LaCAM":'X-',      "LAYERED_LaCAM":'X--',
-                  "RAW_LNS":'+-',         "LAYERED_LNS":'+--',
-                  "RAW_AnytimeBCBS":'*-', "LAYERED_AnytimeBCBS":'*--',
-                  "RAW_AnytimeEECBS":'o-', "LAYERED_AnytimeEECBS":'o--',
-                  "RAW_CBSH2_RTC":'v-',   "LAYERED_CBSH2_RTC":'v--',
-                  "RAW_PIBT":'^-',        "LAYERED_PIBT":'^--',
-                  "RAW_PIBT2":'<-',       "LAYERED_PIBT2":'<--',
-                  "RAW_HCA":'>-',         "LAYERED_HCA":'>--',
-                  "RAW_PushAndSwap":'H-', "LAYERED_PushAndSwap":'H--',
-                  name_of_decomposition:"D-."
-                  }
+# method_marker_map = {"RAW_CBS":'p-',       "LAYERED_CBS":'p--',
+#                   "RAW_LaCAM":'P-',       "LAYERED_LaCAM":'P--',
+#                   "RAW_PBS":'D-',         "LAYERED_PBS":'D--',
+#                   "RAW_LaCAM":'X-',      "LAYERED_LaCAM":'X--',
+#                   "RAW_LNS":'+-',         "LAYERED_LNS":'+--',
+#                   "RAW_AnytimeBCBS":'*-', "LAYERED_AnytimeBCBS":'*--',
+#                   "RAW_AnytimeEECBS":'o-', "LAYERED_AnytimeEECBS":'o--',
+#                   "RAW_CBSH2_RTC":'v-',   "LAYERED_CBSH2_RTC":'v--',
+#                   "RAW_PIBT":'^-',        "LAYERED_PIBT":'^--',
+#                   "RAW_PIBT2":'<-',       "LAYERED_PIBT2":'<--',
+#                   "RAW_HCA":'>-',         "LAYERED_HCA":'>--',
+#                   "RAW_PushAndSwap":'H-', "LAYERED_PushAndSwap":'H--',
+#                   name_of_get_subgraph:"D-."
+#                   }
 
 method_marker_map2 = {
-    "RAW":'-',
-    "LAYERED":'--',
-    name_of_decomposition:"-."
+    "RAW":'o-',
+    "LAYERED":'*-',
+    name_of_get_subgraph:"o-.",
+    name_of_decomposition:"*-."
 }
 map_format_list = [
                  # "empty-16-16",
@@ -446,6 +454,7 @@ for single_data in all_single_data:
 
         if all_method_time_cost_map[method_name][single_data.map_name].get(line_data.method) == None:
             all_method_time_cost_map[method_name][single_data.map_name][line_data.method] = dict()
+            all_method_time_cost_map[method_name][single_data.map_name][name_of_get_subgraph] = dict()
             all_method_time_cost_map[method_name][single_data.map_name][name_of_decomposition] = dict()
             all_method_total_cost_map[method_name][single_data.map_name][line_data.method] = dict()
             all_method_makespan_map[method_name][single_data.map_name][line_data.method] = dict()
@@ -454,6 +463,7 @@ for single_data in all_single_data:
             
         if all_method_time_cost_map[method_name][single_data.map_name][line_data.method].get(line_data.agent_count) == None:
             all_method_time_cost_map[method_name][single_data.map_name][line_data.method][line_data.agent_count] = list()
+            all_method_time_cost_map[method_name][single_data.map_name][name_of_get_subgraph][line_data.agent_count] = list()
             all_method_time_cost_map[method_name][single_data.map_name][name_of_decomposition][line_data.agent_count] = list()
             all_method_total_cost_map[method_name][single_data.map_name][line_data.method][line_data.agent_count] = list()
             all_method_makespan_map[method_name][single_data.map_name][line_data.method][line_data.agent_count] = list()    
@@ -462,7 +472,8 @@ for single_data in all_single_data:
 
             
         all_method_time_cost_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.time_cost)
-        all_method_time_cost_map[method_name][single_data.map_name][name_of_decomposition][line_data.agent_count].append(line_data.cluster_decomposition_time_cost + line_data.sort_level_time_cost)
+        all_method_time_cost_map[method_name][single_data.map_name][name_of_get_subgraph][line_data.agent_count].append(line_data.get_subgraph_time_cost)
+        all_method_time_cost_map[method_name][single_data.map_name][name_of_decomposition][line_data.agent_count].append(line_data.decomposition_time_cost/1e3)
         all_method_success_rate_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.success)    
         all_method_memory_usage_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.max_memory_usage)
 
