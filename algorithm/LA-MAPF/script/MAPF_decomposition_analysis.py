@@ -150,7 +150,7 @@ def drawMethodMap(single_map_data, value_type):
         plt.ylim(0, 1)
 
     plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5)
-    plt.title(title_dict[value_type])
+    # plt.title(title_dict[value_type])
 
     #plt.grid()
     plt.tight_layout()
