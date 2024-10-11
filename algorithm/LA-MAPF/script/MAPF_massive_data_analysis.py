@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib import ticker
 import os
 
-def loadDataFromfile(file_path):
+def loadDataFromfile(file_path, map_name):
     data_list = list()
     try:
         with open(file_path, "r") as f:
@@ -24,6 +24,9 @@ def loadDataFromfile(file_path):
                 new_data.success = int(splited_line[5])
                 new_data.max_memory_usage = float(splited_line[6])
                 
+                if(new_data.agent_count > map_size_limit[map_name]):
+                    continue
+                
                 if np.isnan(new_data.total_cost):
                     continue
                 if np.isnan(new_data.max_single_cost):
@@ -32,8 +35,8 @@ def loadDataFromfile(file_path):
                 #if new_data.time_cost > 35:
                     #new_data.success = 0
                     #continue
-                #if new_data.time_cost > 60:
-                 #   new_data.time_cost = 60
+                if new_data.time_cost > 60:
+                   new_data.time_cost = 60
                     #new_data.success = 0
                     
 
@@ -81,14 +84,15 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
                     y.append(np.mean(all_data_map[map_key][method_key][agent_size_key]))
                 else:
                     y.append(0)
-            if len(splited_method_name) == 1:
+            #if len(splited_method_name) == 1:
                 ##plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[name_of_get_subgraph], markersize=14, label=map_key+"/"+name_of_get_subgraph, linewidth=2, elinewidth=4, capsize=4)
-                if method_key == name_of_get_subgraph:
-                    plt.errorbar(x, y, fmt=method_marker_map2[name_of_get_subgraph], markersize=14, label=map_key+"/"+name_of_get_subgraph, linewidth=2, elinewidth=4, capsize=4)
-                if method_key == name_of_decomposition:
-                    plt.errorbar(x, y, fmt=method_marker_map2[name_of_decomposition], markersize=14, label=map_key+"/"+name_of_decomposition, linewidth=2, elinewidth=4, capsize=4)
-            else:
+                # if method_key == name_of_get_subgraph:
+                #     plt.errorbar(x, y, fmt=method_marker_map2[name_of_get_subgraph], markersize=14, label=map_key+"/"+name_of_get_subgraph, linewidth=2, elinewidth=4, capsize=4)
+                # if method_key == name_of_decomposition:
+                #     plt.errorbar(x, y, fmt=method_marker_map2[name_of_decomposition], markersize=14, label=map_key+"/"+name_of_decomposition, linewidth=2, elinewidth=4, capsize=4)
+            #else:
                 #plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[splited_method_name[0]], markersize=14, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4)
+            if len(splited_method_name) == 2:    
                 plt.errorbar(x, y, fmt=method_marker_map2[splited_method_name[0]], markersize=14, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4)
 
         plt.tick_params(axis='both', labelsize=18)
@@ -105,7 +109,7 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
             plt.ylim(1, y_range[1]*10)  
         else:    
             plt.ylim(0, y_range[1])
-        plt.title(ylable)
+        # plt.title(ylable)
         if is_percentage:
             plt.ylim(0, 1)
                 
@@ -341,7 +345,14 @@ map_format_list = [
                  # 21
                  # "Boston_0_256",
                  # "lt_gallowstemplar_n",
-                 "ost003d"
+                 "ost003d",
+                 
+                "Boston_2_256",
+                "Sydney_2_256", 
+                "AR0044SR", 
+                "AR0203SR", 
+                "AR0072SR",
+                "Denver_2_256"
 
 ]
 
@@ -378,7 +389,59 @@ map_format_map = {
                  
                 #  "Boston_0_256":'<',
                 #  "lt_gallowstemplar_n":'H',
-                  "ost003d":'H'
+                  "ost003d":'H',
+                  
+                  "Boston_2_256":'<',
+                  "Sydney_2_256":'<', 
+                  "AR0044SR":'<', 
+                  "AR0203SR":'<', 
+                  "AR0072SR":'<',
+                  "Denver_2_256":'<'
+
+}
+
+
+map_size_limit = {
+                #  "empty-16-16":'o',
+                #  "empty-32-32":'o',
+                 "empty-48-48":50,
+
+                #  "maze-32-32-2":'*',
+                #  "maze-32-32-4":'*',
+                #  "maze-128-128-2":'*',
+                  "maze-128-128-10":60,
+                 
+                #  "den312d":'v',
+                  "den520d":100,
+                 
+                  "Berlin_1_256":80,
+                  "Paris_1_256":80,
+                 
+                #  "ht_chantry":'H',
+                #  "lak303d":'H',
+
+                #  "random-32-32-20":'D',
+                #  "random-64-64-10":'D', 
+
+                #  "room-32-32-4":'X',
+                #  "room-64-64-8":'X',
+                #  "room-64-64-16":'X',
+
+                #  "warehouse-10-20-10-2-1":'+',
+                #  "warehouse-10-20-10-2-2":'+',
+                #  "warehouse-20-40-10-2-1":'+',
+                #  "warehouse-20-40-10-2-2":'+',
+                 
+                #  "Boston_0_256":'<',
+                #  "lt_gallowstemplar_n":'H',
+                  "ost003d":100,
+                  
+                  "Boston_2_256":70,
+                  "Sydney_2_256":70, 
+                  "AR0044SR":50, 
+                  "AR0203SR":40, 
+                  "AR0072SR":30,
+                  "Denver_2_256":80
 
 }
 
@@ -388,7 +451,7 @@ for map_name_key, map_format_value in map_format_map.items():
     print('load data from', data_file_path)
     single = SingleTestData() # 不带括号则均指向同一元素
     single.map_name = map_name_key
-    single.data_list = loadDataFromfile(data_file_path)
+    single.data_list = loadDataFromfile(data_file_path, map_name_key)
     all_single_data.append(single)
     
 

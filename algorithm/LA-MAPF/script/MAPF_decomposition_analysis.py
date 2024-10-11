@@ -118,18 +118,18 @@ def drawMethodMap(single_map_data, value_type):
         label_buffer = label_buffer + ", " + str(i+2)          
 
     # add time cost about construct connectivity graph
-    if value_type == "time_cost":
-        #print(all_init_time_cost)
-        for data_key, data_val in all_init_time_cost.items():
-            dict_x_y[data_key] = np.mean(data_val)
-            dict_x_error[data_key] = np.std(data_val)
-        sorted_x = sorted (dict_x_y)
-        sorted_y = list()
-        sorted_error = list()
-        for temp_x in sorted_x:
-            sorted_y.append(dict_x_y[temp_x])
-            sorted_error.append(dict_x_error[temp_x])
-        plt.errorbar(sorted_x, sorted_y, label="init_cost", markersize=14, fmt=step_fmt[4], linewidth= 4, elinewidth=4, capsize=4)
+    # if value_type == "time_cost":
+    #     #print(all_init_time_cost)
+    #     for data_key, data_val in all_init_time_cost.items():
+    #         dict_x_y[data_key] = np.mean(data_val)
+    #         dict_x_error[data_key] = np.std(data_val)
+    #     sorted_x = sorted (dict_x_y)
+    #     sorted_y = list()
+    #     sorted_error = list()
+    #     for temp_x in sorted_x:
+    #         sorted_y.append(dict_x_y[temp_x])
+    #         sorted_error.append(dict_x_error[temp_x])
+    #     plt.errorbar(sorted_x, sorted_y, label="init_cost", markersize=14, fmt=step_fmt[4], linewidth= 4, elinewidth=4, capsize=4)
         
     plt.legend(loc='best')    
     plt.tick_params(axis='both', labelsize=18)
@@ -140,8 +140,8 @@ def drawMethodMap(single_map_data, value_type):
     formater.set_powerlimits((0,0))
 
     ax = plt.gca()
-    if value_type == "time_cost":
-        ax.set_yscale('log')  
+    # if value_type == "time_cost":
+    #     ax.set_yscale('log')  
     ax.yaxis.offsetText.set_fontsize(18)
     ax.yaxis.set_major_formatter(formater)
     y_range = plt.ylim()
