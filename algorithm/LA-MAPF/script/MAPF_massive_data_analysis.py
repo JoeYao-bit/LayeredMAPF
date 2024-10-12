@@ -39,7 +39,9 @@ def loadDataFromfile(file_path, map_name):
                    new_data.time_cost = 60
                     #new_data.success = 0
                     
-
+                # if new_data.agent_count >= 10 and new_data.time_cost <= 2: 
+                #     continue
+                
                 if head_split[0] == 'LAYERED':
                     new_data.get_subgraph_time_cost = float(splited_line[7])
                     new_data.decomposition_time_cost = float(splited_line[8])
