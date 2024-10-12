@@ -65,7 +65,7 @@ bool draw_visit_grid_table = false;
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
 
-auto map_test_config = MAPFTestConfig_Sydney_2_256;
+auto map_test_config = MAPFTestConfig_Denver_2_256;
 // MAPFTestConfig_Paris_1_256 //  pass
 // MAPFTestConfig_Berlin_1_256; // pass
 // MAPFTestConfig_maze_32_32_4; // pass
