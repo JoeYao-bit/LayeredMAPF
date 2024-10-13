@@ -605,8 +605,15 @@ int main() {
                              //{MAPFTestConfig_Sydney_2_256, 1, 70, 10, 10}, // ok
                              //{MAPFTestConfig_AR0044SR, 1, 50, 10, 5}, // ok
                               //{MAPFTestConfig_AR0203SR, 1, 40, 10, 5}, // ok
-                             {MAPFTestConfig_AR0072SR, 1, 30, 10, 5}, // ok
-                             {MAPFTestConfig_Denver_2_256, 1, 80, 10, 10} // ok
+                             // {MAPFTestConfig_AR0072SR, 1, 30, 10, 5}, // ok
+                             // {MAPFTestConfig_Denver_2_256, 1, 80, 10, 10}, // ok
+
+                                //{MAPFTestConfig_Boston_2_256, 1, 20, 2, 2}, // ok
+                                //{MAPFTestConfig_Sydney_2_256, 1, 20, 2, 2}, // ok
+                                //{MAPFTestConfig_AR0044SR, 1, 20, 2, 2}, // ok
+                                //{MAPFTestConfig_AR0203SR, 1, 20, 2, 2}, // ok
+                            //{MAPFTestConfig_AR0072SR, 1, 20, 2, 2}, // ok
+                             {MAPFTestConfig_Denver_2_256, 1, 20, 2, 2} // ok
 
     };
     for(int i=0; i<200;i++)
