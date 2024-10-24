@@ -1562,26 +1562,26 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                                                                    external_pre,
                                                                                                    external_next);
             // find the agent that have the fewest start dependency and related agent as seed of previous level
-            int global_min_target_count_ = MAX<int>, local_min_target_count_;
-            int global_min_target_count_agent_;
+            int global_max_target_count_ = 0, local_max_target_count_;
+            int global_max_target_count_agent_ = all_agent_and_unavoid_sat.begin()->first;
             for(const auto& temp_pair : all_agent_and_unavoid_sat) {
-                local_min_target_count_ = 0;
+                local_max_target_count_ = 0;
                 // count number of start
                 for(const auto& sat : temp_pair.second) {
                     if(sat%2 == 1) {
-                        local_min_target_count_ ++;
+                        local_max_target_count_ ++;
                     }
                 }
-                if(local_min_target_count_ < global_min_target_count_) {
-                    global_min_target_count_ = local_min_target_count_;
-                    global_min_target_count_agent_ = temp_pair.first;
+                if(local_max_target_count_ > global_max_target_count_) {
+                    global_max_target_count_ = local_max_target_count_;
+                    global_max_target_count_agent_ = temp_pair.first;
                 }
             }
             // start from the global_min_start_count_agent_, get pre_level
             // get what not in pre_level as next_level
-            std::set<int> pre_level = {global_min_target_count_agent_}, next_level = agents;
-            next_level.erase(global_min_target_count_agent_);
-            std::vector<int> buffer = {global_min_target_count_agent_}, next_buffer;
+            std::set<int> pre_level = {global_max_target_count_agent_}, next_level = agents;
+            next_level.erase(global_max_target_count_agent_);
+            std::vector<int> buffer = {global_max_target_count_agent_}, next_buffer;
 //            std::cout << "global_min_target_count_agent_ " << global_min_target_count_agent_ << std::endl;
             while(!buffer.empty()) {
                 next_buffer.clear();

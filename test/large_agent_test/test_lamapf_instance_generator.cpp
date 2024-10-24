@@ -541,7 +541,7 @@ TEST(generateLargeAgentInstanceForMap, test) {
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int> >
             map_configs = {
 //                           {MAPFTestConfig_Paris_1_256, 140, 100, 1e7}, // ok
-//                           {MAPFTestConfig_empty_48_48, 60,  100, 1e7}, // ok
+                           {MAPFTestConfig_empty_48_48, 60,  100, 1e7}, // ok
 //                           {MAPFTestConfig_Berlin_1_256, 140, 100, 5e7}, // ok
 //                           {MAPFTestConfig_maze_128_128_10, 100, 100, 5e7}, // ok
 //                           {MAPFTestConfig_den520d, 140, 100, 5e7}, // load failed
@@ -552,7 +552,7 @@ TEST(generateLargeAgentInstanceForMap, test) {
 //                            {MAPFTestConfig_AR0044SR, 50, 100, 5e7}, // ok
 //                            {MAPFTestConfig_AR0203SR, 40, 100, 5e7}, // ok
 //                            {MAPFTestConfig_AR0072SR, 30, 100, 5e7}, // ok
-                            {MAPFTestConfig_Denver_2_256, 80, 100, 5e7} // ok
+//                            {MAPFTestConfig_Denver_2_256, 80, 100, 5e7} // ok
 
 
 
@@ -571,12 +571,13 @@ TEST(generateLargeAgentInstanceForMap, test) {
 TEST(Multi_Generate_Agent_And_Decomposition, test) { // 2360 count
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
-            map_configs = {//{MAPFTestConfig_Paris_1_256,     100, 200, 10, 10},
-                           //{MAPFTestConfig_empty_48_48,     100, 200, 10, 10},
-//                           {MAPFTestConfig_Berlin_1_256,    100, 200, 10, 10},
-//                           {MAPFTestConfig_maze_128_128_10, 100, 200, 10, 10},
-//                           {MAPFTestConfig_den520d,         100, 200, 10, 10},
-//                           {MAPFTestConfig_ost003d,         100, 200, 10, 10},
+            map_configs = {
+                           {MAPFTestConfig_Paris_1_256,     100, 200, 10, 10},
+                           {MAPFTestConfig_empty_48_48,     100, 200, 10, 10},
+                           {MAPFTestConfig_Berlin_1_256,    100, 200, 10, 10},
+                           {MAPFTestConfig_maze_128_128_10, 100, 200, 10, 10},
+                           {MAPFTestConfig_den520d,         100, 200, 10, 10},
+                           {MAPFTestConfig_ost003d,         100, 200, 10, 10},
 
                             {MAPFTestConfig_Boston_2_256, 1, 200, 10, 10}, // ok
                             {MAPFTestConfig_Sydney_2_256, 1, 200, 10, 10}, // ok
@@ -586,6 +587,7 @@ TEST(Multi_Generate_Agent_And_Decomposition, test) { // 2360 count
                             {MAPFTestConfig_Denver_2_256, 1, 200, 10, 10} // ok
     };
     for(int i=0; i<200; i++) {
+        std::cout << "global_decom " << i << std::endl;
         for (const auto &file_config : map_configs) {
             multiLoadAgentAndDecomposition(std::get<0>(file_config),
                                            1, //std::get<1>(file_config),
