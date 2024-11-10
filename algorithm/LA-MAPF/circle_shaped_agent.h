@@ -5,7 +5,7 @@
 #ifndef LAYEREDMAPF_CIRCLE_SHAPED_AGENT_H
 #define LAYEREDMAPF_CIRCLE_SHAPED_AGENT_H
 #include "common.h"
-#include "../../freeNav-base/visualization/canvas/canvas.h"
+#include "freeNav-base/visualization/canvas/canvas.h"
 #include <ostream>
 namespace freeNav::LayeredMAPF::LA_MAPF {
 

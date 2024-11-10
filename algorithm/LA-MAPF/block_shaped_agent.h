@@ -5,7 +5,7 @@
 #ifndef LAYEREDMAPF_BLOCK_SHAPED_AGENT_H
 #define LAYEREDMAPF_BLOCK_SHAPED_AGENT_H
 #include "common.h"
-#include "../../freeNav-base/visualization/canvas/canvas.h"
+#include "freeNav-base/visualization/canvas/canvas.h"
 #include <sstream>
 #include <boost/algorithm/string/split.hpp>
 
