@@ -72,7 +72,7 @@ SET_OCCUPIED_FUNC<2> set_occupied_func = set_occupied;
 std::set<int> visited_grid_during_lacam;
 int main(int argc, char** argv) {
     MemoryRecorder memory_recorder(50);
-    std::cout << " map name " << map_test_config.at("map_path") << std::endl;
+    std::cout << " map name " << map_test_config.at("map_path")  << std::endl;
     // load mapf scene
     const auto& dim = loader.getDimensionInfo();
     freeNav::Instances<2> ists;

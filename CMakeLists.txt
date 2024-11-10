@@ -111,45 +111,56 @@ target_link_libraries(vis_lib ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} ${Pangolin_LIB
 
 aux_source_directory(algorithm alg_src)
 aux_source_directory(algorithm/LA-MAPF lamapf_src)
-add_library(alg_lib ${alg_src} ${lamapf_src})
-target_link_libraries(alg_lib EECBS_lib vis_lib lib-graph)
+add_library(lamapf_alg STATIC ${alg_src} ${lamapf_src})
+target_link_libraries(lamapf_alg EECBS_lib vis_lib lib-graph)
+
+#INSTALL(TARGETS hello hello_static
+#        LIBRARY DESTINATION include/lib
+#        ARCHIVE DESTINATION include/lib)
+
+INSTALL(DIRECTORY algorithm DESTINATION include/LA-MAPF)
+
+
 #add_library(external_lib ${third1_src} ${third2_src} ${third3_src})
 
 add_executable(test_2d_mapf_viewer test/test_2d_mapf_viewer.cpp)
-target_link_libraries(test_2d_mapf_viewer freeNav-base alg_lib)
+target_link_libraries(test_2d_mapf_viewer freeNav-base lamapf_alg)
 
 add_executable(test_lacam test/test_lacam.cpp)
-target_link_libraries(test_lacam freeNav-base alg_lib)
+target_link_libraries(test_lacam freeNav-base lamapf_alg)
 
 add_executable(test_lacam3 test/test_lacam3.cpp)
-target_link_libraries(test_lacam3 freeNav-base alg_lib)
+target_link_libraries(test_lacam3 freeNav-base lamapf_alg)
 
 add_executable(test_massive_decomposition test/test_massive_decomposition.cpp)
-target_link_libraries(test_massive_decomposition freeNav-base alg_lib)
+target_link_libraries(test_massive_decomposition freeNav-base lamapf_alg)
 
 add_executable(test_massive_layered_mapf test/test_massive_layered_mapf.cpp)
-target_link_libraries(test_massive_layered_mapf freeNav-base alg_lib)
+target_link_libraries(test_massive_layered_mapf freeNav-base lamapf_alg)
 
 add_executable(test_create_random_map_fr_mapf test/test_create_random_map_fr_mapf.cpp)
-target_link_libraries(test_create_random_map_fr_mapf freeNav-base alg_lib)
+target_link_libraries(test_create_random_map_fr_mapf freeNav-base lamapf_alg)
 
 add_executable(test_qt_gui test/test_qt_gui.cpp test/visualization/qt_gui/resources/images.qrc)
-target_link_libraries(test_qt_gui freeNav-base alg_lib)
+target_link_libraries(test_qt_gui freeNav-base lamapf_alg)
 
 add_executable(test_lamapf_cbs test/large_agent_test/test_lamapf_cbs.cpp)
-target_link_libraries(test_lamapf_cbs freeNav-base alg_lib)
+target_link_libraries(test_lamapf_cbs freeNav-base lamapf_alg)
 
 add_executable(test_lamapf_lacam test/large_agent_test/test_lamapf_lacam.cpp)
-target_link_libraries(test_lamapf_lacam freeNav-base alg_lib)
+target_link_libraries(test_lamapf_lacam freeNav-base lamapf_alg)
 
 add_executable(test_lamapf_instance_generator test/large_agent_test/test_lamapf_instance_generator.cpp)
-target_link_libraries(test_lamapf_instance_generator freeNav-base alg_lib)
+target_link_libraries(test_lamapf_instance_generator freeNav-base lamapf_alg)
 
 add_executable(test_coverage_grid test/large_agent_test/test_coverage_grid.cpp)
-target_link_libraries(test_coverage_grid freeNav-base alg_lib)
+target_link_libraries(test_coverage_grid freeNav-base lamapf_alg)
 
 add_executable(test_large_agent_mapf_decomposition test/large_agent_test/test_large_agent_mapf_decomposition.cpp)
-target_link_libraries(test_large_agent_mapf_decomposition freeNav-base alg_lib)
+target_link_libraries(test_large_agent_mapf_decomposition freeNav-base lamapf_alg)
 
 add_executable(test_layered_large_agent_mapf test/large_agent_test/test_layered_large_agent_mapf.cpp)
-target_link_libraries(test_layered_large_agent_mapf freeNav-base alg_lib)
+target_link_libraries(test_layered_large_agent_mapf freeNav-base lamapf_alg)
+
+add_executable(test_action_dependency_graph test/large_agent_test/test_action_dependency_graph.cpp)
+target_link_libraries(test_action_dependency_graph freeNav-base lamapf_alg)

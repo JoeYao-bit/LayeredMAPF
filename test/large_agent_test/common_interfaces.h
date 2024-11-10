@@ -65,7 +65,7 @@ bool draw_visit_grid_table = false;
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
 
-auto map_test_config = MAPFTestConfig_Denver_2_256;
+auto map_test_config = MAPFTestConfig_empty_48_48;
 // MAPFTestConfig_Paris_1_256 //  pass
 // MAPFTestConfig_Berlin_1_256; // pass
 // MAPFTestConfig_maze_32_32_4; // pass
@@ -1095,6 +1095,30 @@ bool decompositionOfSingleInstance(const InstanceOrients<N> & instances,
     outputStream = ss.str();
     std::cout << " memory_usage = " << memory_usage << std::endl;
     return is_legal;
+}
+
+// test_count: the total count of start and target pair in the scenario file
+// required_count: required
+std::vector<std::set<int> > pickCasesFromScene(int test_count,
+                                               const std::vector<int>& required_counts,
+                                               int instance_count) {
+    std::vector<std::set<int> > retv;
+    for(int i=0; i<instance_count; i++) {
+        for(const int& required_count : required_counts) {
+            std::set<int> instance;
+            while(1) {
+                int current_pick = rand() % test_count;
+                if(instance.find(current_pick) == instance.end()) {
+                    instance.insert(current_pick);
+                    if(instance.size() == required_count) {
+                        retv.push_back(instance);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    return retv;
 }
 
 

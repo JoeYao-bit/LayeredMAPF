@@ -29,19 +29,22 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
 
     LargeAgentMAPFInstanceDecompositionPtr<2> decomposer_ptr = nullptr;
     std::vector<std::vector<int> > grid_visit_count_table;
-    auto layered_paths = layeredLargeAgentMAPF<2>(deserializer.getInstances(),
-                                                             deserializer.getAgents(),
-                                                             dim, is_occupied,
-                                                             CBS::LargeAgentCBS_func<2>,
-                                                             grid_visit_count_table,
-                                                             20, decomposer_ptr,
-                                                             true);
+
+    auto instances = deserializer.getTestInstance({40}, 1);
+
+    auto layered_paths = layeredLargeAgentMAPF<2>(instances.front().second,
+                                                  instances.front().first,
+                                                  dim, is_occupied,
+                                                  CBS::LargeAgentCBS_func<2>,
+                                                  grid_visit_count_table,
+                                                  20, decomposer_ptr,
+                                                  false);
 
     auto end_t = clock();
 
     double time_cost = ((double)end_t-start_t)/CLOCKS_PER_SEC;
 
-    std::cout << (layered_paths.size() == deserializer.getAgents().size() ? "success" : "failed")
+    std::cout << (layered_paths.size() == instances.front().first.size() ? "success" : "failed")
               << " layered large agent mapf in " << time_cost << "s " << std::endl;
     std::cout << std::endl;
 
@@ -57,8 +60,8 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
 //    std::cout << (raw_path.size() == deserializer.getAgents().size() ? "success" : "failed")
 //              << " raw large agent mapf in " << time_cost1 << "ms " << std::endl;
 
-    InstanceVisualization(deserializer.getAgents(), decomposer_ptr->getAllPoses(),
-                                     deserializer.getInstances(), layered_paths, grid_visit_count_table);
+    InstanceVisualization(instances.front().first, decomposer_ptr->getAllPoses(),
+                          instances.front().second, layered_paths, grid_visit_count_table);
 }
 
 TEST(test, layered_large_agent_CBS) {
