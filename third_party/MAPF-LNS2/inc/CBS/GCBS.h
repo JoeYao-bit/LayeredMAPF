@@ -2,7 +2,7 @@
 #include "GCBSNode.h"
 #include "MAPF-LNS2/inc/SpaceTimeAStar.h"
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     class GCBS {
     public:

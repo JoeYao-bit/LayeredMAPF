@@ -9,14 +9,14 @@
 #include <boost/unordered_map.hpp>
 #include <boost/heap/pairing_heap.hpp>
 #include <boost/unordered_set.hpp>
-
+#include <limits>
 #include "freeNav-base/basic_elements/point.h"
 
 namespace freeNav::LayeredMAPF {
 
 #define MAX_TIMESTEP INT_MAX / 2
 #define MAX_COST INT_MAX / 2
-#define MAX_NODES MAX<size_t> / 2
+#define MAX_NODES std::numeric_limits<size_t>::max() / 2
 
     template <Dimension N, typename NODE>
     struct TreeNode {
@@ -105,6 +105,9 @@ namespace freeNav::LayeredMAPF {
         }
         return retv;
     }
+
+    extern size_t max_size_of_stack; // yz: add for statistics in every mapf method's key memory occupation factor
+    extern size_t max_size_of_stack_layered; // yz: add for statistics in every mapf method's key memory occupation factor
 
 }
 

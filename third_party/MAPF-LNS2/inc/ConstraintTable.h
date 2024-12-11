@@ -2,7 +2,7 @@
 #include "common.h"
 #include "MAPF-LNS2/inc/CBS/CBSNode.h"
 #include "PathTable.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     class ConstraintTable {
     public:

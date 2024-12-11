@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <boost/heap/fibonacci_heap.hpp>
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     typedef std::chrono::duration<float> fsec;
 

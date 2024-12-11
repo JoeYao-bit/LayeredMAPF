@@ -6,7 +6,7 @@
 #pragma once
 #include <iostream>
 #include <math.h>
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     class Vec2f {
     public:

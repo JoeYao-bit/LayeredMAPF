@@ -8,7 +8,7 @@
 #include "MAPF-LNS2/inc/PIBT/task.h"
 #include "MAPF-LNS2/inc/PIBT/util.h"
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     int Task::cntId = 0;
 

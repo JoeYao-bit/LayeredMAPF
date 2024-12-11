@@ -1,7 +1,7 @@
 #include "MAPF-LNS2/inc/CBS/MutexReasoning.h"
 #include "MAPF-LNS2/inc/CBS/ConstraintPropagation.h"
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     shared_ptr<Conflict> MutexReasoning::run(int a1, int a2, CBSNode &node, MDD *mdd_1, MDD *mdd_2) {
         clock_t t = clock();

@@ -2,7 +2,7 @@
 #include <boost/functional/hash.hpp>
 #include "SingleAgentSolver.h"
 #include "ReservationTable.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     class SIPPNode : public LLNode {
     public:

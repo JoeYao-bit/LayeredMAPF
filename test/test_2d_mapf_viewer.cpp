@@ -52,7 +52,8 @@ GridPtr<3> sg1 = std::make_shared<Grid<3>>(),
 // MAPFTestConfig_ht_chantry
 // MAPFTestConfig_lak303d
 // MAPFTestConfig_simple
-auto map_test_config = MAPFTestConfig_empty_32_32;
+// MAPFTestConfig_empty_48_48
+auto map_test_config = MAPFTestConfig_empty_48_48;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -92,13 +93,26 @@ int main(int argc, char** argv) {
     std::cout << "get " << ists.size() << " instances" << std::endl;
     Paths<2> multiple_paths;
     // decomposition
-    sleep(1);
     memory_recorder.clear();
     float base_usage = memory_recorder.getCurrentMemoryUsage();
-    auto MAPF_func = PBS_Li::pbs_MAPF;//CBS_Li::eecbs_MAPF;
+    // LaCAM::lacam_MAPF; // add size of nodes in CLOSE queue as estimation for memory usage
+    // LaCAM2::lacam2_MAPF; // add size of nodes in EXPLORED queue as estimation for memory usage
+    // PBS_Li::pbs_MAPF; // add size of nodes in allNodes_table as estimation for memory usage
+    // CBS_Li::eecbs_MAPF; // add size of nodes in allNodes_table as estimation for memory usage
+
+    // MAPF_LNS2::LNS2_MAPF; // yz: how to evaluate memory usage ? not easy
+
+    // PIBT_2::pibt_MAPF; // add depth of call func_PIBT as estimation for memory usage
+    // PIBT_2::hca_MAPF; // prioritized mapf, solve each agent separately, no much difference in memory usage
+    // PIBT_2::push_and_swap_MAPF // makespan * num of agent, suboptimal planning cause very large makespan,
+    // cause very large memory usage, while solve agents isolated didn't
+
+    auto MAPF_func = MAPF_LNS2::LNS2_MAPF;
     gettimeofday(&tv_pre, &tz);
 
-    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_func, CBS_Li::eecbs_MAPF, false, 30);
+
+
+    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_func, LaCAM2::lacam2_MAPF, false, 30);
     gettimeofday(&tv_after, &tz);
     double layered_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
     std::cout << multiple_paths.size() << " agents " << std::endl;
@@ -118,20 +132,23 @@ int main(int argc, char** argv) {
     }
     std::cout << "layered total cost          = " << total_cost << std::endl;
     std::cout << "layered maximum_single_cost = " << maximum_single_cost << std::endl;
+    std::cout << "** max_size_of_stack_layered = " << max_size_of_stack_layered << " **" << std::endl;
+
     std::cout << std::endl;
 
     memory_recorder.clear();
     sleep(1);
     base_usage = memory_recorder.getCurrentMemoryUsage();
 
-//    gettimeofday(&tv_pre, &tz);
-//    multiple_paths = MAPF_func(dim, is_occupied_func, ists, nullptr, 60);
-//    gettimeofday(&tv_after, &tz);
-//    visited_grid_during_lacam = LaCAM::visited_grid_;
-//    double build_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
-//    std::cout << multiple_paths.size() << " paths " << " / agents " << ists.size() << std::endl;
-//    std::cout << "-- raw mapf end in " << build_cost << "ms" << std::endl;
-//    std::cout << " is solution valid ? " << validateSolution<2>(multiple_paths) << std::endl;
+    gettimeofday(&tv_pre, &tz);
+    multiple_paths = MAPF_func(dim, is_occupied_func, ists, nullptr, 60);
+    gettimeofday(&tv_after, &tz);
+    visited_grid_during_lacam = LaCAM::visited_grid_;
+    double build_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
+    std::cout << multiple_paths.size() << " paths " << " / agents " << ists.size() << std::endl;
+    std::cout << "-- raw mapf end in " << build_cost << "ms" << std::endl;
+    std::cout << " is solution valid ? " << validateSolution<2>(multiple_paths) << std::endl;
+    std::cout << "**max_size_of_stack = " << max_size_of_stack << " **" << std::endl;
 
     std::cout << "--variation of memory " << memory_recorder.getCurrentMemoryUsage() - base_usage << " MB" << std::endl;
     sleep(1);
@@ -147,6 +164,8 @@ int main(int argc, char** argv) {
     }
     std::cout << "total cost          = " << total_cost1 << std::endl;
     std::cout << "maximum_single_cost = " << maximum_single_cost1 << std::endl;
+
+    exit(0);
 
     ThreadPool tp(1);
 

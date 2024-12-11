@@ -1,7 +1,7 @@
 #pragma once
 #include "MAPF-LNS2/inc/common.h"
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     enum conflict_type {
         MUTEX, TARGET, CORRIDOR, RECTANGLE, STANDARD, TYPE_COUNT

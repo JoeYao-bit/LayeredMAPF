@@ -22,8 +22,12 @@ namespace CBS_Li {
             return solution_found;
         }
         int count = 0;
+        freeNav::LayeredMAPF::max_size_of_stack = 0;
         while (!cleanup_list.empty() && !solution_found) {
             count++;
+            freeNav::LayeredMAPF::max_size_of_stack = std::max(cleanup_list.size()+open_list.size()+focal_list.size(),
+                                                               freeNav::LayeredMAPF::max_size_of_stack);
+
             auto curr = selectNode();
             if (terminate(curr)) {
                 //std::cout << "RAW CBS finish in " << count << " steps " << std::endl;
@@ -196,6 +200,7 @@ namespace CBS_Li {
             curr->clear();
         }  // end of while loop
         std::cout << "RAW CBS finish in " << count << " steps " << std::endl;
+//        std::cout << "ECBS::max_size_of_stack = " << freeNav::LayeredMAPF::max_size_of_stack << std::endl;
         return solution_found;
     }
 

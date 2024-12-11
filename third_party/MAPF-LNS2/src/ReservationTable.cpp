@@ -1,6 +1,6 @@
 #include "MAPF-LNS2/inc/ReservationTable.h"
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
 /*int ResevationTable::get_holding_time(int location)
 { 

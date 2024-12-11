@@ -1,7 +1,7 @@
 #pragma once
 #include "CBSNode.h"
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     class ECBSNode : public HLNode {
     public:

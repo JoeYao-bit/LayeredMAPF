@@ -16,7 +16,7 @@
 #include <random>
 #include "MAPF-LNS2/inc/PIBT/util.h"
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     PIBT::PIBT(Problem *_P) : Solver(_P) {
         init();

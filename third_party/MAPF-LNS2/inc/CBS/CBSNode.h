@@ -1,7 +1,7 @@
 #pragma once
 #include "MAPF-LNS2/inc/common.h"
 #include "Conflict.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     enum node_selection {
         NODE_RANDOM, NODE_H, NODE_DEPTH, NODE_CONFLICTS, NODE_CONFLICTPAIRS, NODE_MVC

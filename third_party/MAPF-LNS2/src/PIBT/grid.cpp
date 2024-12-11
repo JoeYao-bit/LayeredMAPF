@@ -7,7 +7,7 @@
 
 #include "MAPF-LNS2/inc/PIBT/grid.h"
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     Grid::Grid(std::mt19937 *_MT) : Graph(_MT) {}
 

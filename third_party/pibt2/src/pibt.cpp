@@ -39,6 +39,7 @@ namespace PIBT_2 {
         visited_grid_.clear();
         // main loop
         int timestep = 0;
+        freeNav::LayeredMAPF::max_size_of_stack = 0;
         while (true) {
             info(" ", "elapsed:", getSolverElapsedTime(), ", timestep:", timestep);
 
@@ -48,7 +49,10 @@ namespace PIBT_2 {
                 // if the agent has next location, then skip
                 if (a->v_next == nullptr) {
                     // determine its next location
+                    temp_PIBT_depth = 1;
                     funcPIBT(a);
+                    freeNav::LayeredMAPF::max_size_of_stack = std::max(temp_PIBT_depth,
+                                                                       freeNav::LayeredMAPF::max_size_of_stack); // yz: for statistics
                 }
             }
 
@@ -126,6 +130,7 @@ namespace PIBT_2 {
 
             auto ak = occupied_now[u->id];
             if (ak != nullptr && ak->v_next == nullptr) {
+                temp_PIBT_depth ++;
                 if (!funcPIBT(ak, ai)) continue;  // replanning
             }
             // success to plan next one step

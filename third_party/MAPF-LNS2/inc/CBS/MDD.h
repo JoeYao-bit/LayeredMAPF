@@ -2,7 +2,7 @@
 #include "MAPF-LNS2/inc/SingleAgentSolver.h"
 #include "ECBSNode.h"
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     class MDDNode {
     public:

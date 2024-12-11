@@ -1,5 +1,5 @@
 #include "MAPF-LNS2/inc/CBS/PBS.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     bool PBS::solve(double _time_limit, int _node_limit, int _collsion_threshold) {
         // set timer

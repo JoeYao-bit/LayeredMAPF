@@ -3,7 +3,7 @@
 #include <algorithm>
 #include "MAPF-LNS2/inc/CBS/GCBS.h"
 #include "MAPF-LNS2/inc/CBS/PBS.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     InitLNS::InitLNS(const Instance &instance, vector<Agent> &agents, double time_limit,
                      const string &replan_algo_name, const string &init_destory_name, int neighbor_size, int screen) :

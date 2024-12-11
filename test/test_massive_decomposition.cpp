@@ -84,7 +84,7 @@ int main1() {
     // PBS_Li::pbs_MAPF   // no leak
     // LaCAM::lacam_MAPF  // no leak
     // LaCAM2::lacam2_MAPF // no leak
-    // MAPF_LNS::LNS_MAPF // no leak
+    // MAPF_LNS::LNS2_MAPF // no leak
     // MAPF_LNS::AnytimeBCBS_MAPF // no leak
     // MAPF_LNS::AnytimeEECBS_MAPF // no leak
     // CBSH2_RTC::CBSH2_RTC_MAPF // no leak

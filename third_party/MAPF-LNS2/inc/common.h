@@ -13,7 +13,7 @@
 #include <boost/heap/pairing_heap.hpp>
 #include <boost/unordered_set.hpp>
 #include <boost/unordered_map.hpp>
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     using boost::heap::pairing_heap;
     using boost::heap::compare;

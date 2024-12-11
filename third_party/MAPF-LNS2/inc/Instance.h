@@ -1,7 +1,7 @@
 #pragma once
 #include"common.h"
 #include "../../../freeNav-base/basic_elements/point.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
 // Currently only works for undirected unweighted 4-nighbor grids
     class Instance {

@@ -4,7 +4,7 @@
 #include "CorridorReasoning.h"
 #include "MutexReasoning.h"
 #include "../../../freeNav-base/basic_elements/point.h"
-
+#include "../../../algorithm/basic.h"
 namespace CBS_Li {
 
 

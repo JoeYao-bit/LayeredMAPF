@@ -1,5 +1,5 @@
 #include "MAPF-LNS2/inc/common.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     std::ostream &operator<<(std::ostream &os, const Path &path) {
         for (const auto &state : path) {

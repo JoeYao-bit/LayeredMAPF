@@ -9,7 +9,7 @@
 #include "MAPF-LNS2/inc/PIBT/util.h"
 #include <random>
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     Problem::Problem(Graph *_G,
                      PIBT_Agents _A,

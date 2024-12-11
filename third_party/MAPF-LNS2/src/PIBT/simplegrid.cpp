@@ -9,7 +9,7 @@
 #include <regex>
 #include "MAPF-LNS2/inc/PIBT/util.h"
 #include "MAPF-LNS2/inc/PIBT/simplegrid.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     SimpleGrid::SimpleGrid(std::string _filename)
             : filename(_filename) {

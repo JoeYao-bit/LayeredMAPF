@@ -2,7 +2,7 @@
 #include "Instance.h"
 #include "EECBS/inc/ConstraintTable.h"
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     class AnytimeBCBS {
     public:

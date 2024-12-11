@@ -48,9 +48,13 @@ namespace PBS_Li {
 //        dim[0] = search_engines[0]->instance.num_of_cols;
 //        dim[1] = search_engines[0]->instance.num_of_rows;
 //        std::cout << " root node: "  << dummy_start->toString(dim) << std::endl;
+        freeNav::LayeredMAPF::max_size_of_stack = 0; // yz: add for statistics
 
         while (!open_list.empty()) {
             auto curr = selectNode();
+
+            // yz: all nodes size have nothing to do with how algorithm works, just for save data
+            freeNav::LayeredMAPF::max_size_of_stack = std::max(allNodes_table.size(), freeNav::LayeredMAPF::max_size_of_stack);
 
             if (terminate(curr)) break;
 
@@ -74,6 +78,7 @@ namespace PBS_Li {
 
             curr->clear();
         }  // end of while loop
+//        std::cout << "PBS::max_size_of_stack = " << freeNav::LayeredMAPF::max_size_of_stack << std::endl;
         return solution_found;
     }
 

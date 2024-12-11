@@ -1,5 +1,5 @@
 #include "MAPF-LNS2/inc/PathTable.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     void PathTable::insertPath(int agent_id, const Path &path) {
         if (path.empty())

@@ -14,13 +14,13 @@
 #include "../../../freeNav-base/basic_elements/point.h"
 #include "EECBS/inc/ConstraintTable.h"
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
-    freeNav::Paths<2> LNS_MAPF(freeNav::DimensionLength *dim,
-                                     const freeNav::IS_OCCUPIED_FUNC<2> &isoc,
-                                     const freeNav::Instances<2> &instance_sat,
-                                     CBS_Li::ConstraintTable *ct,
-                                     int cutoff_time) {
+    freeNav::Paths<2> LNS2_MAPF(freeNav::DimensionLength *dim,
+                                const freeNav::IS_OCCUPIED_FUNC<2> &isoc,
+                                const freeNav::Instances<2> &instance_sat,
+                                CBS_Li::ConstraintTable *ct,
+                                int cutoff_time) {
         namespace po = boost::program_options;
         // Declare the supported options.
         po::options_description desc("Allowed options");
@@ -47,7 +47,7 @@ namespace MAPF_LNS {
                 ("initLNS", po::value<bool>()->default_value(true),
                  "use LNS to find initial solutions if the initial sovler fails")
                 ("neighborSize", po::value<int>()->default_value(8), "Size of the neighborhood")
-                ("maxIterations", po::value<int>()->default_value(0), "maximum number of iterations")
+                ("maxIterations", po::value<int>()->default_value(0), "maximum number of iterations") // yz: default to 0 for do not optimize
                 ("initAlgo", po::value<string>()->default_value("EECBS"), // yz: PP，PPS，PIBT, winPIBT cause failed in layered mapf, need map file path
                  "MAPF algorithm for finding the initial solution (EECBS, PP, PPS, CBS, PIBT, winPIBT)")
                 ("replanAlgo", po::value<string>()->default_value("PP"),

@@ -2,7 +2,7 @@
 #include "MAPF-LNS2/inc/CBS/RectangleReasoning.h"
 #include "MAPF-LNS2/inc/CBS/MDD.h"
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     std::ostream &operator<<(std::ostream &os, const Constraint &constraint) {
         os << "<" << std::get<0>(constraint) << "," << std::get<1>(constraint) << "," <<

@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <unordered_map>
 #include "node.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     using Nodes = std::vector<Node *>;
     using Paths = std::vector<Nodes>;

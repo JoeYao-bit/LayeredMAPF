@@ -168,5 +168,3 @@ target_link_libraries(test_large_agent_mapf_decomposition freeNav-base lamapf_al
 add_executable(test_layered_large_agent_mapf test/large_agent_test/test_layered_large_agent_mapf.cpp)
 target_link_libraries(test_layered_large_agent_mapf freeNav-base lamapf_alg)
 
-add_executable(test_action_dependency_graph test/large_agent_test/test_action_dependency_graph.cpp)
-target_link_libraries(test_action_dependency_graph freeNav-base lamapf_alg)

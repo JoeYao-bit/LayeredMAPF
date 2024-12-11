@@ -4,7 +4,7 @@
 #include "MAPF-LNS2/inc/SingleAgentSolver.h"
 
 // enum corridor_strategy { NC, C, DISJOINTC };
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     class CorridorReasoning {
     public:

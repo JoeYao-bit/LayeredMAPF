@@ -266,13 +266,17 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
     // all layered mapf must start with "LAYERED_"
     auto LaCAM_LAYERED = LAYERED_TEST_TYPE("LAYERED_LaCAM", LaCAM::lacam_MAPF, dim, cutoff_time_cost, false);
 
+    auto LaCAM2 = RAW_TEST_TYPE("RAW_LaCAM", LaCAM2::lacam2_MAPF, dim, cutoff_time_cost);
+    // all layered mapf must start with "LAYERED_"
+    auto LaCAM2_LAYERED = LAYERED_TEST_TYPE("LAYERED_LaCAM", LaCAM::lacam_MAPF, dim, cutoff_time_cost, false);
+
     auto PBS = RAW_TEST_TYPE("RAW_PBS", PBS_Li::pbs_MAPF, dim, cutoff_time_cost);
     // all layered mapf must start with "LAYERED_"
     auto PBS_LAYERED = LAYERED_TEST_TYPE("LAYERED_PBS", PBS_Li::pbs_MAPF, dim, cutoff_time_cost, true);
 
-    auto LNS = RAW_TEST_TYPE("RAW_LNS", MAPF_LNS::LNS_MAPF, dim, cutoff_time_cost);
+    auto LNS = RAW_TEST_TYPE("RAW_LNS", MAPF_LNS2::LNS2_MAPF, dim, cutoff_time_cost);
     // all layered mapf must start with "LAYERED_"
-    auto LNS_LAYERED = LAYERED_TEST_TYPE("LAYERED_LNS", MAPF_LNS::LNS_MAPF, dim, cutoff_time_cost, true);
+    auto LNS_LAYERED = LAYERED_TEST_TYPE("LAYERED_LNS", MAPF_LNS2::LNS2_MAPF, dim, cutoff_time_cost, true);
 
     auto CBSH2_RTC = RAW_TEST_TYPE("RAW_CBSH2_RTC", CBSH2_RTC::CBSH2_RTC_MAPF, dim, cutoff_time_cost);
     // all layered mapf must start with "LAYERED_"
@@ -308,6 +312,9 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
                                                           LaCAM,
                                                           LaCAM_LAYERED,
 
+                                                          LaCAM2,
+                                                          LaCAM2_LAYERED,
+
                                                           PIBT2,
                                                           PIBT2_LAYERED,
 
@@ -316,6 +323,7 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 
                                                           PushAndSwap,
                                                           PushAndSwap_LAYERED
+
                                                           },
                                                          map_test_config.at("output_path"),
                                                          prune);

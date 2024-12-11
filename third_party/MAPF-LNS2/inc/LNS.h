@@ -11,7 +11,7 @@
 #include "MAPF-LNS2/inc/PIBT/pps.h"
 #include "MAPF-LNS2/inc/PIBT/winpibt.h"
 #include "EECBS/inc/ConstraintTable.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     enum destroy_heuristic {
         RANDOMAGENTS, RANDOMWALK, INTERSECTION, DESTORY_COUNT

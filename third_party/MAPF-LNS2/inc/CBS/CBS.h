@@ -5,7 +5,7 @@
 #include "MutexReasoning.h"
 #include "EECBS/inc/ConstraintTable.h"
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     enum high_level_solver_type {
         ASTAR, ASTAREPS, NEW, EES

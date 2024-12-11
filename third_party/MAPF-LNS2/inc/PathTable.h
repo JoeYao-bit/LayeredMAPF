@@ -2,7 +2,7 @@
 #include "common.h"
 
 #define NO_AGENT -1
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     class PathTable {
     public:

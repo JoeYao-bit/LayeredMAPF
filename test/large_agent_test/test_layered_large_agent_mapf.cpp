@@ -30,7 +30,7 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
     LargeAgentMAPFInstanceDecompositionPtr<2> decomposer_ptr = nullptr;
     std::vector<std::vector<int> > grid_visit_count_table;
 
-    auto instances = deserializer.getTestInstance({40}, 1);
+    auto instances = deserializer.getTestInstance({20}, 1);
 
     auto layered_paths = layeredLargeAgentMAPF<2>(instances.front().second,
                                                   instances.front().first,

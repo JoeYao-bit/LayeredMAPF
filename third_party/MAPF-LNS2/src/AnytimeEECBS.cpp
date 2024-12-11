@@ -1,7 +1,7 @@
 #include "MAPF-LNS2/inc/AnytimeEECBS.h"
 #include "MAPF-LNS2/inc/CBS/ECBS.h"
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     void AnytimeEECBS::run() {
         int num_of_agents = instance.getDefaultNumberOfAgents();

@@ -1,6 +1,6 @@
 #include "MAPF-LNS2/inc/CBS/ECBS.h"
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     bool ECBS::solve(double time_limit, int _cost_lowerbound) {
         this->cost_lowerbound = _cost_lowerbound;
