@@ -115,6 +115,60 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
         plt.close()
         print("save path to " + save_path)
 
+
+def drawMethodMapAgentSizes(all_data_map, xlable, ylable, title, is_percentage=False):    
+    map_and_agent_data = dict()
+    for map_key, map_value in all_data_map.items():
+        fig=plt.figure(figsize=(5,3.5)) #添加绘图框
+        for method_key, method_value in all_data_map[map_key].items():
+            x = list()
+            y = list()
+            sorted_keys = sorted(all_data_map[map_key][method_key].keys())
+            
+            splited_method_name = method_key.split('_')
+            for agent_size_key in sorted_keys:
+                x.append(agent_size_key)
+                if len(all_data_map[map_key][method_key][agent_size_key]) > 0:
+                    y.append(np.mean(all_data_map[map_key][method_key][agent_size_key]))
+                else:
+                    y.append(0)
+            if len(splited_method_name) == 1:
+                plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[name_of_decomposition], markersize=14, label=map_key+"/"+name_of_decomposition, linewidth=2, elinewidth=4, capsize=4)
+            else:
+                plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[splited_method_name[0]], markersize=14, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4)
+                
+        plt.tick_params(axis='both', labelsize=18)
+        formater = ticker.ScalarFormatter(useMathText=True)
+        formater.set_scientific(True)
+        formater.set_powerlimits((0,0))
+        ax = plt.gca()
+        ax.yaxis.offsetText.set_fontsize(18)
+        ax.yaxis.set_major_formatter(formater)
+        
+        y_range = plt.ylim()
+        if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage(MB)":
+            ax.set_yscale('log')
+            plt.ylim(1, y_range[1]*10)
+        else:
+            plt.ylim(0, y_range[1])
+        plt.title(ylable)
+        if is_percentage:
+            plt.ylim(0, 1)
+                
+        plt.tight_layout()
+        save_path = '../test/pic/layered_MAPF/'+title
+        
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+            print("Folder: " + save_path + " created")
+            
+        save_path = save_path + "/" + map_key
+        plt.savefig(save_path, dpi = 400, bbox_inches='tight')
+        plt.close()
+        print("save path to " + save_path)
+
+
+
 def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
     map_and_agent_data = dict()
     fig=plt.figure(figsize=(5,3.5)) #添加绘图框 
@@ -299,41 +353,47 @@ method_marker_map2 = {
     name_of_decomposition:"-."
 }
 map_format_list = [
-                 "empty-16-16",
-                 "empty-32-32",
+                 "empty-16-16", # 120
+                 "empty-32-32", # 400
                  # 2
-                 "maze-32-32-2",
-                 "maze-32-32-4",
-                 "maze-128-128-2",
-                 "maze-128-128-10",
+                 "maze-32-32-2", # 120
+                 "maze-32-32-4", # 240
+                 "maze-128-128-2", # 700
+                 "maze-128-128-10", # 1000
                  # 6
-                 "den312d",
-                 "den520d",
+                 "den312d", # 800
+                 "den520d", # 900
                  # 8
-                 "Berlin_1_256",
-                 "Paris_1_256",
+                 "Berlin_1_256", # 900
+                 "Paris_1_256", # 1000
                  # 10
-                 "ht_chantry",
-                 "lak303d",
+                 "ht_chantry", # 1000
+                 "lak303d", # 1000
                  # 12
-                 "random-32-32-20",
+                 "random-32-32-20",# 240
                  "random-64-64-10",  # maximum 8s
-                 #"random-64-64-20",
+                 #"random-64-64-20", # 1000
                  # 14
-                 "room-32-32-4",
-                 "room-64-64-8",
-                 "room-64-64-16",
+                 "room-32-32-4", # 200
+                 "room-64-64-8", # 700
+                 "room-64-64-16", # 1000
                  # 17
-                 "warehouse-10-20-10-2-1",
-                 "warehouse-10-20-10-2-2",
-                 "warehouse-20-40-10-2-1",
-                 "warehouse-20-40-10-2-2",
+                 "warehouse-10-20-10-2-1", # 800
+                 "warehouse-10-20-10-2-2", # 1000
+                 "warehouse-20-40-10-2-1", # 1000
+                 "warehouse-20-40-10-2-2", # 1000
                  # 21
-                 "Boston_0_256",
-                 "lt_gallowstemplar_n",
-                 "ost003d"
+                 "Boston_0_256", # 1000
+                 "lt_gallowstemplar_n", # 1000
+                 "ost003d" # 1000
 
 ]
+
+# 0~250: empty-16-16, maze-32-32-2, maze-32-32-4, random-32-32-20
+# 0~500: empty-32-32, 
+# 0~750: maze-128-128-2, room-64-64-8, warehouse-10-20-10-2-1
+# 0~1000: maze-128-128-10, Paris_1_256, ht_chantry, lak303d, room-64-64-16, warehouse-10-20-10-2-1, warehouse-10-20-10-2-2, warehouse-20-40-10-2-1, warehouse-20-40-10-2-2, Boston_0_256, lt_gallowstemplar_n, ost003d
+
 
 map_format_map = {
                  "empty-16-16":'o',
@@ -476,6 +536,7 @@ for method_key, method_value in all_method_time_cost_map.items():
     # drawMethodMaps(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
     # drawMethodMaps(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
     # drawMethodMaps(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)        
+    drawMethodMapAgentSizes(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)
     
     # draw summary of maps
     drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)    

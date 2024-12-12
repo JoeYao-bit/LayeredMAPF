@@ -53,7 +53,7 @@ GridPtr<3> sg1 = std::make_shared<Grid<3>>(),
 // MAPFTestConfig_lak303d
 // MAPFTestConfig_simple
 // MAPFTestConfig_empty_48_48
-auto map_test_config = MAPFTestConfig_empty_48_48;
+auto map_test_config = MAPFTestConfig_den520d;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -107,7 +107,7 @@ int main(int argc, char** argv) {
     // PIBT_2::push_and_swap_MAPF // makespan * num of agent, suboptimal planning cause very large makespan,
     // cause very large memory usage, while solve agents isolated didn't
 
-    auto MAPF_func = MAPF_LNS2::LNS2_MAPF;
+    auto MAPF_func = LaCAM2::lacam2_MAPF;
     gettimeofday(&tv_pre, &tz);
 
 
@@ -165,7 +165,6 @@ int main(int argc, char** argv) {
     std::cout << "total cost          = " << total_cost1 << std::endl;
     std::cout << "maximum_single_cost = " << maximum_single_cost1 << std::endl;
 
-    exit(0);
 
     ThreadPool tp(1);
 
