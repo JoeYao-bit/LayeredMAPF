@@ -118,8 +118,8 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
 
 def drawMethodMapAgentSizes(all_data_map, xlable, ylable, title, is_percentage=False):    
     map_and_agent_data = dict()
+    fig=plt.figure(figsize=(5,3.5)) #添加绘图框
     for map_key, map_value in all_data_map.items():
-        fig=plt.figure(figsize=(5,3.5)) #添加绘图框
         for method_key, method_value in all_data_map[map_key].items():
             x = list()
             y = list()
@@ -137,35 +137,35 @@ def drawMethodMapAgentSizes(all_data_map, xlable, ylable, title, is_percentage=F
             else:
                 plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[splited_method_name[0]], markersize=14, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4)
                 
-        plt.tick_params(axis='both', labelsize=18)
-        formater = ticker.ScalarFormatter(useMathText=True)
-        formater.set_scientific(True)
-        formater.set_powerlimits((0,0))
-        ax = plt.gca()
-        ax.yaxis.offsetText.set_fontsize(18)
-        ax.yaxis.set_major_formatter(formater)
-        
-        y_range = plt.ylim()
-        if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage(MB)":
-            ax.set_yscale('log')
-            plt.ylim(1, y_range[1]*10)
-        else:
-            plt.ylim(0, y_range[1])
-        plt.title(ylable)
-        if is_percentage:
-            plt.ylim(0, 1)
-                
-        plt.tight_layout()
-        save_path = '../test/pic/layered_MAPF/'+title
-        
-        if not os.path.exists(save_path):
-            os.makedirs(save_path)
-            print("Folder: " + save_path + " created")
+    plt.tick_params(axis='both', labelsize=18)
+    formater = ticker.ScalarFormatter(useMathText=True)
+    formater.set_scientific(True)
+    formater.set_powerlimits((0,0))
+    ax = plt.gca()
+    ax.yaxis.offsetText.set_fontsize(18)
+    ax.yaxis.set_major_formatter(formater)
+    
+    y_range = plt.ylim()
+    if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage(MB)":
+        ax.set_yscale('log')
+        plt.ylim(1, y_range[1]*10)
+    else:
+        plt.ylim(0, y_range[1])
+    plt.title(ylable)
+    if is_percentage:
+        plt.ylim(0, 1)
             
-        save_path = save_path + "/" + map_key
-        plt.savefig(save_path, dpi = 400, bbox_inches='tight')
-        plt.close()
-        print("save path to " + save_path)
+    plt.tight_layout()
+    save_path = '../test/pic/layered_MAPF/'+title
+    
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+        print("Folder: " + save_path + " created")
+        
+    save_path = save_path + "/multi_map"
+    plt.savefig(save_path, dpi = 400, bbox_inches='tight')
+    plt.close()
+    print("save path to " + save_path)
 
 
 
@@ -414,7 +414,7 @@ map_format_map = {
                  "lak303d":'H',
 
                  "random-32-32-20":'D',
-                 "random-64-64-10":'D',  # maximum 8s
+                 "random-64-64-20":'D',  # maximum 8s
 
                  "room-32-32-4":'X',
                  "room-64-64-8":'X',
@@ -429,6 +429,44 @@ map_format_map = {
                  "Boston_0_256":'<',
                  "lt_gallowstemplar_n":'H',
                  "ost003d":'H'
+
+}
+
+# when draw how multiple maps in one figure, draw map that have similar agent size range in one figure 
+map_format_map_index = {
+                 "empty-16-16":1, # 120
+                 "empty-32-32":2, # 400
+                 # 2
+                 "maze-32-32-2":1, # 120
+                 "maze-32-32-4":1, # 240
+                 "maze-128-128-2":2, # 700
+                 "maze-128-128-10":3, # 1000
+                 # 6
+                 "den312d":2, # 800
+                 "den520d":3, # 900
+                 # 8
+                 "Berlin_1_256":3, # 900
+                 "Paris_1_256":3, # 1000
+                 # 10
+                 "ht_chantry":3, # 1000
+                 "lak303d":3, # 1000
+                 # 12
+                 "random-32-32-20":1,# 240
+                 "random-64-64-20":4,  # 1000
+
+                 # 14
+                 "room-32-32-4":1, # 200
+                 "room-64-64-8":2, # 700
+                 "room-64-64-16":4, # 1000
+                 # 17
+                 "warehouse-10-20-10-2-1":2, # 800
+                 "warehouse-10-20-10-2-2":4, # 1000
+                 "warehouse-20-40-10-2-1":4, # 1000
+                 "warehouse-20-40-10-2-2":4, # 1000
+                 # 21
+                 "Boston_0_256":4, # 1000
+                 "lt_gallowstemplar_n":4, # 1000
+                 "ost003d":4 # 1000
 
 }
 
