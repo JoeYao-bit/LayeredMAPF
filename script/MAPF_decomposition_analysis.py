@@ -12,10 +12,6 @@ def loadDataFromfile(file_path):
             lines = f.readlines()#[1:]
             for line in lines:
                 #print(line)
-<<<<<<< HEAD
-                # 处理每一行数据
-=======
->>>>>>> main
                 #print(line.strip())
                 splited_line = line.split()
                 
@@ -118,20 +114,6 @@ def drawMethodMap(single_map_data, value_type):
     ax = plt.gca()
     ax.yaxis.offsetText.set_fontsize(18)
     ax.yaxis.set_major_formatter(formater)
-<<<<<<< HEAD
-    # if value_type == "decomposition_rate":
-    #     plt.title(map_name+"-decomposition_rate")
-    #     plt.ylabel("rate of decomposition")
-    # elif value_type == "time_cost":
-    #     plt.title(map_name+"-time_cost")
-    #     plt.ylabel("time cost (ms)")
-    # elif value_type == "memory_usage":
-    #     plt.title(map_name+"-memory_usage")
-    #     plt.ylabel("memory usage (MB)")
-            
-    # plt.xlabel("count of agents")
-=======
->>>>>>> main
     y_range = plt.ylim()
     plt.ylim(0, y_range[1])
     if value_type == "decomposition_rate":
@@ -140,13 +122,8 @@ def drawMethodMap(single_map_data, value_type):
     plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5)
     #plt.grid()
     plt.tight_layout()
-<<<<<<< HEAD
-    save_path = '../test/pic/decomposition/'+value_type+'/'+map_name+"-"+value_type
-    plt.savefig(save_path, dpi = 400, bbox_inches='tight')   
-=======
     save_path = '../test/pic/decomposition/'+value_type+'/'+map_name+"-"+value_type+'.png'
     plt.savefig(save_path, dpi = 200, bbox_inches='tight')   
->>>>>>> main
     plt.close()
     print("save picture to "+save_path)
 
