@@ -152,7 +152,7 @@ namespace MAPF_LNS2 {
                 ("initLNS", po::value<bool>()->default_value(true),
                  "use LNS to find initial solutions if the initial sovler fails")
                 ("neighborSize", po::value<int>()->default_value(8), "Size of the neighborhood")
-                ("maxIterations", po::value<int>()->default_value(0), "maximum number of iterations")
+                ("maxIterations", po::value<int>()->default_value(100), "maximum number of iterations")
                 ("initAlgo", po::value<string>()->default_value("EECBS"), // yz: PP，PPS，PIBT, winPIBT cause failed in layered mapf, need map file path
                  "MAPF algorithm for finding the initial solution (EECBS, PP, PPS, CBS, PIBT, winPIBT)")
                 ("replanAlgo", po::value<string>()->default_value("PP"),

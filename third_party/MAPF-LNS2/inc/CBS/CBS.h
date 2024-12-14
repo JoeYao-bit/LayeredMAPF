@@ -4,7 +4,7 @@
 #include "CorridorReasoning.h"
 #include "MutexReasoning.h"
 #include "EECBS/inc/ConstraintTable.h"
-
+#include "../../../algorithm/basic.h"
 namespace MAPF_LNS2 {
 
     enum high_level_solver_type {

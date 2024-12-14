@@ -53,7 +53,7 @@ GridPtr<3> sg1 = std::make_shared<Grid<3>>(),
 // MAPFTestConfig_lak303d
 // MAPFTestConfig_simple
 // MAPFTestConfig_empty_48_48
-auto map_test_config = MAPFTestConfig_den520d;
+auto map_test_config = MAPFTestConfig_lak303d;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -100,14 +100,14 @@ int main(int argc, char** argv) {
     // PBS_Li::pbs_MAPF; // add size of nodes in allNodes_table as estimation for memory usage
     // CBS_Li::eecbs_MAPF; // add size of nodes in allNodes_table as estimation for memory usage
 
-    // MAPF_LNS2::LNS2_MAPF; // yz: how to evaluate memory usage ? not easy
+    // MAPF_LNS2::LNS2_MAPF; // yz: memory usage majorlly determined by initial algorithm, here we use EECBS,
 
     // PIBT_2::pibt_MAPF; // add depth of call func_PIBT as estimation for memory usage
     // PIBT_2::hca_MAPF; // prioritized mapf, solve each agent separately, no much difference in memory usage
     // PIBT_2::push_and_swap_MAPF // makespan * num of agent, suboptimal planning cause very large makespan,
     // cause very large memory usage, while solve agents isolated didn't
 
-    auto MAPF_func = LaCAM2::lacam2_MAPF;
+    auto MAPF_func = MAPF_LNS2::LNS2_MAPF;
     gettimeofday(&tv_pre, &tz);
 
 
@@ -148,7 +148,7 @@ int main(int argc, char** argv) {
     std::cout << multiple_paths.size() << " paths " << " / agents " << ists.size() << std::endl;
     std::cout << "-- raw mapf end in " << build_cost << "ms" << std::endl;
     std::cout << " is solution valid ? " << validateSolution<2>(multiple_paths) << std::endl;
-    std::cout << "**max_size_of_stack = " << max_size_of_stack << " **" << std::endl;
+    std::cout << "** max_size_of_stack = " << max_size_of_stack << " **" << std::endl;
 
     std::cout << "--variation of memory " << memory_recorder.getCurrentMemoryUsage() - base_usage << " MB" << std::endl;
     sleep(1);

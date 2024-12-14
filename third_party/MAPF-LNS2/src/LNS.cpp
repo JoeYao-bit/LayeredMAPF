@@ -50,6 +50,7 @@ namespace MAPF_LNS2 {
         // yz: get initial start path
         initial_solution_runtime = 0;
         start_time = Time::now();
+
         bool succ = getInitialSolution();
         initial_solution_runtime = ((fsec) (Time::now() - start_time)).count();
         if (!succ && initial_solution_runtime < time_limit) {
@@ -91,7 +92,7 @@ namespace MAPF_LNS2 {
             return false; // terminate because no initial solution is found
         }
 
-        std::cout << " num_of_iterations / time_limit = " << num_of_iterations << " / " << time_limit << std::endl;
+//        std::cout << " num_of_iterations / time_limit = " << num_of_iterations << " / " << time_limit << std::endl;
         while (runtime < time_limit && iteration_stats.size() <= num_of_iterations) {
             runtime = ((fsec) (Time::now() - start_time)).count();
             if (screen >= 1)
