@@ -8,6 +8,7 @@
 #include "basic.h"
 #include "instance_decomposition.h"
 #include "../third_party/EECBS/inc/ConstraintTable.h"
+#include "../third_party/EECBS/inc/Instance.h"
 //#include "EECBS/inc/driver.h"
 
 // EECBS: run success and transferred

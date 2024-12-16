@@ -3,7 +3,7 @@
 namespace MAPF_LNS2 {
 
     bool ECBS::solve(double time_limit, int _cost_lowerbound) {
-        std::cout << "into LNS::EECBS " << std::endl;
+//        std::cout << "into LNS::EECBS " << std::endl;
         this->cost_lowerbound = _cost_lowerbound;
         this->inadmissible_cost_lowerbound = 0;
         this->time_limit = time_limit;

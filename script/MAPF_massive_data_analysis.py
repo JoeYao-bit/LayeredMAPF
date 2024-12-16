@@ -29,7 +29,7 @@ def loadDataFromfile(file_path):
                 if np.isnan(new_data.max_single_cost):
                     continue
                 
-                if new_data.time_cost > 35000:
+                if new_data.time_cost > 31000:
                     new_data.success = 0
                 
                 if new_data.time_cost > 30000:
@@ -100,6 +100,7 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
         else:    
             plt.ylim(0, y_range[1])
         plt.title(ylable)
+        plt.xlabel(xlable)
         if is_percentage:
             plt.ylim(0, 1)
                 
@@ -116,57 +117,81 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
         print("save path to " + save_path)
 
 
+
 def drawMethodMapAgentSizes(all_data_map, xlable, ylable, title, is_percentage=False):    
     map_and_agent_data = dict()
-    fig=plt.figure(figsize=(5,3.5)) #添加绘图框
-    for map_key, map_value in all_data_map.items():
-        for method_key, method_value in all_data_map[map_key].items():
-            x = list()
-            y = list()
-            sorted_keys = sorted(all_data_map[map_key][method_key].keys())
-            
-            splited_method_name = method_key.split('_')
-            for agent_size_key in sorted_keys:
-                x.append(agent_size_key)
-                if len(all_data_map[map_key][method_key][agent_size_key]) > 0:
-                    y.append(np.mean(all_data_map[map_key][method_key][agent_size_key]))
-                else:
-                    y.append(0)
-            if len(splited_method_name) == 1:
-                plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[name_of_decomposition], markersize=14, label=map_key+"/"+name_of_decomposition, linewidth=2, elinewidth=4, capsize=4)
-            else:
-                plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[splited_method_name[0]], markersize=14, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4)
+    for i in range(1, 5):
+        fig=plt.figure(figsize=(5,3.5)) #添加绘图框
+        for map_key, map_value in all_data_map.items():
+            if map_format_map_index[map_key] != i: 
+                continue
+            for method_key, method_value in all_data_map[map_key].items():
+                x = list()
+                y = list()
+                sorted_keys = sorted(all_data_map[map_key][method_key].keys())
                 
-    plt.tick_params(axis='both', labelsize=18)
-    formater = ticker.ScalarFormatter(useMathText=True)
-    formater.set_scientific(True)
-    formater.set_powerlimits((0,0))
-    ax = plt.gca()
-    ax.yaxis.offsetText.set_fontsize(18)
-    ax.yaxis.set_major_formatter(formater)
-    
-    y_range = plt.ylim()
-    if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage(MB)":
-        ax.set_yscale('log')
-        plt.ylim(1, y_range[1]*10)
-    else:
-        plt.ylim(0, y_range[1])
-    plt.title(ylable)
-    if is_percentage:
-        plt.ylim(0, 1)
-            
-    plt.tight_layout()
-    save_path = '../test/pic/layered_MAPF/'+title
-    
-    if not os.path.exists(save_path):
-        os.makedirs(save_path)
-        print("Folder: " + save_path + " created")
+                splited_method_name = method_key.split('_')
+                for agent_size_key in sorted_keys:
+                    x.append(agent_size_key)
+                    if len(all_data_map[map_key][method_key][agent_size_key]) > 0:
+                        y.append(np.mean(all_data_map[map_key][method_key][agent_size_key]))
+                    else:
+                        y.append(0)
+                        
+                # print(splited_method_name)        
+                # if len(splited_method_name) == 1:
+                #     plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[name_of_decomposition], markersize=14, label=map_key+"/"+name_of_decomposition, linewidth=2, elinewidth=4, capsize=4)
+                # else:
+                #     plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[splited_method_name[0]], markersize=14, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4)
+                
+                if len(splited_method_name) != 1:
+                    plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[splited_method_name[0]], markersize=14, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4)
+                
+        plt.tick_params(axis='both', labelsize=18)
+        formater = ticker.ScalarFormatter(useMathText=True)
+        formater.set_scientific(True)
+        formater.set_powerlimits((0,0))
+        ax = plt.gca()
+        ax.yaxis.offsetText.set_fontsize(18)
+        ax.yaxis.set_major_formatter(formater)
         
-    save_path = save_path + "/multi_map"
-    plt.savefig(save_path, dpi = 400, bbox_inches='tight')
-    plt.close()
-    print("save path to " + save_path)
+        y_range = plt.ylim()
+        if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage(MB)":
+            ax.set_yscale('log')
+            plt.ylim(1, y_range[1]*10)
+        else:
+            plt.ylim(0, y_range[1])
+        plt.title(ylable) # 图片标题
+        plt.xlabel(xlable) # 横坐标标题
+        # plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5) # 图例位置设置
+        if is_percentage:
+            plt.ylim(0, 1)
+                
+        plt.tight_layout()
+        save_path = '../test/pic/layered_MAPF/'+title
+        
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+            print("Folder: " + save_path + " created")
+            
+        save_path = save_path + "/multi_map_"+str(i)
+        plt.savefig(save_path, dpi = 400, bbox_inches='tight')
 
+
+        # then create a new image
+        # adjust the figure size as necessary
+
+        figsize = (1, 1)
+        fig_leg = plt.figure(figsize=figsize)
+        ax_leg = fig_leg.add_subplot(111)
+        # add the legend from the previous axes
+        ax_leg.legend(*ax.get_legend_handles_labels(), ncol = 2, loc='center')
+        # hide the axes frame and the x/y labels
+        ax_leg.axis('off')
+        fig_leg.savefig('../test/pic/layered_MAPF/'+title+'/'+str(i)+'_legend.png',dpi = 400, bbox_inches='tight')
+        
+        plt.close()
+        print("save path to " + save_path)
 
 
 def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
@@ -395,40 +420,42 @@ map_format_list = [
 # 0~1000: maze-128-128-10, Paris_1_256, ht_chantry, lak303d, room-64-64-16, warehouse-10-20-10-2-1, warehouse-10-20-10-2-2, warehouse-20-40-10-2-1, warehouse-20-40-10-2-2, Boston_0_256, lt_gallowstemplar_n, ost003d
 
 
+# o, *, v, D, H, X, +, < 
+# map in the same image must have different marker
 map_format_map = {
-                 "empty-16-16":'o',
-                 "empty-32-32":'o',
+                 "empty-16-16":'o', # 1
+                 "empty-32-32":'o', # 2
                  
-                 "maze-32-32-2":'*',
-                 "maze-32-32-4":'*',
-                 "maze-128-128-2":'*',
-                 "maze-128-128-10":'*',
+                 "maze-32-32-2":'*', # 1
+                 "maze-32-32-4":'v', # 1 
+                 "maze-128-128-2":'*', # 2
+                 "maze-128-128-10":'o', # 3
                  
-                 "den312d":'v',
-                 "den520d":'v',
+                 "den312d":'v', # 2
+                 "den520d":'*', # 3
                  
-                 "Berlin_1_256":'<',
-                 "Paris_1_256":'<',
+                 "Berlin_1_256":'v', # 3
+                 "Paris_1_256":'D', # 3
                  
-                 "ht_chantry":'H',
-                 "lak303d":'H',
+                 "ht_chantry":'H', # 3
+                 "lak303d":'X', # 3
 
-                 "random-32-32-20":'D',
-                 "random-64-64-20":'D',  # maximum 8s
+                 "random-32-32-20":'D', # 1
+                 "random-64-64-20":'o',  # 4
 
-                 "room-32-32-4":'X',
-                 "room-64-64-8":'X',
-                 "room-64-64-16":'X',
+                 "room-32-32-4":'H', # 1
+                 "room-64-64-8":'D', # 2
+                 "room-64-64-16":'*', # 4
 
-                 "warehouse-10-20-10-2-1":'+',
+                 "warehouse-10-20-10-2-1":'H', # 2
                  ####
-                 "warehouse-10-20-10-2-2":'+',
-                 "warehouse-20-40-10-2-1":'+',
-                 "warehouse-20-40-10-2-2":'+',
+                 "warehouse-10-20-10-2-2":'v', # 4
+                 "warehouse-20-40-10-2-1":'D', # 4
+                 "warehouse-20-40-10-2-2":'H', # 4
                  
-                 "Boston_0_256":'<',
-                 "lt_gallowstemplar_n":'H',
-                 "ost003d":'H'
+                 "Boston_0_256":'X', # 4 
+                 "lt_gallowstemplar_n":'+', # 4
+                 "ost003d":'<' # 4
 
 }
 
