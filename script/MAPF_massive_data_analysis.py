@@ -81,9 +81,9 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
                 else:
                     y.append(0)
             if len(splited_method_name) == 1:
-                plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[name_of_decomposition], markersize=14, label=map_key+"/"+name_of_decomposition, linewidth=2, elinewidth=4, capsize=4)
+                plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[name_of_decomposition], markersize=10, label=map_key+"/"+name_of_decomposition, linewidth=2, elinewidth=4, capsize=4)
             else:
-                plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[splited_method_name[0]], markersize=14, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4)
+                plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[splited_method_name[0]], markersize=10, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4)
                 
         plt.tick_params(axis='both', labelsize=18)
         formater = ticker.ScalarFormatter(useMathText=True) 
@@ -144,8 +144,9 @@ def drawMethodMapAgentSizes(all_data_map, xlable, ylable, title, is_percentage=F
                 # else:
                 #     plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[splited_method_name[0]], markersize=14, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4)
                 
+                # markerfacecolor='none' marker空心化
                 if len(splited_method_name) != 1:
-                    plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[splited_method_name[0]], markersize=14, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4)
+                    plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[splited_method_name[0]], markersize=10, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4, markerfacecolor='none')
                 
         plt.tick_params(axis='both', labelsize=18)
         formater = ticker.ScalarFormatter(useMathText=True)
@@ -420,41 +421,41 @@ map_format_list = [
 # 0~1000: maze-128-128-10, Paris_1_256, ht_chantry, lak303d, room-64-64-16, warehouse-10-20-10-2-1, warehouse-10-20-10-2-2, warehouse-20-40-10-2-1, warehouse-20-40-10-2-2, Boston_0_256, lt_gallowstemplar_n, ost003d
 
 
-# o, *, v, D, H, X, +, < 
+# o, *, p, 3, H, X, P, < 
 # map in the same image must have different marker
 map_format_map = {
                  "empty-16-16":'o', # 1
                  "empty-32-32":'o', # 2
                  
                  "maze-32-32-2":'*', # 1
-                 "maze-32-32-4":'v', # 1 
+                 "maze-32-32-4":'p', # 1 
                  "maze-128-128-2":'*', # 2
                  "maze-128-128-10":'o', # 3
                  
-                 "den312d":'v', # 2
+                 "den312d":'p', # 2
                  "den520d":'*', # 3
                  
-                 "Berlin_1_256":'v', # 3
-                 "Paris_1_256":'D', # 3
+                 "Berlin_1_256":'p', # 3
+                 "Paris_1_256":'s', # 3
                  
                  "ht_chantry":'H', # 3
                  "lak303d":'X', # 3
 
-                 "random-32-32-20":'D', # 1
+                 "random-32-32-20":'s', # 1
                  "random-64-64-20":'o',  # 4
 
                  "room-32-32-4":'H', # 1
-                 "room-64-64-8":'D', # 2
+                 "room-64-64-8":'s', # 2
                  "room-64-64-16":'*', # 4
 
                  "warehouse-10-20-10-2-1":'H', # 2
                  ####
-                 "warehouse-10-20-10-2-2":'v', # 4
-                 "warehouse-20-40-10-2-1":'D', # 4
+                 "warehouse-10-20-10-2-2":'p', # 4
+                 "warehouse-20-40-10-2-1":'s', # 4
                  "warehouse-20-40-10-2-2":'H', # 4
                  
                  "Boston_0_256":'X', # 4 
-                 "lt_gallowstemplar_n":'+', # 4
+                 "lt_gallowstemplar_n":'P', # 4
                  "ost003d":'<' # 4
 
 }

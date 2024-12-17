@@ -41,7 +41,8 @@ namespace freeNav::LayeredMAPF {
         bool detectConflict(size_t& group_id1, size_t& group_id2) const {
             size_t makespan = 0;
             for(int i=0; i<paths_.size(); i++) {
-                makespan = std::max(makespan, paths_.size());
+                makespan = std::max(makespan, paths_[i].size());
+                std::cout << "path " << i << ": " << paths_[i] << std::endl;
             }
             int map_size = dim_[0]*dim_[1];
             Pointi<N> current_pt;
@@ -50,6 +51,7 @@ namespace freeNav::LayeredMAPF {
             std::vector<Id> agent_occ_ids_cur(paths_.size(), -1); // id of grid occupied by agent
             std::vector<Id> agent_occ_ids_next(paths_.size(), -1);
             for(int t=0; t<makespan; t++) {
+                //std::cout << "t = " << t << std::endl;
                 std::vector<int> current_floor(map_size, -1);
                 // set current floor
                 for(int agent_id=0; agent_id<paths_.size(); agent_id++) {
@@ -62,6 +64,7 @@ namespace freeNav::LayeredMAPF {
                     if(current_floor[id] != -1) {
                         // vertex conflict happen
                         agent_id = current_floor[id];
+                        std::cout << "detect vertex conflict 1 " << std::endl;
                         // check whether belong to the same group, there shouldn't be conflict inside a group
                         assert(group_id_map_[agent_id] != group_id_map_[agent_id2]);
                         group_id1 = group_id_map_[agent_id];
@@ -74,11 +77,10 @@ namespace freeNav::LayeredMAPF {
                     agent_occ_ids_cur[agent_id] = id;
                 }
                 // set next floor
-                t = t+1;
                 std::vector<int> next_floor(map_size, -1);
                 for(int agent_id=0; agent_id<paths_.size(); agent_id++) {
-                    if(t <= paths_[agent_id].size()-1) {
-                        current_pt = paths_[agent_id][t];
+                    if(t+1 <= paths_[agent_id].size()-1) {
+                        current_pt = paths_[agent_id][t+1];
                     } else {
                         current_pt = paths_[agent_id].back();
                     }
@@ -86,9 +88,13 @@ namespace freeNav::LayeredMAPF {
                     if(next_floor[id] != -1) {
                         // vertex conflict happen
                         agent_id2 = next_floor[id];
+                        std::cout << "detect vertex conflict 2 at " << current_pt << std::endl;
+                        std::cout << "agent id 1/2 = " << agent_id << " / " << agent_id2 << std::endl;
+                        std::cout << "group_id_map_[agent_id] / group_id_map_[agent_id2] = "
+                                  << group_id_map_[agent_id] << " / " << group_id_map_[agent_id2] << std::endl;
                         // check whether belong to the same group, there shouldn't be conflict inside a group
                         assert(group_id_map_[agent_id] != group_id_map_[agent_id2]);
-                        group_id1 = group_id_map_[id];
+                        group_id1 = group_id_map_[agent_id];
                         group_id2 = group_id_map_[agent_id2];
                         return true;
                     } else {
@@ -107,8 +113,9 @@ namespace freeNav::LayeredMAPF {
                         agent_id2 = current_floor[next_id];
                         // if another agent's next occ grid is agent's current occ grid
                         if(agent_occ_ids_next[agent_id2] == cur_id) {
+                            std::cout << "detect edge conflict 1 " << std::endl;
                             assert(group_id_map_[agent_id] != group_id_map_[agent_id2]);
-                            group_id1 = group_id_map_[id];
+                            group_id1 = group_id_map_[agent_id];
                             group_id2 = group_id_map_[agent_id2];
                             return true;
                         }
@@ -123,6 +130,8 @@ namespace freeNav::LayeredMAPF {
         DimensionLength* dim_;
 
     };
+
+
 
     template<Dimension N>
     Paths<N> IndependenceDetectionMAPF(const Instances<N> & instances,
@@ -142,7 +151,7 @@ namespace freeNav::LayeredMAPF {
         double remaining_time = cutoff_time;
         // 1，assign each agent to its own group, plan initial paths
         // 2, fill conflict avoidance table with every path
-        Paths<N> paths, retv; // every agent's path
+        Paths<N> paths(instances.size()), retv; // every agent's path
         std::vector<size_t> group_id_map(instances.size()); // when merge groups, set them id to the minimal group id
         std::map<size_t, std::vector<int>> group_id_set; // group id and its agent ids
         // init group id
@@ -157,21 +166,34 @@ namespace freeNav::LayeredMAPF {
             }
         }
         // get initial paths
+        //std::cout << "flag 1" << std::endl;
+        std::vector<size_t> maximum_length_of_paths(instances.size());
         for(int i=0; i<instances.size(); i++) {
+//            std::cout << "flag 1.1" << std::endl;
+
             // initialize instance in an freeNav way
             CBS_Li::Instance single_ins(dim, isoc, {instances[i]});
             CBS_Li::SingleAgentSolver* solver = nullptr;
+//            std::cout << "flag 1.2" << std::endl;
+
             if(1) {
-                solver = new CBS_Li::SpaceTimeAStar(single_ins, i);
+                solver = new CBS_Li::SpaceTimeAStar(single_ins, 0);
+//                std::cout << "flag 1.3" << std::endl;
+
             } else {
                 solver = new CBS_Li::SIPP(single_ins, 0);
+                std::cout << "flag 1.4" << std::endl;
             }
+            //std::cout << "flag 2" << std::endl;
+
             auto root = new CBS_Li::CBSNode();
             CBS_Li::ConstraintTable empty_ct = CBS_Li::ConstraintTable(dim[0], dim[0]*dim[1]);
             std::vector<CBS_Li::PathEntry> solution =
                     solver->findOptimalPath(*root, empty_ct, {}, 0, 0);
             delete solver;
             delete root;
+            //std::cout << "flag 3" << std::endl;
+
             if(solution.empty()) {
                 std::cout << "search solution for agent " << i << ", " << instances[i].first << " to "
                           << instances[i].second << " failed " << std::endl;
@@ -182,10 +204,19 @@ namespace freeNav::LayeredMAPF {
                     init_path.push_back(IdToPointi<N>(solution[t].location, dim));
                 }
                 paths[i] = init_path;
+                maximum_length_of_paths[i] = init_path.size();
             }
+            //std::cout << "flag 4" << std::endl;
         }
         std::cout << "finish search init paths" << std::endl;
+//        return paths;
+        int count = 0;
         while(true) { // until no conflicts occur
+            std::cout << "-- step " << count << std::endl;
+            count ++;
+            if(count >= 20) {
+                return paths;
+            }
             // simulate execution of all paths until a conflict between two groups G 1 and G 2 occurs
             // if these two groups have not conflicted before then
             // execute all path simultaneously, util found conflict between paths belong to different group
@@ -222,12 +253,13 @@ namespace freeNav::LayeredMAPF {
                 std::cout << "run out of time 1" << std::endl;
                 break;
             }
-            std::cout << "start try make group " << gid2 << "'s path avoid group " << gid1 << std::endl;
+            std::cout << "1, start try make group " << gid1 << "'s path avoid group " << gid2 << std::endl;
             CBS_Li::ConstraintTable *layered_ct = new CBS_Li::ConstraintTable(dim[0], dim[0]*dim[1]);
+//            return paths;
 
             for (int i=0; i<paths.size(); i++) {
                 // avoid conflict with group2's paths
-                if(group_id_map[i] == gid2) { continue; }
+                if(group_id_map[i] != gid2) { continue; }
                 CBS_Li::MAPFPath path_eecbs;
                 for (int t = 0; t < paths[i].size(); t++) {
                     path_eecbs.push_back(CBS_Li::PathEntry(PointiToId(paths[i][t], dim)));
@@ -244,21 +276,23 @@ namespace freeNav::LayeredMAPF {
                 }
                 layered_ct->insert2CAT(path_eecbs);
             }
-            // TODO: set upperbound of cost
-
             // construct local instance
             Instances<N> ists;
+            layered_ct->maximum_length_of_paths_.clear(); // set upperbound of path cost
             for(auto iter = group_id_set[gid1].begin(); iter != group_id_set[gid1].end(); iter++) {
                 ists.push_back(instances[*iter]);
+                layered_ct->maximum_length_of_paths_.push_back(maximum_length_of_paths[*iter]);
+                std::cout << "set agent " << *iter << " max length to " << maximum_length_of_paths[*iter] << std::endl;
             }
             Paths<N> next_paths = mapf_func(dim, isoc, ists, layered_ct, remaining_time);
             delete layered_ct;
-            std::cout << "finish try make group " << gid2 << "'s path avoid group " << gid1
-                                      << ", success ?" << !next_paths.empty() << std::endl;
+            std::cout << "1, finish try make group " << gid2 << "'s path avoid group " << gid1
+                                      << ", success ? " << !next_paths.empty() << std::endl;
             if(!next_paths.empty()) {
                 int local_path_id = 0;
                 for(auto iter = group_id_set[gid1].begin(); iter != group_id_set[gid1].end(); iter++) {
                     paths[*iter] = next_paths[local_path_id];
+                    std::cout << "update path of " << *iter << " to " << next_paths[local_path_id] << std::endl;
                     local_path_id ++;
                 }
                 continue;
@@ -270,13 +304,13 @@ namespace freeNav::LayeredMAPF {
                 std::cout << "run out of time 2" << std::endl;
                 break;
             }
-            std::cout << "start try make group " << gid1 << "'s path avoid group " << gid2 << std::endl;
+            std::cout << "2, start try make group " << gid1 << "'s path avoid group " << gid2 << std::endl;
 
             layered_ct = new CBS_Li::ConstraintTable(dim[0], dim[0]*dim[1]);
 
             for (int i=0; i<paths.size(); i++) {
                 // avoid conflict with group 1's paths
-                if(group_id_map[i] == gid1) { continue; }
+                if(group_id_map[i] != gid1) { continue; }
                 CBS_Li::MAPFPath path_eecbs;
                 for (int t = 0; t < paths[i].size(); t++) {
                     path_eecbs.push_back(CBS_Li::PathEntry(PointiToId(paths[i][t], dim)));
@@ -297,17 +331,21 @@ namespace freeNav::LayeredMAPF {
 
             // construct local instance
             ists.clear();
+            layered_ct->maximum_length_of_paths_.clear();
             for(auto iter = group_id_set[gid2].begin(); iter != group_id_set[gid2].end(); iter++) {
                 ists.push_back(instances[*iter]);
+                layered_ct->maximum_length_of_paths_.push_back(maximum_length_of_paths[*iter]);
+                std::cout << "set agent " << *iter << " max length to " << maximum_length_of_paths[*iter] << std::endl;
             }
             next_paths = mapf_func(dim, isoc, ists, layered_ct, remaining_time);
             delete layered_ct;
-            std::cout << "finish try make group " << gid1 << "'s path avoid group " << gid2
+            std::cout << "2, finish try make group " << gid1 << "'s path avoid group " << gid2
                       << ", success ?" << !next_paths.empty() << std::endl;
             if(!next_paths.empty()) {
                 int local_path_id = 0;
                 for(auto iter = group_id_set[gid2].begin(); iter != group_id_set[gid2].end(); iter++) {
                     paths[*iter] = next_paths[local_path_id];
+                    std::cout << "update path of " << *iter << " to " << next_paths[local_path_id] << std::endl;
                     local_path_id ++;
                 }
                 continue;
@@ -333,33 +371,47 @@ namespace freeNav::LayeredMAPF {
                 }
                 layered_ct->insert2CAT(path_eecbs);
             }
-            std::cout << " merge group " << gid2 << " into " << gid1 << std::endl;
+            std::cout << "3, merge group " << gid2 << " into " << gid1 << std::endl;
             // merge group gid1 and gid2, merge gid2 into gid1
             for(const auto& temp_id : group_id_set[gid2]) {
                 group_id_map[temp_id] = gid1;
                 group_id_set[gid1].push_back(temp_id);
             }
             group_id_set.erase(gid2);
+            std::cout << "group_id_set[gid1] = ";
             // construct local instance
             ists.clear();
+            layered_ct->maximum_length_of_paths_.clear();
             for(auto iter = group_id_set[gid1].begin(); iter != group_id_set[gid1].end(); iter++) {
                 ists.push_back(instances[*iter]);
+                layered_ct->maximum_length_of_paths_.push_back(maximum_length_of_paths[*iter]);
+                std::cout << "set agent " << *iter << " max length to " << maximum_length_of_paths[*iter] << std::endl;
+                std::cout << *iter << " ";
             }
-            std::cout << "start search path of merge group " << gid1 << " and " << gid2 << std::endl;
+            std::cout << std::endl;
+            std::cout << "3, start search path of merged group " << gid1 << std::endl;
 
             next_paths = mapf_func(dim, isoc, ists, layered_ct, remaining_time);
             delete layered_ct;
+
+            std::cout << "next_paths = " << std::endl;
+            for(int i=0; i<next_paths.size(); i++) {
+                std::cout << next_paths[i] << std::endl;
+            }
+            std::cout << "next_paths end" << std::endl;
             if(!next_paths.empty()) {
                 int local_path_id = 0;
-                for(auto iter = group_id_set[gid2].begin(); iter != group_id_set[gid2].end(); iter++) {
+                for(auto iter = group_id_set[gid1].begin(); iter != group_id_set[gid1].end(); iter++) {
                     paths[*iter] = next_paths[local_path_id];
+                    std::cout << "update path of " << *iter << " to " << next_paths[local_path_id] << std::endl;
                     local_path_id ++;
                 }
                 continue;
             } else {
-                // shouldn't reach there, as merge of two group should always be solvable
+                // shouldn't reach there (except run out of time), as merge of two group should always be solvable
                 std::cout << "merge group " << gid1 << " and " << gid2 << " search path failed " << std::endl;
-                assert(0);
+                return {};
+                //assert(0);
             }
 
         }

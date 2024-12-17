@@ -284,9 +284,9 @@ namespace CBS_Li {
                                                search_engines[i]->instance.getRowCoordinate(start_id)};
                 freeNav::Pointi<2> target_pt = {search_engines[i]->instance.getColCoordinate(target_id),
                                                 search_engines[i]->instance.getRowCoordinate(target_id)};
-                cerr << "The start-goal locations of agent " << i << ", start " << start_pt << ", target" << target_pt
+                cout << "The start-goal locations of agent " << i << ", start " << start_pt << ", target" << target_pt
                      << "are not connected" << endl;
-                cerr << " start id " << start_id << " target id " << target_id << std::endl;
+                cout << " start id " << start_id << " target id " << target_id << std::endl;
                 //cerr << " heuristic in start position " << search_engines[i]->my_heuristic[start_id] << std::endl;
                 //exit(-1);
                 return false;
