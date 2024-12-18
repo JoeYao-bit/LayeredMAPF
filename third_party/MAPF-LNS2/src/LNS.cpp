@@ -224,13 +224,13 @@ namespace MAPF_LNS2 {
         }
 
         ECBS ecbs(search_engines, screen - 1, &path_table);
-        ecbs.setPrioritizeConflicts(true);
+        ecbs.setPrioritizeConflicts(false);
         ecbs.setDisjointSplitting(false);
-        ecbs.setBypass(true);
-        ecbs.setRectangleReasoning(true);
-        ecbs.setCorridorReasoning(true);
+        ecbs.setBypass(false);
+        ecbs.setRectangleReasoning(false);
+        ecbs.setCorridorReasoning(false);
         ecbs.setHeuristicType(heuristics_type::WDG, heuristics_type::GLOBAL);
-        ecbs.setTargetReasoning(true);
+        ecbs.setTargetReasoning(false);
         ecbs.setMutexReasoning(false);
         ecbs.setConflictSelectionRule(conflict_selection::EARLIEST);
         ecbs.setNodeSelectionRule(node_selection::NODE_CONFLICTPAIRS);

@@ -274,13 +274,13 @@ namespace CBS_Li {
                 // params for CBS improvement
                 ("heuristics", po::value<string>()->default_value("WDG"),
                  "admissible heuristics for the high-level search (Zero, CG,DG, WDG)")
-                ("prioritizingConflicts", po::value<bool>()->default_value(true),
+                ("prioritizingConflicts", po::value<bool>()->default_value(false),
                  "conflict prioirtization. If true, conflictSelection is used as a tie-breaking rule.")
-                ("bypass", po::value<bool>()->default_value(true), "Bypass1")
+                ("bypass", po::value<bool>()->default_value(false), "Bypass1")
                 ("disjointSplitting", po::value<bool>()->default_value(false), "disjoint splitting")
-                ("rectangleReasoning", po::value<bool>()->default_value(true), "rectangle reasoning")
-                ("corridorReasoning", po::value<bool>()->default_value(true), "corridor reasoning")
-                ("targetReasoning", po::value<bool>()->default_value(true), "target reasoning")
+                ("rectangleReasoning", po::value<bool>()->default_value(false), "rectangle reasoning")
+                ("corridorReasoning", po::value<bool>()->default_value(false), "corridor reasoning")
+                ("targetReasoning", po::value<bool>()->default_value(false), "target reasoning")
                 ("sipp", po::value<bool>()->default_value(false), "using SIPPS as the low-level solver")
                 ("restart", po::value<int>()->default_value(0), "rapid random restart times");
 

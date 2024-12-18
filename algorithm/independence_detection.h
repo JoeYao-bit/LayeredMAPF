@@ -42,7 +42,7 @@ namespace freeNav::LayeredMAPF {
             size_t makespan = 0;
             for(int i=0; i<paths_.size(); i++) {
                 makespan = std::max(makespan, paths_[i].size());
-                std::cout << "path " << i << ": " << paths_[i] << std::endl;
+//                std::cout << "path " << i << ": " << paths_[i] << std::endl;
             }
             int map_size = dim_[0]*dim_[1];
             Pointi<N> current_pt;
@@ -182,7 +182,7 @@ namespace freeNav::LayeredMAPF {
 
             } else {
                 solver = new CBS_Li::SIPP(single_ins, 0);
-                std::cout << "flag 1.4" << std::endl;
+//                std::cout << "flag 1.4" << std::endl;
             }
             //std::cout << "flag 2" << std::endl;
 
@@ -214,7 +214,7 @@ namespace freeNav::LayeredMAPF {
         while(true) { // until no conflicts occur
             std::cout << "-- step " << count << std::endl;
             count ++;
-            if(count >= 20) {
+            if(count >= 2000) {
                 return paths;
             }
             // simulate execution of all paths until a conflict between two groups G 1 and G 2 occurs
@@ -281,7 +281,7 @@ namespace freeNav::LayeredMAPF {
             layered_ct->maximum_length_of_paths_.clear(); // set upperbound of path cost
             for(auto iter = group_id_set[gid1].begin(); iter != group_id_set[gid1].end(); iter++) {
                 ists.push_back(instances[*iter]);
-                layered_ct->maximum_length_of_paths_.push_back(maximum_length_of_paths[*iter]);
+                layered_ct->maximum_length_of_paths_.push_back(paths[*iter].size());
                 std::cout << "set agent " << *iter << " max length to " << maximum_length_of_paths[*iter] << std::endl;
             }
             Paths<N> next_paths = mapf_func(dim, isoc, ists, layered_ct, remaining_time);
@@ -327,14 +327,12 @@ namespace freeNav::LayeredMAPF {
                 }
                 layered_ct->insert2CAT(path_eecbs);
             }
-            // TODO: set upperbound of cost，SOC (according to article)
-
             // construct local instance
             ists.clear();
             layered_ct->maximum_length_of_paths_.clear();
             for(auto iter = group_id_set[gid2].begin(); iter != group_id_set[gid2].end(); iter++) {
                 ists.push_back(instances[*iter]);
-                layered_ct->maximum_length_of_paths_.push_back(maximum_length_of_paths[*iter]);
+                layered_ct->maximum_length_of_paths_.push_back(paths[*iter].size()); // maximum_length_of_paths
                 std::cout << "set agent " << *iter << " max length to " << maximum_length_of_paths[*iter] << std::endl;
             }
             next_paths = mapf_func(dim, isoc, ists, layered_ct, remaining_time);
@@ -381,11 +379,9 @@ namespace freeNav::LayeredMAPF {
             std::cout << "group_id_set[gid1] = ";
             // construct local instance
             ists.clear();
-            layered_ct->maximum_length_of_paths_.clear();
+            layered_ct->maximum_length_of_paths_.clear(); // no cost limitation when merge groups
             for(auto iter = group_id_set[gid1].begin(); iter != group_id_set[gid1].end(); iter++) {
                 ists.push_back(instances[*iter]);
-                layered_ct->maximum_length_of_paths_.push_back(maximum_length_of_paths[*iter]);
-                std::cout << "set agent " << *iter << " max length to " << maximum_length_of_paths[*iter] << std::endl;
                 std::cout << *iter << " ";
             }
             std::cout << std::endl;
