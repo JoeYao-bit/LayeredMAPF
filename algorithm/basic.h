@@ -127,6 +127,7 @@ namespace freeNav::LayeredMAPF {
                 }
             }
         }
+        //std::cout << " TCBS get valid solution " << std::endl;
         return true;
     }
 
