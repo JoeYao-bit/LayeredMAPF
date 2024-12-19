@@ -8,7 +8,7 @@
 
 #include "MAPF-LNS2/inc/PIBT/pibt_agent.h"
 #include "MAPF-LNS2/inc/PIBT/util.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     int PIBT_Agent::cntId = 0;
 

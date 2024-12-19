@@ -9,6 +9,8 @@
 #include "instance.hpp"
 #include "utils.hpp"
 
+#include "../../../algorithm/basic.h"
+
 namespace LaCAM2 {
 // objective function
     enum Objective {

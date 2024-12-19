@@ -1,5 +1,5 @@
 #include "MAPF-LNS2/inc/SIPP.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     void SIPP::updatePath(const LLNode *goal, vector<PathEntry> &path) {
         num_collisions = goal->num_of_conflicts;

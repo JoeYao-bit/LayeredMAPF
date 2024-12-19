@@ -68,12 +68,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             for(int i=0; i<instances_.size(); i++) {
                 for(int j=i+1; j<instances_.size(); j++) {
                     if(isCollide(agents_[i], instances_[i].first, agents_[j], instances_[j].first)) {
-                        std::cout << " agent " << agents_[i] << ", " << agents_[j] << "'s start overlap" << std::endl;
+                        std::cout << " agent " << *agents_[i] << ", " << *agents_[j] << "'s start overlap" << std::endl;
                         solvable = false;
                         break;
                     }
                     if(isCollide(agents_[i], instances_[i].second, agents_[j], instances_[j].second)) {
-                        std::cout << " agent " << agents_[i] << ", " << agents_[j] << "'s target overlap" << std::endl;
+                        std::cout << " agent " << *agents_[i] << ", " << *agents_[j] << "'s target overlap" << std::endl;
                         solvable = false;
                         break;
                     }

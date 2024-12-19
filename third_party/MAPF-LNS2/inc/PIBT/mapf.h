@@ -1,7 +1,7 @@
 #pragma once
 #include "problem.h"
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     class MAPF : public Problem {
     private:

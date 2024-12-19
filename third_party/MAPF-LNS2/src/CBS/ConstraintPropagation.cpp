@@ -5,7 +5,7 @@
 
 #include <utility>
 #include <iostream>
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
 // is a mutex edge mutex.
     bool is_edge_mutex(edge_pair ep) {

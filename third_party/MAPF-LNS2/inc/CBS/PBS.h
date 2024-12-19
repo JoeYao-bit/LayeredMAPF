@@ -1,6 +1,6 @@
 #pragma once
 #include "MAPF-LNS2/inc/SingleAgentSolver.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     typedef tuple<int, int, bool> CollidingPair; // <a1, a2, internal conflict or not>
 

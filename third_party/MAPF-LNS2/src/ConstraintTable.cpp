@@ -1,5 +1,5 @@
 #include "MAPF-LNS2/inc/ConstraintTable.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     int ConstraintTable::getMaxTimestep() const // everything is static after the max timestep
     {

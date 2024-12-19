@@ -5,7 +5,7 @@
 
 #include <boost/unordered_set.hpp>
 #include "MDD.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     typedef std::pair<MDDNode *, MDDNode *> node_pair;
     typedef std::pair<node_pair, node_pair> edge_pair;

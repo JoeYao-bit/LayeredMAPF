@@ -1,7 +1,7 @@
 #include "MAPF-LNS2/inc/CBS/MDD.h"
 #include <iostream>
 #include "MAPF-LNS2/inc/common.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
 /*bool MDD::isConstrained(int curr_id, int next_id, int next_timestep, const std::vector< std::list< std::pair<int, int> > >& cons)  const
 {

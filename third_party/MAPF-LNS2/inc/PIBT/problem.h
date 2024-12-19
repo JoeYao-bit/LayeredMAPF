@@ -2,7 +2,7 @@
 #include "graph.h"
 #include "pibt_agent.h"
 #include "task.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     using PIBT_Agents = std::vector<PIBT_Agent *>;
 // defined in Graph.h

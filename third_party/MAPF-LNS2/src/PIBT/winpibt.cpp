@@ -10,7 +10,7 @@
 #include <algorithm>
 #include "MAPF-LNS2/inc/PIBT/util.h"
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     winPIBT::winPIBT(Problem *_P, int _w, bool _softmode)
             : Solver(_P), w(_w), softmode(_softmode) {

@@ -108,6 +108,21 @@ namespace CBS_Li {
                 continue;
             if (curr->timestep >= initial_constraints.length_max)
                 continue;
+            // yz: used in independence detection, set upbound of path length,
+            // maximum_length_of_paths_ is empty in other place,
+            if(!initial_constraints.maximum_length_of_paths_.empty()) {
+                assert(agent + 1 <= initial_constraints.maximum_length_of_paths_.size());
+                int path_length = 0; // calculated path length
+                LLNode* buffer = curr;
+                while(buffer != nullptr) {
+                    path_length ++;
+                    buffer = buffer->parent;
+                }
+                if(path_length > initial_constraints.maximum_length_of_paths_[agent]) {
+//                    std::cout << " path length " << path_length << " over max length " << initial_constraints.maximum_length_of_paths_[agent] << std::endl;
+                    continue;
+                }
+            }
             auto next_locations = instance.getNeighbors(curr->location);
             next_locations.emplace_back(curr->location); // considering wait
             for (int next_location : next_locations) {

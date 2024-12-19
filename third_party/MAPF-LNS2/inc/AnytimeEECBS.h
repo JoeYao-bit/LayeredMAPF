@@ -5,7 +5,7 @@
 #include "EECBS/inc/ECBS.h"
 #include "EECBS/inc/common.h"
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     class AnytimeEECBS {
     public:

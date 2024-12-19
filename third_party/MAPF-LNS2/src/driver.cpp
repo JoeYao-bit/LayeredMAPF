@@ -5,7 +5,7 @@
 #include "MAPF-LNS2/inc/AnytimeEECBS.h"
 #include "MAPF-LNS2/inc/PIBT/pibt.h"
 
-using namespace MAPF_LNS;
+using namespace MAPF_LNS2;
 
 /* Main function */
 int main(int argc, char** argv)

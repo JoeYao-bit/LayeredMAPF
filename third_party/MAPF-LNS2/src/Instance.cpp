@@ -3,7 +3,7 @@
 #include <random>      // std::default_random_engine
 #include <chrono>       // std::chrono::system_clock
 #include"MAPF-LNS2/inc/Instance.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     int RANDOM_WALK_STEPS = 100000;
 

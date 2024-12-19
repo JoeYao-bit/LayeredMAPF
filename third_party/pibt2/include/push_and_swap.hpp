@@ -9,6 +9,8 @@
 
 #pragma once
 #include "solver.hpp"
+#include "../../../algorithm/basic.h"
+
 namespace PIBT_2 {
 
     class PushAndSwap : public MAPF_Solver {

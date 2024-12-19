@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <random>
 #include <iostream>
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
 // vector
     template<typename T>

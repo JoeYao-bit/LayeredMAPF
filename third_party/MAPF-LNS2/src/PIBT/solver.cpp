@@ -10,7 +10,7 @@
 #include "MAPF-LNS2/inc/PIBT/util.h"
 #include <typeinfo>
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     Solver::Solver(Problem *_P) : P(_P) {
         std::random_device seed_gen;

@@ -7,7 +7,7 @@
 
 #include "MAPF-LNS2/inc/PIBT/mapf.h"
 #include "MAPF-LNS2/inc/PIBT/util.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     MAPF::MAPF(Graph *_G,
                PIBT_Agents _A,

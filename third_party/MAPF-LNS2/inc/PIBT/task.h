@@ -3,7 +3,7 @@
 #include <vector>
 #include "node.h"
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     class Task {
     private:

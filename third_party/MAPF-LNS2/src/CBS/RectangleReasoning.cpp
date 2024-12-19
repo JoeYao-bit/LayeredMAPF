@@ -1,5 +1,5 @@
 #include "MAPF-LNS2/inc/CBS/RectangleReasoning.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
 
     shared_ptr<Conflict> RectangleReasoning::run(const vector<Path *> &paths, int timestep,

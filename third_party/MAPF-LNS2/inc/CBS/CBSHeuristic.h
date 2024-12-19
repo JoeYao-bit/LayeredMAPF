@@ -3,7 +3,7 @@
 #include "RectangleReasoning.h"
 #include "CorridorReasoning.h"
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     enum heuristics_type {
         ZERO, CG, DG, WDG, GLOBAL, PATH, LOCAL, CONFLICT, STRATEGY_COUNT

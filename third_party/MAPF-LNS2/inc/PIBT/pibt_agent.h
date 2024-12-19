@@ -2,7 +2,7 @@
 
 #include "node.h"
 #include "task.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
 // history of agent
     struct AgentStatus {

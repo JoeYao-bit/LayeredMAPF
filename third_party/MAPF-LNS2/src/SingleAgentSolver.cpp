@@ -1,6 +1,6 @@
 #include "MAPF-LNS2/inc/SingleAgentSolver.h"
 #include "MAPF-LNS2/inc/SpaceTimeAStar.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     list<int> SingleAgentSolver::getNextLocations(int curr) const // including itself and its neighbors
     {

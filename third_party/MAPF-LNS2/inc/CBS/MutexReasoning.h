@@ -1,6 +1,6 @@
 #include "IncrementalPairwiseMutexPropagation.hpp"
 #include "MDD.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     class MutexReasoning {
     public:

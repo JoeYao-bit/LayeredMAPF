@@ -1162,9 +1162,11 @@ namespace CBS_Li {
         start = clock();
         // yz: generate a init node of CT
         generateRoot();
-
+        freeNav::LayeredMAPF::max_size_of_stack = 0;
         while (!cleanup_list.empty() && !solution_found) {
             // yz: select node with minimum heuristic value
+            freeNav::LayeredMAPF::max_size_of_stack = std::max(cleanup_list.size()+open_list.size()+focal_list.size(),
+                                                               freeNav::LayeredMAPF::max_size_of_stack);
             auto curr = selectNode();
 
             // yz: check whether reach terminate condition
@@ -1319,6 +1321,7 @@ namespace CBS_Li {
                 }
             }
         }  // end of while loop
+//        std::cout << "CBS::max_size_of_stack = " << freeNav::LayeredMAPF::max_size_of_stack << std::endl;
         return solution_found;
     }
 

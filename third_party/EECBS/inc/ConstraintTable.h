@@ -13,6 +13,8 @@ namespace CBS_Li {
         size_t num_col;
         size_t map_size;
 
+        std::vector<size_t> maximum_length_of_paths_; // max length for each map, now only used in independence decomposition
+
         int getHoldingTime(int location,
                            int earliest_timestep) const; // the earliest timestep that the agent can hold the location after earliest_timestep
         int getMaxTimestep() const; // everything is static after the max timestep

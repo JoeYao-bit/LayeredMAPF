@@ -8,7 +8,7 @@
 #pragma once
 #include "solver.h"
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     class winPIBT : public Solver {
     protected:

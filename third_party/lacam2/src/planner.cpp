@@ -1,5 +1,7 @@
 #include "../include/planner.hpp"
 namespace LaCAM2 {
+
+
     LNode::LNode(LNode *parent, uint i, Vertex *v)
             : who(), where(), depth(parent == nullptr ? 0 : parent->depth + 1) {
         if (parent != nullptr) {
@@ -102,13 +104,14 @@ namespace LaCAM2 {
         auto C_new = Config(N, nullptr);  // for new configuration
         HNode *H_goal = nullptr;          // to store goal node
 
+        freeNav::LayeredMAPF::max_size_of_stack = 0; // yz: add for statistics
         // DFS
         while (!OPEN.empty() && !is_expired(deadline)) {
             loop_cnt += 1;
 
             // do not pop here!
             auto H = OPEN.top();  // high-level node
-
+            freeNav::LayeredMAPF::max_size_of_stack = std::max(EXPLORED.size()*N, freeNav::LayeredMAPF::max_size_of_stack);
             // low-level search end
             if (H->search_tree.empty()) {
                 OPEN.pop();
@@ -219,6 +222,7 @@ namespace LaCAM2 {
         // memory management
         for (auto a : A) delete a;
         for (auto itr : EXPLORED) delete itr.second;
+//        std::cout << "LaCAM2::max_size_of_stack = " << freeNav::LayeredMAPF::max_size_of_stack << std::endl;
 
         return solution;
     }

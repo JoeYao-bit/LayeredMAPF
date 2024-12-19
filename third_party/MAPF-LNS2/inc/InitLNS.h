@@ -1,6 +1,6 @@
 #pragma once
 #include "BasicLNS.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     enum init_destroy_heuristic {
         TARGET_BASED, COLLISION_BASED, RANDOM_BASED, INIT_COUNT

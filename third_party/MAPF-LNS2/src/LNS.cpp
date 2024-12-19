@@ -1,7 +1,7 @@
 #include "MAPF-LNS2/inc/LNS.h"
 #include "MAPF-LNS2/inc/CBS/ECBS.h"
 #include <queue>
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     LNS::LNS(const Instance &instance, double time_limit, const string &init_algo_name, const string &replan_algo_name,
              const string &destory_name, int neighbor_size, int num_of_iterations, bool use_init_lns,
@@ -50,6 +50,7 @@ namespace MAPF_LNS {
         // yz: get initial start path
         initial_solution_runtime = 0;
         start_time = Time::now();
+
         bool succ = getInitialSolution();
         initial_solution_runtime = ((fsec) (Time::now() - start_time)).count();
         if (!succ && initial_solution_runtime < time_limit) {
@@ -91,12 +92,13 @@ namespace MAPF_LNS {
             return false; // terminate because no initial solution is found
         }
 
+//        std::cout << " num_of_iterations / time_limit = " << num_of_iterations << " / " << time_limit << std::endl;
         while (runtime < time_limit && iteration_stats.size() <= num_of_iterations) {
             runtime = ((fsec) (Time::now() - start_time)).count();
             if (screen >= 1)
                 validateSolution();
             if (ALNS)
-                chooseDestroyHeuristicbyALNS();
+                chooseDestroyHeuristicbyALNS(); // yz: default choice
             // yz: select which agent to destory
             switch (destroy_strategy) {
                 case RANDOMWALK:
@@ -222,13 +224,13 @@ namespace MAPF_LNS {
         }
 
         ECBS ecbs(search_engines, screen - 1, &path_table);
-        ecbs.setPrioritizeConflicts(true);
+        ecbs.setPrioritizeConflicts(false);
         ecbs.setDisjointSplitting(false);
-        ecbs.setBypass(true);
-        ecbs.setRectangleReasoning(true);
-        ecbs.setCorridorReasoning(true);
+        ecbs.setBypass(false);
+        ecbs.setRectangleReasoning(false);
+        ecbs.setCorridorReasoning(false);
         ecbs.setHeuristicType(heuristics_type::WDG, heuristics_type::GLOBAL);
-        ecbs.setTargetReasoning(true);
+        ecbs.setTargetReasoning(false);
         ecbs.setMutexReasoning(false);
         ecbs.setConflictSelectionRule(conflict_selection::EARLIEST);
         ecbs.setNodeSelectionRule(node_selection::NODE_CONFLICTPAIRS);
@@ -290,7 +292,7 @@ namespace MAPF_LNS {
         cbs.setConflictSelectionRule(conflict_selection::EARLIEST);
         cbs.setNodeSelectionRule(node_selection::NODE_CONFLICTPAIRS);
         cbs.setSavingStats(false);
-        cbs.setHighLevelSolver(high_level_solver_type::ASTAR, 1);
+        cbs.setHighLevelSolver(high_level_solver_type::EES, 1.2);
         runtime = ((fsec) (Time::now() - start_time)).count();
         double T = time_limit - runtime; // time limit
         if (!iteration_stats.empty()) // replan

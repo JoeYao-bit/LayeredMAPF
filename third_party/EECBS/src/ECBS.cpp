@@ -22,8 +22,12 @@ namespace CBS_Li {
             return solution_found;
         }
         int count = 0;
+        freeNav::LayeredMAPF::max_size_of_stack = 0;
         while (!cleanup_list.empty() && !solution_found) {
             count++;
+            freeNav::LayeredMAPF::max_size_of_stack = std::max(cleanup_list.size()+open_list.size()+focal_list.size(),
+                                                               freeNav::LayeredMAPF::max_size_of_stack);
+
             auto curr = selectNode();
             if (terminate(curr)) {
                 //std::cout << "RAW CBS finish in " << count << " steps " << std::endl;
@@ -52,91 +56,91 @@ namespace CBS_Li {
             //Expand the node
             num_HL_expanded++;
             curr->time_expanded = num_HL_expanded;
-//		if (bypass && curr->chosen_from != "cleanup")
-//		{
-//			bool foundBypass = true;
-//			while (foundBypass)
-//			{
-//				if (terminate(curr))
-//					return solution_found;
-//				foundBypass = false;
-//				ECBSNode* child[2] = { new ECBSNode() , new ECBSNode() };
-//				curr->conflict = chooseConflict(*curr);
-//				addConstraints(curr, child[0], child[1]);
-//				if (screen > 1)
-//					cout << "	Expand " << *curr << endl << 	"	on " << *(curr->conflict) << endl;
-//
-//				bool solved[2] = { false, false };
-//				vector<vector<PathEntry>*> path_copy(paths);
-//				vector<int> fmin_copy(min_f_vals);
-//				for (int i = 0; i < 2; i++)
-//				{
-//					if (i > 0)
-//					{
-//						paths = path_copy;
-//						min_f_vals = fmin_copy;
-//					}
-//					solved[i] = generateChild(child[i], curr);
-//					if (!solved[i])
-//					{
-//						delete (child[i]);
-//						continue;
-//					}
-//					else if (i == 1 && !solved[0])
-//						continue;
-//					else if (bypass &&
-//						child[i]->sum_of_costs <= suboptimality * cost_lowerbound &&
-//						child[i]->distance_to_go < curr->distance_to_go) // Bypass1
-//					{
-//						foundBypass = true;
-//						for (const auto& path : child[i]->paths)
-//						{
-//						    /*if (path.second.first.size() != path_copy[path.first]->size()) // CBS bypassing
-//                            {
-//                                foundBypass = false;
-//                                break;
-//                            }*/
-//							if ((double)path.second.first.size() - 1 > suboptimality * fmin_copy[path.first]) // Our bypassing
-//							{
-//								foundBypass = false;
-//								break;
-//							}
-//						}
-//						if (foundBypass)
-//						{
-//							adoptBypass(curr, child[i], fmin_copy);
-//							if (screen > 1)
-//								cout << "	Update " << *curr << endl;
-//							break;
-//						}
-//					}
-//				}
-//				if (foundBypass)
-//				{
-//					for (auto & i : child)
-//					{
-//						delete i;
-//					}
-//                    classifyConflicts(*curr); // classify the new-detected conflicts
-//				}
-//				else
-//				{
-//					for (int i = 0; i < 2; i++)
-//					{
-//						if (solved[i])
-//						{
-//							pushNode(child[i]);
-//							curr->children.push_back(child[i]);
-//							if (screen > 1)
-//							{
-//								cout << "		Generate " << *child[i] << endl;
-//							}
-//						}
-//					}
-//				}
-//			}
-//		}
-//		else // no bypass
+            if (bypass && curr->chosen_from != "cleanup")
+            {
+                bool foundBypass = true;
+                while (foundBypass)
+                {
+                    if (terminate(curr))
+                        return solution_found;
+                    foundBypass = false;
+                    ECBSNode* child[2] = { new ECBSNode() , new ECBSNode() };
+                    curr->conflict = chooseConflict(*curr);
+                    addConstraints(curr, child[0], child[1]);
+                    if (screen > 1)
+                        cout << "	Expand " << *curr << endl << 	"	on " << *(curr->conflict) << endl;
+
+                    bool solved[2] = { false, false };
+                    vector<vector<PathEntry>*> path_copy(paths);
+                    vector<int> fmin_copy(min_f_vals);
+                    for (int i = 0; i < 2; i++)
+                    {
+                        if (i > 0)
+                        {
+                            paths = path_copy;
+                            min_f_vals = fmin_copy;
+                        }
+                        solved[i] = generateChild(child[i], curr);
+                        if (!solved[i])
+                        {
+                            delete (child[i]);
+                            continue;
+                        }
+                        else if (i == 1 && !solved[0])
+                            continue;
+                        else if (bypass &&
+                            child[i]->sum_of_costs <= suboptimality * cost_lowerbound &&
+                            child[i]->distance_to_go < curr->distance_to_go) // Bypass1
+                        {
+                            foundBypass = true;
+                            for (const auto& path : child[i]->paths)
+                            {
+                                /*if (path.second.first.size() != path_copy[path.first]->size()) // CBS bypassing
+                                {
+                                    foundBypass = false;
+                                    break;
+                                }*/
+                                if ((double)path.second.first.size() - 1 > suboptimality * fmin_copy[path.first]) // Our bypassing
+                                {
+                                    foundBypass = false;
+                                    break;
+                                }
+                            }
+                            if (foundBypass)
+                            {
+                                adoptBypass(curr, child[i], fmin_copy);
+                                if (screen > 1)
+                                    cout << "	Update " << *curr << endl;
+                                break;
+                            }
+                        }
+                    }
+                    if (foundBypass)
+                    {
+                        for (auto & i : child)
+                        {
+                            delete i;
+                        }
+                        classifyConflicts(*curr); // classify the new-detected conflicts
+                    }
+                    else
+                    {
+                        for (int i = 0; i < 2; i++)
+                        {
+                            if (solved[i])
+                            {
+                                pushNode(child[i]);
+                                curr->children.push_back(child[i]);
+                                if (screen > 1)
+                                {
+                                    cout << "		Generate " << *child[i] << endl;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else // no bypass
             {
                 ECBSNode *child[2] = {new ECBSNode(), new ECBSNode()};
                 curr->conflict = chooseConflict(*curr);
@@ -196,6 +200,7 @@ namespace CBS_Li {
             curr->clear();
         }  // end of while loop
         std::cout << "RAW CBS finish in " << count << " steps " << std::endl;
+//        std::cout << "ECBS::max_size_of_stack = " << freeNav::LayeredMAPF::max_size_of_stack << std::endl;
         return solution_found;
     }
 
@@ -279,9 +284,9 @@ namespace CBS_Li {
                                                search_engines[i]->instance.getRowCoordinate(start_id)};
                 freeNav::Pointi<2> target_pt = {search_engines[i]->instance.getColCoordinate(target_id),
                                                 search_engines[i]->instance.getRowCoordinate(target_id)};
-                cerr << "The start-goal locations of agent " << i << ", start " << start_pt << ", target" << target_pt
+                cout << "The start-goal locations of agent " << i << ", start " << start_pt << ", target" << target_pt
                      << "are not connected" << endl;
-                cerr << " start id " << start_id << " target id " << target_id << std::endl;
+                cout << " start id " << start_id << " target id " << target_id << std::endl;
                 //cerr << " heuristic in start position " << search_engines[i]->my_heuristic[start_id] << std::endl;
                 //exit(-1);
                 return false;

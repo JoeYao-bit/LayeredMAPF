@@ -33,9 +33,10 @@ namespace PIBT_2 {
             std::sort(ids.begin(), ids.end(),
                       [&](int a, int b) { return pathDist(a) > pathDist(b); });
         }
-
+        freeNav::LayeredMAPF::max_size_of_stack = 0; // yz: add for statistics
         // main loop
         for (int j = 0; j < P->getNum(); ++j) {
+
             const int i = ids[j];
             info(" ", "elapsed:", getSolverElapsedTime(),
                  ", agent-" + std::to_string(i), "starts planning",
@@ -45,6 +46,7 @@ namespace PIBT_2 {
                 if (!push(solution, i, U, occupied_now)) {
                     info("   ", "swap required, timestep=", solution.getMakespan());
                     if (!swap(solution, i, U, occupied_now)) {
+//                        std::cout << "Push and Swap(failed)::max_size_of_stack = " << freeNav::LayeredMAPF::max_size_of_stack << std::endl;
                         return;  // failed
                     }
                 }
@@ -52,7 +54,13 @@ namespace PIBT_2 {
             U.push_back(solution.last(i));
 
             // check limitation
-            if (overCompTime()) return;
+            if (overCompTime()) {
+//                std::cout << "Push and Swap(overtime)::max_size_of_stack = " << freeNav::LayeredMAPF::max_size_of_stack << std::endl;
+                return;
+            }
+//            std::cout << "into loop, solution.getMakespan()*P->getNum() = " << solution.getMakespan() << "*" << P->getNum() << std::endl;
+            freeNav::LayeredMAPF::max_size_of_stack = std::max(freeNav::LayeredMAPF::max_size_of_stack,
+                                                               size_t(solution.getMakespan()*P->getNum()));
         }
 
         if (emergency_stop) solution.clear();
@@ -75,6 +83,8 @@ namespace PIBT_2 {
         } else {
             warn("over max_timestep:" + std::to_string(max_timestep));
         }
+//        std::cout << "Push and Swap::max_size_of_stack = " << freeNav::LayeredMAPF::max_size_of_stack << std::endl;
+
     }
 
     bool PushAndSwap::push(Plan &plan, const int id, Nodes &U,

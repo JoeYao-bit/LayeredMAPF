@@ -11,7 +11,7 @@
 #include <unordered_set>
 #include "MAPF-LNS2/inc/PIBT/util.h"
 #include <boost/heap/fibonacci_heap.hpp>
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     Graph::Graph() {
         std::random_device seed_gen;

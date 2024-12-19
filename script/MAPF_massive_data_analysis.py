@@ -29,7 +29,7 @@ def loadDataFromfile(file_path):
                 if np.isnan(new_data.max_single_cost):
                     continue
                 
-                if new_data.time_cost > 35000:
+                if new_data.time_cost > 31000:
                     new_data.success = 0
                 
                 if new_data.time_cost > 30000:
@@ -81,9 +81,9 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
                 else:
                     y.append(0)
             if len(splited_method_name) == 1:
-                plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[name_of_decomposition], markersize=14, label=map_key+"/"+name_of_decomposition, linewidth=2, elinewidth=4, capsize=4)
+                plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[name_of_decomposition], markersize=10, label=map_key+"/"+name_of_decomposition, linewidth=2, elinewidth=4, capsize=4)
             else:
-                plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[splited_method_name[0]], markersize=14, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4)
+                plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[splited_method_name[0]], markersize=10, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4)
                 
         plt.tick_params(axis='both', labelsize=18)
         formater = ticker.ScalarFormatter(useMathText=True) 
@@ -100,6 +100,7 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
         else:    
             plt.ylim(0, y_range[1])
         plt.title(ylable)
+        plt.xlabel(xlable)
         if is_percentage:
             plt.ylim(0, 1)
                 
@@ -114,6 +115,7 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
         plt.savefig(save_path, dpi = 400, bbox_inches='tight')   
         plt.close()
         print("save path to " + save_path)
+
 
 
 def drawMethodMapAgentSizes(all_data_map, xlable, ylable, title, is_percentage=False):    
@@ -142,8 +144,9 @@ def drawMethodMapAgentSizes(all_data_map, xlable, ylable, title, is_percentage=F
                 # else:
                 #     plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[splited_method_name[0]], markersize=14, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4)
                 
+                # markerfacecolor='none' marker空心化
                 if len(splited_method_name) != 1:
-                    plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[splited_method_name[0]], markersize=14, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4)
+                    plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[splited_method_name[0]], markersize=10, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4, markerfacecolor='none')
                 
         plt.tick_params(axis='both', labelsize=18)
         formater = ticker.ScalarFormatter(useMathText=True)
@@ -159,7 +162,9 @@ def drawMethodMapAgentSizes(all_data_map, xlable, ylable, title, is_percentage=F
             plt.ylim(1, y_range[1]*10)
         else:
             plt.ylim(0, y_range[1])
-        plt.title(ylable)
+        plt.title(ylable) # 图片标题
+        plt.xlabel(xlable) # 横坐标标题
+        # plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5) # 图例位置设置
         if is_percentage:
             plt.ylim(0, 1)
                 
@@ -172,9 +177,22 @@ def drawMethodMapAgentSizes(all_data_map, xlable, ylable, title, is_percentage=F
             
         save_path = save_path + "/multi_map_"+str(i)
         plt.savefig(save_path, dpi = 400, bbox_inches='tight')
+
+
+        # then create a new image
+        # adjust the figure size as necessary
+
+        figsize = (1, 1)
+        fig_leg = plt.figure(figsize=figsize)
+        ax_leg = fig_leg.add_subplot(111)
+        # add the legend from the previous axes
+        ax_leg.legend(*ax.get_legend_handles_labels(), ncol = 2, loc='center')
+        # hide the axes frame and the x/y labels
+        ax_leg.axis('off')
+        fig_leg.savefig('../test/pic/layered_MAPF/'+title+'/'+str(i)+'_legend.png',dpi = 400, bbox_inches='tight')
+        
         plt.close()
         print("save path to " + save_path)
-
 
 
 def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
@@ -343,7 +361,7 @@ name_of_decomposition = "DECOMPOSITION"
 method_marker_map = {"RAW_EECBS":'p-',       "LAYERED_EECBS":'p--',
                   "RAW_LaCAM":'P-',       "LAYERED_LaCAM":'P--',
                   "RAW_PBS":'D-',         "LAYERED_PBS":'D--',
-                  "RAW_LaCAM2":'X-',      "LAYERED_LaCAM2":'X--',
+                  "RAW_LaCAM":'X-',      "LAYERED_LaCAM":'X--',
                   "RAW_LNS":'+-',         "LAYERED_LNS":'+--',
                   "RAW_AnytimeBCBS":'*-', "LAYERED_AnytimeBCBS":'*--',
                   "RAW_AnytimeEECBS":'o-', "LAYERED_AnytimeEECBS":'o--',
@@ -403,40 +421,42 @@ map_format_list = [
 # 0~1000: maze-128-128-10, Paris_1_256, ht_chantry, lak303d, room-64-64-16, warehouse-10-20-10-2-1, warehouse-10-20-10-2-2, warehouse-20-40-10-2-1, warehouse-20-40-10-2-2, Boston_0_256, lt_gallowstemplar_n, ost003d
 
 
+# o, *, p, 3, H, X, P, < 
+# map in the same image must have different marker
 map_format_map = {
-                 "empty-16-16":'o',
-                 "empty-32-32":'o',
+                 "empty-16-16":'o', # 1
+                 "empty-32-32":'o', # 2
                  
-                 "maze-32-32-2":'*',
-                 "maze-32-32-4":'*',
-                 "maze-128-128-2":'*',
-                 "maze-128-128-10":'*',
+                 "maze-32-32-2":'*', # 1
+                 "maze-32-32-4":'p', # 1 
+                 "maze-128-128-2":'*', # 2
+                 "maze-128-128-10":'o', # 3
                  
-                 "den312d":'v',
-                 "den520d":'v',
+                 "den312d":'p', # 2
+                 "den520d":'*', # 3
                  
-                 "Berlin_1_256":'<',
-                 "Paris_1_256":'<',
+                 "Berlin_1_256":'p', # 3
+                 "Paris_1_256":'s', # 3
                  
-                 "ht_chantry":'H',
-                 "lak303d":'H',
+                 "ht_chantry":'H', # 3
+                 "lak303d":'X', # 3
 
-                 "random-32-32-20":'D',
-                 "random-64-64-20":'D',  # maximum 8s
+                 "random-32-32-20":'s', # 1
+                 "random-64-64-20":'o',  # 4
 
-                 "room-32-32-4":'X',
-                 "room-64-64-8":'X',
-                 "room-64-64-16":'X',
+                 "room-32-32-4":'H', # 1
+                 "room-64-64-8":'s', # 2
+                 "room-64-64-16":'*', # 4
 
-                 "warehouse-10-20-10-2-1":'+',
+                 "warehouse-10-20-10-2-1":'H', # 2
                  ####
-                 "warehouse-10-20-10-2-2":'+',
-                 "warehouse-20-40-10-2-1":'+',
-                 "warehouse-20-40-10-2-2":'+',
+                 "warehouse-10-20-10-2-2":'p', # 4
+                 "warehouse-20-40-10-2-1":'s', # 4
+                 "warehouse-20-40-10-2-2":'H', # 4
                  
-                 "Boston_0_256":'<',
-                 "lt_gallowstemplar_n":'H',
-                 "ost003d":'H'
+                 "Boston_0_256":'X', # 4 
+                 "lt_gallowstemplar_n":'P', # 4
+                 "ost003d":'<' # 4
 
 }
 
@@ -500,7 +520,7 @@ drawing_method_set = [
                       "EECBS", # tested ok, advance in time cost, nothing in memory usage
                       "PBS",  # tested ok, advance in time cost, advance in memory usage, full map
                       "PushAndSwap", # some map not ok, advance in time cost, nothing in memory usage, full map
-                      "LaCAM2",# tested ok, drawback in time cost, drawback in memory usage, full map
+                      "LaCAM",# tested ok, drawback in time cost, drawback in memory usage, full map
                       "HCA", # test ok, advance in memory usage, drawback in time cost, full map
                       "PIBT2", # some map not ok，advance in memory usage, drawback in time cost, full map
                       "LNS", # test ok, advance in memory usage, advance in time cost
@@ -510,7 +530,7 @@ drawing_method_set_2 = [
                       "EECBS", # tested ok, advance in time cost, nothing in memory usage
                       "PBS",  # tested ok, advance in time cost, advance in memory usage, full map
                       "PAS", # some map not ok, advance in time cost, nothing in memory usage, full map
-                      "LaCAM2",# tested ok, drawback in time cost, drawback in memory usage, full map
+                      "LaCAM",# tested ok, drawback in time cost, drawback in memory usage, full map
                       "HCA*", # test ok, advance in memory usage, drawback in time cost, full map
                       "PIBT+", # some map not ok，advance in memory usage, drawback in time cost, full map
                       "LNS2", # test ok, advance in memory usage, advance in time cost
@@ -586,7 +606,7 @@ for method_key, method_value in all_method_time_cost_map.items():
     drawMethodMapAgentSizes(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
     drawMethodMapAgentSizes(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
     drawMethodMapAgentSizes(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
-    drawMethodMapAgentSizes(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)     
+    drawMethodMapAgentSizes(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)    
     
     # draw summary of maps
     drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)    

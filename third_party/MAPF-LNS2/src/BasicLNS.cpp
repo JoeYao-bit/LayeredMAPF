@@ -1,5 +1,5 @@
 #include "MAPF-LNS2/inc/BasicLNS.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     BasicLNS::BasicLNS(const Instance &instance, double time_limit, int neighbor_size, int screen) :
             instance(instance), time_limit(time_limit), neighbor_size(neighbor_size), screen(screen) {}

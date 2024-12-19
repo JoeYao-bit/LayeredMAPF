@@ -2,7 +2,7 @@
 #include "MAPF-LNS2/inc/CBS/CBS.h"
 #include <queue>
 //#include <ilcplex/ilocplex.h>
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
 
     void CBSHeuristic::updateInadmissibleHeuristics(HLNode &curr) {

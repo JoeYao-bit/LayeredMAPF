@@ -1,8 +1,9 @@
 #include "MAPF-LNS2/inc/CBS/ECBS.h"
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     bool ECBS::solve(double time_limit, int _cost_lowerbound) {
+//        std::cout << "into LNS::EECBS " << std::endl;
         this->cost_lowerbound = _cost_lowerbound;
         this->inadmissible_cost_lowerbound = 0;
         this->time_limit = time_limit;
@@ -18,12 +19,17 @@ namespace MAPF_LNS {
 
         if (!generateRoot())
             return false;
-
+        freeNav::LayeredMAPF::max_size_of_stack = 0;
+        int count = 0;
         while (!cleanup_list.empty() && !solution_found) {
+            freeNav::LayeredMAPF::max_size_of_stack = std::max(freeNav::LayeredMAPF::max_size_of_stack, allNodes_table.size());
+            count ++;
             auto curr = selectNode();
             if (terminate(curr)) {
                 if (solution_found)
                     goal_node = curr;
+                    //std::cout << "LNS0::ECBS::max_size_of_stack = " << freeNav::LayeredMAPF::max_size_of_stack << std::endl;
+                    //std::cout << "LNS0::ECBS finish in " << count << " steps " << std::endl;
                 return solution_found;
             }
 
@@ -56,6 +62,8 @@ namespace MAPF_LNS {
                     if (terminate(curr)) {
                         if (solution_found)
                             goal_node = curr;
+                            //std::cout << "LNS::ECBS::max_size_of_stack = " << freeNav::LayeredMAPF::max_size_of_stack << std::endl;
+                            //std::cout << "LNS::ECBS finish in " << count << " steps " << std::endl;
                         return solution_found;
                     }
                     foundBypass = false;
@@ -181,6 +189,8 @@ namespace MAPF_LNS {
                 heuristic_helper.updateOnlineHeuristicErrors(*curr); // update online heuristic errors
             curr->clear();
         }  // end of while loop
+        //std::cout << "LNS::ECBS::max_size_of_stack = " << freeNav::LayeredMAPF::max_size_of_stack << std::endl;
+        //std::cout << "LNS::ECBS failed in " << count << " steps " << std::endl;
 
         return solution_found;
     }

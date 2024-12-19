@@ -2,7 +2,7 @@
 #include "MDD.h"
 
 //enum rectangle_strategy { NR, R, RM, DISJOINTR };
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     class RectangleReasoning {
     public:

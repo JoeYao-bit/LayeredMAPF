@@ -8,6 +8,7 @@
 #include "basic.h"
 #include "instance_decomposition.h"
 #include "../third_party/EECBS/inc/ConstraintTable.h"
+#include "../third_party/EECBS/inc/Instance.h"
 //#include "EECBS/inc/driver.h"
 
 // EECBS: run success and transferred
@@ -293,6 +294,9 @@ namespace freeNav::LayeredMAPF {
 
         Paths<N> retv;// = paths;
         std::vector<Paths<N> > pathss;
+
+        max_size_of_stack_layered = 0; // yz: add for statistics
+        max_size_of_stack = 0;
         for(int i=0; i<instance_decompose->all_clusters_.size(); i++) {
             // instance_decompose->all_clusters_[i] to instances
             std::set<int> current_id_set = instance_decompose->all_clusters_[i];
@@ -354,6 +358,7 @@ namespace freeNav::LayeredMAPF {
             }
             gettimeofday(&tv_after, &tz);
             Paths<N> next_paths = mapf_func(dim, new_isoc, ists, layered_ct, remaining_time);
+            max_size_of_stack_layered = std::max(max_size_of_stack_layered, max_size_of_stack);
             if(next_paths.empty()) {
                 std::cout << " layered MAPF failed " << i << " th cluster: " << current_id_set << std::endl;
                 if(layered_ct != nullptr) {

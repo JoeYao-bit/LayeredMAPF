@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     class Node {
     private:

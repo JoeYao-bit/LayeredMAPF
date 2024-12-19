@@ -3,7 +3,7 @@
 #include <memory>
 #include "MAPF-LNS2/inc/SpaceTimeAStar.h"
 #include "MAPF-LNS2/inc/SIPP.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     shared_ptr<Conflict> CorridorReasoning::run(const shared_ptr<Conflict> &conflict,
                                                 const vector<Path *> &paths, const HLNode &node) {

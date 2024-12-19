@@ -10,6 +10,7 @@
 
 #pragma once
 #include "solver.hpp"
+#include "../../../algorithm/basic.h"
 namespace PIBT_2 {
 
     class PIBT : public MAPF_Solver {
@@ -37,6 +38,8 @@ namespace PIBT_2 {
 
         // result of priority inheritance: true -> valid, false -> invalid
         bool funcPIBT(Agent *ai, Agent *aj = nullptr);
+
+        size_t temp_PIBT_depth = 1; // yz: depth called funcPIBT
 
         // main
         void run();

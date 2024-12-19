@@ -1,7 +1,7 @@
 // This is used by SIPP
 #pragma once
 #include "ConstraintTable.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     typedef tuple<int, int, bool> Interval; // [t_min, t_max), has collision
 

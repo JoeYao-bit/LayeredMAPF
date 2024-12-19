@@ -3,7 +3,7 @@
 
 #include "MDD.h"
 #include "MAPF-LNS2/inc/SingleAgentSolver.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     typedef std::vector<Constraint> con_vec;
 

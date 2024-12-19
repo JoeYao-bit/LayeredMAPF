@@ -6,6 +6,7 @@
  */
 namespace PIBT_2 {
 
+    // yz: store all agent's path amd time index, like configs[t][i]
     struct Plan {
     private:
         Configs configs;  // main

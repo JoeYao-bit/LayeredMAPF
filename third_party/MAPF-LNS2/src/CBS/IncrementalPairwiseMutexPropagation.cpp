@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include "MAPF-LNS2/inc/CBS/ConstraintPropagation.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     using namespace std;
 

@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "SingleAgentSolver.h"
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
 
     class AStarNode : public LLNode {

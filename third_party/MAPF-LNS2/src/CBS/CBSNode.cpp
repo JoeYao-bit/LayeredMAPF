@@ -1,6 +1,6 @@
 #include "MAPF-LNS2/inc/CBS/CBSNode.h"
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
     void HLNode::clear() {
         conflicts.clear();

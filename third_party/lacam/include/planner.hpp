@@ -7,6 +7,7 @@
 #include "graph.hpp"
 #include "instance.hpp"
 #include "utils.hpp"
+#include "../../../algorithm/basic.h"
 namespace LaCAM {
 
 // low-level search node

@@ -5,7 +5,7 @@
 #include "MAPF-LNS2/inc/SIPP.h"
 #include "MAPF-LNS2/inc/SpaceTimeAStar.h"
 
-namespace MAPF_LNS {
+namespace MAPF_LNS2 {
 
 // takes the paths_found_initially and UPDATE all (constrained) paths found for agents from curr to start
     void CBS::updatePaths(CBSNode *curr) {
