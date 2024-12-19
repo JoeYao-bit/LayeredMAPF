@@ -23,46 +23,11 @@ else()
     message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++14 support. Please use a different C++ compiler.")
 endif()
 
-
-#########################################################
-# FIND Pangolin
-#########################################################
-find_package(Pangolin REQUIRED)
-
-
-#########################################################
-# FIND GLUT
-#########################################################
-find_package(GLUT REQUIRED)
-include_directories(${GLUT_INCLUDE_DIRS})
-link_directories(${GLUT_LIBRARY_DIRS})
-add_definitions(${GLUT_DEFINITIONS})
-if(NOT GLUT_FOUND)
-    message(ERROR " GLUT not found!")
-endif(NOT GLUT_FOUND)
-#########################################################
-# FIND OPENGL
-#########################################################
-find_package(OpenGL REQUIRED)
-find_package(Octomap REQUIRED)
-include_directories(${OpenGL_INCLUDE_DIRS})
-link_directories(${OpenGL_LIBRARY_DIRS})
-add_definitions(${OpenGL_DEFINITIONS})
-if(NOT OPENGL_FOUND)
-    message(ERROR " OPENGL not found!")
-endif(NOT OPENGL_FOUND)
-
 add_subdirectory(third_party/grid-pathfinding/graph ./graph)
 
 
 add_subdirectory(freeNav-base)
 include_directories(third_party)
-
-
-# 开启QT用于预处理的组件
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
 
 
 
@@ -77,13 +42,15 @@ aux_source_directory(third_party/MAPF-LNS2/src/CBS          MAPF_LNS2_CBS_src)
 aux_source_directory(third_party/MAPF-LNS2/src/PIBT         MAPF_LNS2_PIBT_src)
 aux_source_directory(third_party/pibt2/src                  PIBT2_src)
 
-add_library(EECBS_lib  ${EECBS_src} ${PBS_src} ${lacam_src} ${CBSH2-RTC_src} ${lacam2_src} ${lacam3_src}
-        ${MAPF_LNS2_src} ${MAPF_LNS2_CBS_src} ${MAPF_LNS2_PIBT_src} ${PIBT2_src})
+
 
 
 aux_source_directory(algorithm alg_src)
 aux_source_directory(algorithm/LA-MAPF lamapf_src)
 add_library(lamapf_alg STATIC ${alg_src} ${lamapf_src})
+
+add_library(EECBS_lib  ${EECBS_src} ${PBS_src} ${lacam_src} ${CBSH2-RTC_src} ${lacam2_src} ${lacam3_src}
+        ${MAPF_LNS2_src} ${MAPF_LNS2_CBS_src} ${MAPF_LNS2_PIBT_src} ${PIBT2_src} ${alg_src})
 
 add_library(lamapf_alg_ex STATIC algorithm/LA-MAPF/block_shaped_agent.cpp
                                  algorithm/LA-MAPF/circle_shaped_agent.cpp
