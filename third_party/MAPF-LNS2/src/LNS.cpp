@@ -292,7 +292,7 @@ namespace MAPF_LNS2 {
         cbs.setConflictSelectionRule(conflict_selection::EARLIEST);
         cbs.setNodeSelectionRule(node_selection::NODE_CONFLICTPAIRS);
         cbs.setSavingStats(false);
-        cbs.setHighLevelSolver(high_level_solver_type::ASTAR, 1);
+        cbs.setHighLevelSolver(high_level_solver_type::EES, 1.2);
         runtime = ((fsec) (Time::now() - start_time)).count();
         double T = time_limit - runtime; // time limit
         if (!iteration_stats.empty()) // replan
