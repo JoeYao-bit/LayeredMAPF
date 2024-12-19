@@ -64,32 +64,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-# 查找QT的模块
-find_package(Qt5Core REQUIRED)
-find_package(Qt5Gui REQUIRED)
-find_package(Qt5Widgets REQUIRED)
-find_package(Qt5OpenGL REQUIRED)
-find_package(Qt5PrintSupport REQUIRED)
-find_package(Qt5Charts REQUIRED)
 
-set(QT_LIBS
-        Qt5::Core
-        Qt5::Gui
-        Qt5::Widgets
-        Qt5::OpenGL
-        Qt5::PrintSupport
-        Qt5::Charts
-        )
-
-
-INCLUDE_DIRECTORIES(${Qt5Core_INCLUDE_DIRS})
-INCLUDE_DIRECTORIES(${Qt5Gui_INCLUDE_DIRS})
-INCLUDE_DIRECTORIES(${Qt5Widgets_INCLUDE_DIRS})
-INCLUDE_DIRECTORIES(${Qt5OpenGL_INCLUDE_DIRS})
-INCLUDE_DIRECTORIES(${Qt5PrintSupport_INCLUDE_DIRS})
-INCLUDE_DIRECTORIES(${Qt5Charts_INCLUDE_DIRS})
-
-aux_source_directory(test/visualization/qt_gui qt_src)
 
 aux_source_directory(third_party/EECBS/src                  EECBS_src)
 aux_source_directory(third_party/CBSH2-RTC/src              CBSH2-RTC_src)
@@ -105,9 +80,6 @@ aux_source_directory(third_party/pibt2/src                  PIBT2_src)
 add_library(EECBS_lib  ${EECBS_src} ${PBS_src} ${lacam_src} ${CBSH2-RTC_src} ${lacam2_src} ${lacam3_src}
         ${MAPF_LNS2_src} ${MAPF_LNS2_CBS_src} ${MAPF_LNS2_PIBT_src} ${PIBT2_src})
 
-aux_source_directory(test/visualization vis_src)
-add_library(vis_lib ${vis_src} ${qt_src})
-target_link_libraries(vis_lib ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} ${Pangolin_LIBRARIES} ${QT_LIBS})
 
 aux_source_directory(algorithm alg_src)
 aux_source_directory(algorithm/LA-MAPF lamapf_src)
@@ -118,7 +90,7 @@ add_library(lamapf_alg_ex STATIC algorithm/LA-MAPF/block_shaped_agent.cpp
                                  algorithm/LA-MAPF/common.cpp)
 INSTALL (TARGETS lamapf_alg_ex lamapf_alg_ex LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
 
-target_link_libraries(lamapf_alg EECBS_lib vis_lib lib-graph)
+target_link_libraries(lamapf_alg EECBS_lib lib-graph)
 
 #INSTALL(TARGETS hello hello_static
 #        LIBRARY DESTINATION include/lib
@@ -129,12 +101,6 @@ INSTALL(DIRECTORY algorithm DESTINATION include/LA-MAPF)
 
 #add_library(external_lib ${third1_src} ${third2_src} ${third3_src})
 
-add_executable(test_2d_mapf_viewer test/test_2d_mapf_viewer.cpp)
-target_link_libraries(test_2d_mapf_viewer freeNav-base lamapf_alg)
-
-add_executable(test_lacam test/test_lacam.cpp)
-target_link_libraries(test_lacam freeNav-base lamapf_alg)
-
 add_executable(test_lacam3 test/test_lacam3.cpp)
 target_link_libraries(test_lacam3 freeNav-base lamapf_alg)
 
@@ -144,23 +110,8 @@ target_link_libraries(test_massive_decomposition freeNav-base lamapf_alg)
 add_executable(test_massive_layered_mapf test/test_massive_layered_mapf.cpp)
 target_link_libraries(test_massive_layered_mapf freeNav-base lamapf_alg)
 
-add_executable(test_create_random_map_fr_mapf test/test_create_random_map_fr_mapf.cpp)
-target_link_libraries(test_create_random_map_fr_mapf freeNav-base lamapf_alg)
-
-add_executable(test_qt_gui test/test_qt_gui.cpp test/visualization/qt_gui/resources/images.qrc)
-target_link_libraries(test_qt_gui freeNav-base lamapf_alg)
-
-add_executable(test_lamapf_cbs test/large_agent_test/test_lamapf_cbs.cpp)
-target_link_libraries(test_lamapf_cbs freeNav-base lamapf_alg)
-
-add_executable(test_lamapf_lacam test/large_agent_test/test_lamapf_lacam.cpp)
-target_link_libraries(test_lamapf_lacam freeNav-base lamapf_alg)
-
 add_executable(test_lamapf_instance_generator test/large_agent_test/test_lamapf_instance_generator.cpp)
 target_link_libraries(test_lamapf_instance_generator freeNav-base lamapf_alg)
-
-add_executable(test_coverage_grid test/large_agent_test/test_coverage_grid.cpp)
-target_link_libraries(test_coverage_grid freeNav-base lamapf_alg)
 
 add_executable(test_large_agent_mapf_decomposition test/large_agent_test/test_large_agent_mapf_decomposition.cpp)
 target_link_libraries(test_large_agent_mapf_decomposition freeNav-base lamapf_alg)
@@ -168,5 +119,3 @@ target_link_libraries(test_large_agent_mapf_decomposition freeNav-base lamapf_al
 add_executable(test_layered_large_agent_mapf test/large_agent_test/test_layered_large_agent_mapf.cpp)
 target_link_libraries(test_layered_large_agent_mapf freeNav-base lamapf_alg)
 
-add_executable(test_independence_detection test/test_independence_detection.cpp)
-target_link_libraries(test_independence_detection freeNav-base lamapf_alg)

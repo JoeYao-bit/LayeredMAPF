@@ -274,9 +274,9 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
     // all layered mapf must start with "LAYERED_"
     auto PBS_LAYERED = LAYERED_TEST_TYPE("LAYERED_PBS", PBS_Li::pbs_MAPF, dim, cutoff_time_cost, true);
 
-    auto LNS = RAW_TEST_TYPE("RAW_LNS", MAPF_LNS::LNS_MAPF, dim, cutoff_time_cost);
+    auto LNS = RAW_TEST_TYPE("RAW_LNS", MAPF_LNS2::LNS2_MAPF, dim, cutoff_time_cost);
     // all layered mapf must start with "LAYERED_"
-    auto LNS_LAYERED = LAYERED_TEST_TYPE("LAYERED_LNS", MAPF_LNS::LNS_MAPF, dim, cutoff_time_cost, true);
+    auto LNS_LAYERED = LAYERED_TEST_TYPE("LAYERED_LNS", MAPF_LNS2::LNS2_MAPF, dim, cutoff_time_cost, true);
 
     auto CBSH2_RTC = RAW_TEST_TYPE("RAW_CBSH2_RTC", CBSH2_RTC::CBSH2_RTC_MAPF, dim, cutoff_time_cost);
     // all layered mapf must start with "LAYERED_"
