@@ -7,7 +7,7 @@
 
 #include "large_agent_mapf.h"
 #include "large_agent_dependency_path_search.h"
-#include "freeNav-base/basic_elements/point.h"
+#include "../freeNav-base/basic_elements/point.h"
 #include "CBS/space_time_astar.h"
 
 #include <sys/time.h>

@@ -7,7 +7,7 @@
 
 #include <memory>
 
-#include "freeNav-base/basic_elements/point.h"
+#include "../freeNav-base/basic_elements/point.h"
 
 namespace freeNav::LayeredMAPF {
 

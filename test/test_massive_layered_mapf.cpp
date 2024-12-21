@@ -39,8 +39,8 @@ auto is_char_occupied = [](const char& value) -> bool {
 };
 
 struct timezone tz;
-struct timeval tv_pre, tv_cur;
-struct timeval tv_after;
+struct timeval tv_pre, tv_cur, tv_pre1;
+struct timeval tv_after, tv_after1;
 
 MemoryRecorder memory_recorder(1000);
 
@@ -304,26 +304,26 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 
     bool all_success = SingleMapMAPFPathPlanningsTest<2>(dim, is_occupied_func, istss,
                                                          {
-//                                                          EECBS, // local test ok
-//                                                          EECBS_LAYERED,
+                                                          EECBS, // local test ok
+                                                          EECBS_LAYERED,
 
-//                                                          PBS, // local test ok
-//                                                          PBS_LAYERED,
+                                                          PBS, // local test ok
+                                                          PBS_LAYERED,
 
-                                                            LNS,
-                                                            LNS_LAYERED,
+                                                          LNS,
+                                                          LNS_LAYERED,
 
-//                                                          LaCAM2,
-//                                                          LaCAM2_LAYERED,
-//
-//                                                          PIBT2,
-//                                                          PIBT2_LAYERED,
+                                                        //   LaCAM2,
+                                                        //   LaCAM2_LAYERED,
 
-//                                                          HCA,
-//                                                          HCA_LAYERED,
-//
-//                                                          PushAndSwap,
-//                                                          PushAndSwap_LAYERED
+                                                        //   PIBT2,
+                                                        //   PIBT2_LAYERED,
+
+                                                          HCA,
+                                                          HCA_LAYERED,
+
+                                                        //   PushAndSwap,
+                                                        //   PushAndSwap_LAYERED
 
             },
                                                          map_test_config.at("output_path"),
@@ -337,7 +337,10 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 int main(void) {
     int cut_off_time = 30;
     int repeat_times = 1;
-    for(int i=0; i<300; i++) {
+    gettimeofday(&tv_pre1, &tz);
+
+    for(int i=0; i<1000; i++) {
+
         SingleMapMAPFTest(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120},
                           repeat_times, cut_off_time); // layered better
 
@@ -410,6 +413,11 @@ int main(void) {
         SingleMapMAPFTest(MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
                           repeat_times, cut_off_time);
 
+        gettimeofday(&tv_after1, &tz);
+        double time_cost = (tv_after1.tv_sec - tv_pre1.tv_sec) + (tv_after1.tv_usec - tv_pre1.tv_usec) / 1e6;
+
+        std::cout << "count = " << i << ", take " << time_cost << " s, mean time cost = " << time_cost/i << std::endl;
+        
     }
     return 0;
 }
