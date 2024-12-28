@@ -386,19 +386,19 @@ int main(void) {
 
 // new terminal
 
-        SingleMapMAPFTest(MAPFTestConfig_ht_chantry, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                          repeat_times, cut_off_time);
+        // SingleMapMAPFTest(MAPFTestConfig_ht_chantry, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+        //                   repeat_times, cut_off_time);
 
-        SingleMapMAPFTest(MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                          repeat_times, cut_off_time);
+        // SingleMapMAPFTest(MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+        //                   repeat_times, cut_off_time);
 
 // new terminal
 
-        // SingleMapMAPFTest(MAPFTestConfig_random_64_64_20, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-        //                   repeat_times, cut_off_time);
+        SingleMapMAPFTest(MAPFTestConfig_random_64_64_20, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                          repeat_times, cut_off_time);
 
-        // SingleMapMAPFTest(MAPFTestConfig_room_64_64_16, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-        //                   repeat_times, cut_off_time);
+        SingleMapMAPFTest(MAPFTestConfig_room_64_64_16, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                          repeat_times, cut_off_time);
 
 // new terminal
 
