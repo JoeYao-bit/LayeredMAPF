@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import ticker
 import os
+from PIL import Image
+import matplotlib.image as mpimg
 
 def loadDataFromfile(file_path):
     data_list = list()
@@ -21,7 +23,7 @@ def loadDataFromfile(file_path):
                 new_data.time_cost = float(splited_line[2])
                 new_data.total_cost = int(splited_line[3])
                 new_data.max_single_cost = int(splited_line[4])
-                new_data.success = int(splited_line[5])
+                new_data.success = float(splited_line[5])
                 new_data.max_memory_usage = float(splited_line[6])
                 
                 if np.isnan(new_data.total_cost):
@@ -177,7 +179,7 @@ def drawMethodMapAgentSizes(all_data_map, xlable, ylable, title, is_percentage=F
             
         save_path = save_path + "/multi_map_"+str(i)
         plt.savefig(save_path, dpi = 400, bbox_inches='tight')
-
+        # canvas.paste(plt, (0,0))
 
         # then create a new image
         # adjust the figure size as necessary
@@ -190,8 +192,7 @@ def drawMethodMapAgentSizes(all_data_map, xlable, ylable, title, is_percentage=F
         # hide the axes frame and the x/y labels
         ax_leg.axis('off')
         fig_leg.savefig('../test/pic/layered_MAPF/'+title+'/'+str(i)+'_legend.png',dpi = 400, bbox_inches='tight')
-        
-        plt.close()
+        plt.close('all')
         print("save path to " + save_path)
 
 
@@ -462,44 +463,38 @@ map_format_map = {
 
 # when draw how multiple maps in one figure, draw map that have similar agent size range in one figure 
 map_format_map_index = {
-                 "empty-16-16":1, # 120
-                 "empty-32-32":2, # 400
-                 # 2
-                 "maze-32-32-2":1, # 120
-                 "maze-32-32-4":1, # 240
-                 "maze-128-128-2":2, # 700
-                 "maze-128-128-10":3, # 1000
-                 # 6
-                 "den312d":2, # 800
-                 "den520d":3, # 900
-                 # 8
-                 "Berlin_1_256":3, # 900
-                 "Paris_1_256":3, # 1000
-                 # 10
-                 "ht_chantry":3, # 1000
-                 "lak303d":3, # 1000
-                 # 12
-                 "random-32-32-20":1,# 240
-                 "random-64-64-20":4,  # 1000
+                #  "empty-16-16":1, # 120
+                #  "room-32-32-4":1, # 200
+                #  "maze-32-32-2":1, # 120
+                #  "maze-32-32-4":1, # 240
+                #  "random-32-32-20":1,# 240
 
-                 # 14
-                 "room-32-32-4":1, # 200
-                 "room-64-64-8":2, # 700
-                 "room-64-64-16":4, # 1000
-                 # 17
-                 "warehouse-10-20-10-2-1":2, # 800
-                 "warehouse-10-20-10-2-2":4, # 1000
-                 "warehouse-20-40-10-2-1":4, # 1000
-                 "warehouse-20-40-10-2-2":4, # 1000
-                 # 21
-                 "Boston_0_256":4, # 1000
-                 "lt_gallowstemplar_n":4, # 1000
-                 "ost003d":4 # 1000
+                #  "empty-32-32":2, # 400
+                #  "maze-128-128-2":2, # 700
+                  "den312d":2, # 800
+                #  "room-64-64-8":2, # 700
+                #  "warehouse-10-20-10-2-1":2, # 800
+
+                #  "maze-128-128-10":3, # 1000
+                #  "den520d":3, # 900
+                #  "Berlin_1_256":3, # 900
+                #  "Paris_1_256":3, # 1000
+                #  "ht_chantry":3, # 1000
+                #  "lak303d":3, # 1000
+                 
+                #  "random-64-64-20":4,  # 1000
+                #  "room-64-64-16":4, # 1000
+                #  "warehouse-10-20-10-2-2":4, # 1000
+                #  "warehouse-20-40-10-2-1":4, # 1000
+                #  "warehouse-20-40-10-2-2":4, # 1000
+                #  "Boston_0_256":4, # 1000
+                #  "lt_gallowstemplar_n":4, # 1000
+                #  "ost003d":4 # 1000
 
 }
-
+ 
 # 1, load all data
-for map_name_key, map_format_value in map_format_map.items():
+for map_name_key, map_format_value in map_format_map_index.items():
     data_file_path = data_path_dir + map_name_key + '.txt'
     print('load data from', data_file_path)
     single = SingleTestData() # 不带括号则均指向同一元素
@@ -596,12 +591,18 @@ for single_data in all_single_data:
             all_method_makespan_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.max_single_cost)
 
 for method_key, method_value in all_method_time_cost_map.items(): 
+    
+    # if method_key != method_name:
+    #     continue
+    
+    # print(method_key+'/'+method_name)
     # draw at each agent size
     # drawMethodMaps(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)           
     # drawMethodMaps(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
     # drawMethodMaps(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
     # drawMethodMaps(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
     # drawMethodMaps(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)        
+    
     drawMethodMapAgentSizes(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)
     drawMethodMapAgentSizes(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
     drawMethodMapAgentSizes(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
@@ -609,16 +610,109 @@ for method_key, method_value in all_method_time_cost_map.items():
     drawMethodMapAgentSizes(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)    
     
     # draw summary of maps
-    drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)    
-    drawSummaryOfMap(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
-    drawSummaryOfMap(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
-    drawSummaryOfMap(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
-    drawSummaryOfMap(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)      
+    # drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)    
+    # drawSummaryOfMap(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
+    # drawSummaryOfMap(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
+    # drawSummaryOfMap(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
+    # drawSummaryOfMap(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)      
     
 #draw summary of methods
-drawSummaryOfMethod(all_method_time_cost_map, "Number of agents", "Time cost(ms)", "time_cost")           
-drawSummaryOfMethod(all_method_memory_usage_map, "Number of agents", "Memory usage(MB)", "memory_usage")           
-drawSummaryOfMethod(all_method_total_cost_map, "Number of agents", "Sum of cost", "sum_of_cost")           
-drawSummaryOfMethod(all_method_makespan_map, "Number of agents", "Makespan", "makespan")           
-drawSummaryOfMethod(all_method_success_rate_map, "Number of agents", "Success rate", "success_rate")      
+# drawSummaryOfMethod(all_method_time_cost_map, "Number of agents", "Time cost(ms)", "time_cost")           
+# drawSummaryOfMethod(all_method_memory_usage_map, "Number of agents", "Memory usage(MB)", "memory_usage")           
+# drawSummaryOfMethod(all_method_total_cost_map, "Number of agents", "Sum of cost", "sum_of_cost")           
+# drawSummaryOfMethod(all_method_makespan_map, "Number of agents", "Makespan", "makespan")           
+# drawSummaryOfMethod(all_method_success_rate_map, "Number of agents", "Success rate", "success_rate")      
 
+# TODO: create a big canvas that have all figures, simplify visualization
+# draw all figure of a method under all map (condensed into four fig, each fig have approx 6 maps)
+# five types of data, 
+#print('haha')
+
+
+def display_images_in_grid(image_files, method_name):
+    """
+    读取指定文件夹中的多张图片，并以网格形式显示在一张图上。
+    
+    参数:
+        image_folder (str): 图片所在的文件夹路径。
+        rows (int): 网格的行数。
+        cols (int): 网格的列数。
+    """
+    # 获取文件夹中的所有图片
+    #image_files = [f for f in os.listdir(image_folder) if f.endswith(('png', 'jpg', 'jpeg'))]
+    
+    # 检查图片数量
+    if len(image_files) == 0:
+        print("未找到图片，请检查文件夹路径和图片格式。")
+        return
+    
+    rows = 1
+    
+    print(rows)
+    
+    cols = 6
+    
+    # 限制图片数量以匹配网格
+    image_files = image_files[:rows * cols]
+    
+    # 创建子图
+    fig, axes = plt.subplots(rows, cols, figsize=(cols * 5, rows * 3.5))
+    axes = axes.flatten()  # 将多维数组转换为一维，方便迭代
+    
+    for i, ax in enumerate(axes):
+        if i < len(image_files):
+            #img_path = os.path.join(image_folder, image_files[i])
+            img = mpimg.imread(image_files[i])
+            ax.imshow(img)
+            ax.axis('off')  # 隐藏坐标轴
+            #ax.set_title(f'Image {i+1}')
+            ax.set_title(method_name)
+        else:
+            ax.axis('off')  # 多余的子图隐藏
+    
+    plt.tight_layout()
+    plt.show()
+    
+image_folder = '../test/pic/layered_MAPF/' 
+data_type_names = ['time_cost', 'success_rate', 'sum_of_cost', 'makespan', 'memory_usage']
+method_name = 'HCA'
+
+all_image_files = []
+
+for i in range(2, 5):
+    for type_name in data_type_names:
+        all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ 'multi_map_'+str(i)+'.png')
+        
+    all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ str(i)+'_legend.png')
+    
+    
+display_images_in_grid(all_image_files, method_name)
+
+# map_format_map_index
+# 1, empty-16-16: EECBS, PBS, LNS, HCA
+# 1, maze-32-32-4: EECBS, PBS, LNS, HCA
+# 1, room-32-32-4: EECBS, PBS，LNS, HCA
+# 1, maze-32-32-2: EECBS, PBS, LNS, HCA
+# 1, random-32-32-20: EECBS, PBS, LNS, HCA
+
+# 2, empty-32-32: EECBS, PBS, LNS, HCA
+# 2, maze-128-128-2: EECBS, PBS, LNS, HCA
+# 2, den312d: EECBS, PBS, LNS, HCA(ing)
+# 2, room-64-64-8: 
+# 2, warehouse-10-20-10-2-1: 
+
+# 3, maze-128-128-10: 
+# 3, den520d:
+# 3, Berlin_1_256: 
+# 3, Paris_1_256: 
+# 3, ht_chantry:
+# 3, lak303d: 
+    
+# 4, random-64-64-20: 
+# 4, room-64-64-16: 
+# 4, warehouse-10-20-10-2-2: all only one
+# 4, warehouse-20-40-10-2-1: all only one
+# 4, warehouse-20-40-10-2-2: all only one
+# 4, Boston_0_256: all only one
+# 4, lt_gallowstemplar_n: all only one
+# 4, ost003d: all only one

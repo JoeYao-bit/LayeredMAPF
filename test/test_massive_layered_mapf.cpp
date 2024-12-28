@@ -16,7 +16,7 @@
 #include "../third_party/lacam/include/planner.hpp"
 #include "../third_party/lacam2/include/lacam2.hpp"
 #include "../third_party/pibt2/include/driver.h"
-
+#include <random>
 
 using namespace freeNav;
 using namespace freeNav::LayeredMAPF;
@@ -50,11 +50,12 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
                                                const std::vector<int>& required_counts,
                                                int instance_count) {
     std::vector<std::set<int> > retv;
+    std::random_device rd;
     for(int i=0; i<instance_count; i++) {
         for(const int& required_count : required_counts) {
             std::set<int> instance;
             while(1) {
-                int current_pick = rand() % test_count;
+                int current_pick = rd() % test_count;
                 if(instance.find(current_pick) == instance.end()) {
                     instance.insert(current_pick);
                     if(instance.size() == required_count) {
@@ -336,28 +337,28 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 // each method have a common range of agents
 int main(void) {
     int cut_off_time = 30;
-    int repeat_times = 1;
+    int repeat_times = 10;
     gettimeofday(&tv_pre1, &tz);
 
-    for(int i=0; i<1000; i++) {
+    for(int i=0; i<1; i++) {
 
-        SingleMapMAPFTest(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120},
-                          repeat_times, cut_off_time); // layered better
+//        SingleMapMAPFTest(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120},
+//                          repeat_times, cut_off_time); // layered better
 
-        SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400},
-                          repeat_times, cut_off_time);
+//        SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400},
+//                          repeat_times, cut_off_time);
 
-        SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120},
-                          repeat_times, cut_off_time);
+//        SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120},
+//                          repeat_times, cut_off_time);
 
-        SingleMapMAPFTest(MAPFTestConfig_maze_32_32_4, {20, 40, 80, 120, 160, 200, 240},
-                          repeat_times, cut_off_time);
+//        SingleMapMAPFTest(MAPFTestConfig_maze_32_32_4, {20, 40, 80, 120, 160, 200, 240},
+//                          repeat_times, cut_off_time);
 
-        SingleMapMAPFTest(MAPFTestConfig_maze_128_128_2, {100, 200, 300, 400, 500, 600, 700},
-                          repeat_times, cut_off_time);
-
-        SingleMapMAPFTest(MAPFTestConfig_maze_128_128_10, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                          repeat_times, cut_off_time);
+//        SingleMapMAPFTest(MAPFTestConfig_maze_128_128_2, {100, 200, 300, 400, 500, 600, 700},
+//                          repeat_times, cut_off_time);
+//
+//        SingleMapMAPFTest(MAPFTestConfig_maze_128_128_10, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                          repeat_times, cut_off_time);
 
         SingleMapMAPFTest(MAPFTestConfig_den312d, {100, 200, 300, 400, 500, 600, 700, 800},
                           repeat_times, cut_off_time);
@@ -376,9 +377,9 @@ int main(void) {
 
         SingleMapMAPFTest(MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
                           repeat_times, cut_off_time);
-
-        SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240},
-                          repeat_times, cut_off_time);
+//
+//        SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240},
+//                          repeat_times, cut_off_time);
 
         SingleMapMAPFTest(MAPFTestConfig_random_64_64_20, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
                           repeat_times, cut_off_time);
@@ -388,10 +389,10 @@ int main(void) {
 
         SingleMapMAPFTest(MAPFTestConfig_room_64_64_8, {100, 200, 300, 400, 500, 600, 700},
                           repeat_times, cut_off_time);
-
-        SingleMapMAPFTest(MAPFTestConfig_room_32_32_4, {10, 20, 40, 60, 80, 120, 160, 200},
-                          repeat_times, cut_off_time);
-
+//
+//        SingleMapMAPFTest(MAPFTestConfig_room_32_32_4, {10, 20, 40, 60, 80, 120, 160, 200},
+//                          repeat_times, cut_off_time);
+//
         SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800},
                           repeat_times, cut_off_time);
 
@@ -416,7 +417,7 @@ int main(void) {
         gettimeofday(&tv_after1, &tz);
         double time_cost = (tv_after1.tv_sec - tv_pre1.tv_sec) + (tv_after1.tv_usec - tv_pre1.tv_usec) / 1e6;
 
-        std::cout << "count = " << i << ", take " << time_cost << " s, mean time cost = " << time_cost/i << std::endl;
+        std::cout << "count = " << i << ", take " << time_cost << " s, mean time cost = " << time_cost/(i+1) << std::endl;
         
     }
     return 0;
