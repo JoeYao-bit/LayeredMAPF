@@ -342,11 +342,15 @@ int main(void) {
 
     for(int i=0; i<1; i++) {
 
+// 1, new terminal
+
 //        SingleMapMAPFTest(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120},
 //                          repeat_times, cut_off_time); // layered better
 
 //        SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400},
 //                          repeat_times, cut_off_time);
+
+// 2, new terminal
 
 //        SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120},
 //                          repeat_times, cut_off_time);
@@ -354,13 +358,16 @@ int main(void) {
 //        SingleMapMAPFTest(MAPFTestConfig_maze_32_32_4, {20, 40, 80, 120, 160, 200, 240},
 //                          repeat_times, cut_off_time);
 
+// 3, new terminal
+
 //        SingleMapMAPFTest(MAPFTestConfig_maze_128_128_2, {100, 200, 300, 400, 500, 600, 700},
 //                          repeat_times, cut_off_time);
 //
 //        SingleMapMAPFTest(MAPFTestConfig_maze_128_128_10, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
 //                          repeat_times, cut_off_time);
 
-//
+// 4, new terminal
+
 //        SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240},
 //                          repeat_times, cut_off_time);
 
@@ -370,7 +377,7 @@ int main(void) {
 //
 
 // need 
-// new terminal
+// 5, new terminal
 
         // SingleMapMAPFTest(MAPFTestConfig_den312d, {100, 200, 300, 400, 500, 600, 700, 800},
         //                   repeat_times, cut_off_time);
@@ -384,7 +391,7 @@ int main(void) {
         // SingleMapMAPFTest(MAPFTestConfig_Paris_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
         //                   repeat_times, cut_off_time);
 
-// new terminal
+// 6, new terminal
 
         SingleMapMAPFTest(MAPFTestConfig_ht_chantry, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
                           repeat_times, cut_off_time);
@@ -392,7 +399,7 @@ int main(void) {
         SingleMapMAPFTest(MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
                           repeat_times, cut_off_time);
 
-// new terminal
+// 7, new terminal
 
         // SingleMapMAPFTest(MAPFTestConfig_random_64_64_20, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
         //                   repeat_times, cut_off_time);
@@ -400,7 +407,7 @@ int main(void) {
         // SingleMapMAPFTest(MAPFTestConfig_room_64_64_16, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
         //                   repeat_times, cut_off_time);
 
-// new terminal
+// 8, new terminal
 
         // SingleMapMAPFTest(MAPFTestConfig_room_64_64_8, {100, 200, 300, 400, 500, 600, 700},
         //                   repeat_times, cut_off_time);
@@ -408,7 +415,7 @@ int main(void) {
         // SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800},
         //                   repeat_times, cut_off_time);
 
-// new terminal
+// 9, new terminal
 
         // SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
         //                   repeat_times, cut_off_time);
@@ -416,7 +423,7 @@ int main(void) {
         // SingleMapMAPFTest(MAPFTestConfig_warehouse_20_40_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
         //                   repeat_times, cut_off_time);
 
-// new terminal
+// 11, new terminal
 
         // SingleMapMAPFTest(MAPFTestConfig_warehouse_20_40_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
         //                   repeat_times, cut_off_time);
@@ -424,7 +431,7 @@ int main(void) {
         // SingleMapMAPFTest(MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
         //                   repeat_times, cut_off_time);
 
-// new terminal
+// 12, new terminal
 
         // SingleMapMAPFTest(MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
         //                   repeat_times, cut_off_time);

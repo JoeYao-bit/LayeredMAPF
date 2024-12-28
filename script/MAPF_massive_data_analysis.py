@@ -710,9 +710,9 @@ display_images_in_grid(all_image_files, method_name)
     
 # 4, random-64-64-20: 
 # 4, room-64-64-16: 
-# 4, warehouse-10-20-10-2-2: all only one
-# 4, warehouse-20-40-10-2-1: all only one
-# 4, warehouse-20-40-10-2-2: all only one
-# 4, Boston_0_256: all only one
-# 4, lt_gallowstemplar_n: all only one
-# 4, ost003d: all only one
+# 4, warehouse-10-20-10-2-2: 
+# 4, warehouse-20-40-10-2-1: 
+# 4, warehouse-20-40-10-2-2:
+# 4, Boston_0_256: 
+# 4, lt_gallowstemplar_n: 
+# 4, ost003d: 
