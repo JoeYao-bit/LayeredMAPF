@@ -7,6 +7,8 @@
 #include "../include/util.hpp"
 namespace PIBT_2 {
 
+    bool solution_valid_flag = true;
+
     Problem::Problem(std::string _instance, path_pathfinding::Graph *_G, std::mt19937 *_MT,
                      Config _config_s, Config _config_g, int _num_agents,
                      int _max_timestep, int _max_comp_time)
