@@ -305,26 +305,27 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 
     bool all_success = SingleMapMAPFPathPlanningsTest<2>(dim, is_occupied_func, istss,
                                                          {
-                                                          EECBS, // local test ok
-                                                          EECBS_LAYERED,
+                                                        //   EECBS, // local test ok
+                                                        //   EECBS_LAYERED,
 
-                                                          PBS, // local test ok
-                                                          PBS_LAYERED,
+                                                        //   PBS, // local test ok
+                                                        //   PBS_LAYERED,
 
-                                                          LNS,
-                                                          LNS_LAYERED,
+                                                        //   LNS,
+                                                        //   LNS_LAYERED,
 
-                                                        //   LaCAM2,
-                                                        //   LaCAM2_LAYERED,
+                                                        //   HCA,
+                                                        //   HCA_LAYERED,
 
-                                                        //   PIBT2,
-                                                        //   PIBT2_LAYERED,
+                                                          LaCAM2,
+                                                          LaCAM2_LAYERED,
 
-                                                          HCA,
-                                                          HCA_LAYERED,
+                                                          PIBT2,
+                                                          PIBT2_LAYERED,
 
-                                                        //   PushAndSwap,
-                                                        //   PushAndSwap_LAYERED
+
+                                                          PushAndSwap,
+                                                          PushAndSwap_LAYERED
 
             },
                                                          map_test_config.at("output_path"),
@@ -344,37 +345,37 @@ int main(void) {
 
 // 1, new terminal
 
-//        SingleMapMAPFTest(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120},
-//                          repeat_times, cut_off_time); // layered better
+    //    SingleMapMAPFTest(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120},
+    //                      repeat_times, cut_off_time); // layered better
 
-//        SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400},
-//                          repeat_times, cut_off_time);
+    //    SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400},
+    //                      repeat_times, cut_off_time);
 
 // 2, new terminal
 
-//        SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120},
-//                          repeat_times, cut_off_time);
+    //    SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120},
+    //                      repeat_times, cut_off_time);
 
-//        SingleMapMAPFTest(MAPFTestConfig_maze_32_32_4, {20, 40, 80, 120, 160, 200, 240},
-//                          repeat_times, cut_off_time);
+    //    SingleMapMAPFTest(MAPFTestConfig_maze_32_32_4, {20, 40, 80, 120, 160, 200, 240},
+    //                      repeat_times, cut_off_time);
 
 // 3, new terminal
 
-//        SingleMapMAPFTest(MAPFTestConfig_maze_128_128_2, {100, 200, 300, 400, 500, 600, 700},
-//                          repeat_times, cut_off_time);
-//
-//        SingleMapMAPFTest(MAPFTestConfig_maze_128_128_10, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-//                          repeat_times, cut_off_time);
+    //    SingleMapMAPFTest(MAPFTestConfig_maze_128_128_2, {100, 200, 300, 400, 500, 600, 700},
+    //                      repeat_times, cut_off_time);
+
+    //    SingleMapMAPFTest(MAPFTestConfig_maze_128_128_10, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+    //                      repeat_times, cut_off_time);
 
 // 4, new terminal
 
-//        SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240},
-//                          repeat_times, cut_off_time);
+    //    SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240},
+    //                      repeat_times, cut_off_time);
 
-//
-//        SingleMapMAPFTest(MAPFTestConfig_room_32_32_4, {10, 20, 40, 60, 80, 120, 160, 200},
-//                          repeat_times, cut_off_time);
-//
+
+    //    SingleMapMAPFTest(MAPFTestConfig_room_32_32_4, {10, 20, 40, 60, 80, 120, 160, 200},
+    //                      repeat_times, cut_off_time);
+
 
 // need 
 // 5, new terminal
@@ -401,11 +402,11 @@ int main(void) {
 
 // 7, new terminal
 
-        SingleMapMAPFTest(MAPFTestConfig_random_64_64_20, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                          repeat_times, cut_off_time);
+        // SingleMapMAPFTest(MAPFTestConfig_random_64_64_20, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+        //                   repeat_times, cut_off_time);
 
-        SingleMapMAPFTest(MAPFTestConfig_room_64_64_16, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                          repeat_times, cut_off_time);
+        // SingleMapMAPFTest(MAPFTestConfig_room_64_64_16, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+        //                   repeat_times, cut_off_time);
 
 // 8, new terminal
 
@@ -433,11 +434,11 @@ int main(void) {
 
 // 12, new terminal
 
-        // SingleMapMAPFTest(MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-        //                   repeat_times, cut_off_time);
+        SingleMapMAPFTest(MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                          repeat_times, cut_off_time);
 
-        // SingleMapMAPFTest(MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-        //                   repeat_times, cut_off_time);
+        SingleMapMAPFTest(MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                          repeat_times, cut_off_time);
 
         gettimeofday(&tv_after1, &tz);
         double time_cost = (tv_after1.tv_sec - tv_pre1.tv_sec) + (tv_after1.tv_usec - tv_pre1.tv_usec) / 1e6;
