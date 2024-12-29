@@ -14,6 +14,8 @@ namespace PIBT_2 {
     }
 
     void PushAndSwap::run() {
+        solution_valid_flag = true;
+
         solution.add(P->getConfigStart());
 
         // occupancy
