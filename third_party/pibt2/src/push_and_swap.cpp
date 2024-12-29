@@ -100,6 +100,7 @@ namespace PIBT_2 {
         while (plan.last(id) != P->getGoal(id)) {
             while (occupied_now[v->id] == NIL) {
                 updatePlan(id, v, plan, occupied_now);
+                if(!solution_valid_flag) { return false; }
                 p_star.erase(p_star.begin());
                 if (p_star.empty()) return true;
                 v = p_star[0];
@@ -156,6 +157,7 @@ namespace PIBT_2 {
         for (int i = 0; i < P->getNum(); ++i) occupied_now[plan.last(i)->id] = i;
 
         executeSwap(plan, r, s, occupied_now);
+        if(!solution_valid_flag) { return false; }
         Plan reversed_tmp_plan;
         {
             const int makespan = tmp_plan.getMakespan();
@@ -234,16 +236,19 @@ namespace PIBT_2 {
                     // success
                     // r moves to v
                     updatePlan(_r, p[1], plan, occupied_now);
+                    if(!solution_valid_flag) { return false; }
                 }
             } else {
                 // success
                 // r moves to v
                 updatePlan(_r, p[1], plan, occupied_now);
+                if(!solution_valid_flag) { return false; }
             }
         }
 
         // s moves to its goal
         updatePlan(s, ideal_loc_s, plan, occupied_now);
+        if(!solution_valid_flag) { return false; }
         return true;
     }
 
@@ -252,7 +257,11 @@ namespace PIBT_2 {
         if (emergency_stop) return false;
 
         const int p_size = p.size();
-        if (p_size == 0) halt("path is empty");
+        if (p_size == 0) {
+            solution_valid_flag = false; // yz: replace halt with solve failed
+            return false;
+            //halt("path is empty");
+        }
 
         // case 1
         if (plan.last(s) != p[1]) {
@@ -263,8 +272,10 @@ namespace PIBT_2 {
                         return false;
                 }
                 updatePlan(r, p[i], plan, occupied_now);
+                if(!solution_valid_flag) { return false; }
                 // s moves to the last location of r;
                 updatePlan(s, p[i - 1], plan, occupied_now);
+                if(!solution_valid_flag) { return false; }
             }
 
             // case 2
@@ -277,13 +288,16 @@ namespace PIBT_2 {
                         return false;
                 }
                 updatePlan(s, p[i], plan, occupied_now);
+                if(!solution_valid_flag) { return false; }
                 // r moves to the last location of s;
                 updatePlan(r, p[i - 1], plan, occupied_now);
+                if(!solution_valid_flag) { return false; }
             }
             // r moves to last loc of p
             if (!pushTowardEmptyNode(p[p_size - 1], plan, occupied_now, {plan.last(r)}))
                 return false;
             updatePlan(r, p[p_size - 1], plan, occupied_now);
+            if(!solution_valid_flag) { return false; }
         }
 
         return true;
@@ -341,14 +355,19 @@ namespace PIBT_2 {
                 if (pushTowardEmptyNode(last_loc_s, plan, occupied_now, obs)) {
                     // move r to last_loc_s
                     updatePlan(r, last_loc_s, plan, occupied_now);
+                    if(!solution_valid_flag) { return false; }
                     // move disturbing_agent to v
                     updatePlan(disturbing_agent, v, plan, occupied_now);
+                    if(!solution_valid_flag) { return false; }
                     // move disturbing_agent to w
                     updatePlan(disturbing_agent, w, plan, occupied_now);
+                    if(!solution_valid_flag) { return false; }
                     // move r to v
                     updatePlan(r, v, plan, occupied_now);
+                    if(!solution_valid_flag) { return false; }
                     // move s to last_loc_s
                     updatePlan(s, last_loc_s, plan, occupied_now);
+                    if(!solution_valid_flag) { return false; }
                     // move disturbing_agent to another loc
                     auto obs2 = getUnoccupiedNodes();
                     obs2.push_back(v);
@@ -396,8 +415,14 @@ namespace PIBT_2 {
     void PushAndSwap::updatePlan(const int id, Node *next_node, Plan &plan,
                                  std::vector<int> &occupied_now) {
         // error check
-        if (occupied_now[plan.last(id)->id] != id) halt("invalid update");
-        if (occupied_now[next_node->id] != NIL) halt("vertex conflict");
+        if (occupied_now[plan.last(id)->id] != id) {
+            halt("invalid update");
+        }
+        if (occupied_now[next_node->id] != NIL) {
+            //halt("vertex conflict");
+            solution_valid_flag = false;
+            return;
+        }
         if (!(next_node == plan.last(id) ||
               inArray(next_node, plan.last(id)->neighbor))) {
             warn("invalid move due to clear operation");
@@ -425,6 +450,7 @@ namespace PIBT_2 {
         for (int i = p.size() - 1; i > 0; --i) {
             if (occupied_now[p[i - 1]->id] == NIL) halt("node must be occupied");
             updatePlan(occupied_now[p[i - 1]->id], p[i], plan, occupied_now);
+            if(!solution_valid_flag) { return false; }
         }
         return true;
     }
