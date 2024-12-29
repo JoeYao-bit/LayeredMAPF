@@ -424,7 +424,7 @@ int main(void) {
         // SingleMapMAPFTest(MAPFTestConfig_warehouse_20_40_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
         //                   repeat_times, cut_off_time);
 
-// 11, new terminal
+// 10, new terminal
 
         // SingleMapMAPFTest(MAPFTestConfig_warehouse_20_40_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
         //                   repeat_times, cut_off_time);
@@ -432,7 +432,7 @@ int main(void) {
         // SingleMapMAPFTest(MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
         //                   repeat_times, cut_off_time);
 
-// 12, new terminal
+// 11, new terminal
 
         SingleMapMAPFTest(MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
                           repeat_times, cut_off_time);
