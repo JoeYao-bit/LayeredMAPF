@@ -646,9 +646,9 @@ def display_images_in_grid(image_files, method_name):
         print("未找到图片，请检查文件夹路径和图片格式。")
         return
     
-    rows = 1
+    rows = int(len(image_files)/6)
     
-    print(rows)
+    print("rows", rows)
     
     cols = 6
     
@@ -679,7 +679,7 @@ method_name = 'HCA'
 
 all_image_files = []
 
-for i in range(2, 5):
+for i in range(1, 5):
     for type_name in data_type_names:
         all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ 'multi_map_'+str(i)+'.png')
         
