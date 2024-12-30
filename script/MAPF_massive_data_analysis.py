@@ -463,33 +463,37 @@ map_format_map = {
 
 # when draw how multiple maps in one figure, draw map that have similar agent size range in one figure 
 map_format_map_index = {
-                #  "empty-16-16":1, # 120
-                #  "room-32-32-4":1, # 200
-                #  "maze-32-32-2":1, # 120
-                #  "maze-32-32-4":1, # 240
-                #  "random-32-32-20":1,# 240
+                # 1
+                 "empty-16-16":1, # 120
+                 "room-32-32-4":1, # 200
+                 "maze-32-32-2":1, # 120
+                 "maze-32-32-4":1, # 240
+                 "random-32-32-20":1,# 240
 
-                #  "empty-32-32":2, # 400
-                #  "maze-128-128-2":2, # 700
+                # 2
+                 "empty-32-32":2, # 400
+                 "maze-128-128-2":2, # 700
                   "den312d":2, # 800
-                #  "room-64-64-8":2, # 700
-                #  "warehouse-10-20-10-2-1":2, # 800
+                 "room-64-64-8":2, # 700
+                 "warehouse-10-20-10-2-1":2, # 800
 
-                #  "maze-128-128-10":3, # 1000
-                #  "den520d":3, # 900
-                #  "Berlin_1_256":3, # 900
-                #  "Paris_1_256":3, # 1000
-                #  "ht_chantry":3, # 1000
-                #  "lak303d":3, # 1000
+                # 3
+                 "maze-128-128-10":3, # 1000
+                 "den520d":3, # 900
+                 "Berlin_1_256":3, # 900
+                 "Paris_1_256":3, # 1000
+                 "ht_chantry":3, # 1000
+                 "lak303d":3, # 1000
                  
-                #  "random-64-64-20":4,  # 1000
-                #  "room-64-64-16":4, # 1000
-                #  "warehouse-10-20-10-2-2":4, # 1000
-                #  "warehouse-20-40-10-2-1":4, # 1000
-                #  "warehouse-20-40-10-2-2":4, # 1000
-                #  "Boston_0_256":4, # 1000
-                #  "lt_gallowstemplar_n":4, # 1000
-                #  "ost003d":4 # 1000
+                 # 4
+                 "random-64-64-20":4,  # 1000
+                 "room-64-64-16":4, # 1000
+                 "warehouse-10-20-10-2-2":4, # 1000
+                 "warehouse-20-40-10-2-1":4, # 1000
+                 "warehouse-20-40-10-2-2":4, # 1000
+                 "Boston_0_256":4, # 1000
+                 "lt_gallowstemplar_n":4, # 1000
+                 "ost003d":4 # 1000
 
 }
  
@@ -675,7 +679,7 @@ def display_images_in_grid(image_files, method_name):
     
 image_folder = '../test/pic/layered_MAPF/' 
 data_type_names = ['time_cost', 'success_rate', 'sum_of_cost', 'makespan', 'memory_usage']
-method_name = 'HCA'
+method_name = 'LaCAM'
 
 all_image_files = []
 
@@ -687,6 +691,8 @@ for i in range(1, 5):
     
     
 display_images_in_grid(all_image_files, method_name)
+
+# all method: EECBS, PBS, LNS, HCA, LaCAM, PIBT2, PushAndSwap 
 
 # map_format_map_index
 # 1, empty-16-16: EECBS, PBS, LNS, HCA

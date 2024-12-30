@@ -273,7 +273,7 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 
     auto LaCAM2 = RAW_TEST_TYPE("RAW_LaCAM", LaCAM2::lacam2_MAPF, dim, cutoff_time_cost);
     // all layered mapf must start with "LAYERED_"
-    auto LaCAM2_LAYERED = LAYERED_TEST_TYPE("LAYERED_LaCAM", LaCAM::lacam_MAPF, dim, cutoff_time_cost, false);
+    auto LaCAM2_LAYERED = LAYERED_TEST_TYPE("LAYERED_LaCAM", LaCAM2::lacam2_MAPF, dim, cutoff_time_cost, false);
 
     auto PBS = RAW_TEST_TYPE("RAW_PBS", PBS_Li::pbs_MAPF, dim, cutoff_time_cost);
     // all layered mapf must start with "LAYERED_"
