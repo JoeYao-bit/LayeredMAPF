@@ -464,7 +464,7 @@ map_format_map = {
 # when draw how multiple maps in one figure, draw map that have similar agent size range in one figure 
 map_format_map_index = {
                 # 1
-                 "empty-16-16":1, # 120
+                  "empty-16-16":1, # 120
                  "room-32-32-4":1, # 200
                  "maze-32-32-2":1, # 120
                  "maze-32-32-4":1, # 240
@@ -529,12 +529,25 @@ drawing_method_set_2 = [
                       "EECBS", # tested ok, advance in time cost, nothing in memory usage
                       "PBS",  # tested ok, advance in time cost, advance in memory usage, full map
                       "PAS", # some map not ok, advance in time cost, nothing in memory usage, full map
-                      "LaCAM",# tested ok, drawback in time cost, drawback in memory usage, full map
+                      "LaCAM2",# tested ok, drawback in time cost, drawback in memory usage, full map
                       "HCA*", # test ok, advance in memory usage, drawback in time cost, full map
                       "PIBT+", # some map not ok，advance in memory usage, drawback in time cost, full map
                       "LNS2", # test ok, advance in memory usage, advance in time cost
                      ]
     
+    
+image_folder = '../test/pic/layered_MAPF/' 
+data_type_names = ['time_cost', 'success_rate', 'sum_of_cost', 'makespan', 'memory_usage']
+
+method_names_to_visualize = [#'EECBS',
+                             #'PBS',
+                             #'LNS',
+                             'HCA',
+                             #'LaCAM',
+                             #'PIBT2',
+                             #'PushAndSwap',
+                             ]
+
 for single_data in all_single_data:
     #map_name = single.map_name
     for line_data in single_data.data_list:
@@ -596,8 +609,8 @@ for single_data in all_single_data:
 
 for method_key, method_value in all_method_time_cost_map.items(): 
     
-    # if method_key != method_name:
-    #     continue
+    if method_key not in method_names_to_visualize:
+        continue
     
     # print(method_key+'/'+method_name)
     # draw at each agent size
@@ -614,18 +627,18 @@ for method_key, method_value in all_method_time_cost_map.items():
     drawMethodMapAgentSizes(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)    
     
     # draw summary of maps
-    # drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)    
-    # drawSummaryOfMap(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
-    # drawSummaryOfMap(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
-    # drawSummaryOfMap(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
-    # drawSummaryOfMap(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)      
+    drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)    
+    drawSummaryOfMap(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
+    drawSummaryOfMap(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
+    drawSummaryOfMap(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
+    drawSummaryOfMap(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)      
     
 #draw summary of methods
-# drawSummaryOfMethod(all_method_time_cost_map, "Number of agents", "Time cost(ms)", "time_cost")           
-# drawSummaryOfMethod(all_method_memory_usage_map, "Number of agents", "Memory usage(MB)", "memory_usage")           
-# drawSummaryOfMethod(all_method_total_cost_map, "Number of agents", "Sum of cost", "sum_of_cost")           
-# drawSummaryOfMethod(all_method_makespan_map, "Number of agents", "Makespan", "makespan")           
-# drawSummaryOfMethod(all_method_success_rate_map, "Number of agents", "Success rate", "success_rate")      
+drawSummaryOfMethod(all_method_time_cost_map, "Number of agents", "Time cost(ms)", "time_cost")           
+drawSummaryOfMethod(all_method_memory_usage_map, "Number of agents", "Memory usage(MB)", "memory_usage")           
+drawSummaryOfMethod(all_method_total_cost_map, "Number of agents", "Sum of cost", "sum_of_cost")           
+drawSummaryOfMethod(all_method_makespan_map, "Number of agents", "Makespan", "makespan")           
+drawSummaryOfMethod(all_method_success_rate_map, "Number of agents", "Success rate", "success_rate")      
 
 # TODO: create a big canvas that have all figures, simplify visualization
 # draw all figure of a method under all map (condensed into four fig, each fig have approx 6 maps)
@@ -652,7 +665,7 @@ def display_images_in_grid(image_files, method_name):
     
     rows = int(len(image_files)/6)
     
-    print("rows", rows)
+    # print("rows", rows)
     
     cols = 6
     
@@ -675,22 +688,63 @@ def display_images_in_grid(image_files, method_name):
             ax.axis('off')  # 多余的子图隐藏
     
     plt.tight_layout()
-    plt.show()
+    save_path = '../test/pic/layered_MAPF/'+method_name+'_summary'
     
-image_folder = '../test/pic/layered_MAPF/' 
-data_type_names = ['time_cost', 'success_rate', 'sum_of_cost', 'makespan', 'memory_usage']
-method_name = 'LaCAM'
-
-all_image_files = []
-
-for i in range(1, 5):
-    for type_name in data_type_names:
-        all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ 'multi_map_'+str(i)+'.png')
+    # if not os.path.exists(save_path):
+    #     os.makedirs(save_path)
+    #     print("Folder: " + save_path + " created")
         
-    all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ str(i)+'_legend.png')
+    plt.savefig(save_path, dpi = 400, bbox_inches='tight')   
+    plt.close()
     
+def removeMethodDataFromFile(file_path, temp_method_name):
+    filtered_lines = list()
+    try:
+        with open(file_path, "r") as f:
+            lines = f.readlines()
+            for line in lines:
+                splited_line = line.split()
+                # print('old_line=',line)
+                head_split = splited_line[0].split('_')
+                if head_split[1] != temp_method_name:
+                    # print('new_line=',line)
+                    filtered_lines.append(line)
+        f.close()
+            #print(new_data.method, ' ', new_data.path_count, ' ', new_data.real_path_count, ' ', new_data.time_cost)
+    except Exception as e:            
+        print(e)  
+        
+    try:
+        with open(file_path, 'w') as f:
+            f.writelines(filtered_lines)    
+        f.close()    
+    except Exception as e:            
+        print(e)             
     
-display_images_in_grid(all_image_files, method_name)
+def removeMethodDataFromFiles(map_format_map_index_local, method_name_local):
+    for map_name_key, map_format_value in map_format_map_index_local.items():
+        data_file_path = data_path_dir + map_name_key + '.txt'
+        print('remove data of ', method_name_local, ' from', data_file_path)
+        removeMethodDataFromFile(data_file_path, method_name_local)
+    
+
+
+for method_name in method_names_to_visualize:
+
+    all_image_files = []
+
+    for i in range(1, 5):
+        for type_name in data_type_names:
+            all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ 'multi_map_'+str(i)+'.png')
+            
+        all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ str(i)+'_legend.png')
+        
+        
+    display_images_in_grid(all_image_files, method_name)
+
+
+# removeMethodDataFromfile("../test/test_data/layered_mapf/Berlin_1_256.txt", 'HCA')
+# removeMethodDataFromFiles(map_format_map_index, 'HCA')
 
 # all method: EECBS, PBS, LNS, HCA, LaCAM, PIBT2, PushAndSwap 
 
@@ -722,3 +776,5 @@ display_images_in_grid(all_image_files, method_name)
 # 4, Boston_0_256: 
 # 4, lt_gallowstemplar_n: 
 # 4, ost003d: 
+
+
