@@ -464,7 +464,7 @@ map_format_map = {
 # when draw how multiple maps in one figure, draw map that have similar agent size range in one figure 
 map_format_map_index = {
                 # 1
-                 "empty-16-16":1, # 120
+                  "empty-16-16":1, # 120
                  "room-32-32-4":1, # 200
                  "maze-32-32-2":1, # 120
                  "maze-32-32-4":1, # 240
@@ -498,13 +498,13 @@ map_format_map_index = {
 }
  
 # 1, load all data
-for map_name_key, map_format_value in map_format_map_index.items():
-    data_file_path = data_path_dir + map_name_key + '.txt'
-    print('load data from', data_file_path)
-    single = SingleTestData() # 不带括号则均指向同一元素
-    single.map_name = map_name_key
-    single.data_list = loadDataFromfile(data_file_path)
-    all_single_data.append(single)
+# for map_name_key, map_format_value in map_format_map_index.items():
+#     data_file_path = data_path_dir + map_name_key + '.txt'
+#     print('load data from', data_file_path)
+#     single = SingleTestData() # 不带括号则均指向同一元素
+#     single.map_name = map_name_key
+#     single.data_list = loadDataFromfile(data_file_path)
+#     all_single_data.append(single)
     
 
 all_method_time_cost_map = dict()
@@ -677,20 +677,54 @@ def display_images_in_grid(image_files, method_name):
     plt.tight_layout()
     plt.show()
     
+def removeMethodDataFromFile(file_path, temp_method_name):
+    filtered_lines = list()
+    try:
+        with open(file_path, "r") as f:
+            lines = f.readlines()
+            for line in lines:
+                splited_line = line.split()
+                # print('old_line=',line)
+                head_split = splited_line[0].split('_')
+                if head_split[1] != temp_method_name:
+                    # print('new_line=',line)
+                    filtered_lines.append(line)
+        f.close()
+            #print(new_data.method, ' ', new_data.path_count, ' ', new_data.real_path_count, ' ', new_data.time_cost)
+    except Exception as e:            
+        print(e)  
+        
+    try:
+        with open(file_path, 'w') as f:
+            f.writelines(filtered_lines)    
+        f.close()    
+    except Exception as e:            
+        print(e)             
+    
+def removeMethodDataFromFiles(map_format_map_index_local, method_name_local):
+    for map_name_key, map_format_value in map_format_map_index_local.items():
+        data_file_path = data_path_dir + map_name_key + '.txt'
+        print('remove data of ', method_name_local, ' from', data_file_path)
+        removeMethodDataFromFile(data_file_path, method_name_local)
+    
 image_folder = '../test/pic/layered_MAPF/' 
 data_type_names = ['time_cost', 'success_rate', 'sum_of_cost', 'makespan', 'memory_usage']
-method_name = 'LaCAM'
+method_name = 'PIBT2'
 
-all_image_files = []
+# all_image_files = []
 
-for i in range(1, 5):
-    for type_name in data_type_names:
-        all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ 'multi_map_'+str(i)+'.png')
+# for i in range(1, 5):
+#     for type_name in data_type_names:
+#         all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ 'multi_map_'+str(i)+'.png')
         
-    all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ str(i)+'_legend.png')
+#     all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ str(i)+'_legend.png')
     
     
-display_images_in_grid(all_image_files, method_name)
+# display_images_in_grid(all_image_files, method_name)
+
+
+# removeMethodDataFromfile("../test/test_data/layered_mapf/Berlin_1_256.txt", 'HCA')
+removeMethodDataFromFiles(map_format_map_index, 'HCA')
 
 # all method: EECBS, PBS, LNS, HCA, LaCAM, PIBT2, PushAndSwap 
 
@@ -722,3 +756,5 @@ display_images_in_grid(all_image_files, method_name)
 # 4, Boston_0_256: 
 # 4, lt_gallowstemplar_n: 
 # 4, ost003d: 
+
+
