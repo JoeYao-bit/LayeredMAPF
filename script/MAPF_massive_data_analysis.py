@@ -529,25 +529,12 @@ drawing_method_set_2 = [
                       "EECBS", # tested ok, advance in time cost, nothing in memory usage
                       "PBS",  # tested ok, advance in time cost, advance in memory usage, full map
                       "PAS", # some map not ok, advance in time cost, nothing in memory usage, full map
-                      "LaCAM2",# tested ok, drawback in time cost, drawback in memory usage, full map
+                      "LaCAM",# tested ok, drawback in time cost, drawback in memory usage, full map
                       "HCA*", # test ok, advance in memory usage, drawback in time cost, full map
                       "PIBT+", # some map not ok，advance in memory usage, drawback in time cost, full map
                       "LNS2", # test ok, advance in memory usage, advance in time cost
                      ]
     
-    
-image_folder = '../test/pic/layered_MAPF/' 
-data_type_names = ['time_cost', 'success_rate', 'sum_of_cost', 'makespan', 'memory_usage']
-
-method_names_to_visualize = [#'EECBS',
-                             #'PBS',
-                             #'LNS',
-                             'HCA',
-                             #'LaCAM',
-                             #'PIBT2',
-                             #'PushAndSwap',
-                             ]
-
 for single_data in all_single_data:
     #map_name = single.map_name
     for line_data in single_data.data_list:
@@ -609,8 +596,8 @@ for single_data in all_single_data:
 
 for method_key, method_value in all_method_time_cost_map.items(): 
     
-    if method_key not in method_names_to_visualize:
-        continue
+    # if method_key != method_name:
+    #     continue
     
     # print(method_key+'/'+method_name)
     # draw at each agent size
@@ -627,18 +614,18 @@ for method_key, method_value in all_method_time_cost_map.items():
     drawMethodMapAgentSizes(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)    
     
     # draw summary of maps
-    drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)    
-    drawSummaryOfMap(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
-    drawSummaryOfMap(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
-    drawSummaryOfMap(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
-    drawSummaryOfMap(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)      
+    # drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)    
+    # drawSummaryOfMap(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
+    # drawSummaryOfMap(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
+    # drawSummaryOfMap(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
+    # drawSummaryOfMap(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)      
     
 #draw summary of methods
-drawSummaryOfMethod(all_method_time_cost_map, "Number of agents", "Time cost(ms)", "time_cost")           
-drawSummaryOfMethod(all_method_memory_usage_map, "Number of agents", "Memory usage(MB)", "memory_usage")           
-drawSummaryOfMethod(all_method_total_cost_map, "Number of agents", "Sum of cost", "sum_of_cost")           
-drawSummaryOfMethod(all_method_makespan_map, "Number of agents", "Makespan", "makespan")           
-drawSummaryOfMethod(all_method_success_rate_map, "Number of agents", "Success rate", "success_rate")      
+# drawSummaryOfMethod(all_method_time_cost_map, "Number of agents", "Time cost(ms)", "time_cost")           
+# drawSummaryOfMethod(all_method_memory_usage_map, "Number of agents", "Memory usage(MB)", "memory_usage")           
+# drawSummaryOfMethod(all_method_total_cost_map, "Number of agents", "Sum of cost", "sum_of_cost")           
+# drawSummaryOfMethod(all_method_makespan_map, "Number of agents", "Makespan", "makespan")           
+# drawSummaryOfMethod(all_method_success_rate_map, "Number of agents", "Success rate", "success_rate")      
 
 # TODO: create a big canvas that have all figures, simplify visualization
 # draw all figure of a method under all map (condensed into four fig, each fig have approx 6 maps)
@@ -665,7 +652,7 @@ def display_images_in_grid(image_files, method_name):
     
     rows = int(len(image_files)/6)
     
-    # print("rows", rows)
+    print("rows", rows)
     
     cols = 6
     
@@ -688,14 +675,7 @@ def display_images_in_grid(image_files, method_name):
             ax.axis('off')  # 多余的子图隐藏
     
     plt.tight_layout()
-    save_path = '../test/pic/layered_MAPF/'+method_name+'_summary'
-    
-    # if not os.path.exists(save_path):
-    #     os.makedirs(save_path)
-    #     print("Folder: " + save_path + " created")
-        
-    plt.savefig(save_path, dpi = 400, bbox_inches='tight')   
-    plt.close()
+    plt.show()
     
 def removeMethodDataFromFile(file_path, temp_method_name):
     filtered_lines = list()
@@ -727,24 +707,24 @@ def removeMethodDataFromFiles(map_format_map_index_local, method_name_local):
         print('remove data of ', method_name_local, ' from', data_file_path)
         removeMethodDataFromFile(data_file_path, method_name_local)
     
+image_folder = '../test/pic/layered_MAPF/' 
+data_type_names = ['time_cost', 'success_rate', 'sum_of_cost', 'makespan', 'memory_usage']
+method_name = 'HCA'
 
+# all_image_files = []
 
-for method_name in method_names_to_visualize:
-
-    all_image_files = []
-
-    for i in range(1, 5):
-        for type_name in data_type_names:
-            all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ 'multi_map_'+str(i)+'.png')
-            
-        all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ str(i)+'_legend.png')
+# for i in range(1, 5):
+#     for type_name in data_type_names:
+#         all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ 'multi_map_'+str(i)+'.png')
         
-        
-    display_images_in_grid(all_image_files, method_name)
+#     all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ str(i)+'_legend.png')
+    
+    
+# display_images_in_grid(all_image_files, method_name)
 
 
 # removeMethodDataFromfile("../test/test_data/layered_mapf/Berlin_1_256.txt", 'HCA')
-# removeMethodDataFromFiles(map_format_map_index, 'HCA')
+removeMethodDataFromFiles(map_format_map_index, 'PIBT2')
 
 # all method: EECBS, PBS, LNS, HCA, LaCAM, PIBT2, PushAndSwap 
 

@@ -73,7 +73,7 @@ namespace PIBT_2 {
               LB_makespan(0),
               distance_table(_P->getNum(),
                              std::vector<int>(G->getNodesSize(), max_timestep)),
-              distance_table_p(nullptr) {
+              distance_table_p({}) {
     }
 
     MAPF_Solver::~MAPF_Solver() {}
@@ -83,7 +83,7 @@ namespace PIBT_2 {
 // -------------------------------
     void MAPF_Solver::exec() {
         // create distance table
-        if (distance_table_p == nullptr) {
+        if (distance_table_p.empty()) {
             info("  pre-processing, create distance table by BFS");
             createDistanceTable();
             preprocessing_comp_time = getSolverElapsedTime();
@@ -236,8 +236,8 @@ namespace PIBT_2 {
 // distance
 // -------------------------------
     int MAPF_Solver::pathDist(const int i, Node *const s) const {
-        if (distance_table_p != nullptr) {
-            return distance_table_p->operator[](i)[s->id];
+        if (!distance_table_p.empty()) {
+            return distance_table_p.operator[](i)[s->id];
         }
         return distance_table[i][s->id];
     }
