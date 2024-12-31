@@ -498,13 +498,13 @@ map_format_map_index = {
 }
  
 # 1, load all data
-# for map_name_key, map_format_value in map_format_map_index.items():
-#     data_file_path = data_path_dir + map_name_key + '.txt'
-#     print('load data from', data_file_path)
-#     single = SingleTestData() # 不带括号则均指向同一元素
-#     single.map_name = map_name_key
-#     single.data_list = loadDataFromfile(data_file_path)
-#     all_single_data.append(single)
+for map_name_key, map_format_value in map_format_map_index.items():
+    data_file_path = data_path_dir + map_name_key + '.txt'
+    print('load data from', data_file_path)
+    single = SingleTestData() # 不带括号则均指向同一元素
+    single.map_name = map_name_key
+    single.data_list = loadDataFromfile(data_file_path)
+    all_single_data.append(single)
     
 
 all_method_time_cost_map = dict()
@@ -709,7 +709,7 @@ def removeMethodDataFromFiles(map_format_map_index_local, method_name_local):
     
 image_folder = '../test/pic/layered_MAPF/' 
 data_type_names = ['time_cost', 'success_rate', 'sum_of_cost', 'makespan', 'memory_usage']
-method_name = 'PIBT2'
+method_name = 'HCA'
 
 # all_image_files = []
 
@@ -724,7 +724,7 @@ method_name = 'PIBT2'
 
 
 # removeMethodDataFromfile("../test/test_data/layered_mapf/Berlin_1_256.txt", 'HCA')
-removeMethodDataFromFiles(map_format_map_index, 'HCA')
+removeMethodDataFromFiles(map_format_map_index, 'PIBT2')
 
 # all method: EECBS, PBS, LNS, HCA, LaCAM, PIBT2, PushAndSwap 
 

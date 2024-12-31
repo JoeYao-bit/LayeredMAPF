@@ -15,6 +15,7 @@
 namespace PIBT_2 {
 
     extern std::set<int> visited_grid_; // yz: visited grid during path search
+    using DistanceTable = std::vector<std::vector<int>>;  // [agent][node_id]
 
     class MinimumSolver {
     protected:
@@ -187,10 +188,10 @@ namespace PIBT_2 {
         int LB_makespan;  // lower bound of makespan
 
         // distance to goal
-    protected:
-        using DistanceTable = std::vector<std::vector<int>>;  // [agent][node_id]
+    public:
+//        using DistanceTable = std::vector<std::vector<int>>;  // [agent][node_id]
         DistanceTable distance_table;                         // distance table
-        DistanceTable *distance_table_p;  // pointer, used in nested solvers
+        DistanceTable distance_table_p;  // pointer, used in nested solvers
         int preprocessing_comp_time;      // computation time
 
         // -------------------------------
@@ -269,7 +270,7 @@ namespace PIBT_2 {
                      Node *const s) const;  // get path distance between s -> g_i
         int pathDist(const int i) const;    // get path distance between s_i -> g_i
         void createDistanceTable();         // compute distance table
-        void setDistanceTable(DistanceTable *p) {
+        void setDistanceTable(const DistanceTable& p) {
             distance_table_p = p;
         }  // used in nested solvers
 
