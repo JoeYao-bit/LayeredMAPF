@@ -120,7 +120,7 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
         Paths<2> retv; \
         std::vector<Paths<2> > pathss;                                                             \
         CBS_Li::ConstraintTable* layered_ct = new CBS_Li::ConstraintTable(dim[0], dim[0]*dim[1]);  \
-        max_size_of_stack_layered = 0; \
+        max_size_of_stack_layered = 0; PIBT_2::layered_PIBT2 = true;                          \
         for(int i=0; i<instance_decompose->all_clusters_.size(); i++) { \
             std::set<int> current_id_set = instance_decompose->all_clusters_[i]; \
             Instances<2> ists; \
@@ -178,6 +178,7 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
             retv.insert(retv.end(), next_paths.begin(), next_paths.end()); \
             pathss.push_back(next_paths); \
         }                                                                                          \
+        PIBT_2::layered_PIBT2 = false;                                                                                           \
         if(layered_ct != nullptr) {                                                                                   \
             delete layered_ct; \
             layered_ct = nullptr;                                                              \
@@ -213,7 +214,7 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
            << instance_decompose->cluster_decomposition_time_cost_ << " " \
            << instance_decompose->sort_level_time_cost_ << " "; \
         outputStream = ss.str();                                                                   \
-        std::cout << name << " finish" << std::endl;\
+        std::cout << name << " finish" << std::endl;                                               \
     } \
 
 bool
@@ -311,14 +312,14 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 //                                                          PBS, // local test ok
 //                                                          PBS_LAYERED,
 
-                                                          LNS,
-                                                          LNS_LAYERED,
+//                                                          LNS,
+//                                                          LNS_LAYERED,
 
 //                                                          LaCAM2,
 //                                                          LaCAM2_LAYERED,
 //
-//                                                          PIBT2,
-//                                                          PIBT2_LAYERED,
+                                                          PIBT2,
+                                                          PIBT2_LAYERED,
 
 //                                                          HCA,
 //                                                          HCA_LAYERED,
@@ -338,78 +339,78 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 int main(void) {
     int cut_off_time = 30;
     int repeat_times = 1;
-    for(int i=0; i<300; i++) {
+    for(int i=0; i<1; i++) {
         SingleMapMAPFTest(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120},
                           repeat_times, cut_off_time); // layered better
 
-        SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400},
-                          repeat_times, cut_off_time);
-
-        SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120},
-                          repeat_times, cut_off_time);
-
-        SingleMapMAPFTest(MAPFTestConfig_maze_32_32_4, {20, 40, 80, 120, 160, 200, 240},
-                          repeat_times, cut_off_time);
-
-        SingleMapMAPFTest(MAPFTestConfig_maze_128_128_2, {100, 200, 300, 400, 500, 600, 700},
-                          repeat_times, cut_off_time);
-
-        SingleMapMAPFTest(MAPFTestConfig_maze_128_128_10, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                          repeat_times, cut_off_time);
-
-        SingleMapMAPFTest(MAPFTestConfig_den312d, {100, 200, 300, 400, 500, 600, 700, 800},
-                          repeat_times, cut_off_time);
-
-        SingleMapMAPFTest(MAPFTestConfig_den520d, {100, 200, 300, 400, 500, 600, 700, 800, 900},
-                          repeat_times, cut_off_time);
-
-        SingleMapMAPFTest(MAPFTestConfig_Berlin_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900},
-                          repeat_times, cut_off_time);
-
-        SingleMapMAPFTest(MAPFTestConfig_Paris_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                          repeat_times, cut_off_time);
-
-        SingleMapMAPFTest(MAPFTestConfig_ht_chantry, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                          repeat_times, cut_off_time);
-
-        SingleMapMAPFTest(MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                          repeat_times, cut_off_time);
-
-        SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240},
-                          repeat_times, cut_off_time);
-
-        SingleMapMAPFTest(MAPFTestConfig_random_64_64_20, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                          repeat_times, cut_off_time);
-
-        SingleMapMAPFTest(MAPFTestConfig_room_64_64_16, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                          repeat_times, cut_off_time);
-
-        SingleMapMAPFTest(MAPFTestConfig_room_64_64_8, {100, 200, 300, 400, 500, 600, 700},
-                          repeat_times, cut_off_time);
-
-        SingleMapMAPFTest(MAPFTestConfig_room_32_32_4, {10, 20, 40, 60, 80, 120, 160, 200},
-                          repeat_times, cut_off_time);
-
-        SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800},
-                          repeat_times, cut_off_time);
-
-        SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                          repeat_times, cut_off_time);
-
-        SingleMapMAPFTest(MAPFTestConfig_warehouse_20_40_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                          repeat_times, cut_off_time);
-
-        SingleMapMAPFTest(MAPFTestConfig_warehouse_20_40_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                          repeat_times, cut_off_time);
-
-        SingleMapMAPFTest(MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                          repeat_times, cut_off_time);
-
-        SingleMapMAPFTest(MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                          repeat_times, cut_off_time);
-
-        SingleMapMAPFTest(MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                          repeat_times, cut_off_time);
+//        SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400},
+//                          repeat_times, cut_off_time);
+//
+//        SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120},
+//                          repeat_times, cut_off_time);
+//
+//        SingleMapMAPFTest(MAPFTestConfig_maze_32_32_4, {20, 40, 80, 120, 160, 200, 240},
+//                          repeat_times, cut_off_time);
+//
+//        SingleMapMAPFTest(MAPFTestConfig_maze_128_128_2, {100, 200, 300, 400, 500, 600, 700},
+//                          repeat_times, cut_off_time);
+//
+//        SingleMapMAPFTest(MAPFTestConfig_maze_128_128_10, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                          repeat_times, cut_off_time);
+//
+//        SingleMapMAPFTest(MAPFTestConfig_den312d, {100, 200, 300, 400, 500, 600, 700, 800},
+//                          repeat_times, cut_off_time);
+//
+//        SingleMapMAPFTest(MAPFTestConfig_den520d, {100, 200, 300, 400, 500, 600, 700, 800, 900},
+//                          repeat_times, cut_off_time);
+//
+//        SingleMapMAPFTest(MAPFTestConfig_Berlin_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900},
+//                          repeat_times, cut_off_time);
+//
+//        SingleMapMAPFTest(MAPFTestConfig_Paris_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                          repeat_times, cut_off_time);
+//
+//        SingleMapMAPFTest(MAPFTestConfig_ht_chantry, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                          repeat_times, cut_off_time);
+//
+//        SingleMapMAPFTest(MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                          repeat_times, cut_off_time);
+//
+//        SingleMapMAPFTest(MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240},
+//                          repeat_times, cut_off_time);
+//
+//        SingleMapMAPFTest(MAPFTestConfig_random_64_64_20, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                          repeat_times, cut_off_time);
+//
+//        SingleMapMAPFTest(MAPFTestConfig_room_64_64_16, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                          repeat_times, cut_off_time);
+//
+//        SingleMapMAPFTest(MAPFTestConfig_room_64_64_8, {100, 200, 300, 400, 500, 600, 700},
+//                          repeat_times, cut_off_time);
+//
+//        SingleMapMAPFTest(MAPFTestConfig_room_32_32_4, {10, 20, 40, 60, 80, 120, 160, 200},
+//                          repeat_times, cut_off_time);
+//
+//        SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800},
+//                          repeat_times, cut_off_time);
+//
+//        SingleMapMAPFTest(MAPFTestConfig_warehouse_10_20_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                          repeat_times, cut_off_time);
+//
+//        SingleMapMAPFTest(MAPFTestConfig_warehouse_20_40_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                          repeat_times, cut_off_time);
+//
+//        SingleMapMAPFTest(MAPFTestConfig_warehouse_20_40_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                          repeat_times, cut_off_time);
+//
+//        SingleMapMAPFTest(MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                          repeat_times, cut_off_time);
+//
+//        SingleMapMAPFTest(MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                          repeat_times, cut_off_time);
+//
+//        SingleMapMAPFTest(MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                          repeat_times, cut_off_time);
 
     }
     return 0;
