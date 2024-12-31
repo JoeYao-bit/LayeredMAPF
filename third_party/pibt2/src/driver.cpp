@@ -59,7 +59,7 @@ namespace PIBT_2 {
         solver->setLogShort(true);
         solver->solve();
         if(layered_PIBT2) { external_distance_table = solver->distance_table; }
-        if (solver->succeed() //&& !solver->getSolution().validate(&P)
+        if (solver->succeed() && !solver->getSolution().validate(&P)
                 ) {
             std::cout << "pibt2_MAPF: invalid results" << std::endl;
             return {};
