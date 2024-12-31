@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
     // comparing to the raw version, the layered vision will add more static constraint
     // so avoid the copy of static constraint table, will increase the performance of layered mapf
 
-    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, CBS_Li::eecbs_MAPF, CBS_Li::eecbs_MAPF, true);
+    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, PIBT_2::pibt_MAPF, CBS_Li::eecbs_MAPF, true);
 
     gettimeofday(&tv_after, &tz);
     double layered_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;

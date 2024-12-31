@@ -26,7 +26,7 @@ namespace PIBT_2 {
                                 max_comp_time, LB_makespan);
         auto init_solver = std::make_unique<PIBT>(&_P);
         init_solver->setDistanceTable(
-                (distance_table_p == nullptr) ? &distance_table : distance_table_p);
+                (distance_table_p.empty()) ? distance_table : distance_table_p);
         info(" ", "run PIBT until timestep", LB_makespan);
         init_solver->solve();
         solution = init_solver->getSolution();
@@ -45,7 +45,7 @@ namespace PIBT_2 {
 
             // set solver options
             comp_solver->setDistanceTable(
-                    (distance_table_p == nullptr) ? &distance_table : distance_table_p);
+                    (distance_table_p.empty()) ? distance_table : distance_table_p);
 
             info(" ", "elapsed:", getSolverElapsedTime(), ", use",
                  comp_solver->getSolverName(), "to complement the remain");

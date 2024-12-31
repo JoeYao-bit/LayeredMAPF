@@ -28,7 +28,6 @@ using namespace freeNav;
 using namespace freeNav::LayeredMAPF;
 
 Viewer3D* viewer_3d;
-ThreadPool viewer_thread(1);
 
 struct timezone tz;
 struct timeval tv_pre;
@@ -53,7 +52,7 @@ GridPtr<3> sg1 = std::make_shared<Grid<3>>(),
 // MAPFTestConfig_lak303d
 // MAPFTestConfig_simple
 // MAPFTestConfig_empty_48_48
-auto map_test_config = MAPFTestConfig_lak303d;
+auto map_test_config = MAPFTestConfig_Boston_0_256;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -72,7 +71,7 @@ SET_OCCUPIED_FUNC<2> set_occupied_func = set_occupied;
 
 std::set<int> visited_grid_during_lacam;
 int main(int argc, char** argv) {
-    MemoryRecorder memory_recorder(50);
+    //MemoryRecorder memory_recorder(50);
     std::cout << " map name " << map_test_config.at("map_path")  << std::endl;
     // load mapf scene
     const auto& dim = loader.getDimensionInfo();
@@ -93,8 +92,8 @@ int main(int argc, char** argv) {
     std::cout << "get " << ists.size() << " instances" << std::endl;
     Paths<2> multiple_paths;
     // decomposition
-    memory_recorder.clear();
-    float base_usage = memory_recorder.getCurrentMemoryUsage();
+    //memory_recorder.clear();
+    float base_usage;// = memory_recorder.getCurrentMemoryUsage();
     // LaCAM::lacam_MAPF; // add size of nodes in CLOSE queue as estimation for memory usage
     // LaCAM2::lacam2_MAPF; // add size of nodes in EXPLORED queue as estimation for memory usage
     // PBS_Li::pbs_MAPF; // add size of nodes in allNodes_table as estimation for memory usage
@@ -106,20 +105,22 @@ int main(int argc, char** argv) {
     // PIBT_2::hca_MAPF; // prioritized mapf, solve each agent separately, no much difference in memory usage
     // PIBT_2::push_and_swap_MAPF // makespan * num of agent, suboptimal planning cause very large makespan,
     // cause very large memory usage, while solve agents isolated didn't
-
-    auto MAPF_func = MAPF_LNS2::LNS2_MAPF;
+    PIBT_2::layered_PIBT2 = true;
+    auto MAPF_func = PIBT_2::pibt2_MAPF;//MAPF_LNS2::LNS2_MAPF;
     gettimeofday(&tv_pre, &tz);
 
 
 
     multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_func, LaCAM2::lacam2_MAPF, false, 30);
     gettimeofday(&tv_after, &tz);
+    PIBT_2::layered_PIBT2 = false;
+    PIBT_2::external_distance_table = {};
     double layered_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
     std::cout << multiple_paths.size() << " agents " << std::endl;
     std::cout << "-- layered mapf end in " << layered_cost << "ms" << std::endl << std::endl;
     std::cout << " is solution valid ? " << validateSolution<2>(multiple_paths) << std::endl;
     sleep(1);
-    float maximal_usage = memory_recorder.getMaximalMemoryUsage();
+    float maximal_usage;// = memory_recorder.getMaximalMemoryUsage();
     {
         std::cout << "layered mapf maximal usage = " << maximal_usage - base_usage << " MB" << std::endl;
     }
@@ -136,9 +137,9 @@ int main(int argc, char** argv) {
 
     std::cout << std::endl;
 
-    memory_recorder.clear();
+    //memory_recorder.clear();
     sleep(1);
-    base_usage = memory_recorder.getCurrentMemoryUsage();
+    //base_usage = memory_recorder.getCurrentMemoryUsage();
 
     gettimeofday(&tv_pre, &tz);
     multiple_paths = MAPF_func(dim, is_occupied_func, ists, nullptr, 60);
@@ -150,9 +151,9 @@ int main(int argc, char** argv) {
     std::cout << " is solution valid ? " << validateSolution<2>(multiple_paths) << std::endl;
     std::cout << "** max_size_of_stack = " << max_size_of_stack << " **" << std::endl;
 
-    std::cout << "--variation of memory " << memory_recorder.getCurrentMemoryUsage() - base_usage << " MB" << std::endl;
+    //std::cout << "--variation of memory " << memory_recorder.getCurrentMemoryUsage() - base_usage << " MB" << std::endl;
     sleep(1);
-    float maximal_usage2 = memory_recorder.getMaximalMemoryUsage();
+    float maximal_usage2;// = memory_recorder.getMaximalMemoryUsage();
     {
         std::cout << "--raw mapf maximal usage = " << maximal_usage2 - base_usage << " MB" << std::endl;
     }
@@ -165,12 +166,13 @@ int main(int argc, char** argv) {
     std::cout << "total cost          = " << total_cost1 << std::endl;
     std::cout << "maximum_single_cost = " << maximum_single_cost1 << std::endl;
 
-
+    return 0;
     ThreadPool tp(1);
 
     // set viewer
     viewer_3d = new Viewer3D();
     viewer_3d->SetMapfPath(multiple_paths);
+    ThreadPool viewer_thread(1);
     viewer_thread.Schedule([&]{
         viewer_3d->init();
 
