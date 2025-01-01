@@ -13,11 +13,12 @@ namespace path_pathfinding {
     Graph::Graph() {}
 
     Graph::~Graph() {
-        for (auto v : V) if(v != nullptr) delete v;
+        if(!is_copy) {
+            for (auto v : V) if (v != nullptr) delete v;
+        }
         if (!PATH_TABLE.empty()) {
             for (auto table : PATH_TABLE) delete table;
         }
-
     }
 
     Path Graph::getPathWithoutCache(Node *s, Node *g, std::mt19937 *MT,

@@ -68,6 +68,48 @@ namespace PIBT_2 {
                 int _max_timestep,
                 int _max_comp_time, std::mt19937 *_MT);
 
+        Problem(path_pathfinding::Graph * external_graph,
+                const freeNav::Instances<2> &instance_sat, CBS_Li::ConstraintTable* ct,
+                int _max_timestep, int _max_comp_time,
+                std::mt19937 *_MT);
+
+        // yz: generate only grid to avoid repeat in Layered PIBT
+        static path_pathfinding::Grid * generateGridPtr(freeNav::DimensionLength *dim,
+                                                         const freeNav::IS_OCCUPIED_FUNC<2> &isoc) {
+            path_pathfinding::Grid* G = new path_pathfinding::Grid(); // yz: when to release resource ?
+            auto raw_G = (path_pathfinding::Grid *)(G);
+            raw_G->width = dim[0];
+            raw_G->height = dim[1];
+            G->V = Nodes(dim[0] * dim[1], nullptr);
+            freeNav::Pointi<2> pt;
+            for(int x=0; x<dim[0]; x++) {
+                for(int y=0; y<dim[1]; y++) {
+                    pt[0] = x, pt[1] = y;
+                    int id = dim[0] * y + x;
+                    if(!isoc(pt)) {
+                        Node* v = new Node(id, x, y);
+                        G->V[id] = v;
+                    }
+                }
+            }
+            // create edges
+            for (int y = 0; y < dim[1]; ++y) {
+                for (int x = 0; x < dim[0]; ++x) {
+                    if (!G->existNode(x, y)) continue;
+                    Node* v = G->getNode(x, y);
+                    // left
+                    if (G->existNode(x - 1, y)) v->neighbor.push_back(G->getNode(x - 1, y));
+                    // right
+                    if (G->existNode(x + 1, y)) v->neighbor.push_back(G->getNode(x + 1, y));
+                    // up
+                    if (G->existNode(x, y - 1)) v->neighbor.push_back(G->getNode(x, y - 1));
+                    // down
+                    if (G->existNode(x, y + 1)) v->neighbor.push_back(G->getNode(x, y + 1));
+                }
+            }
+            return G;
+        }
+
         ~Problem() {};
 
         path_pathfinding::Graph *getG() { return G; }
@@ -91,6 +133,7 @@ namespace PIBT_2 {
         void setMaxCompTime(const int t) { max_comp_time = t; }
 
         CBS_Li::ConstraintTable* ct_ = nullptr; // yz: introduce as static constraint created by previous paths
+        bool using_external_grid_ = false; // yz: whether using external grid to save time, if is, de not delete it
 
     };
 
@@ -113,6 +156,11 @@ namespace PIBT_2 {
         MAPF_Instance(MAPF_Instance *P, int _max_comp_time);
 
         MAPF_Instance(freeNav::DimensionLength *dim, const freeNav::IS_OCCUPIED_FUNC<2> &isoc,
+                      const freeNav::Instances<2> &instance_sat, CBS_Li::ConstraintTable* ct,
+                      int _max_timestep, int _max_comp_time,
+                      std::mt19937 *_MT);
+
+        MAPF_Instance(path_pathfinding::Graph * external_grid,
                       const freeNav::Instances<2> &instance_sat, CBS_Li::ConstraintTable* ct,
                       int _max_timestep, int _max_comp_time,
                       std::mt19937 *_MT);

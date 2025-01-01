@@ -67,6 +67,34 @@ namespace PIBT_2 {
             const int& x_s = sat.first[0], y_s = sat.first[1], x_g = sat.second[0], y_g = sat.second[1];
             Node *s = G->getNode(x_s, y_s);
             Node *g = G->getNode(x_g, y_g);
+            assert(s != nullptr && g != nullptr);
+            config_s.push_back(s);
+            config_g.push_back(g);
+        }
+        num_agents = instance_sat.size();
+        //
+        max_timestep = _max_timestep;
+        max_comp_time = _max_comp_time;
+        MT = _MT;
+    }
+
+
+    Problem::Problem(path_pathfinding::Graph * external_graph,
+                     const freeNav::Instances<2> &instance_sat, CBS_Li::ConstraintTable* ct,
+                     int _max_timestep, int _max_comp_time,
+                     std::mt19937 *_MT) {
+        assert(external_graph != nullptr);
+        ct_ = ct;
+        // set the grid map
+        G = external_graph;
+        using_external_grid_ = true;
+        // set start and goal
+        for(const auto& sat : instance_sat) {
+            const int& x_s = sat.first[0], y_s = sat.first[1], x_g = sat.second[0], y_g = sat.second[1];
+//            std::cout << "x_s, y_s, x_g, y_g = " << x_s << ", " << y_s << ", " << x_g << ", " << y_g << std::endl;
+            Node *s = G->getNode(x_s, y_s);
+            Node *g = G->getNode(x_g, y_g);
+            assert(s != nullptr && g != nullptr);
             config_s.push_back(s);
             config_g.push_back(g);
         }
@@ -236,9 +264,19 @@ namespace PIBT_2 {
         //
     }
 
+
+    MAPF_Instance::MAPF_Instance(path_pathfinding::Graph * external_grid,
+                                 const freeNav::Instances<2> &instance_sat, CBS_Li::ConstraintTable* ct, int _max_timestep,
+                                 int _max_comp_time, std::mt19937 *_MT)
+            :Problem(external_grid, instance_sat, ct, _max_timestep, _max_comp_time, _MT),
+             instance_initialized(true) {
+        //
+    }
+
+
     MAPF_Instance::~MAPF_Instance() {
         if (instance_initialized) {
-            if (G != nullptr) delete G;
+            if (G != nullptr && !using_external_grid_) delete G;
             if (MT != nullptr) delete MT;
         }
     }
