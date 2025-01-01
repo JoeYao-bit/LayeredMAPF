@@ -73,6 +73,7 @@ namespace PIBT_2 {
         //solver->printResult();
         // output result
         //solver->makeLog(output_file);
+        delete P;
         return solver->getResultPath(dim, instance_sat);
     }
 

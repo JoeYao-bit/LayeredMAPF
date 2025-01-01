@@ -122,7 +122,7 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
         std::vector<Paths<2> > pathss;                                                             \
         CBS_Li::ConstraintTable* layered_ct = new CBS_Li::ConstraintTable(dim[0], dim[0]*dim[1]);  \
         max_size_of_stack_layered = 0;                                                             \
-        path_pathfinding::Grid * raw_grid_ptr = PIBT_2::Problem::generateGridPtr(dim, is_occupied);                    \
+        path_pathfinding::Grid * raw_grid_ptr = nullptr;                    \
         path_pathfinding::Grid * temp_grid_ptr = nullptr;                                 \
         if(mapf_func == PIBT_2::pibt2_MAPF || mapf_func == PIBT_2::hca_MAPF || mapf_func == PIBT_2::hca_MAPF)          \
         { raw_grid_ptr = PIBT_2::Problem::generateGridPtr(dim, is_occupied); }\
@@ -195,7 +195,7 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
             retv.insert(retv.end(), next_paths.begin(), next_paths.end()); \
             pathss.push_back(next_paths); \
         }                                                                                          \
-                                                                                                  \
+        if(raw_grid_ptr != nullptr) { delete raw_grid_ptr; raw_grid_ptr = nullptr; }                                                                 \
         if(layered_ct != nullptr) {                                                                                   \
             delete layered_ct; \
             layered_ct = nullptr;                                                              \
@@ -420,7 +420,7 @@ int main(void) {
 //        SingleMapMAPFTest(MAPFTestConfig_warehouse_20_40_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
 //                          repeat_times, cut_off_time);
 //
-        SingleMapMAPFTest(MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+        SingleMapMAPFTest(MAPFTestConfig_Boston_0_256, {10},//{100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
                           repeat_times, cut_off_time);
 //
 //        SingleMapMAPFTest(MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
