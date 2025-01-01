@@ -357,11 +357,12 @@ int main(void) {
     int cut_off_time = 30;
     int repeat_times = 1;
     for(int i=0; i<1; i++) {
-//        SingleMapMAPFTest(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120},
-//                          repeat_times, cut_off_time); // layered better
+        // 1, 
+       SingleMapMAPFTest(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120},
+                         repeat_times, cut_off_time); // layered better
 
-//        SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400},
-//                          repeat_times, cut_off_time);
+       SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400},
+                         repeat_times, cut_off_time);
 //
 //        SingleMapMAPFTest(MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120},
 //                          repeat_times, cut_off_time);
