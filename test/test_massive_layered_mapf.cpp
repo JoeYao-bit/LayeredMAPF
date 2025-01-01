@@ -2,7 +2,6 @@
 // Created by yaozhuo on 2023/12/19.
 //
 
-#include "../freeNav-base/dependencies/color_table.h"
 #include "../freeNav-base/dependencies/2d_grid/text_map_loader.h"
 #include "../freeNav-base/dependencies/memory_analysis.h"
 
@@ -358,8 +357,8 @@ int main(void) {
     int cut_off_time = 30;
     int repeat_times = 1;
     for(int i=0; i<1; i++) {
-        SingleMapMAPFTest(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120},
-                          repeat_times, cut_off_time); // layered better
+//        SingleMapMAPFTest(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120},
+//                          repeat_times, cut_off_time); // layered better
 
 //        SingleMapMAPFTest(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400},
 //                          repeat_times, cut_off_time);
@@ -421,8 +420,8 @@ int main(void) {
 //        SingleMapMAPFTest(MAPFTestConfig_warehouse_20_40_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
 //                          repeat_times, cut_off_time);
 //
-//        SingleMapMAPFTest(MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-//                          repeat_times, cut_off_time);
+        SingleMapMAPFTest(MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                          repeat_times, cut_off_time);
 //
 //        SingleMapMAPFTest(MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
 //                          repeat_times, cut_off_time);
