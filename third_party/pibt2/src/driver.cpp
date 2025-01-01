@@ -73,8 +73,9 @@ namespace PIBT_2 {
         //solver->printResult();
         // output result
         //solver->makeLog(output_file);
+        auto final_solution = solver->getResultPath(dim, instance_sat);
         delete P;
-        return solver->getResultPath(dim, instance_sat);
+        return final_solution;
     }
 
     freeNav::Paths<2> hca_MAPF(freeNav::DimensionLength *dim,
