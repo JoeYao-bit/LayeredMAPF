@@ -104,6 +104,8 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
 
 //            << total_cost << " " << maximum_single_cost << " " << !paths.empty() << " " << maximal_usage - base_usage << " "; \
 
+// mapf_func == PIBT_2::pibt2_MAPF || mapf_func == PIBT_2::hca_MAPF || mapf_func == PIBT_2::hca_MAPF
+
 #define getLayeredMassiveTextMAPFFunc(name, mapf_func, dim, cutoff_time_cost, use_path_constraint) \
                                      [&](DimensionLength*, const IS_OCCUPIED_FUNC<2> & isoc, \
                                      const Instances<2> & instances, \
@@ -120,7 +122,11 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
         Paths<2> retv; \
         std::vector<Paths<2> > pathss;                                                             \
         CBS_Li::ConstraintTable* layered_ct = new CBS_Li::ConstraintTable(dim[0], dim[0]*dim[1]);  \
-        max_size_of_stack_layered = 0; PIBT_2::layered_PIBT2 = true;                          \
+        max_size_of_stack_layered = 0;                                                             \
+        path_pathfinding::Grid * raw_grid_ptr = PIBT_2::Problem::generateGridPtr(dim, is_occupied);                    \
+        path_pathfinding::Grid * temp_grid_ptr = nullptr;                                 \
+        if(mapf_func == PIBT_2::pibt2_MAPF || mapf_func == PIBT_2::hca_MAPF || mapf_func == PIBT_2::hca_MAPF)          \
+        { raw_grid_ptr = PIBT_2::Problem::generateGridPtr(dim, is_occupied); }\
         for(int i=0; i<instance_decompose->all_clusters_.size(); i++) { \
             std::set<int> current_id_set = instance_decompose->all_clusters_[i]; \
             Instances<2> ists; \
@@ -137,16 +143,19 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
                     layered_ct->insert2CT(path_eecbs); \
                 } \
             } \
-            std::vector<std::vector<bool> > avoid_locs(dim[1], std::vector<bool>(dim[0], false));        \
+            std::vector<std::vector<bool> > avoid_locs(dim[1], std::vector<bool>(dim[0], false));  \
+            Pointis<2> occ_grids = {}; \
             for(int j = (use_path_constraint ? i+1 : 0); j<instance_decompose->all_clusters_.size(); j++) \
             { \
                 if(j == i) continue; \
                 const auto& current_cluster = instance_decompose->all_clusters_[j]; \
                 for(const int& agent_id : current_cluster) { \
                     if(j < i) { \
-                        avoid_locs[instances[agent_id].second[1]][instances[agent_id].second[0]] = true; \
+                        avoid_locs[instances[agent_id].second[1]][instances[agent_id].second[0]] = true;  \
+                        occ_grids.push_back(instances[agent_id].second); \
                     } else { \
-                        avoid_locs[instances[agent_id].first[1]][instances[agent_id].first[0]] = true; \
+                        avoid_locs[instances[agent_id].first[1]][instances[agent_id].first[0]] = true;    \
+                        occ_grids.push_back(instances[agent_id].first); \
                     } \
                 } \
             } \
@@ -163,9 +172,18 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
                 retv.clear();                                                                    \
                 break; \
             } \
-            gettimeofday(&tv_after, &tz); \
+            gettimeofday(&tv_after, &tz);                                                          \
+            path_pathfinding::Grid* temp_grid_ptr = nullptr;                                                                                       \
+            if(mapf_func == PIBT_2::pibt2_MAPF || mapf_func == PIBT_2::hca_MAPF || mapf_func == PIBT_2::hca_MAPF) {           \
+                temp_grid_ptr = new path_pathfinding::Grid(*raw_grid_ptr);                        \
+                /*temp_grid_ptr->V = raw_grid_ptr->V; temp_grid_ptr->is_copy = true;*/                 \
+                /*temp_grid_ptr->width = dim[0]; temp_grid_ptr->height = dim[1];*/ \
+                temp_grid_ptr = PIBT_2::setStatesToOccupied(temp_grid_ptr, occ_grids);            \
+                PIBT_2::external_grid_ptr = temp_grid_ptr/*PIBT_2::Problem::generateGridPtr(dim, new_isoc)*/;                                            \
+            } \
             Paths<2> next_paths = mapf_func(dim, new_isoc, ists, layered_ct, remaining_time); \
-            max_size_of_stack_layered = std::max(max_size_of_stack_layered, max_size_of_stack); \
+            max_size_of_stack_layered = std::max(max_size_of_stack_layered, max_size_of_stack);    \
+            if(temp_grid_ptr != nullptr) { delete temp_grid_ptr; temp_grid_ptr = nullptr; PIBT_2::external_grid_ptr = nullptr;  } \
             if(next_paths.empty()) { \
                 std::cout << " layered MAPF failed " << i << " th cluster: " << current_id_set << std::endl; \
                 if(layered_ct != nullptr) {                                                                                   \
@@ -178,7 +196,7 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
             retv.insert(retv.end(), next_paths.begin(), next_paths.end()); \
             pathss.push_back(next_paths); \
         }                                                                                          \
-        PIBT_2::layered_PIBT2 = false;                                                                                           \
+                                                                                                  \
         if(layered_ct != nullptr) {                                                                                   \
             delete layered_ct; \
             layered_ct = nullptr;                                                              \
@@ -317,7 +335,7 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 
 //                                                          LaCAM2,
 //                                                          LaCAM2_LAYERED,
-//
+
                                                           PIBT2,
                                                           PIBT2_LAYERED,
 

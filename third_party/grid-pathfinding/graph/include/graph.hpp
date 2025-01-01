@@ -83,6 +83,8 @@ namespace path_pathfinding {
         // if (x, y) is occupied then V[y * width + x] = nullptr
         Nodes V;
 
+        bool is_copy = false; // yz: if its node and is copy of external ptr, do not call delete in ~Graph
+
     };
 
     class Grid : public Graph {
@@ -94,6 +96,16 @@ namespace path_pathfinding {
         Grid() {};
 
         Grid(const std::string &_map_file);
+
+        // z: shallow copy
+        Grid(const Grid& other_grid) {
+            width = other_grid.width;
+            height = other_grid.height;
+            V = other_grid.V;
+            map_file = other_grid.map_file;
+            is_copy = true;
+        };
+
 
         ~Grid() {};
 

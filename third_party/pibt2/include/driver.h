@@ -41,9 +41,10 @@ namespace PIBT_2 {
 //        return solver;
 //    }
 
-    extern DistanceTable external_distance_table;
-    extern bool layered_PIBT2;  // use previous distance table avoid repeat
+    extern path_pathfinding::Grid * external_grid_ptr;
 
+    // yz: set grid in Graph to unpassable, used to avoid generate full graph in Layered MAPF
+    path_pathfinding::Grid * setStatesToOccupied(path_pathfinding::Grid * G, const freeNav::Pointis<2>& grids);
 
     freeNav::Paths<2> pibt_MAPF(freeNav::DimensionLength *dim,
                                  const freeNav::IS_OCCUPIED_FUNC<2> &isoc,
