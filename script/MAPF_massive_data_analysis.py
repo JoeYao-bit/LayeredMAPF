@@ -661,7 +661,7 @@ for method_key, method_value in all_method_time_cost_map.items():
 #print('haha')
 
 
-def display_images_in_grid(image_files, method_name):
+def display_images_in_grid(image_files, method_name, visualize=False):
     """
     读取指定文件夹中的多张图片，并以网格形式显示在一张图上。
     
@@ -680,7 +680,7 @@ def display_images_in_grid(image_files, method_name):
     
     rows = int(len(image_files)/6)
     
-    print("rows", rows)
+    # print("rows", rows)
     
     cols = 6
     
@@ -703,7 +703,10 @@ def display_images_in_grid(image_files, method_name):
             ax.axis('off')  # 多余的子图隐藏
     
     plt.tight_layout()
-    plt.show()
+    save_path = '../test/pic/layered_MAPF/'+method_name+'_summary'
+    plt.savefig(save_path, dpi = 400, bbox_inches='tight')   
+    if visualize:
+        plt.show()
     
 def removeMethodDataFromFile(file_path, temp_method_name):
     filtered_lines = list()
@@ -737,18 +740,27 @@ def removeMethodDataFromFiles(map_format_map_index_local, method_name_local):
     
 image_folder = '../test/pic/layered_MAPF/' 
 data_type_names = ['time_cost', 'success_rate', 'sum_of_cost', 'makespan', 'memory_usage']
-method_name = 'HCA'
 
-# all_image_files = []
+method_names_to_visualize = ['EECBS',
+                            'PBS',
+                            'LNS',
+                            'HCA',
+                            'LaCAM',
+                            'PIBT2',
+                            'PushAndSwap'
+                             ]
 
-# for i in range(1, 5):
-#     for type_name in data_type_names:
-#         all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ 'multi_map_'+str(i)+'.png')
+for method_name in method_names_to_visualize:
+    # method_name = 'HCA'
+    print('method_name = ', method_name)
+    all_image_files = []
+    for i in range(1, 5):
+        for type_name in data_type_names:
+            all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ 'multi_map_'+str(i)+'.png')
+            
+        all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ str(i)+'_legend.png')
         
-#     all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ str(i)+'_legend.png')
-    
-    
-# display_images_in_grid(all_image_files, method_name)
+    display_images_in_grid(all_image_files, method_name)
 
 
 # removeMethodDataFromfile("../test/test_data/layered_mapf/Berlin_1_256.txt", 'HCA')
