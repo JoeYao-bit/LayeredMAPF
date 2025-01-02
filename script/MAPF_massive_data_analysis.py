@@ -739,19 +739,21 @@ image_folder = '../test/pic/layered_MAPF/'
 data_type_names = ['time_cost', 'success_rate', 'sum_of_cost', 'makespan', 'memory_usage']
 method_name = 'HCA'
 
-all_image_files = []
+# all_image_files = []
 
-for i in range(1, 5):
-    for type_name in data_type_names:
-        all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ 'multi_map_'+str(i)+'.png')
+# for i in range(1, 5):
+#     for type_name in data_type_names:
+#         all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ 'multi_map_'+str(i)+'.png')
         
-    all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ str(i)+'_legend.png')
+#     all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ str(i)+'_legend.png')
     
     
-display_images_in_grid(all_image_files, method_name)
+# display_images_in_grid(all_image_files, method_name)
 
 
 # removeMethodDataFromfile("../test/test_data/layered_mapf/Berlin_1_256.txt", 'HCA')
+# removeMethodDataFromFiles(map_format_map_index, 'PIBT2')
+# removeMethodDataFromFiles(map_format_map_index, 'PushAndSwap')
 # removeMethodDataFromFiles(map_format_map_index, 'HCA')
 
 # all method: EECBS, PBS, LNS, HCA, LaCAM, PIBT2, PushAndSwap 
