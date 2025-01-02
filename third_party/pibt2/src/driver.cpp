@@ -25,6 +25,7 @@ namespace PIBT_2 {
         } else {
             P = new MAPF_Instance(dim, isoc, instance_sat, ct, MAX_TIMESTEP/2, cutoff_time*1e3, engine);
         }
+        P->ct_ = ct;
         // solve
         std::unique_ptr<MAPF_Solver> solver = std::make_unique<PIBT>(P);
         solver->setLogShort(true);
