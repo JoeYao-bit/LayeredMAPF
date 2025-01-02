@@ -737,7 +737,7 @@ def removeMethodDataFromFiles(map_format_map_index_local, method_name_local):
     
 image_folder = '../test/pic/layered_MAPF/' 
 data_type_names = ['time_cost', 'success_rate', 'sum_of_cost', 'makespan', 'memory_usage']
-method_name = 'PIBT2'
+method_name = 'HCA'
 
 all_image_files = []
 
@@ -752,7 +752,7 @@ display_images_in_grid(all_image_files, method_name)
 
 
 # removeMethodDataFromfile("../test/test_data/layered_mapf/Berlin_1_256.txt", 'HCA')
-# removeMethodDataFromFiles(map_format_map_index, 'PIBT2')
+# removeMethodDataFromFiles(map_format_map_index, 'HCA')
 
 # all method: EECBS, PBS, LNS, HCA, LaCAM, PIBT2, PushAndSwap 
 

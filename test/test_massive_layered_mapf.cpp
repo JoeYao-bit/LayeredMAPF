@@ -123,7 +123,7 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
         CBS_Li::ConstraintTable* layered_ct = new CBS_Li::ConstraintTable(dim[0], dim[0]*dim[1]);  \
         max_size_of_stack_layered = 0;                                                             \
         path_pathfinding::Grid * raw_grid_ptr = nullptr;                    \
-        if(mapf_func == PIBT_2::pibt2_MAPF || mapf_func == PIBT_2::hca_MAPF || mapf_func == PIBT_2::hca_MAPF)          \
+        if(mapf_func == PIBT_2::pibt2_MAPF || mapf_func == PIBT_2::hca_MAPF || mapf_func == PIBT_2::push_and_swap_MAPF)          \
         { raw_grid_ptr = PIBT_2::Problem::generateGridPtr(dim, is_occupied); }\
         for(int i=0; i<instance_decompose->all_clusters_.size(); i++) { \
             std::set<int> current_id_set = instance_decompose->all_clusters_[i]; \
@@ -171,12 +171,12 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
                 break; \
             } \
             gettimeofday(&tv_after, &tz);                                                          \
-            if(mapf_func == PIBT_2::pibt2_MAPF || mapf_func == PIBT_2::hca_MAPF || mapf_func == PIBT_2::hca_MAPF) {           \
+            if(mapf_func == PIBT_2::pibt2_MAPF || mapf_func == PIBT_2::hca_MAPF || mapf_func == PIBT_2::push_and_swap_MAPF) {           \
                 PIBT_2::setStatesToOccupied(raw_grid_ptr, occ_grids, isoc, new_isoc);            \
                 PIBT_2::external_grid_ptr = raw_grid_ptr;/*PIBT_2::Problem::generateGridPtr(dim, new_isoc)*/                                            \
             } \
             Paths<2> next_paths = mapf_func(dim, new_isoc, ists, layered_ct, remaining_time);      \
-            if(mapf_func == PIBT_2::pibt2_MAPF || mapf_func == PIBT_2::hca_MAPF || mapf_func == PIBT_2::hca_MAPF)      \
+            if(mapf_func == PIBT_2::pibt2_MAPF || mapf_func == PIBT_2::hca_MAPF || mapf_func == PIBT_2::push_and_swap_MAPF)      \
             { PIBT_2::restoreStatesToPassable(raw_grid_ptr, occ_grids, isoc, new_isoc);/*restore removed nodes and edges*/;           \
             PIBT_2::external_grid_ptr = nullptr; } \
             max_size_of_stack_layered = std::max(max_size_of_stack_layered, max_size_of_stack);    \
@@ -332,14 +332,14 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 //                                                          LaCAM2,
 //                                                          LaCAM2_LAYERED,
 
-                                                          PIBT2,
-                                                          PIBT2_LAYERED,
+//                                                          PIBT2,
+//                                                          PIBT2_LAYERED,
 
 //                                                          HCA,
 //                                                          HCA_LAYERED,
 //
-//                                                          PushAndSwap,
-//                                                          PushAndSwap_LAYERED
+                                                          PushAndSwap,
+                                                          PushAndSwap_LAYERED
 
                                                           },
                                                          map_test_config.at("output_path"),

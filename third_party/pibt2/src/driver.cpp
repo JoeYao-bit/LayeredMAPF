@@ -18,23 +18,33 @@ namespace PIBT_2 {
         unsigned int seed = rd(); // 生成一个随机的种子值
         std::mt19937* engine = new std::mt19937(seed); // 使用随机的种子值创建一个伪随机数生成器
         // set problem
-        auto P = MAPF_Instance(dim, isoc, instance_sat, ct, MAX_TIMESTEP/2, cutoff_time*1e3, engine);
+        MAPF_Instance* P = nullptr;
+        if(external_grid_ptr != nullptr) {
+            std::cout << "use external grid ptr" << std::endl;
+            P = new MAPF_Instance(external_grid_ptr, instance_sat, ct, MAX_TIMESTEP/2, cutoff_time*1e3, engine);
+        } else {
+            P = new MAPF_Instance(dim, isoc, instance_sat, ct, MAX_TIMESTEP/2, cutoff_time*1e3, engine);
+        }
         // solve
-        std::unique_ptr<MAPF_Solver> solver = std::make_unique<PIBT>(&P);
+        std::unique_ptr<MAPF_Solver> solver = std::make_unique<PIBT>(P);
         solver->setLogShort(true);
         solver->solve();
-        if (solver->succeed() && !solver->getSolution().validate(&P)
+        if (solver->succeed() && !solver->getSolution().validate(P)
                 ) {
             std::cout << "pibt_MAPF: invalid results" << std::endl;
+            delete P;
             return {};
         }
         if(!solver->succeed()) {
+            delete P;
             return {};
         }
         //solver->printResult();
         // output result
         //solver->makeLog(output_file);
-        return solver->getResultPath(dim, instance_sat);
+        auto final_solution = solver->getResultPath(dim, instance_sat);
+        delete P;
+        return final_solution;
     }
 
     freeNav::Paths<2> pibt2_MAPF(freeNav::DimensionLength *dim,
@@ -90,24 +100,34 @@ namespace PIBT_2 {
 
         std::mt19937* engine = new std::mt19937(seed); // 使用随机的种子值创建一个伪随机数生成器
         // set problem
-        auto P = MAPF_Instance(dim, isoc, instance_sat, ct, MAX_TIMESTEP/2, cutoff_time*1e3, engine);
-        P.ct_ = ct;
+        MAPF_Instance* P = nullptr;
+        if(external_grid_ptr != nullptr) {
+//            std::cout << "use external grid ptr" << std::endl;
+            P = new MAPF_Instance(external_grid_ptr, instance_sat, ct, MAX_TIMESTEP/2, cutoff_time*1e3, engine);
+        } else {
+            P = new MAPF_Instance(dim, isoc, instance_sat, ct, MAX_TIMESTEP/2, cutoff_time*1e3, engine);
+        }
+        P->ct_ = ct;
 
         // solve
-        std::unique_ptr<MAPF_Solver> solver = std::make_unique<HCA>(&P, ct);
+        std::unique_ptr<MAPF_Solver> solver = std::make_unique<HCA>(P, ct);
         solver->setLogShort(true);
         solver->solve();
-        if (solver->succeed() && !solver->getSolution().validate(&P)) {
+        if (solver->succeed() && !solver->getSolution().validate(P)) {
             std::cout << "hca_MAPF: invalid results" << std::endl;
+            delete P;
             return {};
         }
         if(!solver->succeed()) {
+            delete P;
             return {};
         }
         //solver->printResult();
         // output result
         //solver->makeLog(output_file);
-        return solver->getResultPath(dim, instance_sat);
+        auto final_solution = solver->getResultPath(dim, instance_sat);
+        delete P;
+        return final_solution;
     }
 
     freeNav::Paths<2> push_and_swap_MAPF(freeNav::DimensionLength *dim,
@@ -122,14 +142,20 @@ namespace PIBT_2 {
 
         std::mt19937* engine = new std::mt19937(seed); // 使用随机的种子值创建一个伪随机数生成器
         // set problem
-        auto P = MAPF_Instance(dim, isoc, instance_sat, ct, MAX_TIMESTEP/2, cutoff_time*1e3, engine);
-        P.ct_ = ct;
+        MAPF_Instance* P = nullptr;
+        if(external_grid_ptr != nullptr) {
+//            std::cout << "use external grid ptr" << std::endl;
+            P = new MAPF_Instance(external_grid_ptr, instance_sat, ct, MAX_TIMESTEP/2, cutoff_time*1e3, engine);
+        } else {
+            P = new MAPF_Instance(dim, isoc, instance_sat, ct, MAX_TIMESTEP/2, cutoff_time*1e3, engine);
+        }
+        P->ct_ = ct;
 
         // solve
-        std::unique_ptr<MAPF_Solver> solver = std::make_unique<PushAndSwap>(&P);
+        std::unique_ptr<MAPF_Solver> solver = std::make_unique<PushAndSwap>(P);
         solver->setLogShort(true);
         solver->solve();
-        if (solver->succeed() && !solver->getSolution().validate(&P)) {
+        if (solver->succeed() && !solver->getSolution().validate(P)) {
             std::cout << "push_and_swap_MAPF: invalid results" << std::endl;
             return {};
         }
@@ -139,7 +165,9 @@ namespace PIBT_2 {
         //solver->printResult();
         // output result
         //solver->makeLog(output_file);
-        return solver->getResultPath(dim, instance_sat);
+        auto final_solution = solver->getResultPath(dim, instance_sat);
+        delete P;
+        return final_solution;
     }
 
     std::vector<int> statGraph(path_pathfinding::Grid * G) {
