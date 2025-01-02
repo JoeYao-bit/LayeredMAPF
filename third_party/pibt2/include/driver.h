@@ -43,8 +43,15 @@ namespace PIBT_2 {
 
     extern path_pathfinding::Grid * external_grid_ptr;
 
-    // yz: set grid in Graph to unpassable, used to avoid generate full graph in Layered MAPF
-    path_pathfinding::Grid * setStatesToOccupied(path_pathfinding::Grid * G, const freeNav::Pointis<2>& grids);
+    // yz: set grid in raw grid graph to unpassable, used to avoid generate full graph in Layered MAPF
+    // nodes set to occupied must equal to nodes set to passable, and must be passable in the raw graph
+    void setStatesToOccupied(path_pathfinding::Grid * G, const freeNav::Pointis<2>& grids,
+                                                 const freeNav::IS_OCCUPIED_FUNC<2>& raw_isoc,
+                                                 const freeNav::IS_OCCUPIED_FUNC<2>& new_isoc);
+    void restoreStatesToPassable(path_pathfinding::Grid * G, const freeNav::Pointis<2>& grids,
+                                                     const freeNav::IS_OCCUPIED_FUNC<2>& raw_isoc,
+                                                     const freeNav::IS_OCCUPIED_FUNC<2>& new_isoc);
+
 
     freeNav::Paths<2> pibt_MAPF(freeNav::DimensionLength *dim,
                                  const freeNav::IS_OCCUPIED_FUNC<2> &isoc,
