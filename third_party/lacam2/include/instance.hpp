@@ -11,11 +11,11 @@
 
 namespace LaCAM2 {
     struct Instance {
-        const Graph G;
+        Graph* G;
         Config starts;
         Config goals;
         const uint N;  // number of agents
-
+        bool use_external_graph = false; // yz: use external graph ptr to a void repeat in layered mapf
         // for testing
         Instance(const std::string &map_filename,
                  const std::vector<uint> &start_indexes,
@@ -26,14 +26,19 @@ namespace LaCAM2 {
                  const uint _N = 1);
 
         // random instance generation
-        Instance(const std::string &map_filename, std::mt19937 *MT,
-                 const uint _N = 1);
+//        Instance(const std::string &map_filename, std::mt19937 *MT,
+//                 const uint _N = 1);
 
         // yz: for freeNav style interfaces
         Instance(freeNav::DimensionLength* dim, const freeNav::IS_OCCUPIED_FUNC<2> & isoc,
                  const freeNav::Instances<2> & instance_sat);
 
-        ~Instance() {}
+        // yz: for freeNav style interfaces
+        Instance(Graph* G, const freeNav::Instances<2> & instance_sat);
+
+        ~Instance() {
+            if(!use_external_graph) { delete G; G = nullptr; }
+        }
 
         // simple feasibility check of instance
         bool is_valid(const int verbose = 0) const;

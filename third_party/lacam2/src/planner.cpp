@@ -74,7 +74,7 @@ namespace LaCAM2 {
               objective(_objective),
               RESTART_RATE(_restart_rate),
               N(ins->N),
-              V_size(ins->G.size()),
+              V_size(ins->G->size()),
               D(DistTable(ins)),
               loop_cnt(0),
               C_next(N),
@@ -296,28 +296,28 @@ namespace LaCAM2 {
         // setup cache
         for (auto a : A) {
             // clear previous cache
-            if (a->v_now != nullptr && occupied_now[a->v_now->id] == a) {
-                occupied_now[a->v_now->id] = nullptr;
+            if (a->v_now != nullptr && occupied_now[a->v_now->index] == a) {
+                occupied_now[a->v_now->index] = nullptr;
             }
             if (a->v_next != nullptr) {
-                occupied_next[a->v_next->id] = nullptr;
+                occupied_next[a->v_next->index] = nullptr;
                 a->v_next = nullptr;
             }
 
             // set occupied now
             a->v_now = H->C[a->id];
-            occupied_now[a->v_now->id] = a;
+            occupied_now[a->v_now->index] = a;
         }
 
         // add constraints
         for (uint k = 0; k < L->depth; ++k) {
             const auto i = L->who[k];        // agent
-            const auto l = L->where[k]->id;  // loc
+            const auto l = L->where[k]->index;  // loc
 
             // check vertex collision
             if (occupied_next[l] != nullptr) return false;
             // check swap collision
-            auto l_pre = H->C[i]->id;
+            auto l_pre = H->C[i]->index;
             if (occupied_next[l_pre] != nullptr && occupied_now[l] != nullptr &&
                 occupied_next[l_pre]->id == occupied_now[l]->id)
                 return false;
@@ -344,15 +344,15 @@ namespace LaCAM2 {
             auto u = ai->v_now->neighbor[k];
             C_next[i][k] = u;
             if (MT != nullptr)
-                tie_breakers[u->id] = get_random_float(MT);  // set tie-breaker
+                tie_breakers[u->index] = get_random_float(MT);  // set tie-breaker
         }
         C_next[i][K] = ai->v_now;
 
         // sort
         std::sort(C_next[i].begin(), C_next[i].begin() + K + 1,
                   [&](Vertex *const v, Vertex *const u) {
-                      return D.get(i, v) + tie_breakers[v->id] <
-                             D.get(i, u) + tie_breakers[u->id];
+                      return D.get(i, v) + tie_breakers[v->index] <
+                             D.get(i, u) + tie_breakers[u->index];
                   });
 
         Agent *swap_agent = swap_possible_and_required(ai);
@@ -364,15 +364,15 @@ namespace LaCAM2 {
             auto u = C_next[i][k];
 
             // avoid vertex conflicts
-            if (occupied_next[u->id] != nullptr) continue;
+            if (occupied_next[u->index] != nullptr) continue;
 
-            auto &ak = occupied_now[u->id];
+            auto &ak = occupied_now[u->index];
 
             // avoid swap conflicts
             if (ak != nullptr && ak->v_next == ai->v_now) continue;
 
             // reserve next location
-            occupied_next[u->id] = ai;
+            occupied_next[u->index] = ai;
             ai->v_next = u;
 
             // priority inheritance
@@ -382,15 +382,15 @@ namespace LaCAM2 {
             // success to plan next one step
             // pull swap_agent when applicable
             if (k == 0 && swap_agent != nullptr && swap_agent->v_next == nullptr &&
-                occupied_next[ai->v_now->id] == nullptr) {
+                occupied_next[ai->v_now->index] == nullptr) {
                 swap_agent->v_next = ai->v_now;
-                occupied_next[swap_agent->v_next->id] = swap_agent;
+                occupied_next[swap_agent->v_next->index] = swap_agent;
             }
             return true;
         }
 
         // failed to secure node
-        occupied_next[ai->v_now->id] = ai;
+        occupied_next[ai->v_now->index] = ai;
         ai->v_next = ai->v_now;
         return false;
     }
@@ -401,7 +401,7 @@ namespace LaCAM2 {
         if (C_next[i][0] == ai->v_now) return nullptr;
 
         // usual swap situation, c.f., case-a, b
-        auto aj = occupied_now[C_next[i][0]->id];
+        auto aj = occupied_now[C_next[i][0]->index];
         if (aj != nullptr && aj->v_next == nullptr &&
             is_swap_required(ai->id, aj->id, ai->v_now, aj->v_now) &&
             is_swap_possible(aj->v_now, ai->v_now)) {
@@ -410,7 +410,7 @@ namespace LaCAM2 {
 
         // for clear operation, c.f., case-c
         for (auto u : ai->v_now->neighbor) {
-            auto ak = occupied_now[u->id];
+            auto ak = occupied_now[u->index];
             if (ak == nullptr || C_next[i][0] == ak->v_now) continue;
             if (is_swap_required(ak->id, ai->id, ai->v_now, C_next[i][0]) &&
                 is_swap_possible(C_next[i][0], ai->v_now)) {
@@ -431,7 +431,7 @@ namespace LaCAM2 {
             auto n = v_puller->neighbor.size();
             // remove agents who need not to move
             for (auto u : v_puller->neighbor) {
-                auto a = occupied_now[u->id];
+                auto a = occupied_now[u->index];
                 if (u == v_pusher ||
                     (u->neighbor.size() == 1 && a != nullptr && ins->goals[a->id] == u)) {
                     --n;
@@ -459,7 +459,7 @@ namespace LaCAM2 {
         while (v_puller != v_pusher_origin) {  // avoid loop
             auto n = v_puller->neighbor.size();  // count #(possible locations) to pull
             for (auto u : v_puller->neighbor) {
-                auto a = occupied_now[u->id];
+                auto a = occupied_now[u->index];
                 if (u == v_pusher ||
                     (u->neighbor.size() == 1 && a != nullptr && ins->goals[a->id] == u)) {
                     --n;      // pull-impossible with u

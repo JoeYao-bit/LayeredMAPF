@@ -750,23 +750,24 @@ method_names_to_visualize = ['EECBS',
                             'PushAndSwap'
                              ]
 
-for method_name in method_names_to_visualize:
-    # method_name = 'HCA'
-    print('method_name = ', method_name)
-    all_image_files = []
-    for i in range(1, 5):
-        for type_name in data_type_names:
-            all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ 'multi_map_'+str(i)+'.png')
+# for method_name in method_names_to_visualize:
+#     # method_name = 'HCA'
+#     print('method_name = ', method_name)
+#     all_image_files = []
+#     for i in range(1, 5):
+#         for type_name in data_type_names:
+#             all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ 'multi_map_'+str(i)+'.png')
             
-        all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ str(i)+'_legend.png')
+#         all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ str(i)+'_legend.png')
         
-    display_images_in_grid(all_image_files, method_name)
+#     display_images_in_grid(all_image_files, method_name)
 
 
 # removeMethodDataFromfile("../test/test_data/layered_mapf/Berlin_1_256.txt", 'HCA')
 # removeMethodDataFromFiles(map_format_map_index, 'PIBT2')
 # removeMethodDataFromFiles(map_format_map_index, 'PushAndSwap')
 # removeMethodDataFromFiles(map_format_map_index, 'HCA')
+removeMethodDataFromFiles(map_format_map_index, 'LaCAM')
 
 # all method: EECBS, PBS, LNS, HCA, LaCAM, PIBT2, PushAndSwap 
 

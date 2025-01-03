@@ -105,6 +105,7 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
 
 // mapf_func == PIBT_2::pibt2_MAPF || mapf_func == PIBT_2::hca_MAPF || mapf_func == PIBT_2::hca_MAPF
 
+
 #define getLayeredMassiveTextMAPFFunc(name, mapf_func, dim, cutoff_time_cost, use_path_constraint) \
                                      [&](DimensionLength*, const IS_OCCUPIED_FUNC<2> & isoc, \
                                      const Instances<2> & instances, \
@@ -124,7 +125,9 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
         max_size_of_stack_layered = 0;                                                             \
         path_pathfinding::Grid * raw_grid_ptr = nullptr;                    \
         if(mapf_func == PIBT_2::pibt2_MAPF || mapf_func == PIBT_2::hca_MAPF || mapf_func == PIBT_2::push_and_swap_MAPF)          \
-        { raw_grid_ptr = PIBT_2::Problem::generateGridPtr(dim, is_occupied); }\
+        { raw_grid_ptr = PIBT_2::Problem::generateGridPtr(dim, is_occupied); }                     \
+        LaCAM2::Graph* raw_graph_ptr = nullptr;                                                    \
+        if(mapf_func == LaCAM2::lacam2_MAPF) {  raw_graph_ptr = new LaCAM2::Graph(dim, is_occupied); } \
         for(int i=0; i<instance_decompose->all_clusters_.size(); i++) { \
             std::set<int> current_id_set = instance_decompose->all_clusters_[i]; \
             Instances<2> ists; \
@@ -174,11 +177,21 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
             if(mapf_func == PIBT_2::pibt2_MAPF || mapf_func == PIBT_2::hca_MAPF || mapf_func == PIBT_2::push_and_swap_MAPF) {           \
                 PIBT_2::setStatesToOccupied(raw_grid_ptr, occ_grids, isoc, new_isoc);            \
                 PIBT_2::external_grid_ptr = raw_grid_ptr;/*PIBT_2::Problem::generateGridPtr(dim, new_isoc)*/                                            \
+            }                                                                                      \
+            if(mapf_func == LaCAM2::lacam2_MAPF) {                                                 \
+                LaCAM2::setStatesToOccupied(raw_graph_ptr, occ_grids, isoc, new_isoc);             \
+                LaCAM2::external_graph_ptr = raw_graph_ptr;\
             } \
             Paths<2> next_paths = mapf_func(dim, new_isoc, ists, layered_ct, remaining_time);      \
             if(mapf_func == PIBT_2::pibt2_MAPF || mapf_func == PIBT_2::hca_MAPF || mapf_func == PIBT_2::push_and_swap_MAPF)      \
-            { PIBT_2::restoreStatesToPassable(raw_grid_ptr, occ_grids, isoc, new_isoc);/*restore removed nodes and edges*/;           \
-            PIBT_2::external_grid_ptr = nullptr; } \
+            {                                                                                      \
+                PIBT_2::restoreStatesToPassable(raw_grid_ptr, occ_grids, isoc, new_isoc);/*restore removed nodes and edges*/;           \
+                PIBT_2::external_grid_ptr = nullptr;                                               \
+              }                                                 \
+            if(mapf_func == LaCAM2::lacam2_MAPF) {                                                 \
+                LaCAM2::restoreStatesToPassable(raw_graph_ptr, occ_grids, isoc, new_isoc);    \
+                LaCAM2::external_graph_ptr = nullptr;                                              \
+            }                                                                                       \
             max_size_of_stack_layered = std::max(max_size_of_stack_layered, max_size_of_stack);    \
             if(next_paths.empty()) { \
                 std::cout << " layered MAPF failed " << i << " th cluster: " << current_id_set << std::endl; \
@@ -192,7 +205,8 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
             retv.insert(retv.end(), next_paths.begin(), next_paths.end()); \
             pathss.push_back(next_paths); \
         }                                                                                          \
-        if(raw_grid_ptr != nullptr) { delete raw_grid_ptr; raw_grid_ptr = nullptr; }                                                                 \
+        if(raw_grid_ptr != nullptr) { delete raw_grid_ptr; raw_grid_ptr = nullptr; }               \
+        if(raw_graph_ptr != nullptr) { delete raw_graph_ptr; raw_graph_ptr = nullptr; } \
         if(layered_ct != nullptr) {                                                                                   \
             delete layered_ct; \
             layered_ct = nullptr;                                                              \
@@ -288,7 +302,7 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 
     auto LaCAM2 = RAW_TEST_TYPE("RAW_LaCAM", LaCAM2::lacam2_MAPF, dim, cutoff_time_cost);
     // all layered mapf must start with "LAYERED_"
-    auto LaCAM2_LAYERED = LAYERED_TEST_TYPE("LAYERED_LaCAM", LaCAM::lacam_MAPF, dim, cutoff_time_cost, false);
+    auto LaCAM2_LAYERED = LAYERED_TEST_TYPE("LAYERED_LaCAM", LaCAM2::lacam2_MAPF, dim, cutoff_time_cost, false);
 
     auto PBS = RAW_TEST_TYPE("RAW_PBS", PBS_Li::pbs_MAPF, dim, cutoff_time_cost);
     // all layered mapf must start with "LAYERED_"
@@ -329,17 +343,17 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 //                                                          LNS,
 //                                                          LNS_LAYERED,
 
-//                                                          LaCAM2,
-//                                                          LaCAM2_LAYERED,
+                                                          LaCAM2,
+                                                          LaCAM2_LAYERED,
 
-                                                         PIBT2,
-                                                         PIBT2_LAYERED,
-
-                                                         HCA,
-                                                         HCA_LAYERED,
-
-                                                          PushAndSwap,
-                                                          PushAndSwap_LAYERED
+//                                                         PIBT2,
+//                                                         PIBT2_LAYERED,
+//
+//                                                         HCA,
+//                                                         HCA_LAYERED,
+//
+//                                                          PushAndSwap,
+//                                                          PushAndSwap_LAYERED
 
                                                           },
                                                          map_test_config.at("output_path"),
@@ -352,7 +366,7 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 // each method have a common range of agents
 int main(void) {
     int cut_off_time = 30;
-    int repeat_times = 20;
+    int repeat_times = 1;
     for(int i=0; i<1; i++) {
         // 1, 
     //   SingleMapMAPFTest(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120},
@@ -428,15 +442,15 @@ int main(void) {
     //    SingleMapMAPFTest(MAPFTestConfig_warehouse_20_40_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
     //                      repeat_times, cut_off_time);
 
-    //     SingleMapMAPFTest(MAPFTestConfig_Boston_0_256, {100},//, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-    //                       repeat_times, cut_off_time);
+         SingleMapMAPFTest(MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                           repeat_times, cut_off_time);
 
         // 12,
-       SingleMapMAPFTest(MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                         repeat_times, cut_off_time);
-
-       SingleMapMAPFTest(MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                         repeat_times, cut_off_time);
+//       SingleMapMAPFTest(MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                         repeat_times, cut_off_time);
+//
+//       SingleMapMAPFTest(MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                         repeat_times, cut_off_time);
 
     }
     return 0;
