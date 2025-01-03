@@ -97,13 +97,31 @@ namespace path_pathfinding {
 
         Grid(const std::string &_map_file);
 
-        // z: shallow copy
+        // yz: deep copy
         Grid(const Grid& other_grid) {
             width = other_grid.width;
             height = other_grid.height;
-            V = other_grid.V;
             map_file = other_grid.map_file;
-            is_copy = true;
+            V = std::vector<Node*>(other_grid.V.size(), nullptr);
+            // deep copy node
+            for(int x=0; x<width; x++) {
+                for(int y=0; y<width; y++) {
+                    if(other_grid.V[y*width+x] != nullptr) {
+                        V[y*width+x] = new Node(*other_grid.V[y*width+x]);
+                    }
+                }
+            }
+            // update edge
+            for(int x=0; x<width; x++) {
+                for(int y=0; y<width; y++) {
+                    if(other_grid.V[y*width+x] != nullptr) {
+                        V[y*width+x]->neighbor.clear();
+                        for(Node* nptr : other_grid.V[y*width+x]->neighbor) {
+                            V[y*width+x]->neighbor.push_back(V[nptr->pos.y * width + nptr->pos.x]);
+                        }
+                    }
+                }
+            }
         };
 
 

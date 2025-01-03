@@ -123,9 +123,8 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
         std::vector<Paths<2> > pathss;                                                             \
         CBS_Li::ConstraintTable* layered_ct = new CBS_Li::ConstraintTable(dim[0], dim[0]*dim[1]);  \
         max_size_of_stack_layered = 0;                                                             \
-        path_pathfinding::Grid * raw_grid_ptr = PIBT_2::Problem::generateGridPtr(dim, is_occupied);                    \
-        path_pathfinding::Grid * temp_grid_ptr = nullptr;                                 \
-        if(mapf_func == PIBT_2::pibt2_MAPF || mapf_func == PIBT_2::hca_MAPF || mapf_func == PIBT_2::hca_MAPF)          \
+        path_pathfinding::Grid * raw_grid_ptr = nullptr;                    \
+        if(mapf_func == PIBT_2::pibt2_MAPF || mapf_func == PIBT_2::hca_MAPF || mapf_func == PIBT_2::push_and_swap_MAPF)          \
         { raw_grid_ptr = PIBT_2::Problem::generateGridPtr(dim, is_occupied); }\
         for(int i=0; i<instance_decompose->all_clusters_.size(); i++) { \
             std::set<int> current_id_set = instance_decompose->all_clusters_[i]; \
@@ -173,17 +172,15 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
                 break; \
             } \
             gettimeofday(&tv_after, &tz);                                                          \
-            path_pathfinding::Grid* temp_grid_ptr = nullptr;                                                                                       \
-            if(mapf_func == PIBT_2::pibt2_MAPF || mapf_func == PIBT_2::hca_MAPF || mapf_func == PIBT_2::hca_MAPF) {           \
-                temp_grid_ptr = new path_pathfinding::Grid(*raw_grid_ptr);                        \
-                /*temp_grid_ptr->V = raw_grid_ptr->V; temp_grid_ptr->is_copy = true;*/                 \
-                /*temp_grid_ptr->width = dim[0]; temp_grid_ptr->height = dim[1];*/ \
-                temp_grid_ptr = PIBT_2::setStatesToOccupied(temp_grid_ptr, occ_grids);            \
-                PIBT_2::external_grid_ptr = temp_grid_ptr/*PIBT_2::Problem::generateGridPtr(dim, new_isoc)*/;                                            \
+            if(mapf_func == PIBT_2::pibt2_MAPF || mapf_func == PIBT_2::hca_MAPF || mapf_func == PIBT_2::push_and_swap_MAPF) {           \
+                PIBT_2::setStatesToOccupied(raw_grid_ptr, occ_grids, isoc, new_isoc);            \
+                PIBT_2::external_grid_ptr = raw_grid_ptr;/*PIBT_2::Problem::generateGridPtr(dim, new_isoc)*/                                            \
             } \
-            Paths<2> next_paths = mapf_func(dim, new_isoc, ists, layered_ct, remaining_time); \
+            Paths<2> next_paths = mapf_func(dim, new_isoc, ists, layered_ct, remaining_time);      \
+            if(mapf_func == PIBT_2::pibt2_MAPF || mapf_func == PIBT_2::hca_MAPF || mapf_func == PIBT_2::push_and_swap_MAPF)      \
+            { PIBT_2::restoreStatesToPassable(raw_grid_ptr, occ_grids, isoc, new_isoc);/*restore removed nodes and edges*/;           \
+            PIBT_2::external_grid_ptr = nullptr; } \
             max_size_of_stack_layered = std::max(max_size_of_stack_layered, max_size_of_stack);    \
-            if(temp_grid_ptr != nullptr) { delete temp_grid_ptr; temp_grid_ptr = nullptr; PIBT_2::external_grid_ptr = nullptr;  } \
             if(next_paths.empty()) { \
                 std::cout << " layered MAPF failed " << i << " th cluster: " << current_id_set << std::endl; \
                 if(layered_ct != nullptr) {                                                                                   \
@@ -196,7 +193,7 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
             retv.insert(retv.end(), next_paths.begin(), next_paths.end()); \
             pathss.push_back(next_paths); \
         }                                                                                          \
-                                                                                                  \
+        if(raw_grid_ptr != nullptr) { delete raw_grid_ptr; raw_grid_ptr = nullptr; }                                                                 \
         if(layered_ct != nullptr) {                                                                                   \
             delete layered_ct; \
             layered_ct = nullptr;                                                              \

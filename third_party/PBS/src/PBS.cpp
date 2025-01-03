@@ -769,6 +769,7 @@ namespace PBS_Li {
         }
     }
 
+    // may fall into infinity loop
     bool PBS::hasHigherPriority(int low, int high) const // return true if agent low is lower than agent high
     {
         std::queue<int> Q;

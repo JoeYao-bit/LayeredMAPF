@@ -42,7 +42,7 @@ namespace PIBT_2 {
         bool overCompTime() const;    // check time limit
 
         freeNav::Paths<2> getResultPath(freeNav::DimensionLength* dim, const freeNav::Instances<2> &instance_sat) {
-            //std::cout << " solution.size() " << solution.size() << " solution.front().size() " << solution.last().size() << std::endl;
+//            std::cout << " solution.size() " << solution.size() << " solution.front().size() " << solution.last().size() << std::endl;
             // yz: transform to freeNav style path
             freeNav::Paths<2> retv(instance_sat.size());
             for(int i=0; i<instance_sat.size(); i++) {
@@ -51,7 +51,7 @@ namespace PIBT_2 {
                     retv[i].push_back(freeNav::IdToPointi<2>(copy_of_path[t]->id, dim));
                     //assert(retv[agent].size()-1 == t);
                 }
-                //std::cout << " path " << i << ":" << retv[i] << std::endl;
+//                std::cout << " path " << i << ":" << retv[i] << std::endl;
             }
             // yz: remove way point when agent is stop
             for(int agent=0; agent<instance_sat.size(); agent++) {
