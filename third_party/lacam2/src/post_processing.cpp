@@ -136,8 +136,8 @@ namespace LaCAM2 {
         auto dist_table = DistTable(ins);
 
         // log for visualizer
-        auto get_x = [&](int k) { return k % ins.G.width; };
-        auto get_y = [&](int k) { return k / ins.G.width; };
+        auto get_x = [&](int k) { return k % ins.G->width; };
+        auto get_y = [&](int k) { return k / ins.G->width; };
         std::ofstream log;
         log.open(output_name, std::ios::out);
         log << "agents=" << ins.N << "\n";
