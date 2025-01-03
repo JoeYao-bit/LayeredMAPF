@@ -22,33 +22,42 @@ namespace LaCAM2 {
         const auto seed = 0;
         auto MT = std::mt19937(seed);
 
-        Instance ins(dim, isoc, instance_sat);
-        if (!ins.is_valid(1)) {
+        Instance* ins = nullptr;
+        if(external_graph_ptr != nullptr) {
+//            std::cout << "LaCAM2 use external graph ptr" <<  std::endl;
+            ins = new Instance(external_graph_ptr, instance_sat);
+        } else {
+            ins = new Instance(dim, isoc, instance_sat);
+        }
+        if (!ins->is_valid(1)) {
             std::cout << " result is invalid " << std::endl;
+            delete ins;
             return {};
         }
 
-        ins.ct = ct;
+        ins->ct = ct;
         // solve
         const Deadline deadline = Deadline(time_limit_sec * 1000);
         //std::cout << " ins->ct " << ins.ct << std::endl;
         auto additional_info = std::string("");
-        const Solution solution = solve(ins, additional_info, verbose - 1, &deadline, &MT);
+        const Solution solution = solve(*ins, additional_info, verbose - 1, &deadline, &MT);
         //const double comp_time_ms = deadline.elapsed_ms();
 
         // failure
         if (solution.empty()) {
             //info(1, verbose, "failed to solve");
             std::cout << "failed to solve" << std::endl;
+            delete ins;
             return {};
         } else {
             //std::cout << " solution size " << solution[0].size() << std::endl;
         }
 
         // check feasibility
-        if (!is_feasible_solution(ins, solution, verbose)) {
+        if (!is_feasible_solution(*ins, solution, verbose)) {
             //info(0, verbose, "invalid solution");
             std::cout << " invalid solution " << std::endl;
+            delete ins;
             return {};
         }
         // yz: transform to freeNav style path
@@ -74,6 +83,7 @@ namespace LaCAM2 {
             assert(path.front() == instance_sat[agent].first);
             assert(path.back() == instance_sat[agent].second);
         }
+        delete ins;
         return retv;
     }
 

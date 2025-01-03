@@ -7,18 +7,19 @@
 
 namespace LaCAM2 {
     struct Vertex {
-        const uint id;     // index for V in Graph
+//        const uint id;     // index for V in Graph
         const uint index;  // index for U, width * y + x, in Graph
         std::vector<Vertex *> neighbor;
 
-        Vertex(uint _id, uint _index);
+        Vertex(//uint _id,
+               uint _index);
     };
 
     using Vertices = std::vector<Vertex *>;
     using Config = std::vector<Vertex *>;  // a set of locations for all agents
 
     struct Graph {
-        Vertices V;                          // without nullptr
+//        Vertices V;                          // without nullptr
         Vertices U;                          // with nullptr
         uint width;                          // grid width
         uint height;                         // grid height
@@ -30,11 +31,23 @@ namespace LaCAM2 {
         ~Graph();
 
         uint size() const;  // the number of vertices
+//        int total_vertexs;// count of non nullptr vertex
     };
 
     bool is_same_config(
             const Config &C1,
             const Config &C2);  // check equivalence of two configurations
+
+    extern Graph * external_graph_ptr;
+
+    // yz: set grid in raw grid graph to unpassable, used to avoid generate full graph in Layered MAPF
+    // nodes set to occupied must equal to nodes set to passable, and must be passable in the raw graph
+    void setStatesToOccupied(Graph * G, const freeNav::Pointis<2>& grids,
+                             const freeNav::IS_OCCUPIED_FUNC<2>& raw_isoc,
+                             const freeNav::IS_OCCUPIED_FUNC<2>& new_isoc);
+    void restoreStatesToPassable(Graph * G, const freeNav::Pointis<2>& grids,
+                                 const freeNav::IS_OCCUPIED_FUNC<2>& raw_isoc,
+                                 const freeNav::IS_OCCUPIED_FUNC<2>& new_isoc);
 
 // hash function of configuration
 // c.f.

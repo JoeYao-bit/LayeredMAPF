@@ -1,12 +1,12 @@
 #include "../include/dist_table.hpp"
 namespace LaCAM2 {
     DistTable::DistTable(const Instance &ins)
-            : V_size(ins.G.V.size()), table(ins.N, std::vector<uint>(V_size, V_size)) {
+            : V_size(ins.G->U.size()), table(ins.N, std::vector<uint>(V_size, V_size)) {
         setup(&ins);
     }
 
     DistTable::DistTable(const Instance *ins)
-            : V_size(ins->G.V.size()), table(ins->N, std::vector<uint>(V_size, V_size)) {
+            : V_size(ins->G->U.size()), table(ins->N, std::vector<uint>(V_size, V_size)) {
         setup(ins);
     }
 
@@ -15,7 +15,7 @@ namespace LaCAM2 {
             OPEN.push_back(std::queue<Vertex *>());
             auto n = ins->goals[i];
             OPEN[i].push(n);
-            table[i][n->id] = 0;
+            table[i][n->index] = 0;
         }
     }
 
@@ -34,17 +34,17 @@ namespace LaCAM2 {
         while (!OPEN[i].empty()) {
             auto &&n = OPEN[i].front();
             OPEN[i].pop();
-            const int d_n = table[i][n->id];
+            const int d_n = table[i][n->index];
             for (auto &&m : n->neighbor) {
-                const int d_m = table[i][m->id];
+                const int d_m = table[i][m->index];
                 if (d_n + 1 >= d_m) continue;
-                table[i][m->id] = d_n + 1;
+                table[i][m->index] = d_n + 1;
                 OPEN[i].push(m);
             }
-            if (n->id == v_id) return d_n;
+            if (n->index == v_id) return d_n;
         }
         return V_size;
     }
 
-    uint DistTable::get(uint i, Vertex *v) { return get(i, v->id); }
+    uint DistTable::get(uint i, Vertex *v) { return get(i, v->index); }
 }

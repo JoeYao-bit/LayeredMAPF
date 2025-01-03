@@ -3,12 +3,12 @@ namespace LaCAM2 {
     Instance::Instance(const std::string &map_filename,
                        const std::vector<uint> &start_indexes,
                        const std::vector<uint> &goal_indexes)
-            : G(map_filename),
+            : G(new Graph(map_filename)),
               starts(Config()),
               goals(Config()),
               N(start_indexes.size()) {
-        for (auto k : start_indexes) starts.push_back(G.U[k]);
-        for (auto k : goal_indexes) goals.push_back(G.U[k]);
+        for (auto k : start_indexes) starts.push_back(G->U[k]);
+        for (auto k : goal_indexes) goals.push_back(G->U[k]);
     }
 
 // for load instance
@@ -17,7 +17,7 @@ namespace LaCAM2 {
 
     Instance::Instance(const std::string &scen_filename,
                        const std::string &map_filename, const uint _N)
-            : G(Graph(map_filename)), starts(Config()), goals(Config()), N(_N) {
+            : G(new Graph(map_filename)), starts(Config()), goals(Config()), N(_N) {
         // load start-goal pairs
         std::ifstream file(scen_filename);
         if (!file) {
@@ -36,10 +36,10 @@ namespace LaCAM2 {
                 uint y_s = std::stoi(results[2].str());
                 uint x_g = std::stoi(results[3].str());
                 uint y_g = std::stoi(results[4].str());
-                if (x_s < 0 || G.width <= x_s || x_g < 0 || G.width <= x_g) continue;
-                if (y_s < 0 || G.height <= y_s || y_g < 0 || G.height <= y_g) continue;
-                auto s = G.U[G.width * y_s + x_s];
-                auto g = G.U[G.width * y_g + x_g];
+                if (x_s < 0 || G->width <= x_s || x_g < 0 || G->width <= x_g) continue;
+                if (y_s < 0 || G->height <= y_s || y_g < 0 || G->height <= y_g) continue;
+                auto s = G->U[G->width * y_s + x_s];
+                auto g = G->U[G->width * y_g + x_g];
                 if (s == nullptr || g == nullptr) continue;
                 starts.push_back(s);
                 goals.push_back(g);
@@ -49,36 +49,36 @@ namespace LaCAM2 {
         }
     }
 
-    Instance::Instance(const std::string &map_filename, std::mt19937 *MT,
-                       const uint _N)
-            : G(Graph(map_filename)), starts(Config()), goals(Config()), N(_N) {
-        // random assignment
-        const auto V_size = G.size();
-
-        // set starts
-        auto s_indexes = std::vector<uint>(V_size);
-        std::iota(s_indexes.begin(), s_indexes.end(), 0);
-        std::shuffle(s_indexes.begin(), s_indexes.end(), *MT);
-        size_t i = 0;
-        while (true) {
-            if (i >= V_size) return;
-            starts.push_back(G.V[s_indexes[i]]);
-            if (starts.size() == N) break;
-            ++i;
-        }
-
-        // set goals
-        auto g_indexes = std::vector<uint>(V_size);
-        std::iota(g_indexes.begin(), g_indexes.end(), 0);
-        std::shuffle(g_indexes.begin(), g_indexes.end(), *MT);
-        size_t j = 0;
-        while (true) {
-            if (j >= V_size) return;
-            goals.push_back(G.V[g_indexes[j]]);
-            if (goals.size() == N) break;
-            ++j;
-        }
-    }
+//    Instance::Instance(const std::string &map_filename, std::mt19937 *MT,
+//                       const uint _N)
+//            : G(Graph(map_filename)), starts(Config()), goals(Config()), N(_N) {
+//        // random assignment
+//        const auto V_size = G.size();
+//
+//        // set starts
+//        auto s_indexes = std::vector<uint>(V_size);
+//        std::iota(s_indexes.begin(), s_indexes.end(), 0);
+//        std::shuffle(s_indexes.begin(), s_indexes.end(), *MT);
+//        size_t i = 0;
+//        while (true) {
+//            if (i >= V_size) return;
+//            starts.push_back(G.V[s_indexes[i]]);
+//            if (starts.size() == N) break;
+//            ++i;
+//        }
+//
+//        // set goals
+//        auto g_indexes = std::vector<uint>(V_size);
+//        std::iota(g_indexes.begin(), g_indexes.end(), 0);
+//        std::shuffle(g_indexes.begin(), g_indexes.end(), *MT);
+//        size_t j = 0;
+//        while (true) {
+//            if (j >= V_size) return;
+//            goals.push_back(G.V[g_indexes[j]]);
+//            if (goals.size() == N) break;
+//            ++j;
+//        }
+//    }
 
     bool Instance::is_valid(const int verbose) const {
         if (N != starts.size() || N != goals.size()) {
@@ -102,17 +102,36 @@ namespace LaCAM2 {
     }
 
     Instance::Instance(freeNav::DimensionLength* dim, const freeNav::IS_OCCUPIED_FUNC<2> & isoc,
-                       const freeNav::Instances<2> & instance_sat) : G(Graph(dim, isoc)), starts(Config()), goals(Config()), N(instance_sat.size()) {
+                       const freeNav::Instances<2> & instance_sat) : G(new Graph(dim, isoc)), starts(Config()), goals(Config()), N(instance_sat.size()) {
         // yz: insert start and target
         for(const auto& sat : instance_sat) {
             auto x_s = sat.first[0];
             auto y_s = sat.first[1];
             auto x_g = sat.second[0];
             auto y_g = sat.second[1];
-            if (x_s < 0 || G.width <= x_s || x_g < 0 || G.width <= x_g) continue;
-            if (y_s < 0 || G.height <= y_s || y_g < 0 || G.height <= y_g) continue;
-            auto s = G.U[G.width * y_s + x_s];
-            auto g = G.U[G.width * y_g + x_g];
+            if (x_s < 0 || G->width <= x_s || x_g < 0 || G->width <= x_g) continue;
+            if (y_s < 0 || G->height <= y_s || y_g < 0 || G->height <= y_g) continue;
+            auto s = G->U[G->width * y_s + x_s];
+            auto g = G->U[G->width * y_g + x_g];
+            if (s == nullptr || g == nullptr) continue;
+            starts.push_back(s);
+            goals.push_back(g);
+        }
+    }
+
+    Instance::Instance(Graph* G, const freeNav::Instances<2> & instance_sat)
+        :G(G), starts(Config()), goals(Config()), N(instance_sat.size()) {
+        use_external_graph = true;
+        // yz: insert start and target
+        for(const auto& sat : instance_sat) {
+            auto x_s = sat.first[0];
+            auto y_s = sat.first[1];
+            auto x_g = sat.second[0];
+            auto y_g = sat.second[1];
+            if (x_s < 0 || G->width <= x_s || x_g < 0 || G->width <= x_g) continue;
+            if (y_s < 0 || G->height <= y_s || y_g < 0 || G->height <= y_g) continue;
+            auto s = G->U[G->width * y_s + x_s];
+            auto g = G->U[G->width * y_g + x_g];
             if (s == nullptr || g == nullptr) continue;
             starts.push_back(s);
             goals.push_back(g);
