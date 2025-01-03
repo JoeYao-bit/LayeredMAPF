@@ -642,18 +642,18 @@ for method_key, method_value in all_method_time_cost_map.items():
     drawMethodMapAgentSizes(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)    
     
     # draw summary of maps
-    # drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)    
-    # drawSummaryOfMap(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
-    # drawSummaryOfMap(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
-    # drawSummaryOfMap(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
-    # drawSummaryOfMap(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)      
+    drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)    
+    drawSummaryOfMap(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
+    drawSummaryOfMap(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
+    drawSummaryOfMap(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
+    drawSummaryOfMap(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)      
     
 #draw summary of methods
-# drawSummaryOfMethod(all_method_time_cost_map, "Number of agents", "Time cost(ms)", "time_cost")           
-# drawSummaryOfMethod(all_method_memory_usage_map, "Number of agents", "Memory usage(MB)", "memory_usage")           
-# drawSummaryOfMethod(all_method_total_cost_map, "Number of agents", "Sum of cost", "sum_of_cost")           
-# drawSummaryOfMethod(all_method_makespan_map, "Number of agents", "Makespan", "makespan")           
-# drawSummaryOfMethod(all_method_success_rate_map, "Number of agents", "Success rate", "success_rate")      
+drawSummaryOfMethod(all_method_time_cost_map, "Number of agents", "Time cost(ms)", "time_cost")           
+drawSummaryOfMethod(all_method_memory_usage_map, "Number of agents", "Memory usage(MB)", "memory_usage")           
+drawSummaryOfMethod(all_method_total_cost_map, "Number of agents", "Sum of cost", "sum_of_cost")           
+drawSummaryOfMethod(all_method_makespan_map, "Number of agents", "Makespan", "makespan")           
+drawSummaryOfMethod(all_method_success_rate_map, "Number of agents", "Success rate", "success_rate")      
 
 # TODO: create a big canvas that have all figures, simplify visualization
 # draw all figure of a method under all map (condensed into four fig, each fig have approx 6 maps)
