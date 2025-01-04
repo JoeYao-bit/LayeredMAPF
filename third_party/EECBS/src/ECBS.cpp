@@ -289,6 +289,7 @@ namespace CBS_Li {
                 cout << " start id " << start_id << " target id " << target_id << std::endl;
                 //cerr << " heuristic in start position " << search_engines[i]->my_heuristic[start_id] << std::endl;
                 //exit(-1);
+                delete root;
                 return false;
             }
             paths[i] = &paths_found_initially[i].first;
