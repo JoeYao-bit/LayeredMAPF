@@ -30,7 +30,6 @@ using namespace freeNav;
 using namespace freeNav::LayeredMAPF;
 
 Viewer3D* viewer_3d;
-ThreadPool viewer_thread(1);
 
 struct timezone tz;
 struct timeval tv_pre;
@@ -74,7 +73,7 @@ SET_OCCUPIED_FUNC<2> set_occupied_func = set_occupied;
 
 std::set<int> visited_grid_during_lacam;
 int main(int argc, char** argv) {
-    MemoryRecorder memory_recorder(50);
+//    MemoryRecorder memory_recorder(50);
     std::cout << " map name " << map_test_config.at("map_path")  << std::endl;
     // load mapf scene
     const auto& dim = loader.getDimensionInfo();
@@ -95,8 +94,8 @@ int main(int argc, char** argv) {
     std::cout << "get " << ists.size() << " instances" << std::endl;
     Paths<2> multiple_paths;
     // decomposition
-    memory_recorder.clear();
-    float base_usage = memory_recorder.getCurrentMemoryUsage();
+    //memory_recorder.clear();
+    float base_usage;// = memory_recorder.getCurrentMemoryUsage();
     // LaCAM::lacam_MAPF; // add size of nodes in CLOSE queue as estimation for memory usage
     // LaCAM2::lacam2_MAPF; // add size of nodes in EXPLORED queue as estimation for memory usage
     // PBS_Li::pbs_MAPF; // add size of nodes in allNodes_table as estimation for memory usage
@@ -113,7 +112,10 @@ int main(int argc, char** argv) {
     gettimeofday(&tv_pre, &tz);
 
 //    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_func, LaCAM2::lacam2_MAPF, false, 30);
-    multiple_paths = IndependenceDetectionMAPF<2>(ists, dim, is_occupied, MAPF_func, LaCAM2::lacam2_MAPF, false, 30);
+//    multiple_paths = IndependenceDetectionMAPF<2>(ists, dim, is_occupied, MAPF_func, LaCAM2::lacam2_MAPF, false, 30);
+
+    IndependenceDetection<2> id(ists, dim, is_occupied, MAPF_func, 30);
+    if(id.solved_) { multiple_paths = id.paths_; }
 
     gettimeofday(&tv_after, &tz);
     double layered_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
@@ -121,7 +123,7 @@ int main(int argc, char** argv) {
     std::cout << "-- ID mapf end in " << layered_cost << "ms" << std::endl << std::endl;
     std::cout << " is solution valid ? " << validateSolution<2>(multiple_paths) << std::endl;
     sleep(1);
-    float maximal_usage = memory_recorder.getMaximalMemoryUsage();
+    float maximal_usage;// = memory_recorder.getMaximalMemoryUsage();
     {
         std::cout << "ID mapf maximal usage = " << maximal_usage - base_usage << " MB" << std::endl;
     }
@@ -138,7 +140,9 @@ int main(int argc, char** argv) {
 
     std::cout << std::endl;
 
-    memory_recorder.clear();
+    //memory_recorder.clear();
+
+    return 0;
 //    sleep(1);
 //    base_usage = memory_recorder.getCurrentMemoryUsage();
 //
@@ -169,6 +173,7 @@ int main(int argc, char** argv) {
 
 
     ThreadPool tp(1);
+    ThreadPool viewer_thread(1);
 
     // set viewer
     viewer_3d = new Viewer3D();

@@ -131,7 +131,253 @@ namespace freeNav::LayeredMAPF {
 
     };
 
+    template<Dimension N>
+    struct IndependenceDetection {
+        IndependenceDetection(const Instances<N> & instances, DimensionLength* dim,
+                              const IS_OCCUPIED_FUNC<N> & isoc, const MAPF_FUNC<N> & mapf_func, float cutoff_time = 60)
+                              : instances_(instances), isoc_(isoc), dim_(dim),
+                              mapf_func_(mapf_func), cutoff_time_(cutoff_time) {
+            gettimeofday(&tv_pre, &tz);
+            getInitGroupId();
+            createInitialPaths();
+            run();
+            if(solved_) {
+                std::cout << "IndependenceDetection success" << std::endl;
+            } else {
+                std::cout << "IndependenceDetection failed" << std::endl;
+            }
+        }
 
+        void getInitGroupId() {
+            group_id_map_ = std::vector<size_t>(instances_.size()); // when merge groups, set them id to the minimal group id
+            group_id_set_ = std::map<size_t, std::vector<int>>(); // group id and its agent ids
+            for(int i=0; i<instances_.size(); i++) {
+                group_id_map_[i] = i;
+                if(group_id_set_.find(i) == group_id_set_.end()) {
+                    group_id_set_[i] = {i};
+                } else {
+                    // there shouldn't be reach, but add for continuous
+                    assert(0);
+                    group_id_set_[i].push_back(i);
+                }
+            }
+        }
+
+        void createInitialPaths() {
+            paths_ = Paths<N>(instances_.size()   );
+            maximum_length_of_paths_ = std::vector<size_t>(instances_.size());
+            for(int i=0; i<instances_.size(); i++) {
+//            std::cout << "flag 1.1" << std::endl;
+
+                // initialize instance in an freeNav way
+                CBS_Li::Instance single_ins(dim_, isoc_, {instances_[i]});
+                CBS_Li::SingleAgentSolver* solver = nullptr;
+//            std::cout << "flag 1.2" << std::endl;
+
+                if(1) {
+                    solver = new CBS_Li::SpaceTimeAStar(single_ins, 0);
+//                std::cout << "flag 1.3" << std::endl;
+
+                } else {
+                    solver = new CBS_Li::SIPP(single_ins, 0);
+//                std::cout << "flag 1.4" << std::endl;
+                }
+                //std::cout << "flag 2" << std::endl;
+
+                auto root = new CBS_Li::CBSNode();
+                CBS_Li::ConstraintTable empty_ct = CBS_Li::ConstraintTable(dim_[0], dim_[0]*dim_[1]);
+                std::vector<CBS_Li::PathEntry> solution =
+                        solver->findOptimalPath(*root, empty_ct, {}, 0, 0);
+                delete solver;
+                delete root;
+                //std::cout << "flag 3" << std::endl;
+
+                if(solution.empty()) {
+                    std::cout << "search solution for agent " << i << ", " << instances_[i].first << " to "
+                              << instances_[i].second << " failed " << std::endl;
+                    assert(0);
+                } else {
+                    Path<N> init_path;
+                    for(int t=0; t<solution.size(); t++) {
+                        init_path.push_back(IdToPointi<N>(solution[t].location, dim_));
+                    }
+                    paths_[i] = init_path;
+                    maximum_length_of_paths_[i] = init_path.size();
+                }
+                //std::cout << "flag 4" << std::endl;
+            }
+            std::cout << "finish search init paths" << std::endl;
+        }
+
+        // true: avoid success; false: failed to merge
+        bool tryMakeGroupAvoidAnother(const size_t& gid1, const size_t& gid2) {
+            gettimeofday(&tv_after, &tz);
+            remaining_time_ = cutoff_time_ - (tv_after.tv_sec - tv_pre.tv_sec) + (tv_after.tv_usec - tv_pre.tv_usec)/1e6;
+            if(remaining_time_ <= 0) {
+                std::cout << "run out of time 1" << std::endl;
+                return false;
+            }
+            std::cout << "1, start try make group " << gid1 << "'s path avoid group " << gid2 << std::endl;
+            CBS_Li::ConstraintTable *layered_ct = new CBS_Li::ConstraintTable(dim_[0], dim_[0]*dim_[1]);
+//            return paths;
+
+            for (int i=0; i<paths_.size(); i++) {
+                // avoid conflict with group2's paths
+                if(group_id_map_[i] != gid2) { continue; }
+                CBS_Li::MAPFPath path_eecbs;
+                for (int t = 0; t < paths_[i].size(); t++) {
+                    path_eecbs.push_back(CBS_Li::PathEntry(PointiToId(paths_[i][t], dim_)));
+                }
+                layered_ct->insert2CT(path_eecbs);
+            }
+            // set soft constraint
+            for (int i=0; i<paths_.size(); i++) {
+                // avoid conflict with group2's paths
+                if(group_id_map_[i] != gid1 && group_id_map_[i] != gid2) { continue; }
+                CBS_Li::MAPFPath path_eecbs;
+                for (int t = 0; t < paths_[i].size(); t++) {
+                    path_eecbs.push_back(CBS_Li::PathEntry(PointiToId(paths_[i][t], dim_)));
+                }
+                layered_ct->insert2CAT(path_eecbs);
+            }
+            // construct local instance
+            Instances<N> ists;
+            layered_ct->maximum_length_of_paths_.clear(); // set upperbound of path cost
+            for(auto iter = group_id_set_[gid1].begin(); iter != group_id_set_[gid1].end(); iter++) {
+                ists.push_back(instances_[*iter]);
+                layered_ct->maximum_length_of_paths_.push_back(paths_[*iter].size());
+                std::cout << "set agent " << *iter << " max length to " << maximum_length_of_paths_[*iter] << std::endl;
+            }
+            Paths<N> next_paths = mapf_func_(dim_, isoc_, ists, layered_ct, remaining_time_);
+            delete layered_ct;
+            if(!next_paths.empty()) {
+                int local_path_id = 0;
+                for(auto iter = group_id_set_[gid1].begin(); iter != group_id_set_[gid1].end(); iter++) {
+                    paths_[*iter] = next_paths[local_path_id];
+                    std::cout << "update path of " << *iter << " to " << next_paths[local_path_id] << std::endl;
+                    local_path_id ++;
+                }
+                return true;
+            }
+            return false;
+        }
+
+        bool mergeGroupAndAnother(const size_t& gid1, const size_t& gid2) {
+            gettimeofday(&tv_after, &tz);
+            remaining_time_ = cutoff_time_ - (tv_after.tv_sec - tv_pre.tv_sec) + (tv_after.tv_usec - tv_pre.tv_usec)/1e6;
+            if(remaining_time_ <= 0) {
+                std::cout << "run out of time 3" << std::endl;
+                return false;
+            }
+            CBS_Li::ConstraintTable *layered_ct = new CBS_Li::ConstraintTable(dim_[0], dim_[0]*dim_[1]);
+            layered_ct = new CBS_Li::ConstraintTable(dim_[0], dim_[0]*dim_[1]);
+            // set soft constraint
+            for (int i=0; i<paths_.size(); i++) {
+                // avoid conflict with group2's paths
+                if(group_id_map_[i] != gid1 && group_id_map_[i] != gid2) { continue; }
+                CBS_Li::MAPFPath path_eecbs;
+                for (int t = 0; t < paths_[i].size(); t++) {
+                    path_eecbs.push_back(CBS_Li::PathEntry(PointiToId(paths_[i][t], dim_)));
+                }
+                layered_ct->insert2CAT(path_eecbs);
+            }
+            std::cout << "3, merge group " << gid2 << " into " << gid1 << std::endl;
+            // merge group gid1 and gid2, merge gid2 into gid1
+            for(const auto& temp_id : group_id_set_[gid2]) {
+                group_id_map_[temp_id] = gid1;
+                group_id_set_[gid1].push_back(temp_id);
+            }
+            group_id_set_.erase(gid2);
+            std::cout << "group_id_set[gid1] = ";
+            // construct local instance
+            Instances<N> ists;
+            layered_ct->maximum_length_of_paths_.clear(); // no cost limitation when merge groups
+            for(auto iter = group_id_set_[gid1].begin(); iter != group_id_set_[gid1].end(); iter++) {
+                ists.push_back(instances_[*iter]);
+                std::cout << *iter << " ";
+            }
+            std::cout << std::endl;
+            std::cout << "3, start search path of merged group " << gid1 << std::endl;
+
+            Paths<N> next_paths = mapf_func_(dim_, isoc_, ists, layered_ct, remaining_time_);
+            delete layered_ct;
+
+            std::cout << "next_paths = " << std::endl;
+            for(int i=0; i<next_paths.size(); i++) {
+                std::cout << next_paths[i] << std::endl;
+            }
+            std::cout << "next_paths end" << std::endl;
+            if(!next_paths.empty()) {
+                int local_path_id = 0;
+                for(auto iter = group_id_set_[gid1].begin(); iter != group_id_set_[gid1].end(); iter++) {
+                    paths_[*iter] = next_paths[local_path_id];
+                    std::cout << "update path of " << *iter << " to " << next_paths[local_path_id] << std::endl;
+                    local_path_id ++;
+                }
+                return true;
+            } else {
+                // shouldn't reach there (except run out of time), as merge of two group should always be solvable
+                std::cout << "merge group " << gid1 << " and " << gid2 << " search path failed " << std::endl;
+                return false;
+                //assert(0);
+            }
+            return false;
+        }
+
+        void run() {
+            remaining_time_ = cutoff_time_;
+            int count = 0;
+            while(true) { // until no conflicts occur
+                std::cout << "-- step " << count << std::endl;
+                count ++;
+                if(count >= 2000) {
+                    return;
+                }
+                // simulate execution of all paths until a conflict between two groups G 1 and G 2 occurs
+                // if these two groups have not conflicted before then
+                // execute all path simultaneously, util found conflict between paths belong to different group
+                MultiPathConflictDetector<N> detector(paths_, group_id_map_, dim_);
+                size_t gid1, gid2;
+                if(!detector.detectConflict(gid1, gid2)) {
+                    // there is no conflict between paths
+//                    retv = paths_;
+                 solved_ = true;
+                    break;
+                }
+                std::cout << "detect conflict between group " << gid1 << " and " << gid2 << std::endl;
+                assert(gid1 != gid2);
+
+                // plan new path, avoid other group's paths (hard constraint), try to avoid remaining group's path
+                if(tryMakeGroupAvoidAnother(gid1, gid2)) { continue; }
+                // if play failed, try search gid2 while set gid1 as constraint
+                if(tryMakeGroupAvoidAnother(gid2, gid1)) { continue; }
+
+                // if both failed, merge gid1 and gid2, and search path again
+                // end if
+                // update conflict avoidance table with changes made to paths
+                if(!mergeGroupAndAnother(gid1, gid2)) { return; }
+            }
+        }
+
+        const Instances<N> & instances_;
+        DimensionLength* dim_;
+        const IS_OCCUPIED_FUNC<N> isoc_;
+        const MAPF_FUNC<N> & mapf_func_;
+        float cutoff_time_ = 60;
+        float remaining_time_;
+
+        Paths<N> paths_; // every agent's path
+        std::vector<size_t> group_id_map_; // when merge groups, set them id to the minimal group id
+        std::map<size_t, std::vector<int>> group_id_set_; // group id and its agent ids
+
+        std::vector<size_t> maximum_length_of_paths_;
+        bool solved_ = false;
+
+        struct timezone tz;
+        struct timeval  tv_pre;
+        struct timeval  tv_after;
+
+    };
 
     template<Dimension N>
     Paths<N> IndependenceDetectionMAPF(const Instances<N> & instances,
