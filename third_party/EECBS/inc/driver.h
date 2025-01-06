@@ -416,7 +416,7 @@ namespace CBS_Li {
                     break;
                 lowerbound = ecbs.getLowerBound();
                 ecbs.randomRoot = true;
-                cout << "Failed to find solutions in Run " << i << endl;
+//                cout << "Failed to find solutions in Run " << i << endl;
             }
             ecbs.runtime = runtime;
 //        if (vm.count("output"))

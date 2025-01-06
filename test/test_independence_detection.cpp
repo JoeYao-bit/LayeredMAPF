@@ -54,7 +54,7 @@ GridPtr<3> sg1 = std::make_shared<Grid<3>>(),
 // MAPFTestConfig_lak303d
 // MAPFTestConfig_simple
 // MAPFTestConfig_empty_48_48
-auto map_test_config = MAPFTestConfig_simple;
+auto map_test_config = MAPFTestConfig_empty_48_48;//MAPFTestConfig_simple
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -121,7 +121,7 @@ int main(int argc, char** argv) {
     double layered_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
     std::cout << multiple_paths.size() << " agents " << std::endl;
     std::cout << "-- ID mapf end in " << layered_cost << "ms" << std::endl << std::endl;
-    std::cout << " is solution valid ? " << validateSolution<2>(multiple_paths) << std::endl;
+    std::cout << " is solution valid ? " << validateSolution<2>(multiple_paths) << " / empty ? " << multiple_paths.empty() << std::endl;
     sleep(1);
     float maximal_usage;// = memory_recorder.getMaximalMemoryUsage();
     {
