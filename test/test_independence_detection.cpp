@@ -54,7 +54,7 @@ GridPtr<3> sg1 = std::make_shared<Grid<3>>(),
 // MAPFTestConfig_lak303d
 // MAPFTestConfig_simple
 // MAPFTestConfig_empty_48_48
-auto map_test_config = MAPFTestConfig_empty_48_48;//MAPFTestConfig_simple
+auto map_test_config = MAPFTestConfig_maze_32_32_2;//MAPFTestConfig_simple
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
