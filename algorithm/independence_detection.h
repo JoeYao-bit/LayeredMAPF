@@ -159,6 +159,10 @@ namespace freeNav::LayeredMAPF {
             return vec_size;
         }
 
+        size_t getNumberOfSubProblem() const {
+            return group_id_set_.size();
+        }
+
         void getInitGroupId() {
             group_id_map_ = std::vector<size_t>(instances_.size()); // when merge groups, set them id to the minimal group id
             group_id_set_ = std::map<size_t, std::vector<int> >(); // group id and its agent ids
@@ -235,29 +239,31 @@ namespace freeNav::LayeredMAPF {
 //            return paths;
 
             Paths<N> other_group_paths;
-            for (int i=0; i<paths_.size(); i++) {
-                // avoid conflict with group2's paths
-                if(group_id_map_[i] != gid2) { continue; }
-                CBS_Li::MAPFPath path_eecbs;
-                for (int t = 0; t < paths_[i].size(); t++) {
-                    path_eecbs.push_back(CBS_Li::PathEntry(PointiToId(paths_[i][t], dim_)));
-                }
-                other_group_paths.push_back(paths_[i]);
-                layered_ct->insert2CT(path_eecbs);
-            }
+//            for (int i=0; i<paths_.size(); i++) {
+//                // avoid conflict with group2's paths
+//                if(group_id_map_[i] != gid1) { continue; }
+//                CBS_Li::MAPFPath path_eecbs;
+//                for (int t = 0; t < paths_[i].size(); t++) {
+//                    path_eecbs.push_back(CBS_Li::PathEntry(PointiToId(paths_[i][t], dim_)));
+//                }
+//                other_group_paths.push_back(paths_[i]);
+//                layered_ct->insert2CT(path_eecbs);
+//            }
             // avoid previous separated group's path as hard constraint
             for(int i=0; i<paths_.size(); i++) {
-                if(group_id_map_[i] == gid1) { continue; }
+//                if(group_id_map_[i] == gid1) { continue; } // try avoid all path exit from group 1
+                if(group_id_map_[i] != gid2) { continue; } // try avoid all path exit from group 1
                 CBS_Li::MAPFPath path_eecbs;
                 for (int t = 0; t < paths_[i].size(); t++) {
                     path_eecbs.push_back(CBS_Li::PathEntry(PointiToId(paths_[i][t], dim_)));
                 }
+//                other_group_paths.push_back(paths_[i]);
                 layered_ct->insert2CT(path_eecbs);
             }
             // set soft constraint
             for (int i=0; i<paths_.size(); i++) {
                 // avoid conflict with group2's paths
-                if(group_id_map_[i] != gid1 && group_id_map_[i] != gid2) { continue; }
+                if(group_id_map_[i] == gid1 || group_id_map_[i] == gid2) { continue; }
                 CBS_Li::MAPFPath path_eecbs;
                 for (int t = 0; t < paths_[i].size(); t++) {
                     path_eecbs.push_back(CBS_Li::PathEntry(PointiToId(paths_[i][t], dim_)));
@@ -269,7 +275,7 @@ namespace freeNav::LayeredMAPF {
             layered_ct->maximum_length_of_paths_.clear(); // set upperbound of path cost
             for(auto iter = group_id_set_[gid1].begin(); iter != group_id_set_[gid1].end(); iter++) {
                 ists.push_back(instances_[*iter]);
-                layered_ct->maximum_length_of_paths_.push_back(paths_[*iter].size());
+                layered_ct->maximum_length_of_paths_.push_back(maximum_length_of_paths_[*iter]);
 //                std::cout << "set agent " << *iter << " max length to " << maximum_length_of_paths_[*iter] << std::endl;
             }
             Paths<N> next_paths = mapf_func_(dim_, isoc_, ists, layered_ct, remaining_time_);
@@ -282,9 +288,9 @@ namespace freeNav::LayeredMAPF {
                     local_path_id ++;
                 }
                 // debug
-                auto multiple_paths = next_paths;
-                multiple_paths.insert(multiple_paths.end(), other_group_paths.begin(), other_group_paths.end());
-                assert(validateSolution<2>(multiple_paths));
+//                auto multiple_paths = next_paths;
+//                multiple_paths.insert(multiple_paths.end(), other_group_paths.begin(), other_group_paths.end());
+//                assert(validateSolution<2>(multiple_paths));
                 //layered_ct->constrained()
                 return true;
             }
@@ -328,6 +334,7 @@ namespace freeNav::LayeredMAPF {
             layered_ct->maximum_length_of_paths_.clear(); // no cost limitation when merge groups
             for(auto iter = group_id_set_[new_group_id].begin(); iter != group_id_set_[new_group_id].end(); iter++) {
                 ists.push_back(instances_[*iter]);
+                layered_ct->maximum_length_of_paths_.push_back(maximum_length_of_paths_[*iter]);
 //                std::cout << *iter << " ";
             }
 //            std::cout << std::endl;
@@ -362,11 +369,11 @@ namespace freeNav::LayeredMAPF {
             remaining_time_ = cutoff_time_;
             int count = 0;
             while(true) { // until no conflicts occur
-                std::cout << "-- step " << count << std::endl;
+//                std::cout << "-- step " << count << std::endl;
                 count ++;
-                if(count >= 2000) {
-                    return;
-                }
+//                if(count >= 2000) {
+//                    return;
+//                }
                 // simulate execution of all paths until a conflict between two groups G 1 and G 2 occurs
                 // if these two groups have not conflicted before then
                 // execute all path simultaneously, util found conflict between paths belong to different group
@@ -378,35 +385,35 @@ namespace freeNav::LayeredMAPF {
                     solved_ = true;
                     break;
                 }
-                std::cout << "detect conflict between group " << gid1 << " and " << gid2 << std::endl;
+//                std::cout << "detect conflict between group " << gid1 << " and " << gid2 << std::endl;
                 assert(gid1 != gid2);
 
                 // plan new path, avoid other group's paths (hard constraint), try to avoid remaining group's path
-                std::cout << "try make group " << gid1 << " avoid " << gid2 << ", ";
+//                std::cout << "try make group " << gid1 << " avoid " << gid2 << ", ";
                 if(tryMakeGroupAvoidAnother(gid1, gid2)) {
-                    std::cout << "success " << std::endl;
+//                    std::cout << "success " << std::endl;
                     continue;
                 } else {
-                    std::cout << "failed " << std::endl;
+//                    std::cout << "failed " << std::endl;
                 }
                 // if play failed, try search gid2 while set gid1 as constraint
-                std::cout << "try make group " << gid2 << " avoid " << gid1 << ", ";
+//                std::cout << "try make group " << gid2 << " avoid " << gid1 << ", ";
                 if(tryMakeGroupAvoidAnother(gid2, gid1)) {
-                    std::cout << "success " << std::endl;
+//                    std::cout << "success " << std::endl;
                     continue;
                 } else {
-                    std::cout << "failed " << std::endl;
+//                    std::cout << "failed " << std::endl;
                 }
 
                 // if both failed, merge gid1 and gid2, and search path again
                 // end if
                 // update conflict avoidance table with changes made to paths
-                std::cout << "try make group " << gid1 << " merge with " << gid2 << ", ";
+//                std::cout << "try make group " << gid1 << " merge with " << gid2 << ", ";
                 if(!mergeGroupAndAnother(gid1, gid2)) {
-                    std::cout << "failed " << std::endl;
+//                    std::cout << "failed " << std::endl;
                     return;
                 } else {
-                    std::cout << "success, get new group " << maximal_group_id_ << std::endl;
+//                    std::cout << "success, get new group " << maximal_group_id_ << std::endl;
                 }
             }
         }

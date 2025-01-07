@@ -101,9 +101,11 @@ aux_source_directory(third_party/MAPF-LNS2/src              MAPF_LNS2_src)
 aux_source_directory(third_party/MAPF-LNS2/src/CBS          MAPF_LNS2_CBS_src)
 aux_source_directory(third_party/MAPF-LNS2/src/PIBT         MAPF_LNS2_PIBT_src)
 aux_source_directory(third_party/pibt2/src                  PIBT2_src)
+aux_source_directory(third_party/Hybrid_MAPF                Hybird_MAPF_src)
+
 
 add_library(EECBS_lib  ${EECBS_src} ${PBS_src} ${lacam_src} ${CBSH2-RTC_src} ${lacam2_src} ${lacam3_src}
-        ${MAPF_LNS2_src} ${MAPF_LNS2_CBS_src} ${MAPF_LNS2_PIBT_src} ${PIBT2_src})
+        ${MAPF_LNS2_src} ${MAPF_LNS2_CBS_src} ${MAPF_LNS2_PIBT_src} ${PIBT2_src} ${Hybird_MAPF_src})
 
 aux_source_directory(test/visualization vis_src)
 add_library(vis_lib ${vis_src} ${qt_src})
@@ -170,3 +172,6 @@ target_link_libraries(test_layered_large_agent_mapf freeNav-base lamapf_alg)
 
 add_executable(test_independence_detection test/test_independence_detection.cpp)
 target_link_libraries(test_independence_detection freeNav-base lamapf_alg)
+
+add_executable(test_hybird_mapf third_party/Hybrid_MAPF/main.cpp)
+target_link_libraries(test_hybird_mapf freeNav-base lamapf_alg)
