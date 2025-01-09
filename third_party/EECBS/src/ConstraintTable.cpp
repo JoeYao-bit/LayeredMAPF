@@ -1,4 +1,4 @@
-#include "EECBS/inc/ConstraintTable.h"
+#include "../../../algorithm/constraint_table_CBS/ConstraintTable.h"
 namespace CBS_Li {
 
     int ConstraintTable::getMaxTimestep() const // everything is static after the max timestep

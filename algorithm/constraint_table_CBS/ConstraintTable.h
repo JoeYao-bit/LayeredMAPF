@@ -1,7 +1,8 @@
 #pragma once
 #include "common.h"
-#include "CBSNode.h"
+#include "Conflict.h"
 #include <unordered_map>
+#include "CBSNode.h"
 
 namespace CBS_Li {
 

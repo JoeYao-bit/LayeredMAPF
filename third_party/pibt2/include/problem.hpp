@@ -5,8 +5,7 @@
 #include "default_params.hpp"
 #include "task.hpp"
 #include "util.hpp"
-#include "../../../freeNav-base/basic_elements/point.h" // yz: add for freeNav style interfaces
-#include "EECBS/inc/ConstraintTable.h" // yz: introduce static constraint table
+#include "../algorithm/layered_mapf.h" // yz: add for freeNav style interfaces
 
 namespace PIBT_2 {
 

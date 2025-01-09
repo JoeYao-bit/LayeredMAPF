@@ -1,9 +1,8 @@
 #pragma once
 #include "Instance.h"
-#include "EECBS/inc/ConstraintTable.h"
-#include "../../../freeNav-base/basic_elements/point.h"
+#include "../algorithm/layered_mapf.h"
 #include "EECBS/inc/ECBS.h"
-#include "EECBS/inc/common.h"
+#include "../../../algorithm/constraint_table_CBS/common.h"
 
 namespace MAPF_LNS2 {
 

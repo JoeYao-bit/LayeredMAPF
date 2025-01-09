@@ -52,7 +52,7 @@ GridPtr<3> sg1 = std::make_shared<Grid<3>>(),
 // MAPFTestConfig_lak303d
 // MAPFTestConfig_simple
 // MAPFTestConfig_empty_48_48
-auto map_test_config = MAPFTestConfig_ht_chantry;//MAPFTestConfig_Boston_0_256;
+auto map_test_config = MAPFTestConfig_empty_48_48;//MAPFTestConfig_Boston_0_256;
 
 auto is_char_occupied1 = [](const char& value) -> bool {
     if (value == '.') return false;
@@ -105,7 +105,7 @@ int main(int argc, char** argv) {
     // PIBT_2::hca_MAPF; // prioritized mapf, solve each agent separately, no much difference in memory usage
     // PIBT_2::push_and_swap_MAPF // makespan * num of agent, suboptimal planning cause very large makespan,
     // cause very large memory usage, while solve agents isolated didn't
-    auto MAPF_func = LaCAM2::lacam2_MAPF;//MAPF_LNS2::LNS2_MAPF;
+    auto MAPF_func = CBS_Li::eecbs_MAPF;//MAPF_LNS2::LNS2_MAPF;
     // TODO:: considering previous agent's target and following agent's start
     PIBT_2::external_grid_ptr = PIBT_2::Problem::generateGridPtr(dim, is_occupied);
 

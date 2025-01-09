@@ -1,6 +1,6 @@
 #pragma once
 #include "Instance.h"
-#include "EECBS/inc/ConstraintTable.h"
+#include "../algorithm/layered_mapf.h"
 
 namespace MAPF_LNS2 {
 

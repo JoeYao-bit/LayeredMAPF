@@ -4,8 +4,7 @@
 #include "RectangleReasoning.h"
 #include "CorridorReasoning.h"
 #include "MutexReasoning.h"
-#include "EECBS/inc/ConstraintTable.h"
-#include "../../../freeNav-base/basic_elements/point.h"
+#include "../algorithm/layered_mapf.h"
 
 namespace CBSH2_RTC {
 
@@ -148,7 +147,7 @@ private:
 
 
     vector<ConstraintTable> initial_constraints;
-     CBS_Li::ConstraintTable* ct = nullptr; // yz: add for static constraint
+    CBS_Li::ConstraintTable* ct = nullptr; // yz: add for static constraint
     clock_t start;
 
     int num_of_agents;

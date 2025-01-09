@@ -4,7 +4,7 @@
 #include "CBS.h"
 #include "Picat.h"
 #include "ID.h"
-
+#include "../third_party/EECBS/inc/driver.h"
 #define MAKESPAN 1
 #define SOC 2
 
@@ -43,7 +43,7 @@ int main()
 			else
 				function_name = "mks";
 			
-
+            CBS_Li::cbs_MAPF;
 			// Solve the instance - use only Picat
 			ret_val = 0;
 			inst->ResetAgentsNumber();

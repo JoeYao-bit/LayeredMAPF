@@ -1,5 +1,5 @@
 #include "EECBS/inc/CorridorReasoning.h"
-#include "EECBS/inc/Conflict.h"
+#include "../../../algorithm/constraint_table_CBS/Conflict.h"
 #include <memory>
 #include "EECBS/inc/SpaceTimeAStar.h"
 #include "EECBS/inc/SIPP.h"

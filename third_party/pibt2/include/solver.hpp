@@ -11,7 +11,7 @@
 #include "plan.hpp"
 #include "problem.hpp"
 #include "util.hpp"
-#include "../../../freeNav-base/basic_elements/point.h" // yz: transform to freeNav style path
+#include "../algorithm/layered_mapf.h" // yz: transform to freeNav style path
 namespace PIBT_2 {
 
     extern std::set<int> visited_grid_; // yz: visited grid during path search

@@ -29,7 +29,7 @@
 #include "../../freeNav-base/dependencies/3d_octomap/octomap_loader.h"
 #include "../../freeNav-base/dependencies/3d_textmap/voxel_loader.h"
 
-#include "../../third_party/EECBS/inc/common.h"
+#include "../../algorithm/constraint_table_CBS/common.h"
 
 namespace freeNav::LayeredMAPF {
 

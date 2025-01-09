@@ -1,5 +1,5 @@
 #pragma once
-#include"common.h"
+#include"../../../algorithm/constraint_table_CBS/common.h"
 #include "../../../freeNav-base/basic_elements/point.h"
 
 namespace CBS_Li {

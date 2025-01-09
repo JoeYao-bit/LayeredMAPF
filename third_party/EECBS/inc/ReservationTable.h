@@ -1,6 +1,6 @@
 // This is used by SIPP
 #pragma once
-#include "ConstraintTable.h"
+#include "../../../algorithm/constraint_table_CBS/ConstraintTable.h"
 
 namespace CBS_Li {
 

@@ -12,7 +12,7 @@
 #include "MAPF-LNS2/inc/AnytimeEECBS.h"
 #include "MAPF-LNS2/inc/PIBT/pibt.h"
 #include "../../../freeNav-base/basic_elements/point.h"
-#include "EECBS/inc/ConstraintTable.h"
+#include "../../../algorithm/constraint_table_CBS/ConstraintTable.h"
 
 namespace MAPF_LNS2 {
 
@@ -217,7 +217,7 @@ namespace MAPF_LNS2 {
     freeNav::Paths<2> AnytimeEECBS_MAPF(freeNav::DimensionLength *dim,
                                        const freeNav::IS_OCCUPIED_FUNC<2> &isoc,
                                        const freeNav::Instances<2> &instance_sat,
-                                       CBS_Li::ConstraintTable *ct,
+                                        CBS_Li::ConstraintTable *ct,
                                        int cutoff_time) {
         namespace po = boost::program_options;
         // Declare the supported options.
