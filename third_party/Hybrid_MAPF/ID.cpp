@@ -1,5 +1,6 @@
 #include "ID.h"
 
+
 using namespace std;
 namespace Hybird_MAPF {
 
@@ -11,7 +12,7 @@ namespace Hybird_MAPF {
     }
 
     int ID::SolveProblem(const vector<bool> &solvers_to_use) {
-        runtime = 0;
+        runtime = 61e5;
 
         current_plan = vector<vector<int> >(inst->agents, vector<int>());
 
@@ -40,15 +41,19 @@ namespace Hybird_MAPF {
             single_path->ShortestPath(inst->start[i], inst->goal[i], current_plan[i]);
             if (current_plan[i].size() > max_time)
                 max_time = current_plan[i].size();
-            inst->distance[inst->start[i]][inst->goal[i]] = current_plan[i].size() - 1;
+            inst->distance[inst->start[i]][inst->goal[i]] = current_plan[i].size() - 1; // update distance from start to goal
         }
 
         for (size_t i = 0; i < current_plan.size(); i++)
-            current_plan[i].resize(max_time, inst->goal[i]);
+            current_plan[i].resize(max_time, inst->goal[i]); // yz: initial paths
 
         int ret_val;
         int g1, g2;
+        int count = 0;
         while (CheckForConflicts(g1, g2)) {
+//            std::cout << "step = " << count << std::endl;
+            count ++;
+            if(count >=1000) { break; }
             if (full_ID == 1) // if we use simple ID, just merge the groups
             {
                 if (CheckPastConflicts(g1, g2)) {
@@ -57,6 +62,7 @@ namespace Hybird_MAPF {
                     ret_val = PlanForGroups(g1, -1, -1);
                     if (ret_val == -100)    // timeout
                     {
+                        std::cout << "PlanForGroups 1 timeout"  << std::endl;
                         return CleanUp(-1);
                     } else if (ret_val == 0)    // ok
                         continue;
@@ -68,6 +74,7 @@ namespace Hybird_MAPF {
                 ret_val = PlanForGroups(g1, g2, ComputeGroupCost(g1));
                 if (ret_val == -100)    // timeout
                 {
+                    std::cout << "PlanForGroups 2 timeout"  << std::endl;
                     return CleanUp(-1);
                 } else if (ret_val == 0)    // ok
                     continue;
@@ -76,6 +83,7 @@ namespace Hybird_MAPF {
                 ret_val = PlanForGroups(g2, g1, ComputeGroupCost(g2));
                 if (ret_val == -100)    // timeout
                 {
+                    std::cout << "PlanForGroups 3 timeout"  << std::endl;
                     return CleanUp(-1);
                 } else if (ret_val == 0)    // ok
                     continue;
@@ -84,14 +92,27 @@ namespace Hybird_MAPF {
             // if nothing is possible, merge g1 and g2 and replan without constraints
             MergeGroups(g1, g2);
             if (PlanForGroups(g1, -1, -1) == -100) {
+                std::cout << "PlanForGroups 4 timeout"  << std::endl;
                 return CleanUp(-1);
             }
         }
 
-        inst->CheckPlan(current_plan);
+        solved = inst->CheckPlan(current_plan);
         inst->PrintPlan(current_plan);
         final_makespan = inst->GetPlanMakespan(current_plan);
         final_soc = inst->GetPlanSoC(current_plan);
+
+        if(solved) {
+            paths_fr.clear();
+            for(int i=0; i<inst->instance_sat_.size(); i++) {
+                freeNav::Path<2> path;
+                auto raw_path = current_plan[i];
+                for(int j=0; j<raw_path.size(); j++) {
+                    path.push_back(inst->node_to_pt_map[raw_path[j]]);
+                }
+                paths_fr.push_back(path);
+            }
+        }
 
         return CleanUp(0);
     }
@@ -249,6 +270,78 @@ namespace Hybird_MAPF {
 
 
 // solver both solver after each other, take the faster (simulation of parallel)
+//    int ID::PlanForGroups(int g1, int g2, int Cost) {
+//        vector<int> agents_to_plan;
+//        vector<vector<int> > agents_to_avoid;
+//
+//        // is in g1 -> to plan
+//        agents_to_plan = groups[g1];
+//
+//        // set avoidance table - [agent][time] = node
+//        if (g2 != -1) {
+//            agents_to_avoid = vector<vector<int> >(groups[g2].size());
+//            for (size_t i = 0; i < groups[g2].size(); i++)
+//                for (size_t j = 0; j < current_plan[groups[g2][i]].size(); j++)
+//                    agents_to_avoid[i].push_back(current_plan[groups[g2][i]][j]);
+//
+//            //for (size_t i = 0; i < agents_to_avoid.size(); i++)
+//            //	agents_to_avoid[i].resize(Cost, inst->goal[groups[g2][i]]);
+//        }
+//
+//        int timelimit = timelimit = inst->timeout; // in milli-seconds
+//        if (timelimit > inst->timeout - runtime)
+//            timelimit = inst->timeout - runtime;
+//
+//        vector<long long> vc_time_spent_now;
+//        vector<int> vc_ret_val;
+//        vector<vector<vector<int> > > found_plan(solvers.size());
+//
+//        for (size_t i = 0; i < solvers.size(); i++) {
+//            if (runtime >= inst->timeout)
+//                return -100;
+//
+//            if (i > 0) {
+//                timelimit = min((long long) timelimit, vc_time_spent_now[i - 1]);
+//                timelimit += 5000;
+//            }
+//
+//            chrono::steady_clock::time_point begin = chrono::steady_clock::now();
+//            solvers[i]->Solve(agents_to_plan, agents_to_avoid, Cost, timelimit);
+//            chrono::steady_clock::time_point end = chrono::steady_clock::now();
+//
+//            long long time_spent_now = chrono::duration_cast<chrono::milliseconds>(end - begin).count();
+//            vc_time_spent_now.push_back(time_spent_now);
+//
+//            int ret_val = solvers[i]->ReadResults(found_plan[i], Cost);
+//            vc_ret_val.push_back(ret_val);
+//        }
+//
+//        int min_index = 0;
+//        for (size_t i = 0; i < solvers.size(); i++) {
+//            if (vc_time_spent_now[i] < vc_time_spent_now[min_index])
+//                min_index = i;
+//        }
+//
+//        runtime += vc_time_spent_now[min_index];
+//        solver_computed[min_index]++;
+//        solver_time[min_index].push_back(vc_time_spent_now[min_index]);
+//
+//        if (vc_ret_val[min_index] == 0) {
+//            // ok, we have good solution
+//            FixPlan(agents_to_plan, found_plan[min_index]);
+//
+//            solver_used[min_index]++;
+//            return 0;
+//        } else if (vc_ret_val[min_index] == 1) {
+//            // can not be solved
+//            return 1;
+//        }
+//
+//        // solver timeouted, or there was another error -> use another solver
+//        std::cout << " solver timeouted, or there was another error -> use another solver " << std::endl;
+//        return -100;
+//    }
+
     int ID::PlanForGroups(int g1, int g2, int Cost) {
         vector<int> agents_to_plan;
         vector<vector<int> > agents_to_avoid;
@@ -257,14 +350,27 @@ namespace Hybird_MAPF {
         agents_to_plan = groups[g1];
 
         // set avoidance table - [agent][time] = node
-        if (g2 != -1) {
-            agents_to_avoid = vector<vector<int> >(groups[g2].size());
-            for (size_t i = 0; i < groups[g2].size(); i++)
-                for (size_t j = 0; j < current_plan[groups[g2][i]].size(); j++)
-                    agents_to_avoid[i].push_back(current_plan[groups[g2][i]][j]);
+//        if (g2 != -1) {
+//            agents_to_avoid = vector<vector<int> >(groups[g2].size());
+//            for (size_t i = 0; i < groups[g2].size(); i++)
+//                for (size_t j = 0; j < current_plan[groups[g2][i]].size(); j++)
+//                    agents_to_avoid[i].push_back(current_plan[groups[g2][i]][j]);
+//
+//            //for (size_t i = 0; i < agents_to_avoid.size(); i++)
+//            //	agents_to_avoid[i].resize(Cost, inst->goal[groups[g2][i]]);
+//        }
+        CBS_Li::ConstraintTable *layered_ct = new CBS_Li::ConstraintTable(inst->dim_[0], inst->dim_[0]*inst->dim_[1]);
 
-            //for (size_t i = 0; i < agents_to_avoid.size(); i++)
-            //	agents_to_avoid[i].resize(Cost, inst->goal[groups[g2][i]]);
+        if(g2 != -1) {
+            // avoid previous separated group's path as hard constraint
+            for(size_t id = 0; id < groups[g2].size(); id++) {
+                CBS_Li::MAPFPath path_eecbs;
+                for (int t = 0; t < current_plan[id].size(); t++) {
+                    path_eecbs.push_back(CBS_Li::PathEntry(PointiToId(inst->node_to_pt_map[current_plan[id][t]], inst->dim_)));
+                }
+//                other_group_paths.push_back(paths_[i]);
+                layered_ct->insert2CT(path_eecbs);
+            }
         }
 
         int timelimit = timelimit = inst->timeout; // in milli-seconds
@@ -273,50 +379,82 @@ namespace Hybird_MAPF {
 
         vector<long long> vc_time_spent_now;
         vector<int> vc_ret_val;
-        vector<vector<vector<int> > > found_plan(solvers.size());
+//        vector<vector<vector<int> > > found_plan(solvers.size());
 
-        for (size_t i = 0; i < solvers.size(); i++) {
-            if (runtime >= inst->timeout)
-                return -100;
-
-            if (i > 0) {
-                timelimit = min((long long) timelimit, vc_time_spent_now[i - 1]);
-                timelimit += 5000;
-            }
-
-            chrono::steady_clock::time_point begin = chrono::steady_clock::now();
-            solvers[i]->Solve(agents_to_plan, agents_to_avoid, Cost, timelimit);
-            chrono::steady_clock::time_point end = chrono::steady_clock::now();
-
-            long long time_spent_now = chrono::duration_cast<chrono::milliseconds>(end - begin).count();
-            vc_time_spent_now.push_back(time_spent_now);
-
-            int ret_val = solvers[i]->ReadResults(found_plan[i], Cost);
-            vc_ret_val.push_back(ret_val);
+        freeNav::Instances<2> sat;
+        for(size_t id = 0; id < groups[g1].size(); id++) {
+            sat.push_back(inst->instance_sat_[groups[g1][id]]);
         }
+
+//        for (size_t i = 0; i < solvers.size(); i++) {
+//            if (runtime >= inst->timeout)
+//                return -100;
+//
+//            if (i > 0) {
+//                timelimit = min((long long) timelimit, vc_time_spent_now[i - 1]);
+//                timelimit += 5000;
+//            }
+
+        chrono::steady_clock::time_point begin = chrono::steady_clock::now();
+        freeNav::Paths<2> retv_path = mapf_func_(inst->dim_, inst->isoc_, sat, layered_ct, runtime/1e3);
+//            solvers[i]->Solve(agents_to_plan, agents_to_avoid, Cost, timelimit);
+
+        chrono::steady_clock::time_point end = chrono::steady_clock::now();
+
+        long long time_spent_now = chrono::duration_cast<chrono::milliseconds>(end - begin).count();
+        vc_time_spent_now.push_back(time_spent_now);
+
+//            int ret_val = solvers[i]->ReadResults(found_plan[i], Cost);
+//            vc_ret_val.push_back(ret_val);
+//        }
 
         int min_index = 0;
-        for (size_t i = 0; i < solvers.size(); i++) {
-            if (vc_time_spent_now[i] < vc_time_spent_now[min_index])
-                min_index = i;
-        }
+//        for (size_t i = 0; i < solvers.size(); i++) {
+//            if (vc_time_spent_now[i] < vc_time_spent_now[min_index])
+//                min_index = i;
+//        }
 
         runtime += vc_time_spent_now[min_index];
         solver_computed[min_index]++;
         solver_time[min_index].push_back(vc_time_spent_now[min_index]);
 
-        if (vc_ret_val[min_index] == 0) {
-            // ok, we have good solution
-            FixPlan(agents_to_plan, found_plan[min_index]);
-
-            solver_used[min_index]++;
+        if(!retv_path.empty()) {
+            // yz: find solution
+//            std::cout << "find solution of group " << g1 << "'s " << retv_path.size() << " agents' path" << std::endl;
+            vector<vector<int> > found_plan;
+            for(int i=0; i<retv_path.size(); i++) {
+                vector<int> path;
+//                std::cout << "path " << i << std::endl;
+                for(int j=0; j<retv_path[i].size(); j++) {
+                    const auto& pt = retv_path[i][j];
+                    path.push_back(inst->int_graph[pt[1]][pt[0]]);
+//                    std::cout << pt << " ";
+                }
+                assert(path.front() == inst->start[groups[g1][i]]);
+                assert(path.back() == inst->goal[groups[g1][i]]);
+//                std::cout << std::endl;
+                found_plan.push_back(path);
+            }
+            FixPlan(agents_to_plan, found_plan);
             return 0;
-        } else if (vc_ret_val[min_index] == 1) {
-            // can not be solved
+        } else {
+//            std::cout << "find solution failed" << std::endl;
             return 1;
         }
 
+//        if (vc_ret_val[min_index] == 0) {
+//            // ok, we have good solution
+//            FixPlan(agents_to_plan, found_plan[min_index]);
+//
+//            solver_used[min_index]++;
+//            return 0;
+//        } else if (vc_ret_val[min_index] == 1) {
+//            // can not be solved
+//            return 1;
+//        }
+
         // solver timeouted, or there was another error -> use another solver
+        std::cout << " solver timeouted, or there was another error -> use another solver " << std::endl;
         return -100;
     }
 

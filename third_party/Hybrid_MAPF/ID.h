@@ -1,3 +1,5 @@
+#ifndef HYBIRD_MAPF_ID_H
+#define HYBIRD_MAPF_ID_H
 #include <thread>
 
 #include "instance.h"
@@ -7,8 +9,8 @@
 #include "ICTS.h"
 #include "Dijkstra.h"
 
-#ifndef ID_H
-#define ID_H
+#include "../algorithm/layered_mapf.h"
+
 namespace Hybird_MAPF {
 
     class ID {
@@ -19,6 +21,7 @@ namespace Hybird_MAPF {
 
         int SolveProblem(const std::vector<bool> & = {true, true, true});
 
+        freeNav::LayeredMAPF::MAPF_FUNC<2> mapf_func_;
 
         // statistic variables
         std::vector<int> solver_computed;
@@ -27,17 +30,21 @@ namespace Hybird_MAPF {
         int final_makespan;
         int final_soc;
 
-    private:
-        Instance *inst;
-        Dijkstra *single_path;
-        std::vector<Solver *> solvers;
+        //private:
+        Instance *inst; // yz: grid map and graph about mapf
+        Dijkstra *single_path; // yz: single agent path planner
+        std::vector<Solver *> solvers; // yz: multiple mapf path planner
         int cost_function; // 1 - Makespan, 2 - Sum of Costs
         int full_ID; // 0 - simple ID, 1 - full ID
 
-        std::vector<std::vector<int> > groups;
-        std::vector<int> agent_to_group;
+        std::vector<std::vector<int> > groups; // yz: which agents in groups
+        std::vector<int> agent_to_group; // yz: mapping from agent to group id
         std::vector<std::pair<int, int> > conflicted_groups;
-        std::vector<std::vector<int> > current_plan;
+        std::vector<std::vector<int> > current_plan; // yz: all agent's paths, store node id
+
+        bool solved = false; // yz: whether current instance is solved
+
+        freeNav::Paths<2> paths_fr; // yz: freeNav style paths
 
         long long runtime;
 

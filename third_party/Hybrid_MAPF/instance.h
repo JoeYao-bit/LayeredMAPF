@@ -1,3 +1,5 @@
+#ifndef HYBIRD_MAPF_INSTACE_H
+#define HYBIRD_MAPF_INSTACE_H \
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -7,9 +9,8 @@
 #include <sstream>
 #include <algorithm>
 #include <iterator>
-#ifndef INSTACE_H
-#define INSTACE_H
-#include "../algorithm/basic.h"
+
+#include "../algorithm/layered_mapf.h"
 namespace Hybird_MAPF {
 
 
@@ -17,8 +18,9 @@ namespace Hybird_MAPF {
     public:
         Instance() {}
 
+        // yz: freeNav style interfaces
         Instance(freeNav::DimensionLength *dim, const freeNav::IS_OCCUPIED_FUNC<2> &isoc,
-                 const freeNav::Instances<2> &instance_sat) {}
+                 const freeNav::Instances<2> &instance_sat);
 
         void ReadInput(std::string);
 
@@ -31,8 +33,9 @@ namespace Hybird_MAPF {
         std::string input_filename;
         std::string statistic_file;
 
-        int timeout;        //timeout in s
+        int timeout;        //timeout in s // yz: according to other comment, there should be ms
         int nodes; // yz: number of all passable
+        freeNav::Pointis<2> node_to_pt_map; // yz: node corresponding to which pt
         int agents;
 
         int rows;
@@ -46,11 +49,16 @@ namespace Hybird_MAPF {
 
         std::vector<std::vector<int> > distance;
 
+        // yz: only for freeNav style interfaces
+        freeNav::DimensionLength *dim_;
+        freeNav::IS_OCCUPIED_FUNC<2> isoc_;
+        freeNav::Instances<2> instance_sat_;
+
         /* DEBUG */
 
         void PrintPlan(std::vector<std::vector<int> > &);
 
-        void CheckPlan(std::vector<std::vector<int> > &);
+        bool CheckPlan(std::vector<std::vector<int> > &);
 
         int GetPlanMakespan(std::vector<std::vector<int> > &);
 
