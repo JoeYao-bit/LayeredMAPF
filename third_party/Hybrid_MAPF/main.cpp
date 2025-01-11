@@ -94,6 +94,7 @@ int main()
 
 			// Create solver
 			ID* Solver = new ID(inst, cost_function, ID_type);
+            Solver->runtime = 1e4;
 			Solver->mapf_func_ = CBS_Li::eecbs_MAPF;//CBS_Li::cbs_MAPF;
 			int ret_val;
 
@@ -112,6 +113,8 @@ int main()
             gettimeofday(&tv_after, &tz);
             double time_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
             std::cout << paths.size() << " paths " << " / agents " << ists.size() << std::endl;
+            std::cout << "max/total = " << Solver->getMaximalSubProblem() << " / " << inst->instance_sat_.size() << std::endl;
+            std::cout << "number of subproblems = " <<  Solver->getNumberOfSubProblem() << std::endl;
             std::cout << "-- Independence Detection end in " << time_cost << "ms" << std::endl;
             std::cout << " is solution valid ? " << freeNav::LayeredMAPF::validateSolution<2>(paths) << std::endl;
 			// Solve the instance - use only Picat

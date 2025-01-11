@@ -13,6 +13,20 @@
 
 namespace Hybird_MAPF {
 
+/*
+ * Bibtex:
+ *
+  @inproceedings{surynek2018variants,
+  title={Variants of independence detection in sat-based optimal multi-agent path finding},
+  author={Surynek, Pavel and {\v{S}}vancara, Ji{\v{r}}{\'\i} and Felner, Ariel and Boyarski, Eli},
+  booktitle={Agents and Artificial Intelligence: 9th International Conference, ICAART 2017, Porto, Portugal, February 24--26, 2017, Revised Selected Papers 9},
+  pages={116--136},
+  year={2018},
+  organization={Springer}
+}
+
+ * */
+
     class ID {
     public:
         ID(Instance *, int, int);
@@ -20,6 +34,22 @@ namespace Hybird_MAPF {
         ~ID();
 
         int SolveProblem(const std::vector<bool> & = {true, true, true});
+
+        size_t getMaximalSubProblem() const {
+            size_t max_subproblem_size = 0;
+            for(const auto& g : groups) {
+                max_subproblem_size = std::max(g.size(), max_subproblem_size);
+            }
+            return max_subproblem_size;
+        }
+
+        size_t getNumberOfSubProblem() const {
+            int count_of_group = 0;
+            for(int i=0; i<groups.size(); i++) {
+                if(!groups[i].empty()) { count_of_group++; }
+            }
+            return count_of_group;
+        }
 
         freeNav::LayeredMAPF::MAPF_FUNC<2> mapf_func_;
 
@@ -46,7 +76,11 @@ namespace Hybird_MAPF {
 
         freeNav::Paths<2> paths_fr; // yz: freeNav style paths
 
-        long long runtime;
+        long long runtime; // yz: in ms
+
+        struct timezone tz;
+        struct timeval tv_pre;
+        struct timeval tv_after; // yz: start time of planning
 
         bool CheckForConflicts(int &, int &);
 

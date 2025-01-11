@@ -9,20 +9,21 @@ namespace Hybird_MAPF {
         single_path = new Dijkstra(inst);
         cost_function = cf;
         full_ID = fID;
+        runtime = 6e5;
+        gettimeofday(&tv_pre, &tz);
     }
 
     int ID::SolveProblem(const vector<bool> &solvers_to_use) {
-        runtime = 61e5;
 
         current_plan = vector<vector<int> >(inst->agents, vector<int>());
 
         // select all possible solvers
-        if (solvers_to_use[0])
-            solvers.push_back(new PicatSolver(inst, cost_function));
-        if (solvers_to_use[1])
-            solvers.push_back(new CBSSolver(inst, cost_function));
-        if (solvers_to_use[2])
-            solvers.push_back(new ICTSSolver(inst, cost_function));
+//        if (solvers_to_use[0])
+//            solvers.push_back(new PicatSolver(inst, cost_function));
+//        if (solvers_to_use[1])
+//            solvers.push_back(new CBSSolver(inst, cost_function));
+//        if (solvers_to_use[2])
+//            solvers.push_back(new ICTSSolver(inst, cost_function));
 
         solver_computed = vector<int>(solvers.size());
         solver_used = vector<int>(solvers.size());
@@ -53,7 +54,7 @@ namespace Hybird_MAPF {
         while (CheckForConflicts(g1, g2)) {
 //            std::cout << "step = " << count << std::endl;
             count ++;
-            if(count >=1000) { break; }
+//            if(count >=1000) { break; }
             if (full_ID == 1) // if we use simple ID, just merge the groups
             {
                 if (CheckPastConflicts(g1, g2)) {
@@ -98,7 +99,7 @@ namespace Hybird_MAPF {
         }
 
         solved = inst->CheckPlan(current_plan);
-        inst->PrintPlan(current_plan);
+//        inst->PrintPlan(current_plan);
         final_makespan = inst->GetPlanMakespan(current_plan);
         final_soc = inst->GetPlanSoC(current_plan);
 
@@ -241,11 +242,13 @@ namespace Hybird_MAPF {
     }
 
     int ID::CleanUp(int ret_val) {
-        for (size_t i = 0; i < solvers.size(); i++)
-            delete solvers[i];
-
+        for (size_t i = 0; i < solvers.size(); i++) {
+            if(solvers[i] != nullptr) {
+                delete solvers[i];
+            }
+        }
         solvers.clear();
-        groups.clear();
+//        groups.clear();
         agent_to_group.clear();
         conflicted_groups.clear();
 
@@ -345,7 +348,12 @@ namespace Hybird_MAPF {
     int ID::PlanForGroups(int g1, int g2, int Cost) {
         vector<int> agents_to_plan;
         vector<vector<int> > agents_to_avoid;
-
+        auto t = clock();
+        gettimeofday(&tv_after, &tz);
+        double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) + (tv_after.tv_usec - tv_pre.tv_usec)/1e6;
+        auto remain_s = runtime/1e3 - time_cost;
+//        std::cout << "remain_s = " << remain_s << std::endl;
+        if(remain_s < 0 ) { return -100; }
         // is in g1 -> to plan
         agents_to_plan = groups[g1];
 
@@ -373,9 +381,18 @@ namespace Hybird_MAPF {
             }
         }
 
-        int timelimit = timelimit = inst->timeout; // in milli-seconds
-        if (timelimit > inst->timeout - runtime)
-            timelimit = inst->timeout - runtime;
+        if(Cost != -1) {
+            // set path length limitation
+            layered_ct->maximum_length_of_paths_;
+            for(size_t id = 0; id < groups[g1].size(); id++) {
+                layered_ct->maximum_length_of_paths_.push_back(current_plan[groups[g1][id]].size());
+            }
+            assert(layered_ct->maximum_length_of_paths_.size() == groups[g1].size());
+        }
+
+//        int timelimit = timelimit = inst->timeout; // in milli-seconds
+//        if (timelimit > inst->timeout - runtime)
+//            timelimit = inst->timeout - runtime;
 
         vector<long long> vc_time_spent_now;
         vector<int> vc_ret_val;
@@ -395,14 +412,15 @@ namespace Hybird_MAPF {
 //                timelimit += 5000;
 //            }
 
-        chrono::steady_clock::time_point begin = chrono::steady_clock::now();
-        freeNav::Paths<2> retv_path = mapf_func_(inst->dim_, inst->isoc_, sat, layered_ct, runtime/1e3);
+//        chrono::steady_clock::time_point begin = chrono::steady_clock::now();
+//        std::cout << "sat.size() = " << sat.size() << std::endl;
+        freeNav::Paths<2> retv_path = mapf_func_(inst->dim_, inst->isoc_, sat, layered_ct, remain_s);
 //            solvers[i]->Solve(agents_to_plan, agents_to_avoid, Cost, timelimit);
 
-        chrono::steady_clock::time_point end = chrono::steady_clock::now();
-
-        long long time_spent_now = chrono::duration_cast<chrono::milliseconds>(end - begin).count();
-        vc_time_spent_now.push_back(time_spent_now);
+//        chrono::steady_clock::time_point end = chrono::steady_clock::now();
+//
+//        long long time_spent_now = chrono::duration_cast<chrono::milliseconds>(end - begin).count();
+//        vc_time_spent_now.push_back(time_spent_now);
 
 //            int ret_val = solvers[i]->ReadResults(found_plan[i], Cost);
 //            vc_ret_val.push_back(ret_val);
@@ -414,9 +432,9 @@ namespace Hybird_MAPF {
 //                min_index = i;
 //        }
 
-        runtime += vc_time_spent_now[min_index];
-        solver_computed[min_index]++;
-        solver_time[min_index].push_back(vc_time_spent_now[min_index]);
+//        runtime += vc_time_spent_now[min_index];
+//        solver_computed[min_index]++;
+//        solver_time[min_index].push_back(vc_time_spent_now[min_index]);
 
         if(!retv_path.empty()) {
             // yz: find solution
@@ -436,9 +454,11 @@ namespace Hybird_MAPF {
                 found_plan.push_back(path);
             }
             FixPlan(agents_to_plan, found_plan);
+            delete layered_ct;
             return 0;
         } else {
 //            std::cout << "find solution failed" << std::endl;
+            delete layered_ct;
             return 1;
         }
 
