@@ -19,7 +19,9 @@ namespace CBS_Li {
         bool solve(double time_limit, int cost_lowerbound = 0);
 
         void clear(); // used for rapid random  restart
-
+        ~ECBS() {
+            clear();
+        }
     private:
         vector<int> min_f_vals; // lower bounds of the cost of the shortest path
         vector<pair<MAPFPath, int> > paths_found_initially;  // contain initial paths found

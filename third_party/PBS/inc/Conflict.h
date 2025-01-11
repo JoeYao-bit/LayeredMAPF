@@ -1,5 +1,5 @@
 #pragma once
-#include "EECBS/inc/common.h"
+#include "../../../algorithm/constraint_table_CBS/common.h"
 
 namespace PBS_Li {
 

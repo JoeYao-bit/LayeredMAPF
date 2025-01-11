@@ -670,10 +670,10 @@ namespace CBS_Li {
         vector<SingleAgentSolver *> engines{search_engines[a1], search_engines[a2]};
         vector<vector<PathEntry>> initial_paths{*paths[a1], *paths[a2]};
         //vector<ConstraintTable> constraints{ConstraintTable(initial_constraints[a1]), ConstraintTable(initial_constraints[a2]) };
-        vector<ConstraintTable> constraints{ConstraintTable(static_constraint), ConstraintTable(static_constraint)};
-
-        constraints[0].insert2CT(node, a1);
-        constraints[1].insert2CT(node, a2);
+//        vector<freeNav::LayeredMAPF::ConstraintTable> constraints{freeNav::LayeredMAPF::ConstraintTable(static_constraint), freeNav::LayeredMAPF::ConstraintTable(static_constraint)};
+//
+//        constraints[0].insert2CT(node, a1);
+//        constraints[1].insert2CT(node, a2);
         CBS cbs(engines, static_constraint, initial_paths, screen);
         // setUpSubSolver(cbs);
         cbs.setPrioritizeConflicts(PC);
@@ -721,9 +721,10 @@ namespace CBS_Li {
         vector<vector<PathEntry>> initial_paths;
         // yz: replace here is okay
         //vector<ConstraintTable> constraints{ ConstraintTable(initial_constraints[a1]), ConstraintTable(initial_constraints[a2]) };
-        vector<ConstraintTable> constraints{ConstraintTable(static_constraint), ConstraintTable(static_constraint)};
-        constraints[0].insert2CT(node, a1);
-        constraints[1].insert2CT(node, a2);
+//        vector<freeNav::LayeredMAPF::ConstraintTable> constraints{freeNav::LayeredMAPF::ConstraintTable(static_constraint),
+//                                                                  freeNav::LayeredMAPF::ConstraintTable(static_constraint)};
+//        constraints[0].insert2CT(node, a1);
+//        constraints[1].insert2CT(node, a2);
         CBS cbs(engines, static_constraint, initial_paths, screen);
         // setUpSubSolver(cbs);
         cbs.setPrioritizeConflicts(PC);

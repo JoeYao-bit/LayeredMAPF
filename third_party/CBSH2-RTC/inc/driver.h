@@ -9,7 +9,7 @@
 #include <boost/program_options.hpp>
 #include <boost/tokenizer.hpp>
 #include "CBSH2-RTC/inc/CBS.h"
-#include "EECBS/inc/ConstraintTable.h"
+#include "../../../algorithm/constraint_table_CBS/ConstraintTable.h"
 
 namespace CBSH2_RTC {
 

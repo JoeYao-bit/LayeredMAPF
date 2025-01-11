@@ -3,8 +3,8 @@
 #include "RectangleReasoning.h"
 #include "CorridorReasoning.h"
 #include "MutexReasoning.h"
-#include "EECBS/inc/ConstraintTable.h"
-#include "../../../../algorithm/basic.h"
+#include "../../../../algorithm/constraint_table_CBS/ConstraintTable.h"
+#include "../../../../algorithm/layered_mapf.h"
 namespace MAPF_LNS2 {
 
     enum high_level_solver_type {

@@ -6,8 +6,7 @@
 
 #include "graph.hpp"
 #include "utils.hpp"
-#include "../../../freeNav-base/basic_elements/point.h"
-#include "EECBS/inc/ConstraintTable.h" // yz: use EECBS's constraint table as static constraint during each expansion of LaCAM
+#include "../algorithm/layered_mapf.h" // yz: use EECBS's constraint table as static constraint during each expansion of LaCAM
 
 namespace LaCAM {
 

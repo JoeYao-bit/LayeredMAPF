@@ -1,7 +1,7 @@
 #pragma once
 #include "PBSNode.h"
 #include "SingleAgentSolver.h"
-#include "EECBS/inc/ConstraintTable.h"
+#include "../../../algorithm/constraint_table_CBS/ConstraintTable.h"
 #include "../../../algorithm/basic.h"
 
 namespace PBS_Li {

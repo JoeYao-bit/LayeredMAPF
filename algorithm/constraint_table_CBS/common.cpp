@@ -1,4 +1,4 @@
-#include "EECBS/inc/common.h"
+#include "common.h"
 
 namespace CBS_Li {
 

@@ -7,8 +7,10 @@
 
 #include "basic.h"
 #include "instance_decomposition.h"
-#include "../third_party/EECBS/inc/ConstraintTable.h"
-#include "../third_party/EECBS/inc/Instance.h"
+//#include "../third_party/EECBS/inc/ConstraintTable.h"
+#include "constraint_table_CBS/ConstraintTable.h"
+
+//#include "../third_party/EECBS/inc/Instance.h"
 //#include "EECBS/inc/driver.h"
 
 // EECBS: run success and transferred
@@ -310,7 +312,7 @@ namespace freeNav::LayeredMAPF {
                     CBS_Li::MAPFPath path_eecbs;
                     for (int i = 0; i < previous_path.size(); i++) {
                         path_eecbs.push_back(
-                                CBS_Li::PathEntry(dim[0] * previous_path[i][1] + previous_path[i][0]));
+                                PathEntry(dim[0] * previous_path[i][1] + previous_path[i][0]));
                     }
                     layered_ct->insert2CT(path_eecbs);
                 }

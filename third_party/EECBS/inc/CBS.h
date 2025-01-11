@@ -3,8 +3,7 @@
 #include "RectangleReasoning.h"
 #include "CorridorReasoning.h"
 #include "MutexReasoning.h"
-#include "../../../freeNav-base/basic_elements/point.h"
-#include "../../../algorithm/basic.h"
+#include "../../../algorithm/layered_mapf.h"
 namespace CBS_Li {
 
 

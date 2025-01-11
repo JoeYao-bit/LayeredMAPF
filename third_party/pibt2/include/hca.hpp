@@ -19,6 +19,7 @@
 
 #pragma once
 #include "solver.hpp"
+#include "../algorithm/layered_mapf.h"
 namespace PIBT_2 {
 
     class HCA : public MAPF_Solver {

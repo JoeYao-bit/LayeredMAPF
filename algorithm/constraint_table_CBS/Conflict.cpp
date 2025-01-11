@@ -1,4 +1,4 @@
-#include "EECBS/inc/Conflict.h"
+#include "Conflict.h"
 #include "EECBS/inc/RectangleReasoning.h"
 #include "EECBS/inc/MDD.h"
 

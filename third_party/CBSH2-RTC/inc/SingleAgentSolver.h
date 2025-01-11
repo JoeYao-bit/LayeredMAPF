@@ -2,7 +2,7 @@
 
 #include "Instance.h"
 #include "ConstraintTable.h"
-#include "EECBS/inc/ConstraintTable.h"
+#include "../algorithm/layered_mapf.h"
 
 namespace CBSH2_RTC {
 

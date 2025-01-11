@@ -3,6 +3,8 @@
 #include "MDD.h"
 #include "RectangleReasoning.h"
 #include "CorridorReasoning.h"
+#include "../algorithm/layered_mapf.h"
+
 namespace CBSH2_RTC {
 
     enum heuristics_type {

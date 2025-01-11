@@ -1,6 +1,6 @@
 #include "EECBS/inc/MDD.h"
 #include <iostream>
-#include "EECBS/inc/common.h"
+#include "../../../algorithm/constraint_table_CBS/common.h"
 
 namespace CBS_Li {
 

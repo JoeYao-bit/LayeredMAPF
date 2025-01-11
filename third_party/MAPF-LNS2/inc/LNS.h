@@ -10,7 +10,7 @@
 #include "MAPF-LNS2/inc/PIBT/pibt.h"
 #include "MAPF-LNS2/inc/PIBT/pps.h"
 #include "MAPF-LNS2/inc/PIBT/winpibt.h"
-#include "EECBS/inc/ConstraintTable.h"
+#include "../../../algorithm/constraint_table_CBS/ConstraintTable.h"
 namespace MAPF_LNS2 {
 
     enum destroy_heuristic {

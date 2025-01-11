@@ -9,7 +9,7 @@
 #include "instance.hpp"
 #include "utils.hpp"
 
-#include "../../../algorithm/basic.h"
+#include "../../../algorithm/layered_mapf.h"
 
 namespace LaCAM2 {
 // objective function

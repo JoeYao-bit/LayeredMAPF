@@ -2,6 +2,7 @@
 #include <boost/functional/hash.hpp>
 #include "SingleAgentSolver.h"
 #include "ReservationTable.h"
+#include "../algorithm/layered_mapf.h"
 namespace CBS_Li {
 
     class SIPPNode : public LLNode {

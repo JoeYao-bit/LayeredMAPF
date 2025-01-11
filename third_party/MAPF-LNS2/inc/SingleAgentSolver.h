@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "Instance.h"
 #include "ConstraintTable.h"
-#include "EECBS/inc/ConstraintTable.h"
+#include "../../../algorithm/constraint_table_CBS/ConstraintTable.h"
 
 namespace MAPF_LNS2 {
 

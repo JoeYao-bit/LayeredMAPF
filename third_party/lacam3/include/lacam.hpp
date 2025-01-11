@@ -8,7 +8,7 @@
 #include "sipp.hpp"
 #include "utils.hpp"
 #include <argparse/argparse.hpp>
-
+#include "../algorithm/layered_mapf.h"
 namespace LaCAM3 {
 
     Solution solve(const Instance &ins, const int verbose = 0,
