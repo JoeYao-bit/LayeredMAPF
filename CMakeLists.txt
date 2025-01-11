@@ -24,34 +24,6 @@ else()
 endif()
 
 
-#########################################################
-# FIND Pangolin
-#########################################################
-find_package(Pangolin REQUIRED)
-
-
-#########################################################
-# FIND GLUT
-#########################################################
-find_package(GLUT REQUIRED)
-include_directories(${GLUT_INCLUDE_DIRS})
-link_directories(${GLUT_LIBRARY_DIRS})
-add_definitions(${GLUT_DEFINITIONS})
-if(NOT GLUT_FOUND)
-    message(ERROR " GLUT not found!")
-endif(NOT GLUT_FOUND)
-#########################################################
-# FIND OPENGL
-#########################################################
-find_package(OpenGL REQUIRED)
-find_package(Octomap REQUIRED)
-include_directories(${OpenGL_INCLUDE_DIRS})
-link_directories(${OpenGL_LIBRARY_DIRS})
-add_definitions(${OpenGL_DEFINITIONS})
-if(NOT OPENGL_FOUND)
-    message(ERROR " OPENGL not found!")
-endif(NOT OPENGL_FOUND)
-
 add_subdirectory(third_party/grid-pathfinding/graph ./graph)
 
 
@@ -132,8 +104,6 @@ INSTALL(DIRECTORY algorithm DESTINATION include/LA-MAPF)
 
 #add_library(external_lib ${third1_src} ${third2_src} ${third3_src})
 
-add_executable(test_2d_mapf_viewer test/test_2d_mapf_viewer.cpp)
-target_link_libraries(test_2d_mapf_viewer freeNav-base lamapf_alg)
 
 add_executable(test_lacam test/test_lacam.cpp)
 target_link_libraries(test_lacam freeNav-base lamapf_alg)
