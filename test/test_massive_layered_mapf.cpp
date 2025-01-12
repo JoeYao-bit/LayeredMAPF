@@ -284,7 +284,7 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
         } \
         std::stringstream ss; \
         ss << name << " " << ists.size() << " " << time_cost << " " \
-           << total_cost << " " << maximum_single_cost << " " << !paths.empty() << " " << max_size_of_stack << " " \
+           << total_cost << " " << maximum_single_cost << " " << !paths.empty() << " " << max_size_of_stack_layered << " " \
            << Solver->getMaximalSubProblem() << " " << Solver->getNumberOfSubProblem(); \
         outputStream = ss.str();                                          \
         delete inst; delete Solver; \
