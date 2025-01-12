@@ -41,6 +41,9 @@ def loadDataFromfile(file_path):
                 if len(splited_line) >= 9 and (head_split[0] == 'LAYERED' or 'ID'):
                     new_data.max_sub_problem_size = float(splited_line[7])
                     new_data.total_number_of_subproblem = float(splited_line[8])
+                    # if not new_data.success:
+                    #     new_data.max_sub_problem_size = float(splited_line[7])
+                    #     new_data.total_number_of_subproblem = float(splited_line[8])
                 
                 data_list.append(new_data)
             #print(new_data.method, ' ', new_data.path_count, ' ', new_data.real_path_count, ' ', new_data.time_cost)

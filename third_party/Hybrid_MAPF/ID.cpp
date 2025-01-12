@@ -24,7 +24,7 @@ namespace Hybird_MAPF {
 //            solvers.push_back(new CBSSolver(inst, cost_function));
 //        if (solvers_to_use[2])
 //            solvers.push_back(new ICTSSolver(inst, cost_function));
-
+        freeNav::LayeredMAPF::max_size_of_stack_layered = 0;
         solver_computed = vector<int>(solvers.size());
         solver_used = vector<int>(solvers.size());
         solver_time = vector<vector<long long> >(solvers.size(), vector<long long>());
@@ -415,6 +415,9 @@ namespace Hybird_MAPF {
 //        chrono::steady_clock::time_point begin = chrono::steady_clock::now();
 //        std::cout << "sat.size() = " << sat.size() << std::endl;
         freeNav::Paths<2> retv_path = mapf_func_(inst->dim_, inst->isoc_, sat, layered_ct, remain_s);
+        freeNav::LayeredMAPF::max_size_of_stack_layered = std::max(freeNav::LayeredMAPF::max_size_of_stack_layered,
+                                                                   freeNav::LayeredMAPF::max_size_of_stack);
+
 //            solvers[i]->Solve(agents_to_plan, agents_to_avoid, Cost, timelimit);
 
 //        chrono::steady_clock::time_point end = chrono::steady_clock::now();
