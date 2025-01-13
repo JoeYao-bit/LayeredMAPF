@@ -115,7 +115,8 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
                 
         plt.tight_layout()
         save_path = '../test/pic/layered_MAPF/'+title
-        
+        if pre_fix != '':
+            save_path = save_path + '_id'
         if not os.path.exists(save_path):
             os.makedirs(save_path)
             print("Folder: " + save_path + " created")
@@ -645,13 +646,13 @@ all_method_subproblem_size_map = dict()
 
 drawing_method_set = [
                       "EECBS", # tested ok, advance in time cost, nothing in memory usage
-                    #   "PBS",  # tested ok, advance in time cost, advance in memory usage, full map
-                    #   "PushAndSwap", # some map not ok, advance in time cost, nothing in memory usage, full map
-                    #   "LaCAM",# tested ok, drawback in time cost, drawback in memory usage, full map
-                    #   "HCA", # test ok, advance in memory usage, drawback in time cost, full map
-                    #   "PIBT2", # some map not ok，advance in memory usage, drawback in time cost, full map
-                    #   "LNS", # test ok, advance in memory usage, advance in time cost
-                    #   "CBS"
+                      "PBS",  # tested ok, advance in time cost, advance in memory usage, full map
+                      "PushAndSwap", # some map not ok, advance in time cost, nothing in memory usage, full map
+                      "LaCAM",# tested ok, drawback in time cost, drawback in memory usage, full map
+                      "HCA", # test ok, advance in memory usage, drawback in time cost, full map
+                      "PIBT2", # some map not ok，advance in memory usage, drawback in time cost, full map
+                      "LNS", # test ok, advance in memory usage, advance in time cost
+                      "CBS"
                      ]
 
 drawing_method_set_2 = [ 
@@ -828,6 +829,8 @@ def display_images_in_grid(image_files, method_name, visualize=False):
     
     plt.tight_layout()
     save_path = '../test/pic/layered_MAPF/'+method_name+'_summary'
+    if pre_fix != '':
+        save_path = save_path + '_id'
     plt.savefig(save_path, dpi = 400, bbox_inches='tight')   
     if visualize:
         plt.show()
