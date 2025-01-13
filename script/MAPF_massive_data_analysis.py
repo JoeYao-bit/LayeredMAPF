@@ -777,6 +777,39 @@ def display_images_in_grid(image_files, method_name):
 # display_images_in_grid(all_image_files, method_name)
 
 
+    
+def removeMethodDataFromFile(file_path, temp_method_name):
+    filtered_lines = list()
+    try:
+        with open(file_path, "r") as f:
+            lines = f.readlines()
+            for line in lines:
+                splited_line = line.split()
+                # print('old_line=',line)
+                head_split = splited_line[0].split('_')
+                if head_split[1] != temp_method_name:
+                    # print('new_line=',line)
+                    filtered_lines.append(line)
+        f.close()
+            #print(new_data.method, ' ', new_data.path_count, ' ', new_data.real_path_count, ' ', new_data.time_cost)
+    except Exception as e:            
+        print(e)  
+        
+    try:
+        with open(file_path, 'w') as f:
+            f.writelines(filtered_lines)    
+        f.close()    
+    except Exception as e:            
+        print(e)             
+    
+def removeMethodDataFromFiles(map_format_map_index_local, method_name_local):
+    for map_name_key, map_format_value in map_format_map_index_local.items():
+        data_file_path = data_path_dir + map_name_key + '.txt'
+        print('remove data of ', method_name_local, ' from', data_file_path)
+        removeMethodDataFromFile(data_file_path, method_name_local)
+    
+
+
 
 # map_format_map_index
 # 1, empty-16-16: EECBS, PBS, LNS, HCA
