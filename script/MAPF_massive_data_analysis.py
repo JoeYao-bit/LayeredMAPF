@@ -716,7 +716,7 @@ drawSummaryOfMethod(all_method_subproblem_size_map, "Number of agents", "NumberO
 #print('haha')
 
 
-def display_images_in_grid(image_files, method_name):
+def display_images_in_grid(image_files, method_name, visualize=False):
     """
     读取指定文件夹中的多张图片，并以网格形式显示在一张图上。
     
@@ -735,7 +735,7 @@ def display_images_in_grid(image_files, method_name):
     
     rows = int(len(image_files)/6)
     
-    print("rows", rows)
+    # print("rows", rows)
     
     cols = 6
     
@@ -758,8 +758,10 @@ def display_images_in_grid(image_files, method_name):
             ax.axis('off')  # 多余的子图隐藏
     
     plt.tight_layout()
-    plt.show()
-
+    save_path = '../test/pic/layered_MAPF/'+method_name+'_summary'
+    plt.savefig(save_path, dpi = 400, bbox_inches='tight')   
+    if visualize:
+        plt.show()
     
 # image_folder = '../test/pic/layered_MAPF/' 
 # data_type_names = ['time_cost', 'success_rate', 'sum_of_cost', 'makespan', 'memory_usage']
