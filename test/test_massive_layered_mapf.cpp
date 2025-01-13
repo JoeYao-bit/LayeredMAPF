@@ -585,85 +585,125 @@ SingleMapMAPFTestID(const SingleMapTestConfig <2> &map_test_config,
     return all_success;
 }
 
+#define FLAG 1
+
 // each method have a common range of agents
 int main(void) {
     int cut_off_time = 30;
     int repeat_times = 1;
+    int flag = 1;
+    bool all_in = false;
     for(int i=0; i<100; i++) {
-        // 1, 
-        // SingleMapMAPFTestID(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120},
-        //                   repeat_times, cut_off_time); // layered better
+        // 1,
+        if(flag == 1 || all_in) {
+             SingleMapMAPFTestID(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120},
+                               repeat_times, cut_off_time); // layered better
 
-        // SingleMapMAPFTestID(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400},
-        //                   repeat_times, cut_off_time);
-
+             SingleMapMAPFTestID(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400},
+                               repeat_times, cut_off_time);
+        }
         // // 2,
-        // SingleMapMAPFTestID(MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120},
-        //                   repeat_times, cut_off_time);
+        if(flag == 2 || all_in) {
 
-        // SingleMapMAPFTestID(MAPFTestConfig_maze_32_32_4, {20, 40, 80, 120, 160, 200, 240},
-        //                   repeat_times, cut_off_time);
+            SingleMapMAPFTestID(MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120},
+                                repeat_times, cut_off_time);
 
+            SingleMapMAPFTestID(MAPFTestConfig_maze_32_32_4, {20, 40, 80, 120, 160, 200, 240},
+                                repeat_times, cut_off_time);
+        }
         // // 3,
-        // SingleMapMAPFTestID(MAPFTestConfig_maze_128_128_2, {100, 200, 300, 400, 500, 600, 700},
-        //                   repeat_times, cut_off_time);
+        if(flag == 3 || all_in) {
 
-        // SingleMapMAPFTestID(MAPFTestConfig_maze_128_128_10, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-        //                   repeat_times, cut_off_time);
+            SingleMapMAPFTestID(MAPFTestConfig_maze_128_128_2, {100, 200, 300, 400, 500, 600, 700},
+                                repeat_times, cut_off_time);
+
+            SingleMapMAPFTestID(MAPFTestConfig_maze_128_128_10, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                                repeat_times, cut_off_time);
+        }
         // // 4,
-        // SingleMapMAPFTestID(MAPFTestConfig_den312d, {100, 200, 300, 400, 500, 600, 700, 800},
-        //                   repeat_times, cut_off_time);
+        if(flag == 4 || all_in) {
 
-        // SingleMapMAPFTestID(MAPFTestConfig_den520d, {100, 200, 300, 400, 500, 600, 700, 800, 900},
-        //                   repeat_times, cut_off_time);
+            SingleMapMAPFTestID(MAPFTestConfig_den312d, {100, 200, 300, 400, 500, 600, 700, 800},
+                                repeat_times, cut_off_time);
+
+            SingleMapMAPFTestID(MAPFTestConfig_den520d, {100, 200, 300, 400, 500, 600, 700, 800, 900},
+                                repeat_times, cut_off_time);
+        }
         // // 5,
-        // SingleMapMAPFTestID(MAPFTestConfig_Berlin_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900},
-        //                   repeat_times, cut_off_time);
+        if(flag == 5 || all_in) {
 
-        // SingleMapMAPFTestID(MAPFTestConfig_Paris_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-        //                   repeat_times, cut_off_time);
+            SingleMapMAPFTestID(MAPFTestConfig_Berlin_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900},
+                                repeat_times, cut_off_time);
+
+            SingleMapMAPFTestID(MAPFTestConfig_Paris_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                                repeat_times, cut_off_time);
+        }
         // // 6,
-        // SingleMapMAPFTestID(MAPFTestConfig_ht_chantry, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-        //                   repeat_times, cut_off_time);
+        if(flag == 6 || all_in) {
 
-        // SingleMapMAPFTestID(MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-        //                   repeat_times, cut_off_time);
-        // // 7, 
-        // SingleMapMAPFTestID(MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240},
-        //                   repeat_times, cut_off_time);
+            SingleMapMAPFTestID(MAPFTestConfig_ht_chantry, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                                repeat_times, cut_off_time);
 
-        // SingleMapMAPFTestID(MAPFTestConfig_random_64_64_20, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-        //                   repeat_times, cut_off_time);
+            SingleMapMAPFTestID(MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                                repeat_times, cut_off_time);
+        }
+        // // 7,
+        if(flag == 7 || all_in) {
+
+            SingleMapMAPFTestID(MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240},
+                                repeat_times, cut_off_time);
+
+            SingleMapMAPFTestID(MAPFTestConfig_random_64_64_20, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                                repeat_times, cut_off_time);
+        }
         // // 8,
-        // SingleMapMAPFTestID(MAPFTestConfig_room_64_64_16, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-        //                   repeat_times, cut_off_time);
+        if(flag == 8 || all_in) {
 
-        // SingleMapMAPFTestID(MAPFTestConfig_room_64_64_8, {100, 200, 300, 400, 500, 600, 700},
-        //                   repeat_times, cut_off_time);
+            SingleMapMAPFTestID(MAPFTestConfig_room_64_64_16, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                                repeat_times, cut_off_time);
+
+            SingleMapMAPFTestID(MAPFTestConfig_room_64_64_8, {100, 200, 300, 400, 500, 600, 700},
+                                repeat_times, cut_off_time);
+        }
         // // 9,
-        // SingleMapMAPFTestID(MAPFTestConfig_room_32_32_4, {10, 20, 40, 60, 80, 120, 160, 200},
-        //                   repeat_times, cut_off_time);
+        if(flag == 9 || all_in) {
 
-        // SingleMapMAPFTestID(MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800},
-        //                   repeat_times, cut_off_time);
+            SingleMapMAPFTestID(MAPFTestConfig_room_32_32_4, {10, 20, 40, 60, 80, 120, 160, 200},
+                                repeat_times, cut_off_time);
+
+            SingleMapMAPFTestID(MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800},
+                                repeat_times, cut_off_time);
+        }
         // // 10,
-        // SingleMapMAPFTestID(MAPFTestConfig_warehouse_10_20_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-        //                   repeat_times, cut_off_time);
+        if(flag == 10 || all_in) {
 
-        // SingleMapMAPFTestID(MAPFTestConfig_warehouse_20_40_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-        //                   repeat_times, cut_off_time);
+            SingleMapMAPFTestID(MAPFTestConfig_warehouse_10_20_10_2_2,
+                                {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                                repeat_times, cut_off_time);
+
+            SingleMapMAPFTestID(MAPFTestConfig_warehouse_20_40_10_2_1,
+                                {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                                repeat_times, cut_off_time);
+        }
         // // 11,
-        // SingleMapMAPFTestID(MAPFTestConfig_warehouse_20_40_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-        //                   repeat_times, cut_off_time);
+        if(flag == 11 || all_in) {
 
-        // SingleMapMAPFTestID(MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-        //                   repeat_times, cut_off_time);
+            SingleMapMAPFTestID(MAPFTestConfig_warehouse_20_40_10_2_2,
+                                {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                                repeat_times, cut_off_time);
+
+            SingleMapMAPFTestID(MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                                repeat_times, cut_off_time);
+        }
         // // 12,
-        SingleMapMAPFTestID(MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                          repeat_times, cut_off_time);
+        if(flag == 12 || all_in) {
 
-        SingleMapMAPFTestID(MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                          repeat_times, cut_off_time);
+            SingleMapMAPFTestID(MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                                repeat_times, cut_off_time);
+
+            SingleMapMAPFTestID(MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                                repeat_times, cut_off_time);
+        }
     }
 
 }
