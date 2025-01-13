@@ -136,6 +136,8 @@ def drawMethodMapAgentSizes(all_data_map, xlable, ylable, title, is_percentage=F
             if map_format_map_index[map_key] != i: 
                 continue
             for method_key, method_value in all_data_map[map_key].items():
+                # if method_key not in drawing_method_set:
+                #     continue
                 x = list()
                 y = list()
                 sorted_keys = sorted(all_data_map[map_key][method_key].keys())
@@ -274,6 +276,8 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
     for map_key, map_value in all_data_map.items():
         map_lists.append(map_key)
         for method_key, method_value in all_data_map[map_key].items():
+            # if method_key not in drawing_method_set:
+            #     continue
             value = list()           
             for agent_size_key in all_data_map[map_key][method_key].keys():
                 if ylable == "Makespan" or ylable == "Sum of cost":
@@ -641,13 +645,13 @@ all_method_subproblem_size_map = dict()
 
 drawing_method_set = [
                       "EECBS", # tested ok, advance in time cost, nothing in memory usage
-                      "PBS",  # tested ok, advance in time cost, advance in memory usage, full map
-                      "PushAndSwap", # some map not ok, advance in time cost, nothing in memory usage, full map
-                      "LaCAM",# tested ok, drawback in time cost, drawback in memory usage, full map
-                      "HCA", # test ok, advance in memory usage, drawback in time cost, full map
-                      "PIBT2", # some map not ok，advance in memory usage, drawback in time cost, full map
-                      "LNS", # test ok, advance in memory usage, advance in time cost
-                      "CBS"
+                    #   "PBS",  # tested ok, advance in time cost, advance in memory usage, full map
+                    #   "PushAndSwap", # some map not ok, advance in time cost, nothing in memory usage, full map
+                    #   "LaCAM",# tested ok, drawback in time cost, drawback in memory usage, full map
+                    #   "HCA", # test ok, advance in memory usage, drawback in time cost, full map
+                    #   "PIBT2", # some map not ok，advance in memory usage, drawback in time cost, full map
+                    #   "LNS", # test ok, advance in memory usage, advance in time cost
+                    #   "CBS"
                      ]
 
 drawing_method_set_2 = [ 
@@ -765,13 +769,13 @@ for method_key, method_value in all_method_time_cost_map.items():
     drawSummaryOfMap(all_method_subproblem_size_map[method_key], "Number of agents", "NumberOfSubProblem", "sub_problem_size/"+method_key)    
 
 #draw summary of methods
-drawSummaryOfMethod(all_method_time_cost_map, "Number of agents", "Time cost(ms)", "time_cost")           
-drawSummaryOfMethod(all_method_memory_usage_map, "Number of agents", "Memory usage(MB)", "memory_usage")           
-drawSummaryOfMethod(all_method_total_cost_map, "Number of agents", "Sum of cost", "sum_of_cost")           
-drawSummaryOfMethod(all_method_makespan_map, "Number of agents", "Makespan", "makespan")           
-drawSummaryOfMethod(all_method_success_rate_map, "Number of agents", "Success rate", "success_rate")      
-drawSummaryOfMethod(all_method_max_subproblem_map, "Number of agents", "MaxSubproblemSize", "max_subproblem")      
-drawSummaryOfMethod(all_method_subproblem_size_map, "Number of agents", "NumberOfSubProblem", "sub_problem_size")      
+# drawSummaryOfMethod(all_method_time_cost_map, "Number of agents", "Time cost(ms)", "time_cost")           
+# drawSummaryOfMethod(all_method_memory_usage_map, "Number of agents", "Memory usage(MB)", "memory_usage")           
+# drawSummaryOfMethod(all_method_total_cost_map, "Number of agents", "Sum of cost", "sum_of_cost")           
+# drawSummaryOfMethod(all_method_makespan_map, "Number of agents", "Makespan", "makespan")           
+# drawSummaryOfMethod(all_method_success_rate_map, "Number of agents", "Success rate", "success_rate")      
+# drawSummaryOfMethod(all_method_max_subproblem_map, "Number of agents", "MaxSubproblemSize", "max_subproblem")      
+# drawSummaryOfMethod(all_method_subproblem_size_map, "Number of agents", "NumberOfSubProblem", "sub_problem_size")      
 
 # TODO: create a big canvas that have all figures, simplify visualization
 # draw all figure of a method under all map (condensed into four fig, each fig have approx 6 maps)
@@ -812,6 +816,8 @@ def display_images_in_grid(image_files, method_name):
     for i, ax in enumerate(axes):
         if i < len(image_files):
             #img_path = os.path.join(image_folder, image_files[i])
+            if not os.path.exists(image_files[i]):
+                continue
             img = mpimg.imread(image_files[i])
             ax.imshow(img)
             ax.axis('off')  # 隐藏坐标轴
@@ -824,20 +830,21 @@ def display_images_in_grid(image_files, method_name):
     plt.show()
 
     
-# image_folder = '../test/pic/layered_MAPF/' 
-# data_type_names = ['time_cost', 'success_rate', 'sum_of_cost', 'makespan', 'memory_usage']
-# method_name = 'HCA'
+image_folder = '../test/pic/layered_MAPF/' 
+data_type_names = ['time_cost', 'success_rate', 'sum_of_cost', 'makespan', 'memory_usage']
+# method_name = 'EECBS'
 
-# all_image_files = []
+all_image_files = []
 
-# for i in range(1, 5):
-#     for type_name in data_type_names:
-#         all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ 'multi_map_'+str(i)+'.png')
-        
-#     all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ str(i)+'_legend.png')
+for i in range(1, 5):
+    for method_name in drawing_method_set:
+        for type_name in data_type_names:
+            all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ 'multi_map_'+str(i)+'.png')
+            
+        all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ str(i)+'_legend.png')
     
     
-# display_images_in_grid(all_image_files, method_name)
+display_images_in_grid(all_image_files, method_name)
 
 
 
