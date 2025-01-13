@@ -131,6 +131,7 @@ def drawMethodMapAgentSizes(all_data_map, xlable, ylable, title, is_percentage=F
     map_and_agent_data = dict()
     for i in range(1, 5):
         fig=plt.figure(figsize=(5,3.5)) #添加绘图框
+        agent_size_and_data_map = dict()
         for map_key, map_value in all_data_map.items():
             if map_format_map_index[map_key] != i: 
                 continue
@@ -138,14 +139,19 @@ def drawMethodMapAgentSizes(all_data_map, xlable, ylable, title, is_percentage=F
                 x = list()
                 y = list()
                 sorted_keys = sorted(all_data_map[map_key][method_key].keys())
-                
+                if method_key not in agent_size_and_data_map:
+                    agent_size_and_data_map[method_key] = dict()
                 splited_method_name = method_key.split('_')
                 for agent_size_key in sorted_keys:
                     x.append(agent_size_key)
+                    if agent_size_key not in agent_size_and_data_map[method_key]:
+                        agent_size_and_data_map[method_key][agent_size_key] = list()
                     if len(all_data_map[map_key][method_key][agent_size_key]) > 0:
                         y.append(np.mean(all_data_map[map_key][method_key][agent_size_key]))
+                        agent_size_and_data_map[method_key][agent_size_key].append(y[-1])
                     else:
                         y.append(0)
+                        agent_size_and_data_map[method_key][agent_size_key].append(0)
                         
                 # print(splited_method_name)        
                 # if len(splited_method_name) == 1:
@@ -183,12 +189,14 @@ def drawMethodMapAgentSizes(all_data_map, xlable, ylable, title, is_percentage=F
         if not os.path.exists(save_path):
             os.makedirs(save_path)
             print("Folder: " + save_path + " created")
-            
-        save_path = save_path + "/multi_map_"+str(i)
+        if pre_fix == '':    
+            save_path = save_path + "/multi_map_"+str(i)
+        else:
+            save_path = save_path + "/multi_map_"+str(i)+'_id'
         plt.savefig(save_path, dpi = 400, bbox_inches='tight')
         # canvas.paste(plt, (0,0))
 
-        # then create a new image
+        # 2, then create a new image
         # adjust the figure size as necessary
 
         figsize = (1, 1)
@@ -201,7 +209,56 @@ def drawMethodMapAgentSizes(all_data_map, xlable, ylable, title, is_percentage=F
         fig_leg.savefig('../test/pic/layered_MAPF/'+title+'/'+str(i)+'_legend.png',dpi = 400, bbox_inches='tight')
         plt.close('all')
         print("save path to " + save_path)
-
+        
+        # 3, create an image to summary all map in one 
+        fig=plt.figure(figsize=(5,3.5)) #添加绘图框
+        for method_key, method_value in agent_size_and_data_map.items():
+            sorted_keys = sorted(agent_size_and_data_map[method_key].keys())
+            x = list()
+            y = list()
+            splited_method_name = method_key.split('_')
+            for agent_size_key in sorted_keys:
+                x.append(agent_size_key)
+                if len(agent_size_and_data_map[method_key][agent_size_key]) > 0:
+                    y.append(np.mean(agent_size_and_data_map[method_key][agent_size_key]))
+                else:
+                    y.append(0)
+                    
+                if len(splited_method_name) != 1:
+                    plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[splited_method_name[0]], markersize=10, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4, markerfacecolor='none')     
+                       
+                plt.tick_params(axis='both', labelsize=18)
+                
+        formater = ticker.ScalarFormatter(useMathText=True)
+        formater.set_scientific(True)
+        formater.set_powerlimits((0,0))
+        ax = plt.gca()
+        ax.yaxis.offsetText.set_fontsize(18)
+        ax.yaxis.set_major_formatter(formater)
+        
+        y_range = plt.ylim()
+        if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage(MB)":
+            ax.set_yscale('log')
+            plt.ylim(1, y_range[1]*10)
+        else:
+            plt.ylim(0, y_range[1])
+        plt.title(ylable) # 图片标题
+        plt.xlabel(xlable) # 横坐标标题
+        # plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5) # 图例位置设置
+        if is_percentage:
+            plt.ylim(0, 1)
+                
+        plt.tight_layout()
+        save_path = '../test/pic/layered_MAPF/'+title
+        
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+            print("Folder: " + save_path + " created")
+        if pre_fix == '':
+            save_path = save_path + "/multi_map_"+str(i)+'_sum'
+        else:
+            save_path = save_path + "/multi_map_"+str(i)+'_sum_id'        
+        plt.savefig(save_path, dpi = 400, bbox_inches='tight')
 
 def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
     map_and_agent_data = dict()
@@ -288,8 +345,10 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
     if not os.path.exists(save_path):
         os.makedirs(save_path)
         print("Folder: " + save_path + " created")
-        
-    save_path = save_path + "/" + 'summary'
+    if pre_fix == '':    
+        save_path = save_path + "/" + 'summary'
+    else:
+        save_path = save_path + "/" + 'summary_id'
     plt.savefig(save_path, dpi = 400, bbox_inches='tight')   
     plt.close()
     print("save path to " + save_path)     
@@ -386,7 +445,7 @@ def drawSummaryOfMethod(all_data_map, xlable, ylable, title, is_percentage=False
     ax = plt.gca()
     ax.yaxis.offsetText.set_fontsize(8)
     ax.yaxis.set_major_formatter(formater)     
-    plt.xticks([0,1,2,3,4,5,6], drawing_method_set_2)
+    plt.xticks([0,1,2,3,4,5,6,7], drawing_method_set_2)
     
     y_range = plt.ylim()      
     if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage(MB)":
@@ -405,14 +464,16 @@ def drawSummaryOfMethod(all_data_map, xlable, ylable, title, is_percentage=False
     if not os.path.exists(save_path):
         os.makedirs(save_path)
         print("Folder: " + save_path + " created")
-        
-    save_path = save_path + "/" + 'method_summary'+'.png'
+    if pre_fix == '':    
+        save_path = save_path + "/" + 'method_summary'+'.png'
+    else:
+        save_path = save_path + "/" + 'method_summary'+'_id.png'
     plt.savefig(save_path, dpi = 200, bbox_inches='tight')   
     plt.close()
     print("save path to " + save_path)  
     
-pre_fix = 'ID/' # use for compare with independence detection
-# pre_fix = '' # use for compare with raw mapf
+# pre_fix = 'ID/' # use for compare with independence detection
+pre_fix = '' # use for compare with raw mapf
 
 data_path_dir = '../test/test_data/layered_mapf/'+pre_fix
 
@@ -420,20 +481,20 @@ all_single_data = list()
 
 name_of_decomposition = "DECOMPOSITION"
 
-method_marker_map = {"RAW_EECBS":'p-',       "LAYERED_EECBS":'p--',
-                  "RAW_LaCAM":'P-',       "LAYERED_LaCAM":'P--',
-                  "RAW_PBS":'D-',         "LAYERED_PBS":'D--',
-                  "RAW_LaCAM":'X-',      "LAYERED_LaCAM":'X--',
-                  "RAW_LNS":'+-',         "LAYERED_LNS":'+--',
-                  "RAW_AnytimeBCBS":'*-', "LAYERED_AnytimeBCBS":'*--',
-                  "RAW_AnytimeEECBS":'o-', "LAYERED_AnytimeEECBS":'o--',
-                  "RAW_CBSH2_RTC":'v-',   "LAYERED_CBSH2_RTC":'v--',
-                  "RAW_PIBT":'^-',        "LAYERED_PIBT":'^--',
-                  "RAW_PIBT2":'<-',       "LAYERED_PIBT2":'<--',
-                  "RAW_HCA":'>-',         "LAYERED_HCA":'>--',
-                  "RAW_PushAndSwap":'H-', "LAYERED_PushAndSwap":'H--',
-                  name_of_decomposition:"D-."
-                  }
+# method_marker_map = {"RAW_EECBS":'p-',       "LAYERED_EECBS":'p--',
+#                   "RAW_LaCAM":'P-',       "LAYERED_LaCAM":'P--',
+#                   "RAW_PBS":'D-',         "LAYERED_PBS":'D--',
+#                   "RAW_LaCAM":'X-',      "LAYERED_LaCAM":'X--',
+#                   "RAW_LNS":'+-',         "LAYERED_LNS":'+--',
+#                   "RAW_AnytimeBCBS":'*-', "LAYERED_AnytimeBCBS":'*--',
+#                   "RAW_AnytimeEECBS":'o-', "LAYERED_AnytimeEECBS":'o--',
+#                   "RAW_CBSH2_RTC":'v-',   "LAYERED_CBSH2_RTC":'v--',
+#                   "RAW_PIBT":'^-',        "LAYERED_PIBT":'^--',
+#                   "RAW_PIBT2":'<-',       "LAYERED_PIBT2":'<--',
+#                   "RAW_HCA":'>-',         "LAYERED_HCA":'>--',
+#                   "RAW_PushAndSwap":'H-', "LAYERED_PushAndSwap":'H--',
+#                   name_of_decomposition:"D-."
+#                   }
 
 method_marker_map2 = {
     "RAW":'-',
@@ -586,9 +647,10 @@ drawing_method_set = [
                       "HCA", # test ok, advance in memory usage, drawback in time cost, full map
                       "PIBT2", # some map not ok，advance in memory usage, drawback in time cost, full map
                       "LNS", # test ok, advance in memory usage, advance in time cost
+                      "CBS"
                      ]
 
-drawing_method_set_2 = [
+drawing_method_set_2 = [ 
                       "EECBS", # tested ok, advance in time cost, nothing in memory usage
                       "PBS",  # tested ok, advance in time cost, advance in memory usage, full map
                       "PAS", # some map not ok, advance in time cost, nothing in memory usage, full map
@@ -596,6 +658,7 @@ drawing_method_set_2 = [
                       "HCA*", # test ok, advance in memory usage, drawback in time cost, full map
                       "PIBT+", # some map not ok，advance in memory usage, drawback in time cost, full map
                       "LNS2", # test ok, advance in memory usage, advance in time cost
+                      "CBS"
                      ]
     
 for single_data in all_single_data:
