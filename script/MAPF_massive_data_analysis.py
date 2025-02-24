@@ -5,6 +5,7 @@ from matplotlib import ticker
 import os
 from PIL import Image
 import matplotlib.image as mpimg
+import math
 
 def loadDataFromfile(file_path):
     data_list = list()
@@ -36,7 +37,6 @@ def loadDataFromfile(file_path):
                 
                 if new_data.time_cost > 30000:
                     new_data.time_cost = 30000
-                    
 
                 if len(splited_line) >= 9 and (head_split[0] == 'LAYERED' or 'ID'):
                     new_data.max_sub_problem_size = float(splited_line[7])
@@ -45,6 +45,15 @@ def loadDataFromfile(file_path):
                     #     new_data.max_sub_problem_size = float(splited_line[7])
                     #     new_data.total_number_of_subproblem = float(splited_line[8])
                 
+                if pre_fix != '':
+                    if (head_split[0] == 'LAYERED' or 'ID') and new_data.success == 0:
+                        new_data.max_sub_problem_size = new_data.agent_count 
+                        new_data.total_number_of_subproblem = 1
+                    elif head_split[0] == 'RAW':
+                        new_data.max_sub_problem_size = new_data.agent_count 
+                        new_data.total_number_of_subproblem = 1
+                    if head_split[0] == 'RAW':
+                        continue
                 data_list.append(new_data)
             #print(new_data.method, ' ', new_data.path_count, ' ', new_data.real_path_count, ' ', new_data.time_cost)
     except Exception as e:            
@@ -103,7 +112,7 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
         ax.yaxis.set_major_formatter(formater) 
         
         y_range = plt.ylim()      
-        if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage(MB)":
+        if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage":
             ax.set_yscale('log')  
             plt.ylim(1, y_range[1]*10)  
         else:    
@@ -122,7 +131,7 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
             print("Folder: " + save_path + " created")
             
         save_path = save_path + "/" + map_key
-        plt.savefig(save_path, dpi = 400, bbox_inches='tight')   
+        plt.savefig(save_path, dpi = 100, bbox_inches='tight')   
         plt.close()
         print("save path to " + save_path)
 
@@ -145,6 +154,10 @@ def drawMethodMapAgentSizes(all_data_map, xlable, ylable, title, is_percentage=F
                 if method_key not in agent_size_and_data_map:
                     agent_size_and_data_map[method_key] = dict()
                 splited_method_name = method_key.split('_')
+                if ylable == 'MaxSubproblemSize' or ylable == 'NumberOfSubProblem':
+                    if splited_method_name[0] == 'RAW':
+                        # print('continue when ylable = ',ylable,', splited_method_name[0] = ',splited_method_name[0])
+                        continue
                 for agent_size_key in sorted_keys:
                     x.append(agent_size_key)
                     if agent_size_key not in agent_size_and_data_map[method_key]:
@@ -164,7 +177,12 @@ def drawMethodMapAgentSizes(all_data_map, xlable, ylable, title, is_percentage=F
                 
                 # markerfacecolor='none' marker空心化
                 if len(splited_method_name) != 1:
-                    plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[splited_method_name[0]], markersize=10, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4, markerfacecolor='none')
+                    temp_width = 2
+                    if pre_fix != '' and splited_method_name[0] == 'ID':
+                        temp_width = 5
+                    if pre_fix == '' and splited_method_name[0] == 'RAW':
+                        temp_width = 5    
+                    plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[splited_method_name[0]], markersize=10, label=map_key+"/"+splited_method_name[0], linewidth=temp_width, elinewidth=4, capsize=4, markerfacecolor='none')
                 
         plt.tick_params(axis='both', labelsize=18)
         formater = ticker.ScalarFormatter(useMathText=True)
@@ -175,13 +193,13 @@ def drawMethodMapAgentSizes(all_data_map, xlable, ylable, title, is_percentage=F
         ax.yaxis.set_major_formatter(formater)
         
         y_range = plt.ylim()
-        if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage(MB)":
+        if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage":
             ax.set_yscale('log')
             plt.ylim(1, y_range[1]*10)
         else:
             plt.ylim(0, y_range[1])
-        plt.title(ylable) # 图片标题
-        plt.xlabel(xlable) # 横坐标标题
+        plt.title(ylable, fontsize=16) # 图片标题
+        plt.xlabel(xlable, fontsize=16) # 横坐标标题
         # plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5) # 图例位置设置
         if is_percentage:
             plt.ylim(0, 1)
@@ -196,20 +214,23 @@ def drawMethodMapAgentSizes(all_data_map, xlable, ylable, title, is_percentage=F
             save_path = save_path + "/multi_map_"+str(i)
         else:
             save_path = save_path + "/multi_map_"+str(i)+'_id'
-        plt.savefig(save_path, dpi = 400, bbox_inches='tight')
+        plt.savefig(save_path, dpi = 100, bbox_inches='tight')
         # canvas.paste(plt, (0,0))
 
         # 2, then create a new image
         # adjust the figure size as necessary
 
-        figsize = (1, 1)
+        figsize = (3, 3.5)
         fig_leg = plt.figure(figsize=figsize)
         ax_leg = fig_leg.add_subplot(111)
         # add the legend from the previous axes
-        ax_leg.legend(*ax.get_legend_handles_labels(), ncol = 2, loc='center')
+        ax_leg.legend(*ax.get_legend_handles_labels(), bbox_to_anchor=(-.15,1.15), ncol = 1, loc='upper left',frameon=False)
         # hide the axes frame and the x/y labels
         ax_leg.axis('off')
-        fig_leg.savefig('../test/pic/layered_MAPF/'+title+'/'+str(i)+'_legend.png',dpi = 400, bbox_inches='tight')
+        legend_path = '../test/pic/layered_MAPF/'+title+'/'+str(i)+'_legend'
+        if pre_fix != '':
+            legend_path = legend_path + '_id'
+        fig_leg.savefig(legend_path+'.png',dpi = 100)#, bbox_inches='tight')
         plt.close('all')
         print("save path to " + save_path)
         
@@ -240,13 +261,13 @@ def drawMethodMapAgentSizes(all_data_map, xlable, ylable, title, is_percentage=F
         ax.yaxis.set_major_formatter(formater)
         
         y_range = plt.ylim()
-        if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage(MB)":
+        if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage":
             ax.set_yscale('log')
             plt.ylim(1, y_range[1]*10)
         else:
             plt.ylim(0, y_range[1])
-        plt.title(ylable) # 图片标题
-        plt.xlabel(xlable) # 横坐标标题
+        plt.title(ylable, fontsize=16) # 图片标题
+        plt.xlabel(xlable, fontsize=16) # 横坐标标题
         # plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5) # 图例位置设置
         if is_percentage:
             plt.ylim(0, 1)
@@ -261,7 +282,7 @@ def drawMethodMapAgentSizes(all_data_map, xlable, ylable, title, is_percentage=F
             save_path = save_path + "/multi_map_"+str(i)+'_sum'
         else:
             save_path = save_path + "/multi_map_"+str(i)+'_sum_id'        
-        plt.savefig(save_path, dpi = 400, bbox_inches='tight')
+        plt.savefig(save_path, dpi = 100, bbox_inches='tight')
 
 def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
     map_and_agent_data = dict()
@@ -272,8 +293,6 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
     value_lists_id = list()
 
     width = 0.4 
-    if pre_fix != '':
-        width = 0.3
     for map_key, map_value in all_data_map.items():
         map_lists.append(map_key)
         for method_key, method_value in all_data_map[map_key].items():
@@ -298,25 +317,21 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
             head_split = method_key.split('_')
             
             if pre_fix == '':
-                if head_split[0] == 'RAW':
+                if head_split[0] == 'LAYERED':
                     plt.bar(map_format_list.index(map_key)+1-width/2, np.mean(value), width)    
-                    value_lists_raw.extend(value)
-                if head_split[0] == 'LAYERED':  
+                    value_lists_layered.extend(value)
+                if head_split[0] == 'RAW':  
                     plt.bar(map_format_list.index(map_key)+1+width/2, np.mean(value), width, hatch="//")    
-                    value_lists_layered.extend(value)    
+                    value_lists_raw.extend(value)    
                     
             else:
                     
-                if head_split[0] == 'RAW':
-                    plt.bar(map_format_list.index(map_key)+1-width, np.mean(value), width)    
-                    value_lists_raw.extend(value)
-                    
                 if head_split[0] == 'LAYERED':  
-                    plt.bar(map_format_list.index(map_key)+1, np.mean(value), width, hatch="//")    
+                    plt.bar(map_format_list.index(map_key)+1-width/2, np.mean(value), width)    
                     value_lists_layered.extend(value)    
                 
                 if head_split[0] == 'ID':  
-                    plt.bar(map_format_list.index(map_key)+1+width, np.mean(value), width, hatch="o")    
+                    plt.bar(map_format_list.index(map_key)+1+width/2, np.mean(value), width, hatch="//")    
                     value_lists_id.extend(value)
                     
         plt.xticks(rotation=70)         
@@ -334,16 +349,17 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
     ax.yaxis.set_major_formatter(formater)      
     
     y_range = plt.ylim()      
-    if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage(MB)":
+    if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage":
         ax.set_yscale('log')  
         plt.ylim(1, y_range[1]*10)  
     else:    
         plt.ylim(0, y_range[1])
-    plt.title(ylable)
+    plt.title(ylable, fontsize=16)
+    plt.xlabel('Index of map', fontsize=16)
     if is_percentage:
         plt.ylim(0, 1)
             
-    #plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5)
+    # plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5)
     plt.tight_layout()        
     save_path = '../test/pic/layered_MAPF/'+title
     
@@ -354,12 +370,14 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
         save_path = save_path + "/" + 'summary'
     else:
         save_path = save_path + "/" + 'summary_id'
-    plt.savefig(save_path, dpi = 400, bbox_inches='tight')   
+    plt.savefig(save_path, dpi = 100, bbox_inches='tight')   
     plt.close()
     print("save path to " + save_path)     
     
     
 def drawSummaryOfMethod(all_data_map, xlable, ylable, title, is_percentage=False):
+    if pre_fix != '':
+        return
     map_and_agent_data = dict()
     fig=plt.figure(figsize=(5,4.5))
 
@@ -450,15 +468,15 @@ def drawSummaryOfMethod(all_data_map, xlable, ylable, title, is_percentage=False
     ax = plt.gca()
     ax.yaxis.offsetText.set_fontsize(8)
     ax.yaxis.set_major_formatter(formater)     
-    plt.xticks([0,1,2,3,4,5,6,7], drawing_method_set_2)
+    plt.xticks([0,1,2,3,4,5,6], drawing_method_set_2)
     
     y_range = plt.ylim()      
-    if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage(MB)":
+    if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage":
         ax.set_yscale('log')  
         plt.ylim(y_range[0]/10, y_range[1]*10)  
     else:    
         plt.ylim(0, y_range[1]*1.1)
-    #plt.title(ylable)
+    plt.title(ylable)
     if is_percentage:
         plt.ylim(0, 1)
         
@@ -473,12 +491,46 @@ def drawSummaryOfMethod(all_data_map, xlable, ylable, title, is_percentage=False
         save_path = save_path + "/" + 'method_summary'+'.png'
     else:
         save_path = save_path + "/" + 'method_summary'+'_id.png'
-    plt.savefig(save_path, dpi = 200, bbox_inches='tight')   
+    plt.savefig(save_path, dpi = 100, bbox_inches='tight')   
     plt.close()
     print("save path to " + save_path)  
+
+
+def removeMethodDataFromFile(file_path, temp_method_name):
+    filtered_lines = list()
+    try:
+        with open(file_path, "r") as f:
+            lines = f.readlines()
+            for line in lines:
+                splited_line = line.split()
+                # print('old_line=',line)
+                head_split = splited_line[0].split('_')
+                if head_split[1] != temp_method_name:
+                    # print('new_line=',line)
+                    filtered_lines.append(line)
+        f.close()
+            #print(new_data.method, ' ', new_data.path_count, ' ', new_data.real_path_count, ' ', new_data.time_cost)
+    except Exception as e:            
+        print(e)  
+        
+    try:
+        with open(file_path, 'w') as f:
+            f.writelines(filtered_lines)    
+        f.close()    
+    except Exception as e:            
+        print(e)             
     
-# pre_fix = 'ID/' # use for compare with independence detection
-pre_fix = '' # use for compare with raw mapf
+def removeMethodDataFromFiles(map_format_map_index_local, method_name_local):
+    for map_name_key, map_format_value in map_format_map_index_local.items():
+        data_file_path = data_path_dir + map_name_key + '.txt'
+        print('remove data of ', method_name_local, ' from', data_file_path)
+        removeMethodDataFromFile(data_file_path, method_name_local)
+    
+
+
+    
+pre_fix = 'ID/' # use for compare with independence detection
+# pre_fix = '' # use for compare with raw mapf
 
 data_path_dir = '../test/test_data/layered_mapf/'+pre_fix
 
@@ -502,9 +554,9 @@ name_of_decomposition = "DECOMPOSITION"
 #                   }
 
 method_marker_map2 = {
-    "RAW":'-',
-    "LAYERED":'--',
-    "ID":'-.',
+    "RAW":':',
+    "LAYERED":'-',
+    "ID":':',
     name_of_decomposition:"-."
 }
 map_format_list = [
@@ -621,6 +673,7 @@ map_format_map_index = {
 
 }
 
+
  
 # 1, load all data
 for map_name_key, map_format_value in map_format_map_index.items():
@@ -652,7 +705,7 @@ drawing_method_set = [
                       "HCA", # test ok, advance in memory usage, drawback in time cost, full map
                       "PIBT2", # some map not ok，advance in memory usage, drawback in time cost, full map
                       "LNS", # test ok, advance in memory usage, advance in time cost
-                      "CBS"
+                       "CBS"
                      ]
 
 drawing_method_set_2 = [ 
@@ -663,7 +716,7 @@ drawing_method_set_2 = [
                       "HCA*", # test ok, advance in memory usage, drawback in time cost, full map
                       "PIBT+", # some map not ok，advance in memory usage, drawback in time cost, full map
                       "LNS2", # test ok, advance in memory usage, advance in time cost
-                      "CBS"
+                      #"CBS"
                      ]
     
 for single_data in all_single_data:
@@ -736,24 +789,25 @@ for single_data in all_single_data:
         if line_data.success == 1:
             all_method_total_cost_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.total_cost)
             all_method_makespan_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.max_single_cost)
+        
+        if pre_fix != '':    
             all_method_max_subproblem_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.max_sub_problem_size)    
             all_method_subproblem_size_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.total_number_of_subproblem)
 
 for method_key, method_value in all_method_time_cost_map.items(): 
-    
     # if method_key != method_name:
     #     continue
     
     # print(method_key+'/'+method_name)
     # draw at each agent size
     # drawMethodMaps(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)           
-    # drawMethodMaps(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
+    # drawMethodMaps(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage", "memory_usage/"+method_key)           
     # drawMethodMaps(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
     # drawMethodMaps(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
     # drawMethodMaps(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)        
     
     drawMethodMapAgentSizes(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)
-    drawMethodMapAgentSizes(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
+    drawMethodMapAgentSizes(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage", "memory_usage/"+method_key)           
     drawMethodMapAgentSizes(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
     drawMethodMapAgentSizes(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
     drawMethodMapAgentSizes(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)    
@@ -761,22 +815,22 @@ for method_key, method_value in all_method_time_cost_map.items():
     drawMethodMapAgentSizes(all_method_subproblem_size_map[method_key], "Number of agents", "NumberOfSubProblem", "sub_problem_size/"+method_key)    
 
     # draw summary of maps
-    drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)    
-    drawSummaryOfMap(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
-    drawSummaryOfMap(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
-    drawSummaryOfMap(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
-    drawSummaryOfMap(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)      
-    drawSummaryOfMap(all_method_max_subproblem_map[method_key], "Number of agents", "MaxSubproblemSize", "max_subproblem/"+method_key)      
-    drawSummaryOfMap(all_method_subproblem_size_map[method_key], "Number of agents", "NumberOfSubProblem", "sub_problem_size/"+method_key)    
+    # drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)    
+    # drawSummaryOfMap(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage", "memory_usage/"+method_key)           
+    # drawSummaryOfMap(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
+    # drawSummaryOfMap(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
+    # drawSummaryOfMap(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)      
+    # drawSummaryOfMap(all_method_max_subproblem_map[method_key], "Number of agents", "MaxSubproblemSize", "max_subproblem/"+method_key)      
+    # drawSummaryOfMap(all_method_subproblem_size_map[method_key], "Number of agents", "NumberOfSubProblem", "sub_problem_size/"+method_key)    
 
 #draw summary of methods
-# drawSummaryOfMethod(all_method_time_cost_map, "Number of agents", "Time cost(ms)", "time_cost")           
-# drawSummaryOfMethod(all_method_memory_usage_map, "Number of agents", "Memory usage(MB)", "memory_usage")           
-# drawSummaryOfMethod(all_method_total_cost_map, "Number of agents", "Sum of cost", "sum_of_cost")           
-# drawSummaryOfMethod(all_method_makespan_map, "Number of agents", "Makespan", "makespan")           
-# drawSummaryOfMethod(all_method_success_rate_map, "Number of agents", "Success rate", "success_rate")      
-# drawSummaryOfMethod(all_method_max_subproblem_map, "Number of agents", "MaxSubproblemSize", "max_subproblem")      
-# drawSummaryOfMethod(all_method_subproblem_size_map, "Number of agents", "NumberOfSubProblem", "sub_problem_size")      
+drawSummaryOfMethod(all_method_time_cost_map, "Number of agents", "Time cost(ms)", "time_cost")           
+drawSummaryOfMethod(all_method_memory_usage_map, "Number of agents", "Memory usage", "memory_usage")           
+drawSummaryOfMethod(all_method_total_cost_map, "Number of agents", "Sum of cost", "sum_of_cost")           
+drawSummaryOfMethod(all_method_makespan_map, "Number of agents", "Makespan", "makespan")           
+drawSummaryOfMethod(all_method_success_rate_map, "Number of agents", "Success rate", "success_rate")      
+drawSummaryOfMethod(all_method_max_subproblem_map, "Number of agents", "MaxSubproblemSize", "max_subproblem")      
+drawSummaryOfMethod(all_method_subproblem_size_map, "Number of agents", "NumberOfSubProblem", "sub_problem_size")      
 
 # TODO: create a big canvas that have all figures, simplify visualization
 # draw all figure of a method under all map (condensed into four fig, each fig have approx 6 maps)
@@ -784,7 +838,7 @@ for method_key, method_value in all_method_time_cost_map.items():
 #print('haha')
 
 
-def display_images_in_grid(image_files, method_name, visualize=False):
+def display_images_in_grid(image_filess, method_name, visualize=False):
     """
     读取指定文件夹中的多张图片，并以网格形式显示在一张图上。
     
@@ -797,15 +851,19 @@ def display_images_in_grid(image_files, method_name, visualize=False):
     #image_files = [f for f in os.listdir(image_folder) if f.endswith(('png', 'jpg', 'jpeg'))]
     
     # 检查图片数量
-    if len(image_files) == 0:
-        print("未找到图片，请检查文件夹路径和图片格式。")
-        return
+    for image_files in image_filess:
+        if len(image_files) == 0:
+            print("未找到图片，请检查文件夹路径和图片格式。")
+            return
     
-    rows = int(len(image_files)/6)
+    rows = len(image_filess)
     
     # print("rows", rows)
     
-    cols = 6
+    cols = len(image_filess[0])
+    
+    print('rows, cols = ',rows, cols) # rows, cols =  1 6
+
     
     # 限制图片数量以匹配网格
     image_files = image_files[:rows * cols]
@@ -815,23 +873,38 @@ def display_images_in_grid(image_files, method_name, visualize=False):
     axes = axes.flatten()  # 将多维数组转换为一维，方便迭代
     
     for i, ax in enumerate(axes):
-        if i < len(image_files):
-            #img_path = os.path.join(image_folder, image_files[i])
-            if not os.path.exists(image_files[i]):
-                continue
-            img = mpimg.imread(image_files[i])
-            ax.imshow(img)
-            ax.axis('off')  # 隐藏坐标轴
-            #ax.set_title(f'Image {i+1}')
-            ax.set_title(method_name)
-        else:
-            ax.axis('off')  # 多余的子图隐藏
+        # if i < len(image_files):
+        #     print('i/cols and icols',i/cols,i%cols)
+        #     print('image_filess[int(i/cols)][i_cols]',image_filess[int(i/cols)][i%cols])
+        #     #img_path = os.path.join(image_folder, image_files[i])
+        #     if not os.path.exists(image_filess[int(i/cols)][i%cols]):
+        #         continue
+        #     img = mpimg.imread(image_filess[int(i/cols)][i%cols])
+        #     ax.imshow(img)
+        #     ax.axis('off')  # 隐藏坐标轴
+        #     #ax.set_title(f'Image {i+1}')
+        #     ax.set_title(method_name)
+        # else:
+        #     ax.axis('off')  # 多余的子图隐藏
+        # print('i = ', i)
+        # print('i/cols and icols',i/cols,i%cols)
+        # print('image_filess[int(i/cols)][i_cols]',image_filess[int(math.floor(i/cols))][i%cols])
+        #img_path = os.path.join(image_folder, image_files[i])
+        if not os.path.exists(image_filess[int(i/cols)][i%cols]):
+            print('not exist: ', image_filess[int(i/cols)][i%cols])
+            continue
+        img = mpimg.imread(image_filess[int(i/cols)][i%cols])
+        ax.imshow(img)
+        ax.axis('off')  # 隐藏坐标轴
+        #ax.set_title(f'Image {i+1}')
+        ax.set_title(method_name)
     
     plt.tight_layout()
     save_path = '../test/pic/layered_MAPF/'+method_name+'_summary'
     if pre_fix != '':
         save_path = save_path + '_id'
-    plt.savefig(save_path, dpi = 400, bbox_inches='tight')   
+    print('save summary to ', save_path)    
+    plt.savefig(save_path, dpi = 100, bbox_inches='tight')   
     if visualize:
         plt.show()
     
@@ -839,50 +912,29 @@ image_folder = '../test/pic/layered_MAPF/'
 data_type_names = ['time_cost', 'success_rate', 'sum_of_cost', 'makespan', 'memory_usage']
 # method_name = 'EECBS'
 
-all_image_files = []
+#removeMethodDataFromFiles(map_format_map_index, 'HCA')
 
-for i in range(1, 5):
-    for method_name in drawing_method_set:
+for method_name in drawing_method_set:
+    all_image_filess = []
+    for i in range(1, 5):
+        all_image_files = []
         for type_name in data_type_names:
-            all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ 'multi_map_'+str(i)+'.png')
-            
+            load_path = image_folder + type_name +'/'+ method_name +'/'+ 'multi_map_'+str(i)
+            if pre_fix != '':
+                load_path = load_path + '_id'
+            print('load from ', load_path)    
+            all_image_files.append(load_path+'.png')
+        if pre_fix != '':
+            load_path = image_folder + 'max_subproblem' +'/'+ method_name +'/multi_map_'+ str(i)+'_id'
+            print('load from id ', load_path)    
+            all_image_files.append(load_path+'.png')
+            load_path = image_folder + 'sub_problem_size' +'/'+ method_name +'/multi_map_'+ str(i)+'_id'
+            print('load from id ', load_path)    
+            all_image_files.append(load_path+'.png')
+
         all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ str(i)+'_legend.png')
-    
-    
-display_images_in_grid(all_image_files, method_name)
-
-
-    
-def removeMethodDataFromFile(file_path, temp_method_name):
-    filtered_lines = list()
-    try:
-        with open(file_path, "r") as f:
-            lines = f.readlines()
-            for line in lines:
-                splited_line = line.split()
-                # print('old_line=',line)
-                head_split = splited_line[0].split('_')
-                if head_split[1] != temp_method_name:
-                    # print('new_line=',line)
-                    filtered_lines.append(line)
-        f.close()
-            #print(new_data.method, ' ', new_data.path_count, ' ', new_data.real_path_count, ' ', new_data.time_cost)
-    except Exception as e:            
-        print(e)  
-        
-    try:
-        with open(file_path, 'w') as f:
-            f.writelines(filtered_lines)    
-        f.close()    
-    except Exception as e:            
-        print(e)             
-    
-def removeMethodDataFromFiles(map_format_map_index_local, method_name_local):
-    for map_name_key, map_format_value in map_format_map_index_local.items():
-        data_file_path = data_path_dir + map_name_key + '.txt'
-        print('remove data of ', method_name_local, ' from', data_file_path)
-        removeMethodDataFromFile(data_file_path, method_name_local)
-    
+        all_image_filess.append(all_image_files)
+    display_images_in_grid(all_image_filess, method_name)
 
 
 
