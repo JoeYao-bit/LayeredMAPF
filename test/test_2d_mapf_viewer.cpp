@@ -105,7 +105,7 @@ int main(int argc, char** argv) {
     // PIBT_2::hca_MAPF; // prioritized mapf, solve each agent separately, no much difference in memory usage
     // PIBT_2::push_and_swap_MAPF // makespan * num of agent, suboptimal planning cause very large makespan,
     // cause very large memory usage, while solve agents isolated didn't
-    auto MAPF_func = CBS_Li::cbs_MAPF;//MAPF_LNS2::LNS2_MAPF;
+    auto MAPF_func = CBS_Li::cbs_MAPF;PIBT_2::PushAndSwap;
     // TODO:: considering previous agent's target and following agent's start
     PIBT_2::external_grid_ptr = PIBT_2::Problem::generateGridPtr(dim, is_occupied);
 
