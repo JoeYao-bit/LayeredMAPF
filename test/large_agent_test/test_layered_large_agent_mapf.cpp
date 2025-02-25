@@ -12,6 +12,8 @@
 #include "../../algorithm/LA-MAPF/CBS/large_agent_CBS.h"
 
 //#include "../../algorithm/LA-MAPF/LaCAM/large_agent_lacam.h"
+#include "../../algorithm/LA-MAPF/IndependenceDetection/independence_detection.h"
+
 
 using namespace freeNav::LayeredMAPF::LA_MAPF;
 
@@ -30,15 +32,23 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
     LargeAgentMAPFInstanceDecompositionPtr<2> decomposer_ptr = nullptr;
     std::vector<std::vector<int> > grid_visit_count_table;
 
-    auto instances = deserializer.getTestInstance({20}, 1);
+    auto instances = deserializer.getTestInstance({2}, 1);
+    LAMAPF_Paths layered_paths;
 
-    auto layered_paths = layeredLargeAgentMAPF<2>(instances.front().second,
-                                                  instances.front().first,
-                                                  dim, is_occupied,
-                                                  CBS::LargeAgentCBS_func<2>,
-                                                  grid_visit_count_table,
-                                                  20, decomposer_ptr,
-                                                  false);
+//    auto layered_paths = layeredLargeAgentMAPF<2>(instances.front().second,
+//                                                  instances.front().first,
+//                                                  dim, is_occupied,
+//                                                  CBS::LargeAgentCBS_func<2>,
+//                                                  grid_visit_count_table,
+//                                                  20, decomposer_ptr,
+//                                                  false);
+
+    auto id_solver = ID::ID<2>(instances.front().second, instances.front().first,
+              dim, is_occupied, CBS::LargeAgentCBS_func<2>);
+
+    if(id_solver.solve()) {
+        layered_paths = id_solver.getSolution();
+    }
 
     auto end_t = clock();
 
@@ -60,8 +70,11 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
 //    std::cout << (raw_path.size() == deserializer.getAgents().size() ? "success" : "failed")
 //              << " raw large agent mapf in " << time_cost1 << "ms " << std::endl;
 
-    InstanceVisualization(instances.front().first, decomposer_ptr->getAllPoses(),
-                          instances.front().second, layered_paths, grid_visit_count_table);
+    if(decomposer_ptr != nullptr) {
+
+        InstanceVisualization(instances.front().first, decomposer_ptr->getAllPoses(),
+                              instances.front().second, layered_paths, grid_visit_count_table);
+    }
 }
 
 TEST(test, layered_large_agent_CBS) {

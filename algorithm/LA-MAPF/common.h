@@ -783,6 +783,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         const DimensionLength* dim_;
         Id total_index_;
 
+        std::vector<size_t> maximum_length_of_paths_; // max length for each map, now only used in independence decomposition
+
         std::map<int, Pointis<N> > points_in_agent_circles_; // precomputed check range
 
         // location id and related poses id
