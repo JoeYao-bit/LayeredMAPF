@@ -32,10 +32,10 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
     LargeAgentMAPFInstanceDecompositionPtr<2> decomposer_ptr = nullptr;
     std::vector<std::vector<int> > grid_visit_count_table;
 
-    auto instances = deserializer.getTestInstance({2}, 1);
+    auto instances = deserializer.getTestInstance({12}, 1);
     LAMAPF_Paths layered_paths;
 
-//    auto layered_paths = layeredLargeAgentMAPF<2>(instances.front().second,
+//    layered_paths = layeredLargeAgentMAPF<2>(instances.front().second,
 //                                                  instances.front().first,
 //                                                  dim, is_occupied,
 //                                                  CBS::LargeAgentCBS_func<2>,
@@ -48,6 +48,9 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
 
     if(id_solver.solve()) {
         layered_paths = id_solver.getSolution();
+        std::cout << "max subproblem / total = " << id_solver.getMaximalSubProblem() << " / " << instances.front().first.size() << std::endl;
+        std::cout << "num of subproblem = " << id_solver.getNumberOfSubProblem() << std::endl;
+        std::cout << "is solution valid ? " << isSolutionValid<2>(layered_paths, instances.front().first, id_solver.all_poses_) << std::endl;
     }
 
     auto end_t = clock();

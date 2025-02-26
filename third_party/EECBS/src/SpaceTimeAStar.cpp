@@ -102,6 +102,12 @@ namespace CBS_Li {
             {
                 // yz: if find path, update node connection in LLNode
                 updatePath(curr, path);
+                // yz: used in independence detection, set upbound of path length,
+                // maximum_length_of_paths_ is empty in other place,
+                if(!initial_constraints.maximum_length_of_paths_.empty()) {
+                    assert(agent + 1 <= initial_constraints.maximum_length_of_paths_.size());
+                    assert(path.size() <= initial_constraints.maximum_length_of_paths_[agent]);
+                }
                 break;
             }
             if (curr->timestep >= constraint_table.length_max)

@@ -26,6 +26,9 @@
 
 #include "../test/visualization/3d_viewer.h"
 
+#include "../third_party/Hybrid_MAPF/ID.h"
+
+
 using namespace freeNav;
 using namespace freeNav::LayeredMAPF;
 
@@ -114,8 +117,18 @@ int main(int argc, char** argv) {
 //    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, MAPF_func, LaCAM2::lacam2_MAPF, false, 30);
 //    multiple_paths = IndependenceDetectionMAPF<2>(ists, dim, is_occupied, MAPF_func, LaCAM2::lacam2_MAPF, false, 30);
 
-    IndependenceDetection<2> id(ists, dim, is_occupied, MAPF_func, 30);
-    if(id.solved_) { multiple_paths = id.paths_; }
+//    IndependenceDetection<2> id(ists, dim, is_occupied, MAPF_func, 30);
+//    if(id.solved_) { multiple_paths = id.paths_; }
+
+    Hybird_MAPF::Instance* inst = new Hybird_MAPF::Instance(dim, is_occupied, ists);
+    Hybird_MAPF::ID* Solver = new Hybird_MAPF::ID(inst, 1, 2);
+    Solver->mapf_func_ = LaCAM2::lacam2_MAPF;  Solver->runtime = 30*1e3;
+    auto ret_val = Solver->SolveProblem(std::vector<bool> {true,false,false});
+    if(Solver->solved) {
+        multiple_paths = Solver->paths_fr;
+        std::cout << "max subproblem / total = " << Solver->getMaximalSubProblem() << " / " << ists.size() << std::endl;
+        std::cout << "num of subproblem = " << Solver->getNumberOfSubProblem() << std::endl;
+    }
 
     gettimeofday(&tv_after, &tz);
     double layered_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;

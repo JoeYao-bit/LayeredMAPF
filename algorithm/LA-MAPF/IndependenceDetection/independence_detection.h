@@ -41,7 +41,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
             max_excircle_radius = getMaximumRadius<N>(agents);
             time_limit = runtime;
             gettimeofday(&tv_pre, &tz);
-
         }
 
         ~ID() {
@@ -83,8 +82,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
                                         this->agents_heuristic_tables_[agent],
                                         this->agents_heuristic_tables_ignore_rotate_[agent],
                                         this->agent_sub_graphs_[agent],
-                                        constraint_table, nullptr, nullptr);
-
+                                        constraint_table, nullptr, nullptr, nullptr);
                 LAMAPF_Path solution = astar.solve();
                 if(solution.empty()) {
                     std::cout << "FATAL: unsolvable instance agent " << i << " in Independence Detection " << std::endl;
@@ -375,7 +373,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
             std::vector<std::vector<int> >       local_agents_heuristic_tables;
             std::vector<std::vector<int> >       local_agents_heuristic_tables_ignore_rotate;
 
-            std::cout << "flag 9.1" << std::endl;
 
             for(const auto& current_id : current_id_set) {
                 current_id_vec.push_back(current_id);
@@ -425,10 +422,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
 
             if(Cost != -1) {
                 // set path length limitation
-                for(size_t id = 0; id < groups[g1].size(); id++) {
-                    new_constraint_table_ptr_->maximum_length_of_paths_.push_back(current_plan[groups[g1][id]].size());
+                for(size_t id = 0; id < current_plan.size(); id++) {
+                    new_constraint_table_ptr_->maximum_length_of_paths_.push_back(current_plan[id].size());
                 }
-                assert(new_constraint_table_ptr_->maximum_length_of_paths_.size() == groups[g1].size());
+                assert(new_constraint_table_ptr_->maximum_length_of_paths_.size() == current_plan.size());
             }
 
 //            std::cout << "flag 9.6" << std::endl;
