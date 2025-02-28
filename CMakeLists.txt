@@ -58,7 +58,7 @@ add_library(lamapf_alg STATIC ${alg_src} ${lamapf_src})
 #                                 algorithm/LA-MAPF/common.cpp)
 #INSTALL (TARGETS lamapf_alg_ex lamapf_alg_ex LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
 
-target_link_libraries(lamapf_alg alg_lib lib-graph)
+target_link_libraries(lamapf_alg alg_lib lib-graph freeNav-base)
 
 #INSTALL(TARGETS hello hello_static
 #        LIBRARY DESTINATION include/lib
@@ -72,23 +72,23 @@ INSTALL(DIRECTORY algorithm DESTINATION include/LA-MAPF)
 
 
 add_executable(test_lacam3 test/test_lacam3.cpp)
-target_link_libraries(test_lacam3 freeNav-base lamapf_alg)
+target_link_libraries(test_lacam3 lamapf_alg)
 
 add_executable(test_massive_decomposition test/test_massive_decomposition.cpp)
-target_link_libraries(test_massive_decomposition freeNav-base lamapf_alg)
+target_link_libraries(test_massive_decomposition lamapf_alg)
 
 add_executable(test_massive_layered_mapf test/test_massive_layered_mapf.cpp)
-target_link_libraries(test_massive_layered_mapf freeNav-base lamapf_alg)
+target_link_libraries(test_massive_layered_mapf lamapf_alg)
 
 
 add_executable(test_lamapf_instance_generator test/large_agent_test/test_lamapf_instance_generator.cpp)
-target_link_libraries(test_lamapf_instance_generator freeNav-base lamapf_alg)
+target_link_libraries(test_lamapf_instance_generator lamapf_alg)
 
 add_executable(test_large_agent_mapf_decomposition test/large_agent_test/test_large_agent_mapf_decomposition.cpp)
-target_link_libraries(test_large_agent_mapf_decomposition freeNav-base lamapf_alg)
+target_link_libraries(test_large_agent_mapf_decomposition lamapf_alg)
 
 add_executable(test_layered_large_agent_mapf test/large_agent_test/test_layered_large_agent_mapf.cpp)
-target_link_libraries(test_layered_large_agent_mapf freeNav-base lamapf_alg)
+target_link_libraries(test_layered_large_agent_mapf lamapf_alg)
 
 
 add_executable(test_hybird_mapf third_party/Hybrid_MAPF/main.cpp)

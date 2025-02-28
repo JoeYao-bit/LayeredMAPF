@@ -8,6 +8,8 @@
 #include "layered_mapf.h"
 #include "../third_party/EECBS/inc/SIPP.h"
 #include "../third_party/EECBS/inc/SpaceTimeAStar.h"
+#include "../algorithm/constraint_table_CBS/common.h"
+#include "../third_party/EECBS/inc/CBSNode.h"
 
 /* Independence Detection:
  * Standley, T. (2010). Finding Optimal Solutions to Cooperative Pathfinding Problems.

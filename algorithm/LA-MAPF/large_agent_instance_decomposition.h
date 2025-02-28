@@ -238,6 +238,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return max_cluster_size;
         }
 
+        int getNumberOfSubProblem() const {
+            return all_clusters_.size();
+        }
+
         bool decompositionValidCheck(const std::vector<std::set<int> >& all_levels) const {
             for(int i=0; i<all_levels.size(); i++) {
 //                std::cout << " level " << i << " valid check ... " << std::endl;

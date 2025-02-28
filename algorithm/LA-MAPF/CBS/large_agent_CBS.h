@@ -61,6 +61,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                                                    constraint_avoidance_table_,
                                                    path_constraint_,
                                                    connect_graph_);
+                auto current_time = clock();
+                auto sum_s = (((double)(current_time - this->start_time_))/CLOCKS_PER_SEC);
+                auto remain_s = time_limit - sum_s;
+                if(remain_s < 0) {
+                    this->solvable = false;
+                    continue;
+                }
+                astar.time_limit_ = remain_s*1e3;
+
                 LAMAPF_Path solution = astar.solve();
                 grid_visit_count_tables_.push_back(astar.grid_visit_count_table_);
                 if(solution.empty()) {
@@ -96,7 +105,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
         virtual bool solve(int cost_lowerbound = 0, int cost_upperbound = MAX_COST) override {
             if(this->remaining_time_ <= 0) { return false;}
-            auto start_time = clock();
             if(!this->solvable) {
                 std::cout << "-- unsolvable instance " << std::endl;
                 return false;
@@ -111,7 +119,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //                if(count >= 2000) { break; }
 //                std::cout << "-- " << count << " iteration, open size " << cleanup_list.size() << std::endl;
                 auto current_time = clock();
-                if((((double)(current_time - start_time))/CLOCKS_PER_SEC) >= this->remaining_time_) {
+                auto remain_s = (((double)(current_time - this->start_time_))/CLOCKS_PER_SEC);
+                if(remain_s >= this->remaining_time_) {
                     // run out of time
                     std::cout << "NOTICE: LA-CBS run out of time " << std::endl;
                     return false;
@@ -492,6 +501,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //                constraint_avoidance_table_.insertAgentPathOccGrids(this->agents_[a], this->solutions_[a]);
 //            }
 //            constraint_avoidance_table_.updateAgent(this->agents_[agent]);
+            auto current_time = clock();
+            auto sum_s = (((double)(current_time - this->start_time_))/CLOCKS_PER_SEC);
+            auto remain_s = this->time_limit_ - sum_s;
+            if(remain_s < 0 ) { return false; }
             SpaceTimeAstar<N> astar(start_node_id, target_node_id,
                                                this->agents_heuristic_tables_[agent],
                                                this->agents_heuristic_tables_ignore_rotate_[agent],
@@ -501,6 +514,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                                                path_constraint_,
                                                connect_graph_);
             astar.lower_bound_ = lowerbound;
+            astar.time_limit_ = remain_s*1e3;
             LAMAPF_Path new_path = astar.solve();
             if (!new_path.empty()) {
 //                std::cout << " old path size = " << this->solutions_[agent].size() << std::endl;

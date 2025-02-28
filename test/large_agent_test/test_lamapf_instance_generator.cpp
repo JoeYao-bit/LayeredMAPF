@@ -595,6 +595,7 @@ int main() {
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
             map_configs = {
 //                           {MAPFTestConfig_Paris_1_256,     1, 60, 20, 20},
+
 //                           {MAPFTestConfig_empty_48_48,     1, 40, 10, 10},
 //                           {MAPFTestConfig_Berlin_1_256,    1, 10, 5, 5},
 //                           {MAPFTestConfig_maze_128_128_10, 1, 10, 5, 5},

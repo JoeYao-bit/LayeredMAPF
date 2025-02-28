@@ -39,7 +39,7 @@ namespace Hybird_MAPF {
         // solve single agent paths
         int max_time = 0;
         for (size_t i = 0; i < groups.size(); i++) {
-            single_path->ShortestPath(inst->start[i], inst->goal[i], current_plan[i]);
+            single_path->ShortestPath(inst->start[i], inst->goal[i], current_plan[i]); // yz: get single path
             if (current_plan[i].size() > max_time)
                 max_time = current_plan[i].size();
             inst->distance[inst->start[i]][inst->goal[i]] = current_plan[i].size() - 1; // update distance from start to goal
@@ -215,7 +215,7 @@ namespace Hybird_MAPF {
         for (size_t i = 0; i < found_plan.size(); i++) {
             for (size_t j = found_plan[i].size() - 1; j > 0; j--) {
                 if (found_plan[i][j] != found_plan[i][j - 1]) {
-                    new_makespan = max(new_makespan, (int) j + 1);
+                    new_makespan = max(new_makespan, (int) j + 1); // yz: update makespan to larger value
                     break;
                 }
             }

@@ -12,6 +12,8 @@
 #include "../../algorithm/LA-MAPF/CBS/large_agent_CBS.h"
 
 //#include "../../algorithm/LA-MAPF/LaCAM/large_agent_lacam.h"
+#include "../../algorithm/LA-MAPF/IndependenceDetection/independence_detection.h"
+
 
 using namespace freeNav::LayeredMAPF::LA_MAPF;
 
@@ -29,13 +31,27 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
 
     LargeAgentMAPFInstanceDecompositionPtr<2> decomposer_ptr = nullptr;
     std::vector<std::vector<int> > grid_visit_count_table;
-    auto layered_paths = layeredLargeAgentMAPF<2>(deserializer.getInstances(),
-                                                             deserializer.getAgents(),
-                                                             dim, is_occupied,
-                                                             CBS::LargeAgentCBS_func<2>,
-                                                             grid_visit_count_table,
-                                                             60, decomposer_ptr,
-                                                             true);
+
+    auto instances = deserializer.getTestInstance({120}, 1);
+    LAMAPF_Paths layered_paths;
+
+//    layered_paths = layeredLargeAgentMAPF<2>(instances.front().second,
+//                                                  instances.front().first,
+//                                                  dim, is_occupied,
+//                                                  CBS::LargeAgentCBS_func<2>,
+//                                                  grid_visit_count_table,
+//                                                  20, decomposer_ptr,
+//                                                  false);
+
+    auto id_solver = ID::ID<2>(instances.front().second, instances.front().first,
+              dim, is_occupied, CBS::LargeAgentCBS_func<2>);
+
+    if(id_solver.solve()) {
+        layered_paths = id_solver.getSolution();
+        std::cout << "max subproblem / total = " << id_solver.getMaximalSubProblem() << " / " << instances.front().first.size() << std::endl;
+        std::cout << "num of subproblem = " << id_solver.getNumberOfSubProblem() << std::endl;
+        std::cout << "is solution valid ? " << isSolutionValid<2>(layered_paths, instances.front().first, id_solver.all_poses_) << std::endl;
+    }
 
     auto end_t = clock();
 

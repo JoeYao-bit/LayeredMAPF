@@ -132,13 +132,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         int lower_bound_ = 0; // Threshold for FOCAL
         double w_ = 1.2; // suboptimal bound
 
+        double time_limit_ = -1; // ms, -1 means no limitation
+
         LAMAPF_Path solution_;
 
-        const ConstraintTable<N>& constraint_table_; // vertex and edge constraint, hard constraint
+        ConstraintTable<N> constraint_table_; // vertex and edge constraint, hard constraint
 
-        const ConstraintAvoidanceTablePtr<N>& constraint_avoidance_table_; // try to avoid, take as soft constraint
+        ConstraintAvoidanceTablePtr<N> constraint_avoidance_table_ = nullptr; // try to avoid, take as soft constraint
 
-        const LargeAgentStaticConstraintTablePtr<N>& path_constraint_; // take external path as obstacles, hard constraints
+        LargeAgentStaticConstraintTablePtr<N> path_constraint_ = nullptr; // take external path as obstacles, hard constraints
 
     };
 

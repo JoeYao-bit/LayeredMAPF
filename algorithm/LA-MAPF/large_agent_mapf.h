@@ -57,6 +57,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                            time_limit_(time_limit),
                            remaining_time_(time_limit)
                        {
+
+            start_time_ = clock();
             assert(instances.size() == agents.size());
 
             struct timezone tz;
@@ -539,8 +541,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         double subgraph_and_heuristic_time_cost_ = 0; // time cost of get subgraph and heuristic table for each agent
 
-        double time_limit_ = 60;
-        double remaining_time_ = 0;
+        double time_limit_ = 60; // s
+        double remaining_time_ = 0; // s
+
+        clock_t start_time_;
+
     };
 
 

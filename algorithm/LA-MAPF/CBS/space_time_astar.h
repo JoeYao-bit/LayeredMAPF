@@ -61,6 +61,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                        const std::vector<int>& heuristic,
                        const std::vector<int>& heuristic_ignore_rotate,
                        const SubGraphOfAgent<N>& sub_graph,
+
                        const ConstraintTable<N>& constraint_table,
                        const ConstraintAvoidanceTablePtr<N>& constraint_avoidance_table,
                        const LargeAgentStaticConstraintTablePtr<N>& path_constraint,
@@ -112,12 +113,20 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //            }
 
 //            this->lower_bound_ = std::max(holding_time, this->lower_bound_); // yz: considering minimum time stamp to target
+            auto start_t = clock();
 
             int count = 0;
             while (!open_list.empty()) {
 //                if(this->sub_graph_.agent_.id_ == 9) {
-//                    std::cout << "open, focal size = " << open_list.size() << ", " << focal_list.size() << std::endl;
+//                    std::cout << count << " th step, open / focal size = " << open_list.size() << " / " << focal_list.size() << std::endl;
 //                }
+                // check time cost to now every 50000 times
+                if(count % 30000 == 0 && this->time_limit_ > 0) {
+                    auto now_t = clock();
+                    auto sum_s = (double) (clock() - start_t) / CLOCKS_PER_SEC;
+//                    std::cout << "sum_s = " << sum_s << ", this->time_limit_ = " << this->time_limit_ << std::endl;
+                    if(sum_s*1e3 > this->time_limit_) { break; }
+                }
                 //assert(count <= 1000);
                 count++;
                 updateFocalList(); // update FOCAL if min f-val increased
@@ -136,6 +145,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //                }
                 grid_visit_count_table_[curr->node_id/(2*N)] ++;
 //                assert(curr->node_id >= 0);
+//                std::cout << "before check reach goal this->path_constraint_ = " << this->path_constraint_ << std::endl;
+
                 // check if the popped node is a goal
                 if (curr->node_id == this->target_node_id_ // && // arrive at the goal location
                     //!curr->wait_at_goal && // not wait at the goal location
@@ -144,6 +155,22 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 {
                     // yz: if find path, update node connection in LLNode
                     updatePath(curr, path);
+                    // yz: used in independence detection, set upbound of path length,
+                    // maximum_length_of_paths_ is empty in other place,
+
+                    if(this->path_constraint_ != nullptr) {
+                        if (!this->path_constraint_->maximum_length_of_paths_.empty()) {
+//                            std::cout << " use path length limitation " << std::endl;
+                            int agent = this->sub_graph_.agent_->id_; // using global id
+//                            std::cout << " agent = " << agent << " / total size = " <<
+//                            this->path_constraint_->maximum_length_of_paths_.size() <<
+//                            " / empty ? " << this->path_constraint_->maximum_length_of_paths_.empty() << std::endl;
+//                            std::cout << "start/end = " << (this->path_constraint_->maximum_length_of_paths_.begin() ==
+//                            this->path_constraint_->maximum_length_of_paths_.end()) << std::endl;
+                            assert(agent + 1 <= this->path_constraint_->maximum_length_of_paths_.size());
+                            assert(path.size() <= this->path_constraint_->maximum_length_of_paths_[agent]);
+                        }
+                    }
                     break;
                 }
 
@@ -191,6 +218,24 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //                    if(this->sub_graph_.agent_.id_ == 9 && next_node_id == this->target_node_id_) {
 //                        std::cout << " reach target flag 1 " << std::endl;
 //                    }
+                    // yz: used in independence detection, set upbound of path length,
+                    // maximum_length_of_paths_ is empty in other place,
+                    if(this->path_constraint_ != nullptr) {
+                        if (!this->path_constraint_->maximum_length_of_paths_.empty()) {
+                            int agent = this->sub_graph_.agent_->id_; // using global id
+                            assert(agent + 1 <= this->path_constraint_->maximum_length_of_paths_.size()); // store all path length
+                            int path_length = 0; // calculated path length
+                            LowLvNode* buffer = curr;
+                            while (buffer != nullptr) {
+                                path_length++;
+                                buffer = buffer->parent;
+                            }
+                            if (path_length > this->path_constraint_->maximum_length_of_paths_[agent]) {
+//                    std::cout << " path length " << path_length << " over max length " << initial_constraints.maximum_length_of_paths_[agent] << std::endl;
+                                continue;
+                            }
+                        }
+                    }
                     // yz: check whether satisfied all constraint, including vertex constraint and edge constraint
                     if (this->constraint_table_.constrained(next_node_id, next_timestep) ||
                             this->constraint_table_.constrained(curr->node_id, next_node_id, next_timestep))
