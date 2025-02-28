@@ -132,6 +132,26 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 updateFocalList(); // update FOCAL if min f-val increased
                 new_nodes_in_open.clear();
                 auto *curr = popNode();
+
+                 // yz: used in independence detection, set upbound of path length,
+                // maximum_length_of_paths_ is empty in other place,
+                if(this->path_constraint_ != nullptr) {
+                    if (!this->path_constraint_->maximum_length_of_paths_.empty()) {
+                        int agent = this->sub_graph_.agent_->id_; // using global id
+                        assert(agent + 1 <= this->path_constraint_->maximum_length_of_paths_.size()); // store all path length
+                        int path_length = 0; // calculated path length
+                        LowLvNode* buffer = curr;
+                        while (buffer != nullptr) {
+                            path_length++;
+                            buffer = buffer->parent;
+                        }
+                        if (path_length > this->path_constraint_->maximum_length_of_paths_[agent]) {
+//                    std::cout << " path length " << path_length << " over max length " << initial_constraints.maximum_length_of_paths_[agent] << std::endl;
+                            continue;
+                        }
+                    }
+                }
+
 //                if(this->sub_graph_.agent_.id_ == 4) {
 //                    std::cout << " SpaceTimeAstar pop " << *(this->sub_graph_.all_nodes_[curr->node_id])
 //                          << ", id = " << curr->node_id << ", t = " << curr->timestep << ", h = " << curr->h_val;
@@ -218,24 +238,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //                    if(this->sub_graph_.agent_.id_ == 9 && next_node_id == this->target_node_id_) {
 //                        std::cout << " reach target flag 1 " << std::endl;
 //                    }
-                    // yz: used in independence detection, set upbound of path length,
-                    // maximum_length_of_paths_ is empty in other place,
-                    if(this->path_constraint_ != nullptr) {
-                        if (!this->path_constraint_->maximum_length_of_paths_.empty()) {
-                            int agent = this->sub_graph_.agent_->id_; // using global id
-                            assert(agent + 1 <= this->path_constraint_->maximum_length_of_paths_.size()); // store all path length
-                            int path_length = 0; // calculated path length
-                            LowLvNode* buffer = curr;
-                            while (buffer != nullptr) {
-                                path_length++;
-                                buffer = buffer->parent;
-                            }
-                            if (path_length > this->path_constraint_->maximum_length_of_paths_[agent]) {
-//                    std::cout << " path length " << path_length << " over max length " << initial_constraints.maximum_length_of_paths_[agent] << std::endl;
-                                continue;
-                            }
-                        }
-                    }
                     // yz: check whether satisfied all constraint, including vertex constraint and edge constraint
                     if (this->constraint_table_.constrained(next_node_id, next_timestep) ||
                             this->constraint_table_.constrained(curr->node_id, next_node_id, next_timestep))
