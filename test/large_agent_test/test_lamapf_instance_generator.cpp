@@ -594,30 +594,31 @@ int main() {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
             map_configs = {
-//                           {MAPFTestConfig_Paris_1_256,     1, 60, 20, 20},
+                           {MAPFTestConfig_Paris_1_256,     1, 80, 20, 20},
 
-//                           {MAPFTestConfig_empty_48_48,     1, 40, 10, 10},
-//                           {MAPFTestConfig_Berlin_1_256,    1, 10, 5, 5},
-//                           {MAPFTestConfig_maze_128_128_10, 1, 10, 5, 5},
-//                           {MAPFTestConfig_den520d,         1, 10, 5, 5},
-//                           {MAPFTestConfig_ost003d,         1, 10, 5, 5},
+                           {MAPFTestConfig_empty_48_48,     1, 50, 10, 10},
+                           {MAPFTestConfig_Berlin_1_256,    1, 80, 10, 10},
+                           {MAPFTestConfig_maze_128_128_10, 1, 60, 10, 10},
+                           {MAPFTestConfig_den520d,         1, 100, 10, 10},
+                           {MAPFTestConfig_ost003d,         1, 100, 10, 10},
 
-                            //{MAPFTestConfig_Boston_2_256, 1, 70, 10, 10}, // ok
-                             //{MAPFTestConfig_Sydney_2_256, 1, 70, 10, 10}, // ok
-                             //{MAPFTestConfig_AR0044SR, 1, 50, 10, 5}, // ok
-                              //{MAPFTestConfig_AR0203SR, 1, 40, 10, 5}, // ok
-                             // {MAPFTestConfig_AR0072SR, 1, 30, 10, 5}, // ok
-                             // {MAPFTestConfig_Denver_2_256, 1, 80, 10, 10}, // ok
+                            {MAPFTestConfig_Boston_2_256, 1, 70, 10, 10}, // ok
+                             {MAPFTestConfig_Sydney_2_256, 1, 70, 10, 10}, // ok
+                             {MAPFTestConfig_AR0044SR, 1, 50, 5, 5}, // ok
+                              {MAPFTestConfig_AR0203SR, 1, 40, 5, 5}, // ok
+                              {MAPFTestConfig_AR0072SR, 1, 30, 5, 5}, // ok
+                              {MAPFTestConfig_Denver_2_256, 1, 80, 10, 10}, // ok
 
-                                //{MAPFTestConfig_Boston_2_256, 1, 20, 2, 2}, // ok
-                                //{MAPFTestConfig_Sydney_2_256, 1, 20, 2, 2}, // ok
-                                //{MAPFTestConfig_AR0044SR, 1, 20, 2, 2}, // ok
-                                //{MAPFTestConfig_AR0203SR, 1, 20, 2, 2}, // ok
-                            //{MAPFTestConfig_AR0072SR, 1, 20, 2, 2}, // ok
-                             {MAPFTestConfig_Denver_2_256, 1, 20, 2, 2} // ok
+                              // not in test
+//                                {MAPFTestConfig_Boston_2_256, 1, 20, 2, 2}, // ok
+//                                {MAPFTestConfig_Sydney_2_256, 1, 20, 2, 2}, // ok
+//                                {MAPFTestConfig_AR0044SR, 1, 20, 2, 2}, // ok
+//                                {MAPFTestConfig_AR0203SR, 1, 20, 2, 2}, // ok
+//                            {MAPFTestConfig_AR0072SR, 1, 20, 2, 2}, // ok
+//                             {MAPFTestConfig_Denver_2_256, 1, 20, 2, 2} // ok
 
     };
-    for(int i=0; i<200;i++)
+    for(int i=0; i<100;i++)
     {
         std::cout << "global layered" << i << std::endl;
         for(const auto& file_config : map_configs) {
