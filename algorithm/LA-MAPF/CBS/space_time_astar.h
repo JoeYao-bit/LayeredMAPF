@@ -113,12 +113,20 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //            }
 
 //            this->lower_bound_ = std::max(holding_time, this->lower_bound_); // yz: considering minimum time stamp to target
+            auto start_t = clock();
 
             int count = 0;
             while (!open_list.empty()) {
 //                if(this->sub_graph_.agent_.id_ == 9) {
-//                    std::cout << "open, focal size = " << open_list.size() << ", " << focal_list.size() << std::endl;
+//                    std::cout << count << " th step, open / focal size = " << open_list.size() << " / " << focal_list.size() << std::endl;
 //                }
+                // check time cost to now every 50000 times
+                if(count % 30000 == 0 && this->time_limit_ > 0) {
+                    auto now_t = clock();
+                    auto sum_s = (double) (clock() - start_t) / CLOCKS_PER_SEC;
+//                    std::cout << "sum_s = " << sum_s << ", this->time_limit_ = " << this->time_limit_ << std::endl;
+                    if(sum_s*1e3 > this->time_limit_) { break; }
+                }
                 //assert(count <= 1000);
                 count++;
                 updateFocalList(); // update FOCAL if min f-val increased

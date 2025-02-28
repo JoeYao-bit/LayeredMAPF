@@ -40,7 +40,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
             full_ID = fID;
             max_excircle_radius = getMaximumRadius<N>(agents);
             time_limit = runtime;
-            gettimeofday(&tv_pre, &tz);
         }
 
         ~ID() {
@@ -209,10 +208,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
 
         long long time_limit; // yz: in ms
 
-        struct timezone tz;
-        struct timeval tv_pre;
-        struct timeval tv_after; // yz: start time of planning
-
         // yz: check conflict between two groups, start from t=0
         bool CheckForConflicts(int & g1, int & g2) {
             size_t plan_length = 0;
@@ -350,9 +345,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
         int PlanForGroups(int g1, int g2, int Cost) {
             std::vector<int> agents_to_plan;
             std::vector<std::vector<int> > agents_to_avoid;
-            auto t = clock();
-            gettimeofday(&tv_after, &tz);
-            double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) + (tv_after.tv_usec - tv_pre.tv_usec)/1e6;
+            auto current_t = clock();
+            double time_cost = (current_t - this->start_time_)/CLOCKS_PER_SEC;
+
             auto remain_s = time_limit/1e3 - time_cost;
             std::cout << "remain_s = " << remain_s << std::endl;
             if(remain_s < 0 ) { return -100; }
@@ -405,7 +400,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
 
             LargeAgentStaticConstraintTablePtr<N>
                     new_constraint_table_ptr_ = std::make_shared<LargeAgentStaticConstraintTable<N> > (
-                    max_excircle_radius, dim, this->isoc_, this->agents_, cluster_agents, this->all_poses_);
+                    max_excircle_radius, this->dim_, this->isoc_, this->agents_, cluster_agents, this->all_poses_);
 
             // insert previous agents' target as static constraint
             new_constraint_table_ptr_->updateEarliestArriveTimeForAgents(cluster_agents, target_node_ids);

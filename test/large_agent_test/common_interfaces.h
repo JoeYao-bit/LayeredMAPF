@@ -25,6 +25,7 @@
 
 #include "../../algorithm/LA-MAPF/laryered_large_agent_mapf.h"
 #include "../../freeNav-base/dependencies/memory_analysis.h"
+#include "../../algorithm/LA-MAPF/IndependenceDetection/independence_detection.h"
 
 using namespace freeNav;
 using namespace freeNav::LayeredMAPF;
@@ -65,7 +66,7 @@ bool draw_visit_grid_table = false;
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
 
-auto map_test_config = MAPFTestConfig_empty_48_48;
+auto map_test_config = MAPFTestConfig_Paris_1_256;
 // MAPFTestConfig_Paris_1_256 //  pass
 // MAPFTestConfig_Berlin_1_256; // pass
 // MAPFTestConfig_maze_32_32_4; // pass
@@ -950,7 +951,10 @@ std::vector<std::string> LayeredLAMAPFCompare(const InstanceOrients<N>& instance
     std::cout << "instance has " << agents.size() << " agents, layered " << func_identifer << " find solution ? " << !layered_paths.empty()
               << " in " << total_time_cost << "s " << std::endl;
 
-    // agents size / time cost / success / SOC / makespan / decom 1 time cost / decom 2 time cost / decom 3 time cost
+    std::cout << "Layered: max subproblem / total = " << decomposer_ptr->getMaxSubProblemSize() << " / " << instances.size() << std::endl;
+    std::cout << "Layered: num of subproblem = " << decomposer_ptr->getNumberOfSubProblem() << std::endl;
+
+    // agents size / time cost / success / SOC / makespan / success / memory usage / init time cost / decom time cost / max subproblem / num of subproblems
     std::stringstream ss_layered;
     ss_layered << "LAYERED_"  << func_identifer << " " << agents.size() << " "
                << total_time_cost << " "
@@ -962,7 +966,10 @@ std::vector<std::string> LayeredLAMAPFCompare(const InstanceOrients<N>& instance
                   decomposer_ptr->instance_decomposition_time_cost_ +
                   decomposer_ptr->cluster_bipartition_time_cost_ +
                   decomposer_ptr->level_sorting_time_cost_ +
-                  decomposer_ptr->level_bipartition_time_cost_;
+                  decomposer_ptr->level_bipartition_time_cost_ << " "
+
+               << decomposer_ptr->getMaxSubProblemSize() << " "
+               << decomposer_ptr->getNumberOfSubProblem();
 
     memory_recorder.clear();
     sleep(1);
@@ -985,17 +992,54 @@ std::vector<std::string> LayeredLAMAPFCompare(const InstanceOrients<N>& instance
     std::cout << "instance has " << agents.size() << " agents, raw " << func_identifer << " find solution ? " << !raw_paths.empty()
               << " in " << total_time_cost << "s " << std::endl;
 
-    // agents size / time cost / success / SOC / makespan
+    // agents size / time cost / success / SOC / makespan / success / memory usage
     std::stringstream ss_raw;
     ss_raw << "RAW_" << func_identifer << " " << agents.size() << " "
            << total_time_cost << " "
            << getSOC(raw_paths) << " " << getMakeSpan(raw_paths) << " "
            << !raw_paths.empty() << " " << memory_usage;
 
+    // Independence Detection
+    std::stringstream ss_id;
+    if(func_identifer == "CBS") {
+        memory_recorder.clear();
+        sleep(1);
+        base_usage = memory_recorder.getCurrentMemoryUsage();
+        start_t = clock();
+        auto id_solver = ID::ID<N>(instances, agents,
+                                   dim, is_occupied, mapf_func, time_limit * 1e3);
+        LAMAPF_Paths id_paths;
+        if (id_solver.solve()) {
+            id_paths = id_solver.getSolution();
+        }
+        end_t = clock();
+        if (!id_paths.empty()) {
+            std::cout << "ID: max subproblem / total = " << id_solver.getMaximalSubProblem() << " / "
+                      << instances.size() << std::endl;
+            std::cout << "ID: num of subproblem = " << id_solver.getNumberOfSubProblem() << std::endl;
+            std::cout << "ID: is solution valid ? " << isSolutionValid<2>(id_paths, agents, id_solver.all_poses_)
+                      << std::endl;
+        }
+        sleep(1);
+        peak_usage = memory_recorder.getMaximalMemoryUsage();
+        memory_usage = peak_usage - base_usage;
+        total_time_cost = ((double) end_t - start_t) / CLOCKS_PER_SEC;
+
+        // agents size / time cost / success / SOC / makespan / success / memory usage / max subproblem / num of subproblems
+        ss_id << "ID_" << func_identifer << " " << agents.size() << " "
+              << total_time_cost << " "
+              << getSOC(id_paths) << " " << getMakeSpan(id_paths) << " "
+              << !layered_paths.empty() << " " << memory_usage << " "
+
+              << id_solver.getMaximalSubProblem() << " "
+              << id_solver.getNumberOfSubProblem();
+    }
     std::vector<std::string> retv;
     retv.push_back(ss_layered.str());
     retv.push_back(ss_raw.str());
-
+    if(func_identifer == "CBS") {
+        retv.push_back(ss_id.str());
+    }
     return retv;
 }
 

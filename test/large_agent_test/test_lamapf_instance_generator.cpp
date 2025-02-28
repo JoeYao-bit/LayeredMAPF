@@ -476,20 +476,20 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
         }
         writeStrsToEndOfFile(strs1, map_test_config.at("la_comp_path"));
 
-        auto strs2 = LayeredLAMAPFCompare<2>(agent_and_instances[i].second,
-                                            agent_and_instances[i].first,
-                                            LaCAM::LargeAgentLaCAM_func<2>,
-                                            std::string("LaCAM"),
-                                            time_limit,
-                                            false,
-                                            4,
-                                            true);
-
-        for (const auto &str : strs2) {
-            std::cout << str << std::endl;
-        }
-
-        writeStrsToEndOfFile(strs2, map_test_config.at("la_comp_path"));
+//        auto strs2 = LayeredLAMAPFCompare<2>(agent_and_instances[i].second,
+//                                            agent_and_instances[i].first,
+//                                            LaCAM::LargeAgentLaCAM_func<2>,
+//                                            std::string("LaCAM"),
+//                                            time_limit,
+//                                            false,
+//                                            4,
+//                                            true);
+//
+//        for (const auto &str : strs2) {
+//            std::cout << str << std::endl;
+//        }
+//
+//        writeStrsToEndOfFile(strs2, map_test_config.at("la_comp_path"));
     }
 
 }
@@ -605,7 +605,7 @@ TEST(Multi_Generate_Agent_And_Compare, test) {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
             map_configs = {
-                           {MAPFTestConfig_Paris_1_256,     1, 60, 20, 20},
+                           {MAPFTestConfig_Paris_1_256,     10, 140, 20, 20},
 //                           {MAPFTestConfig_empty_48_48,     1, 40, 10, 10},
 //                           {MAPFTestConfig_Berlin_1_256,    1, 10, 5, 5},
 //                           {MAPFTestConfig_maze_128_128_10, 1, 10, 5, 5},

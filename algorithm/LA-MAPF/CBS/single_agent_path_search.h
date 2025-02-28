@@ -132,6 +132,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         int lower_bound_ = 0; // Threshold for FOCAL
         double w_ = 1.2; // suboptimal bound
 
+        double time_limit_ = -1; // ms, -1 means no limitation
+
         LAMAPF_Path solution_;
 
         ConstraintTable<N> constraint_table_; // vertex and edge constraint, hard constraint
