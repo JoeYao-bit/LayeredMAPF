@@ -344,8 +344,8 @@ void Decomposition_test() {
 
 }
 
-//TEST(Decomposition, test) {
-int main() {
+TEST(Decomposition, test) {
+//int main() {
     Decomposition_test();
 }
 
@@ -593,7 +593,7 @@ int main1() {
 
 
 //TEST(Multi_Generate_Agent_And_Compare, test) {
-int main2() {
+int main() {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
             map_configs = {
