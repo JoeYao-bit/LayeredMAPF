@@ -48,6 +48,13 @@ def loadDataFromfile(file_path, map_name):
                 if head_split[0] == 'LAYERED':
                     new_data.get_subgraph_time_cost = float(splited_line[7])
                     new_data.decomposition_time_cost = float(splited_line[8])
+                    new_data.max_subproblem_size = int(splited_line[9])
+                    new_data.num_of_subproblem = int(splited_line[10])
+                
+                if head_split[0] == 'ID' :
+                    new_data.max_subproblem_size = int(splited_line[7])
+                    new_data.num_of_subproblem =  int(splited_line[8])
+                    
                 
                 data_list.append(new_data)
             #print(new_data.method, ' ', new_data.path_count, ' ', new_data.real_path_count, ' ', new_data.time_cost)
@@ -66,6 +73,8 @@ class LineData:
     # specific time component for layered MAPF
     get_subgraph_time_cost = 0.
     decomposition_time_cost = 0.
+    max_subproblem_size = 0
+    num_of_subproblem = 0
         
 
 # all data in a txt file
@@ -98,7 +107,8 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
             #else:
                 #plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[splited_method_name[0]], markersize=14, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4)
             if len(splited_method_name) == 2:    
-                plt.errorbar(x, y, fmt=method_marker_map2[splited_method_name[0]], markersize=14, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4)
+                # label=map_key+"/"+splited_method_name[0]
+                plt.errorbar(x, y, fmt=method_marker_map2[splited_method_name[0]], markersize=14, label=splited_method_name[0], linewidth=2, elinewidth=4, capsize=4) 
 
         plt.tick_params(axis='both', labelsize=18)
         formater = ticker.ScalarFormatter(useMathText=True) 
@@ -108,6 +118,9 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
         ax.yaxis.offsetText.set_fontsize(18)
         ax.yaxis.set_major_formatter(formater) 
         
+        plt.xlabel(xlable, fontsize=12) # 横坐标标题
+        plt.legend(loc='best', fontsize = 12, ncol=1, handletextpad=.5, framealpha=0.5) # 图例位置设置
+
         y_range = plt.ylim()      
         if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage(MB)":
             ax.set_yscale('log')  
