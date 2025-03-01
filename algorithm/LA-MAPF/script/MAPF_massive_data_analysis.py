@@ -42,6 +42,9 @@ def loadDataFromfile(file_path, map_name):
                 # if new_data.agent_count >= 10 and new_data.time_cost <= 2: 
                 #     continue
                 
+                # if head_split[0] == 'ID':
+                #     continue
+
                 if head_split[0] == 'LAYERED':
                     new_data.get_subgraph_time_cost = float(splited_line[7])
                     new_data.decomposition_time_cost = float(splited_line[8])
@@ -309,6 +312,7 @@ name_of_decomposition = "DECOMPOSITION"
 method_marker_map2 = {
     "RAW":'o-',
     "LAYERED":'*-',
+    "ID":'v-',
     name_of_get_subgraph:"o-.",
     name_of_decomposition:"*-."
 }

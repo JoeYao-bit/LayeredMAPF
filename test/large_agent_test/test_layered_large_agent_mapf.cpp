@@ -32,26 +32,26 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
     LargeAgentMAPFInstanceDecompositionPtr<2> decomposer_ptr = nullptr;
     std::vector<std::vector<int> > grid_visit_count_table;
 
-    auto instances = deserializer.getTestInstance({120}, 1);
+    auto instances = deserializer.getTestInstance({40}, 1);
     LAMAPF_Paths layered_paths;
 
-//    layered_paths = layeredLargeAgentMAPF<2>(instances.front().second,
-//                                                  instances.front().first,
-//                                                  dim, is_occupied,
-//                                                  CBS::LargeAgentCBS_func<2>,
-//                                                  grid_visit_count_table,
-//                                                  20, decomposer_ptr,
-//                                                  false);
+    layered_paths = layeredLargeAgentMAPF<2>(instances.front().second,
+                                                  instances.front().first,
+                                                  dim, is_occupied,
+                                                  CBS::LargeAgentCBS_func<2>,
+                                                  grid_visit_count_table,
+                                                  20, decomposer_ptr,
+                                                  false);
 
-    auto id_solver = ID::ID<2>(instances.front().second, instances.front().first,
-              dim, is_occupied, CBS::LargeAgentCBS_func<2>);
-
-    if(id_solver.solve()) {
-        layered_paths = id_solver.getSolution();
-        std::cout << "max subproblem / total = " << id_solver.getMaximalSubProblem() << " / " << instances.front().first.size() << std::endl;
-        std::cout << "num of subproblem = " << id_solver.getNumberOfSubProblem() << std::endl;
-        std::cout << "is solution valid ? " << isSolutionValid<2>(layered_paths, instances.front().first, id_solver.all_poses_) << std::endl;
-    }
+//    auto id_solver = ID::ID<2>(instances.front().second, instances.front().first,
+//              dim, is_occupied, CBS::LargeAgentCBS_func<2>);
+//
+//    if(id_solver.solve()) {
+//        layered_paths = id_solver.getSolution();
+//        std::cout << "max subproblem / total = " << id_solver.getMaximalSubProblem() << " / " << instances.front().first.size() << std::endl;
+//        std::cout << "num of subproblem = " << id_solver.getNumberOfSubProblem() << std::endl;
+//        std::cout << "is solution valid ? " << isSolutionValid<2>(layered_paths, instances.front().first, id_solver.all_poses_) << std::endl;
+//    }
 
     auto end_t = clock();
 
@@ -75,10 +75,10 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
 
 }
 
-TEST(test, layered_large_agent_CBS) {
-
+//TEST(test, layered_large_agent_CBS) {
+int main() {
     layeredLargeAgentMAPFTest(map_test_config.at("la_ins_path"));
-
+    return 0;
 }
 
 #endif //LAYEREDMAPF_TEST_LAYERED_LARGE_AGENT_MAPF_H

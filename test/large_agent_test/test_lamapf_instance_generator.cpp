@@ -344,7 +344,8 @@ void Decomposition_test() {
 
 }
 
-TEST(Decomposition, test) {
+//TEST(Decomposition, test) {
+int main() {
     Decomposition_test();
 }
 
@@ -528,7 +529,8 @@ void generateLargeAgentInstanceForMap(const SingleMapTestConfig<2>& map_file,
 }
 
 // MAPFTestConfig_Berlin_1_256
-TEST(generateLargeAgentInstanceForMap, test) {
+//TEST(generateLargeAgentInstanceForMap, test) {
+int main3() {
     // file_path, times_of_try, required_agents, maximum_sample_count
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int> >
             map_configs = {
@@ -542,7 +544,7 @@ TEST(generateLargeAgentInstanceForMap, test) {
                             //{MAPFTestConfig_Boston_2_256, 140, 100, 1e7}, // ok
                             //{MAPFTestConfig_Sydney_2_256, 140,  100, 1e7}, // ok
                             //{MAPFTestConfig_AR0044SR, 50, 100, 5e7}, // ok
-                            //{MAPFTestConfig_AR0203SR, 50, 100, 5e7}, // ok
+                            {MAPFTestConfig_AR0203SR, 40, 100, 5e7}, // ok
                             //{MAPFTestConfig_AR0072SR, 70, 100, 5e7}, // ok
 //                            {MAPFTestConfig_Denver_2_256, 140, 100, 5e7} // ok
 
@@ -554,7 +556,7 @@ TEST(generateLargeAgentInstanceForMap, test) {
                                          std::get<2>(map_config),
                                          std::get<3>(map_config));
     }
-
+    return 0;
 }
 
 
@@ -585,12 +587,13 @@ int main1() {
                                            std::get<4>(file_config));
         }
     }
+    return 0;
 }
 
 
 
 //TEST(Multi_Generate_Agent_And_Compare, test) {
-int main() {
+int main2() {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
             map_configs = {
@@ -630,5 +633,6 @@ int main() {
                                      60);
         }
     }
+    return 0;
 }
 
