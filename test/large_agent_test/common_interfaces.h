@@ -1029,7 +1029,7 @@ std::vector<std::string> LayeredLAMAPFCompare(const InstanceOrients<N>& instance
         ss_id << "ID_" << func_identifer << " " << agents.size() << " "
               << total_time_cost << " "
               << getSOC(id_paths) << " " << getMakeSpan(id_paths) << " "
-              << !layered_paths.empty() << " " << memory_usage << " "
+              << !id_paths.empty() << " " << memory_usage << " "
 
               << id_solver.getMaximalSubProblem() << " "
               << id_solver.getNumberOfSubProblem();
