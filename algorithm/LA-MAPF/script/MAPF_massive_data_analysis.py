@@ -48,13 +48,20 @@ def loadDataFromfile(file_path, map_name):
                 if head_split[0] == 'LAYERED':
                     new_data.get_subgraph_time_cost = float(splited_line[7])
                     new_data.decomposition_time_cost = float(splited_line[8])
-                    new_data.max_subproblem_size = int(splited_line[9])
-                    new_data.num_of_subproblem = int(splited_line[10])
-                
+                    if new_data.success:
+                        new_data.max_subproblem_size = int(splited_line[9])
+                        new_data.num_of_subproblem = int(splited_line[10])
+                    else:
+                        new_data.max_subproblem_size = new_data.agent_count
+                        new_data.num_of_subproblem = 1
+                        
                 if head_split[0] == 'ID' :
-                    new_data.max_subproblem_size = int(splited_line[7])
-                    new_data.num_of_subproblem =  int(splited_line[8])
-                    
+                    if new_data.success:
+                        new_data.max_subproblem_size = int(splited_line[7])
+                        new_data.num_of_subproblem =  int(splited_line[8])
+                    else:
+                        new_data.max_subproblem_size = new_data.agent_count
+                        new_data.num_of_subproblem = 1
                 
                 data_list.append(new_data)
             #print(new_data.method, ' ', new_data.path_count, ' ', new_data.real_path_count, ' ', new_data.time_cost)
@@ -92,6 +99,11 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
             sorted_keys = sorted(all_data_map[map_key][method_key].keys())
             
             splited_method_name = method_key.split('_')
+            if ylable == "max_subproblem_size" or ylable == "num_of_subproblem":
+                if splited_method_name[1] == "LaCAM":
+                    continue
+                if splited_method_name[0] == "RAW":
+                    continue
             for agent_size_key in sorted_keys:
                 x.append(agent_size_key)
                 if len(all_data_map[map_key][method_key][agent_size_key]) > 0:
@@ -118,8 +130,8 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
         ax.yaxis.offsetText.set_fontsize(18)
         ax.yaxis.set_major_formatter(formater) 
         
-        plt.xlabel(xlable, fontsize=12) # 横坐标标题
-        plt.legend(loc='best', fontsize = 12, ncol=1, handletextpad=.5, framealpha=0.5) # 图例位置设置
+        plt.xlabel(xlable, fontsize=14) # 横坐标标题
+        plt.legend(loc='best', fontsize=12) # 图例位置设置
 
         y_range = plt.ylim()      
         if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage(MB)":
@@ -149,7 +161,6 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
     map_lists = list()
     value_lists_raw = list()
     value_lists_layered = list()
-    width = 0.4 
     for map_key, map_value in all_data_map.items():
         map_lists.append(map_key)
         for method_key, method_value in all_data_map[map_key].items():
@@ -170,14 +181,40 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
                     else:
                         value.append(0)      
             head_split = method_key.split('_')
-            if head_split[0] == 'LAYERED':  
-                plt.bar(map_format_list.index(map_key)+1+width/2, np.mean(value), width, hatch="//")    
-                value_lists_layered.extend(value)
+            # print("head_split = ", head_split)
+            if ylable == "max_subproblem_size" or ylable == "max_subproblem_size":
+                width = 0.4                   
+                if head_split[0] == 'ID':
+                    plt.bar(map_format_list.index(map_key)+1-width/2, np.mean(value), width, label="ID")    
+                    value_lists_raw.extend(value)
                 
-            if head_split[0] == 'RAW':
-                plt.bar(map_format_list.index(map_key)+1-width/2, np.mean(value), width)    
-                value_lists_raw.extend(value)
-                
+                if head_split[0] == 'LAYERED':  
+                    plt.bar(map_format_list.index(map_key)+1+width/2, np.mean(value), width, label="LAYERED", hatch="//")    
+                    value_lists_layered.extend(value)
+                    
+            elif len(head_split) == 2 and head_split[1] == "CBS":
+                width = 0.3 
+                if head_split[0] == 'RAW':  
+                    plt.bar(map_format_list.index(map_key)+1-width, np.mean(value), width, label="RAW")    
+                    value_lists_layered.extend(value)
+                    
+                if head_split[0] == 'ID':  
+                    plt.bar(map_format_list.index(map_key)+1, np.mean(value), width, label="ID", hatch="+")    
+                    value_lists_layered.extend(value)
+                    
+                if head_split[0] == 'LAYERED':
+                    plt.bar(map_format_list.index(map_key)+1+width, np.mean(value), width, label="LAYERED", hatch="//")    
+                    value_lists_raw.extend(value)
+            else: 
+                width = 0.3 
+                if head_split[0] == 'RAW':  
+                    plt.bar(map_format_list.index(map_key)+1-width/2, np.mean(value), width, label="RAW")    
+                    value_lists_layered.extend(value)
+                    
+                if head_split[0] == 'LAYERED':
+                    plt.bar(map_format_list.index(map_key)+1+width/2, np.mean(value), width, label="LAYERED", hatch="//")    
+                    value_lists_raw.extend(value)        
+                         
         plt.xticks(rotation=70)         
     
     print(title + "/" + ylable + " layered = " + str(np.mean(value_lists_layered)) + " / raw = " + str(np.mean(value_lists_raw)))
@@ -200,8 +237,10 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
     plt.title(ylable)
     if is_percentage:
         plt.ylim(0, 1)
-            
+        
+    plt.xlabel(xlable, fontsize=14) # 横坐标标题
     #plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5)
+    #plt.legend(loc='best', fontsize=12) # 图例位置设置
     plt.tight_layout()        
     save_path = '../../../test/test_data/large_agent_instance/layered_MAPF/'+title
     
@@ -278,11 +317,11 @@ def drawSummaryOfMethod(all_data_map, xlable, ylable, title, is_percentage=False
     plt.xticks([0,1,2,3,4,5,6], drawing_method_set_2)
     
     y_range = plt.ylim()      
-    if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage(MB)":
-        ax.set_yscale('log')  
-        plt.ylim(y_range[0]/10, y_range[1]*10)  
-    else:    
-        plt.ylim(0, y_range[1]*1.1)
+    # if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage(MB)":
+    #     ax.set_yscale('log')  
+    #     plt.ylim(y_range[0]/10, y_range[1]*10)  
+    # else:    
+    #     plt.ylim(0, y_range[1]*1.1)
     #plt.title(ylable)
     if is_percentage:
         plt.ylim(0, 1)
@@ -482,6 +521,9 @@ all_method_memory_usage_map = dict()
 all_method_cluster_cost_map = dict()
 all_method_level_sort_map = dict()    
 
+all_method_max_subproblem_map = dict()
+all_method_num_of_subproblem_map = dict()    
+
 drawing_method_set = [
                       "CBS", # tested ok, advance in time cost, nothing in memory usage
                       "PBS",  # tested ok, advance in time cost, advance in memory usage, full map
@@ -527,12 +569,20 @@ for single_data in all_single_data:
         if all_method_success_rate_map.get(method_name) == None:    
             all_method_success_rate_map[method_name] = dict()
                    
+        if all_method_max_subproblem_map.get(method_name) == None:    
+            all_method_max_subproblem_map[method_name] = dict()      
+            
+        if all_method_num_of_subproblem_map.get(method_name) == None:    
+            all_method_num_of_subproblem_map[method_name] = dict()               
+                   
         if all_method_time_cost_map[method_name].get(single_data.map_name) == None:
             all_method_time_cost_map[method_name][single_data.map_name] = dict()
             all_method_total_cost_map[method_name][single_data.map_name] = dict()
             all_method_makespan_map[method_name][single_data.map_name] = dict()
             all_method_memory_usage_map[method_name][single_data.map_name] = dict()
             all_method_success_rate_map[method_name][single_data.map_name] = dict()
+            all_method_max_subproblem_map[method_name][single_data.map_name] = dict()
+            all_method_num_of_subproblem_map[method_name][single_data.map_name] = dict()
 
         if all_method_time_cost_map[method_name][single_data.map_name].get(line_data.method) == None:
             all_method_time_cost_map[method_name][single_data.map_name][line_data.method] = dict()
@@ -542,6 +592,9 @@ for single_data in all_single_data:
             all_method_makespan_map[method_name][single_data.map_name][line_data.method] = dict()
             all_method_memory_usage_map[method_name][single_data.map_name][line_data.method] = dict()
             all_method_success_rate_map[method_name][single_data.map_name][line_data.method] = dict()
+            all_method_max_subproblem_map[method_name][single_data.map_name][line_data.method] = dict()
+            all_method_num_of_subproblem_map[method_name][single_data.map_name][line_data.method] = dict()
+
             
         if all_method_time_cost_map[method_name][single_data.map_name][line_data.method].get(line_data.agent_count) == None:
             all_method_time_cost_map[method_name][single_data.map_name][line_data.method][line_data.agent_count] = list()
@@ -551,6 +604,8 @@ for single_data in all_single_data:
             all_method_makespan_map[method_name][single_data.map_name][line_data.method][line_data.agent_count] = list()    
             all_method_memory_usage_map[method_name][single_data.map_name][line_data.method][line_data.agent_count] = list()    
             all_method_success_rate_map[method_name][single_data.map_name][line_data.method][line_data.agent_count] = list() 
+            all_method_max_subproblem_map[method_name][single_data.map_name][line_data.method][line_data.agent_count] = list() 
+            all_method_num_of_subproblem_map[method_name][single_data.map_name][line_data.method][line_data.agent_count] = list() 
 
             
         all_method_time_cost_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.time_cost)
@@ -559,7 +614,12 @@ for single_data in all_single_data:
         all_method_success_rate_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.success)    
         all_method_memory_usage_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.max_memory_usage)
 
-        
+        splited_method_name = line_data.method.split('_')
+
+        if (splited_method_name[0] == "ID" or splited_method_name[0] == "LAYERED") and splited_method_name[1] != "LaCAM":
+            all_method_max_subproblem_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.max_subproblem_size)
+            all_method_num_of_subproblem_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.num_of_subproblem) 
+            
         if line_data.success == 1:
             all_method_total_cost_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.total_cost)
             all_method_makespan_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.max_single_cost)
@@ -572,12 +632,18 @@ for method_key, method_value in all_method_time_cost_map.items():
     drawMethodMaps(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
     drawMethodMaps(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)        
     
+    drawMethodMaps(all_method_max_subproblem_map[method_key], "Number of agents", "max_subproblem_size", "max_subproblem_size/"+method_key)        
+    drawMethodMaps(all_method_num_of_subproblem_map[method_key], "Number of agents", "num_of_subproblem", "num_of_subproblem/"+method_key)        
+
     # draw summary of maps
-    drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(s)", "time_cost/"+method_key)    
-    drawSummaryOfMap(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
-    drawSummaryOfMap(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
-    drawSummaryOfMap(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
-    drawSummaryOfMap(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)      
+    drawSummaryOfMap(all_method_time_cost_map[method_key], "Map index", "Time cost(s)", "time_cost/"+method_key)    
+    drawSummaryOfMap(all_method_memory_usage_map[method_key], "Map index", "Memory usage(MB)", "memory_usage/"+method_key)           
+    drawSummaryOfMap(all_method_total_cost_map[method_key], "Map index", "Sum of cost", "sum_of_cost/"+method_key)           
+    drawSummaryOfMap(all_method_makespan_map[method_key], "Map index", "Makespan", "makespan/"+method_key)           
+    drawSummaryOfMap(all_method_success_rate_map[method_key], "Map index", "Success rate", "success_rate/"+method_key)      
+    
+    drawSummaryOfMap(all_method_max_subproblem_map[method_key], "Map index", "max_subproblem_size", "max_subproblem_size/"+method_key)           
+    drawSummaryOfMap(all_method_num_of_subproblem_map[method_key], "Map index", "num_of_subproblem", "num_of_subproblem/"+method_key)      
     
 #draw summary of methods
 # drawSummaryOfMethod(all_method_time_cost_map, "Number of agents", "Time cost(ms)", "time_cost")           
