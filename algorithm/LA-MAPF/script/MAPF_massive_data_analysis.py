@@ -109,7 +109,7 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
                 if len(all_data_map[map_key][method_key][agent_size_key]) > 0:
                     y.append(np.mean(all_data_map[map_key][method_key][agent_size_key]))
                 else:
-                    y.append(0)
+                    break #y.append(0)
             #if len(splited_method_name) == 1:
                 ##plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[name_of_get_subgraph], markersize=14, label=map_key+"/"+name_of_get_subgraph, linewidth=2, elinewidth=4, capsize=4)
                 # if method_key == name_of_get_subgraph:
@@ -120,7 +120,10 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
                 #plt.errorbar(x, y, fmt=map_format_map[map_key]+method_marker_map2[splited_method_name[0]], markersize=14, label=map_key+"/"+splited_method_name[0], linewidth=2, elinewidth=4, capsize=4)
             if len(splited_method_name) == 2:    
                 # label=map_key+"/"+splited_method_name[0]
-                plt.errorbar(x, y, fmt=method_marker_map2[splited_method_name[0]], markersize=14, label=splited_method_name[0], linewidth=2, elinewidth=4, capsize=4) 
+                if len(x) != 0 and len(y) != 0:
+                    while len(x) > len(y):
+                        x.pop()
+                    plt.errorbar(x, y, fmt=method_marker_map2[splited_method_name[0]], markersize=14, label=splited_method_name[0], linewidth=2, elinewidth=4, capsize=4) 
 
         plt.tick_params(axis='both', labelsize=18)
         formater = ticker.ScalarFormatter(useMathText=True) 
@@ -134,11 +137,13 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
         plt.legend(loc='best', fontsize=12) # 图例位置设置
 
         y_range = plt.ylim()      
-        if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage(MB)":
-            ax.set_yscale('log')  
-            plt.ylim(1, y_range[1]*10)  
-        else:    
-            plt.ylim(0, y_range[1])
+        # if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage(MB)":
+        #     ax.set_yscale('log')  
+        #     plt.ylim(1, y_range[1]*10)  
+        # else:    
+        #     plt.ylim(0, y_range[1])
+        plt.ylim(0, y_range[1]*1.1)
+    
         # plt.title(ylable)
         if is_percentage:
             plt.ylim(0, 1)
@@ -159,6 +164,7 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
     map_and_agent_data = dict()
     fig=plt.figure(figsize=(5,3.5)) #添加绘图框 
     map_lists = list()
+    value_lists_id = list()
     value_lists_raw = list()
     value_lists_layered = list()
     for map_key, map_value in all_data_map.items():
@@ -186,7 +192,7 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
                 width = 0.4                   
                 if head_split[0] == 'ID':
                     plt.bar(map_format_list.index(map_key)+1-width/2, np.mean(value), width, label="ID")    
-                    value_lists_raw.extend(value)
+                    value_lists_id.extend(value)
                 
                 if head_split[0] == 'LAYERED':  
                     plt.bar(map_format_list.index(map_key)+1+width/2, np.mean(value), width, label="LAYERED", hatch="//")    
@@ -196,28 +202,28 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
                 width = 0.3 
                 if head_split[0] == 'RAW':  
                     plt.bar(map_format_list.index(map_key)+1-width, np.mean(value), width, label="RAW")    
-                    value_lists_layered.extend(value)
+                    value_lists_raw.extend(value)
                     
                 if head_split[0] == 'ID':  
-                    plt.bar(map_format_list.index(map_key)+1, np.mean(value), width, label="ID", hatch="+")    
-                    value_lists_layered.extend(value)
+                    plt.bar(map_format_list.index(map_key)+1, np.mean(value), width, label="ID", hatch="-")    
+                    value_lists_id.extend(value)
                     
                 if head_split[0] == 'LAYERED':
                     plt.bar(map_format_list.index(map_key)+1+width, np.mean(value), width, label="LAYERED", hatch="//")    
-                    value_lists_raw.extend(value)
+                    value_lists_layered.extend(value)
             else: 
                 width = 0.3 
                 if head_split[0] == 'RAW':  
                     plt.bar(map_format_list.index(map_key)+1-width/2, np.mean(value), width, label="RAW")    
-                    value_lists_layered.extend(value)
+                    value_lists_raw.extend(value)
                     
                 if head_split[0] == 'LAYERED':
                     plt.bar(map_format_list.index(map_key)+1+width/2, np.mean(value), width, label="LAYERED", hatch="//")    
-                    value_lists_raw.extend(value)        
+                    value_lists_layered.extend(value)        
                          
         plt.xticks(rotation=70)         
     
-    print(title + "/" + ylable + " layered = " + str(np.mean(value_lists_layered)) + " / raw = " + str(np.mean(value_lists_raw)))
+    print(title + "/" + ylable + " / raw = " + str(np.mean(value_lists_raw)) + " layered = " + str(np.mean(value_lists_layered)) + " id = " + str(np.mean(value_lists_id)) )
     
     plt.tick_params(axis='both', labelsize=14)
     plt.xticks(np.arange(1, len(map_format_list)+1, 1))
