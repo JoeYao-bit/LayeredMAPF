@@ -672,24 +672,26 @@ for single_data in all_single_data:
 
 for method_key, method_value in all_method_time_cost_map.items(): 
     # draw at each agent size
-    # drawMethodMaps(all_method_time_cost_map[method_key], "Number of agents", "Time cost(s)", "time_cost/"+method_key)           
-    # drawMethodMaps(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
-    # drawMethodMaps(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
-    # drawMethodMaps(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
-    # drawMethodMaps(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)        
+    drawMethodMaps(all_method_time_cost_map[method_key], "Number of agents", "Time cost(s)", "time_cost/"+method_key)           
+    drawMethodMaps(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
+    drawMethodMaps(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
+    drawMethodMaps(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
+    drawMethodMaps(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)        
     
-    # drawMethodMaps(all_method_max_subproblem_map[method_key], "Number of agents", "max_subproblem_size", "max_subproblem_size/"+method_key)        
-    # drawMethodMaps(all_method_num_of_subproblem_map[method_key], "Number of agents", "num_of_subproblem", "num_of_subproblem/"+method_key)        
+    drawMethodMaps(all_method_max_subproblem_map[method_key], "Number of agents", "max_subproblem_size", "max_subproblem_size/"+method_key)        
+    drawMethodMaps(all_method_num_of_subproblem_map[method_key], "Number of agents", "num_of_subproblem", "num_of_subproblem/"+method_key)        
 
     # draw summary of maps
-    # drawSummaryOfMap(all_method_time_cost_map[method_key], "Map index", "Time cost(s)", "time_cost/"+method_key)    
-    # drawSummaryOfMap(all_method_memory_usage_map[method_key], "Map index", "Memory usage(MB)", "memory_usage/"+method_key)           
-    # drawSummaryOfMap(all_method_total_cost_map[method_key], "Map index", "Sum of cost", "sum_of_cost/"+method_key)           
-    # drawSummaryOfMap(all_method_makespan_map[method_key], "Map index", "Makespan", "makespan/"+method_key)           
-    # drawSummaryOfMap(all_method_success_rate_map[method_key], "Map index", "Success rate", "success_rate/"+method_key)      
+    drawSummaryOfMap(all_method_time_cost_map[method_key], "Map index", "Time cost(s)", "time_cost/"+method_key)    
+    drawSummaryOfMap(all_method_memory_usage_map[method_key], "Map index", "Memory usage(MB)", "memory_usage/"+method_key)           
+    drawSummaryOfMap(all_method_total_cost_map[method_key], "Map index", "Sum of cost", "sum_of_cost/"+method_key)           
+    drawSummaryOfMap(all_method_makespan_map[method_key], "Map index", "Makespan", "makespan/"+method_key)           
+    drawSummaryOfMap(all_method_success_rate_map[method_key], "Map index", "Success rate", "success_rate/"+method_key)      
     
-    # drawSummaryOfMap(all_method_max_subproblem_map[method_key], "Map index", "max_subproblem_size", "max_subproblem_size/"+method_key)           
-    # drawSummaryOfMap(all_method_num_of_subproblem_map[method_key], "Map index", "num_of_subproblem", "num_of_subproblem/"+method_key)      
+    drawSummaryOfMap(all_method_max_subproblem_map[method_key], "Map index", "max_subproblem_size", "max_subproblem_size/"+method_key)           
+    drawSummaryOfMap(all_method_num_of_subproblem_map[method_key], "Map index", "num_of_subproblem", "num_of_subproblem/"+method_key)
+    
+    # compute makespan and soc comparison when both success      
     compareOnlySuccess(all_method_makespan_map[method_key], "Makespan", "RAW", "LAYERED")
     compareOnlySuccess(all_method_total_cost_map[method_key], "Sum of cost", "RAW", "LAYERED")
     compareOnlySuccess(all_method_makespan_map[method_key], "Makespan", "ID", "LAYERED")
