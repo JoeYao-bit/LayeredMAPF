@@ -162,7 +162,7 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
 
 def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
     map_and_agent_data = dict()
-    fig=plt.figure(figsize=(5,3.5)) #添加绘图框 
+    fig, ax =plt.subplots(figsize=(5,3.5)) #添加绘图框 plt.figure(figsize=(5,3.5)
     map_lists = list()
     value_lists_id = list()
     value_lists_raw = list()
@@ -188,41 +188,67 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
                         value.append(0)      
             head_split = method_key.split('_')
             # print("head_split = ", head_split)
-            if ylable == "max_subproblem_size" or ylable == "max_subproblem_size":
+            if ylable == "max_subproblem_size" or ylable == "num_of_subproblem":
                 width = 0.4                   
                 if head_split[0] == 'ID':
-                    plt.bar(map_format_list.index(map_key)+1-width/2, np.mean(value), width, label="ID")    
-                    value_lists_id.extend(value)
+                    # plt.bar(map_format_list.index(map_key)+1-width/2, np.mean(value), width, label="ID")    
+                    value_lists_id.append(np.mean(value))
                 
                 if head_split[0] == 'LAYERED':  
-                    plt.bar(map_format_list.index(map_key)+1+width/2, np.mean(value), width, label="LAYERED", hatch="//")    
-                    value_lists_layered.extend(value)
+                    # plt.bar(map_format_list.index(map_key)+1+width/2, np.mean(value), width, label="LAYERED", hatch="//")    
+                    value_lists_layered.append(np.mean(value))
                     
             elif len(head_split) == 2 and head_split[1] == "CBS":
                 width = 0.3 
                 if head_split[0] == 'RAW':  
-                    plt.bar(map_format_list.index(map_key)+1-width, np.mean(value), width, label="RAW")    
-                    value_lists_raw.extend(value)
+                    # plt.bar(map_format_list.index(map_key)+1-width, np.mean(value), width, label="RAW")    
+                    value_lists_raw.append(np.mean(value))
                     
                 if head_split[0] == 'ID':  
-                    plt.bar(map_format_list.index(map_key)+1, np.mean(value), width, label="ID", hatch="-")    
-                    value_lists_id.extend(value)
+                    # plt.bar(map_format_list.index(map_key)+1, np.mean(value), width, label="ID", hatch="-")    
+                    value_lists_id.append(np.mean(value))
                     
                 if head_split[0] == 'LAYERED':
-                    plt.bar(map_format_list.index(map_key)+1+width, np.mean(value), width, label="LAYERED", hatch="//")    
-                    value_lists_layered.extend(value)
+                    # plt.bar(map_format_list.index(map_key)+1+width, np.mean(value), width, label="LAYERED", hatch="//")    
+                    value_lists_layered.append(np.mean(value))
             else: 
                 width = 0.3 
                 if head_split[0] == 'RAW':  
-                    plt.bar(map_format_list.index(map_key)+1-width/2, np.mean(value), width, label="RAW")    
-                    value_lists_raw.extend(value)
+                    # plt.bar(map_format_list.index(map_key)+1-width/2, np.mean(value), width, label="RAW")    
+                    value_lists_raw.append(np.mean(value))
                     
                 if head_split[0] == 'LAYERED':
-                    plt.bar(map_format_list.index(map_key)+1+width/2, np.mean(value), width, label="LAYERED", hatch="//")    
-                    value_lists_layered.extend(value)        
-                         
-        plt.xticks(rotation=70)         
-    
+                    # plt.bar(map_format_list.index(map_key)+1+width/2, np.mean(value), width, label="LAYERED", hatch="//")    
+                    value_lists_layered.append(np.mean(value))        
+        
+    if ylable == "max_subproblem_size" or ylable == "num_of_subproblem":
+        width = 0.4                   
+        x1 = np.arange(len(value_lists_id))
+        x2 = np.arange(len(value_lists_layered))
+        
+        ax.bar(x1+1-width/2, value_lists_id,      width, label="ID",      hatch="-")    
+        ax.bar(x2+1+width/2, value_lists_layered, width, label="LAYERED", hatch="//")    
+            
+    elif len(head_split) == 2 and head_split[1] == "CBS":
+        width = 0.3 
+        x1 = np.arange(len(value_lists_raw))
+        x2 = np.arange(len(value_lists_id))
+        x3 = np.arange(len(value_lists_layered))
+        
+        ax.bar(x1+1-width, value_lists_raw,     width, label="RAW")    
+        ax.bar(x1+1,       value_lists_id,      width, label="ID",      hatch="-")    
+        ax.bar(x2+1+width, value_lists_layered, width, label="LAYERED", hatch="//")  
+        
+    else: 
+        width = 0.4 
+        x1 = np.arange(len(value_lists_raw))
+        x2 = np.arange(len(value_lists_layered))
+        
+        ax.bar(x1+1-width/2, value_lists_raw,      width, label="RAW")    
+        ax.bar(x2+1+width/2, value_lists_layered, width, label="LAYERED", hatch="//")    
+                        
+    plt.xticks(rotation=70)         
+        
     print(title + "/" + ylable + " / raw = " + str(np.mean(value_lists_raw)) + " layered = " + str(np.mean(value_lists_layered)) + " id = " + str(np.mean(value_lists_id)) )
     
     plt.tick_params(axis='both', labelsize=14)
@@ -235,18 +261,18 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
     ax.yaxis.set_major_formatter(formater)      
     
     y_range = plt.ylim()      
-    if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage(MB)":
-        ax.set_yscale('log')  
-        plt.ylim(1, y_range[1]*10)  
-    else:    
-        plt.ylim(0, y_range[1])
+    # if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage(MB)":
+    #     ax.set_yscale('log')  
+    #     plt.ylim(1, y_range[1]*10)  
+    # else:    
+    #     plt.ylim(0, y_range[1])
     plt.title(ylable)
     if is_percentage:
         plt.ylim(0, 1)
         
     plt.xlabel(xlable, fontsize=14) # 横坐标标题
     #plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5)
-    #plt.legend(loc='best', fontsize=12) # 图例位置设置
+    ax.legend(loc='best', fontsize=12) # 图例位置设置
     plt.tight_layout()        
     save_path = '../../../test/test_data/large_agent_instance/layered_MAPF/'+title
     
@@ -681,7 +707,7 @@ for method_key, method_value in all_method_time_cost_map.items():
     drawMethodMaps(all_method_max_subproblem_map[method_key], "Number of agents", "max_subproblem_size", "max_subproblem_size/"+method_key)        
     drawMethodMaps(all_method_num_of_subproblem_map[method_key], "Number of agents", "num_of_subproblem", "num_of_subproblem/"+method_key)        
 
-    # draw summary of maps
+    # # draw summary of maps
     drawSummaryOfMap(all_method_time_cost_map[method_key], "Map index", "Time cost(s)", "time_cost/"+method_key)    
     drawSummaryOfMap(all_method_memory_usage_map[method_key], "Map index", "Memory usage(MB)", "memory_usage/"+method_key)           
     drawSummaryOfMap(all_method_total_cost_map[method_key], "Map index", "Sum of cost", "sum_of_cost/"+method_key)           
