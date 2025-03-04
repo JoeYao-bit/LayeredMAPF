@@ -131,7 +131,7 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
             print("Folder: " + save_path + " created")
             
         save_path = save_path + "/" + map_key
-        plt.savefig(save_path, dpi = 100, bbox_inches='tight')   
+        plt.savefig(save_path, dpi = 50, bbox_inches='tight')   
         plt.close()
         print("save path to " + save_path)
 
@@ -214,7 +214,7 @@ def drawMethodMapAgentSizes(all_data_map, xlable, ylable, title, is_percentage=F
             save_path = save_path + "/multi_map_"+str(i)
         else:
             save_path = save_path + "/multi_map_"+str(i)+'_id'
-        plt.savefig(save_path, dpi = 100, bbox_inches='tight')
+        plt.savefig(save_path, dpi = 50, bbox_inches='tight')
         # canvas.paste(plt, (0,0))
 
         # 2, then create a new image
@@ -230,7 +230,7 @@ def drawMethodMapAgentSizes(all_data_map, xlable, ylable, title, is_percentage=F
         legend_path = '../test/pic/layered_MAPF/'+title+'/'+str(i)+'_legend'
         if pre_fix != '':
             legend_path = legend_path + '_id'
-        fig_leg.savefig(legend_path+'.png',dpi = 100)#, bbox_inches='tight')
+        fig_leg.savefig(legend_path+'.png',dpi = 50)#, bbox_inches='tight')
         plt.close('all')
         print("save path to " + save_path)
         
@@ -282,7 +282,7 @@ def drawMethodMapAgentSizes(all_data_map, xlable, ylable, title, is_percentage=F
             save_path = save_path + "/multi_map_"+str(i)+'_sum'
         else:
             save_path = save_path + "/multi_map_"+str(i)+'_sum_id'        
-        plt.savefig(save_path, dpi = 100, bbox_inches='tight')
+        plt.savefig(save_path, dpi = 50, bbox_inches='tight')
 
 def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
     map_and_agent_data = dict()
@@ -370,7 +370,7 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
         save_path = save_path + "/" + 'summary'
     else:
         save_path = save_path + "/" + 'summary_id'
-    plt.savefig(save_path, dpi = 100, bbox_inches='tight')   
+    plt.savefig(save_path, dpi = 50, bbox_inches='tight')   
     plt.close()
     print("save path to " + save_path)     
     
@@ -491,7 +491,7 @@ def drawSummaryOfMethod(all_data_map, xlable, ylable, title, is_percentage=False
         save_path = save_path + "/" + 'method_summary'+'.png'
     else:
         save_path = save_path + "/" + 'method_summary'+'_id.png'
-    plt.savefig(save_path, dpi = 100, bbox_inches='tight')   
+    plt.savefig(save_path, dpi = 50, bbox_inches='tight')   
     plt.close()
     print("save path to " + save_path)  
 
@@ -529,8 +529,8 @@ def removeMethodDataFromFiles(map_format_map_index_local, method_name_local):
 
 
     
-pre_fix = 'ID/' # use for compare with independence detection
-# pre_fix = '' # use for compare with raw mapf
+#pre_fix = 'ID/' # use for compare with independence detection
+pre_fix = '' # use for compare with raw mapf
 
 data_path_dir = '../test/test_data/layered_mapf/'+pre_fix
 
@@ -815,13 +815,13 @@ for method_key, method_value in all_method_time_cost_map.items():
     drawMethodMapAgentSizes(all_method_subproblem_size_map[method_key], "Number of agents", "NumberOfSubProblem", "sub_problem_size/"+method_key)    
 
     # draw summary of maps
-    # drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)    
-    # drawSummaryOfMap(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage", "memory_usage/"+method_key)           
-    # drawSummaryOfMap(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
-    # drawSummaryOfMap(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
-    # drawSummaryOfMap(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)      
-    # drawSummaryOfMap(all_method_max_subproblem_map[method_key], "Number of agents", "MaxSubproblemSize", "max_subproblem/"+method_key)      
-    # drawSummaryOfMap(all_method_subproblem_size_map[method_key], "Number of agents", "NumberOfSubProblem", "sub_problem_size/"+method_key)    
+    drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)    
+    drawSummaryOfMap(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage", "memory_usage/"+method_key)           
+    drawSummaryOfMap(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
+    drawSummaryOfMap(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
+    drawSummaryOfMap(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)      
+    drawSummaryOfMap(all_method_max_subproblem_map[method_key], "Number of agents", "MaxSubproblemSize", "max_subproblem/"+method_key)      
+    drawSummaryOfMap(all_method_subproblem_size_map[method_key], "Number of agents", "NumberOfSubProblem", "sub_problem_size/"+method_key)    
 
 #draw summary of methods
 drawSummaryOfMethod(all_method_time_cost_map, "Number of agents", "Time cost(ms)", "time_cost")           
@@ -904,7 +904,7 @@ def display_images_in_grid(image_filess, method_name, visualize=False):
     if pre_fix != '':
         save_path = save_path + '_id'
     print('save summary to ', save_path)    
-    plt.savefig(save_path, dpi = 100, bbox_inches='tight')   
+    plt.savefig(save_path, dpi = 50, bbox_inches='tight')   
     if visualize:
         plt.show()
     
@@ -914,27 +914,27 @@ data_type_names = ['time_cost', 'success_rate', 'sum_of_cost', 'makespan', 'memo
 
 #removeMethodDataFromFiles(map_format_map_index, 'HCA')
 
-for method_name in drawing_method_set:
-    all_image_filess = []
-    for i in range(1, 5):
-        all_image_files = []
-        for type_name in data_type_names:
-            load_path = image_folder + type_name +'/'+ method_name +'/'+ 'multi_map_'+str(i)
-            if pre_fix != '':
-                load_path = load_path + '_id'
-            print('load from ', load_path)    
-            all_image_files.append(load_path+'.png')
-        if pre_fix != '':
-            load_path = image_folder + 'max_subproblem' +'/'+ method_name +'/multi_map_'+ str(i)+'_id'
-            print('load from id ', load_path)    
-            all_image_files.append(load_path+'.png')
-            load_path = image_folder + 'sub_problem_size' +'/'+ method_name +'/multi_map_'+ str(i)+'_id'
-            print('load from id ', load_path)    
-            all_image_files.append(load_path+'.png')
+# for method_name in drawing_method_set:
+#     all_image_filess = []
+#     for i in range(1, 5):
+#         all_image_files = []
+#         for type_name in data_type_names:
+#             load_path = image_folder + type_name +'/'+ method_name +'/'+ 'multi_map_'+str(i)
+#             if pre_fix != '':
+#                 load_path = load_path + '_id'
+#             print('load from ', load_path)    
+#             all_image_files.append(load_path+'.png')
+#         if pre_fix != '':
+#             load_path = image_folder + 'max_subproblem' +'/'+ method_name +'/multi_map_'+ str(i)+'_id'
+#             print('load from id ', load_path)    
+#             all_image_files.append(load_path+'.png')
+#             load_path = image_folder + 'sub_problem_size' +'/'+ method_name +'/multi_map_'+ str(i)+'_id'
+#             print('load from id ', load_path)    
+#             all_image_files.append(load_path+'.png')
 
-        all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ str(i)+'_legend.png')
-        all_image_filess.append(all_image_files)
-    display_images_in_grid(all_image_filess, method_name)
+#         all_image_files.append(image_folder + type_name +'/'+ method_name +'/'+ str(i)+'_legend.png')
+#         all_image_filess.append(all_image_files)
+#     display_images_in_grid(all_image_filess, method_name)
 
 
 
