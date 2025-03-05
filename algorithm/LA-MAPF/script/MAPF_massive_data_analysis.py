@@ -37,8 +37,11 @@ def loadDataFromfile(file_path, map_name):
                     #continue
                 if new_data.time_cost > 60:
                    new_data.time_cost = 60
-                    #new_data.success = 0
-                    
+                   new_data.success = 0
+                
+                if head_split[1] == 'CBS' and new_data.success == 0:
+                   new_data.time_cost = 60
+                  
                 # if new_data.agent_count >= 10 and new_data.time_cost <= 2: 
                 #     continue
                 
@@ -191,34 +194,27 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
             if ylable == "max_subproblem_size" or ylable == "num_of_subproblem":
                 width = 0.4                   
                 if head_split[0] == 'ID':
-                    # plt.bar(map_format_list.index(map_key)+1-width/2, np.mean(value), width, label="ID")    
                     value_lists_id.append(np.mean(value))
                 
                 if head_split[0] == 'LAYERED':  
-                    # plt.bar(map_format_list.index(map_key)+1+width/2, np.mean(value), width, label="LAYERED", hatch="//")    
                     value_lists_layered.append(np.mean(value))
                     
             elif len(head_split) == 2 and head_split[1] == "CBS":
                 width = 0.3 
                 if head_split[0] == 'RAW':  
-                    # plt.bar(map_format_list.index(map_key)+1-width, np.mean(value), width, label="RAW")    
                     value_lists_raw.append(np.mean(value))
                     
                 if head_split[0] == 'ID':  
-                    # plt.bar(map_format_list.index(map_key)+1, np.mean(value), width, label="ID", hatch="-")    
                     value_lists_id.append(np.mean(value))
                     
                 if head_split[0] == 'LAYERED':
-                    # plt.bar(map_format_list.index(map_key)+1+width, np.mean(value), width, label="LAYERED", hatch="//")    
                     value_lists_layered.append(np.mean(value))
             else: 
                 width = 0.3 
                 if head_split[0] == 'RAW':  
-                    # plt.bar(map_format_list.index(map_key)+1-width/2, np.mean(value), width, label="RAW")    
                     value_lists_raw.append(np.mean(value))
                     
                 if head_split[0] == 'LAYERED':
-                    # plt.bar(map_format_list.index(map_key)+1+width/2, np.mean(value), width, label="LAYERED", hatch="//")    
                     value_lists_layered.append(np.mean(value))        
         
     if ylable == "max_subproblem_size" or ylable == "num_of_subproblem":
@@ -236,7 +232,7 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
         x3 = np.arange(len(value_lists_layered))
         
         ax.bar(x1+1-width, value_lists_raw,     width, label="RAW",                 color = method_color_map["RAW"])   # orange 
-        ax.bar(x1+1,       value_lists_id,      width, label="ID",      hatch="-",  color = method_color_map["ID"])   # green 
+        ax.bar(x1+1,       value_lists_id,      width, label="ID",      hatch='\\\\',  color = method_color_map["ID"])   # green 
         ax.bar(x2+1+width, value_lists_layered, width, label="LAYERED", hatch="//", color = method_color_map["LAYERED"])   # blue
         
     else: 
