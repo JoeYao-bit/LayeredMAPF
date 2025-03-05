@@ -122,8 +122,8 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
                 # label=map_key+"/"+splited_method_name[0]
                 if len(x) != 0 and len(y) != 0:
                     while len(x) > len(y):
-                        x.pop()
-                    plt.errorbar(x, y, fmt=method_marker_map2[splited_method_name[0]], markersize=14, label=splited_method_name[0], linewidth=2, elinewidth=4, capsize=4) 
+                        x.pop()    
+                    plt.errorbar(x, y, fmt=method_marker_map2[splited_method_name[0]], color = method_color_map[splited_method_name[0]], markersize=14, label=splited_method_name[0], linewidth=2, elinewidth=4, capsize=4) 
 
         plt.tick_params(axis='both', labelsize=18)
         formater = ticker.ScalarFormatter(useMathText=True) 
@@ -226,8 +226,8 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
         x1 = np.arange(len(value_lists_id))
         x2 = np.arange(len(value_lists_layered))
         
-        ax.bar(x1+1-width/2, value_lists_id,      width, label="ID",      hatch="-")    
-        ax.bar(x2+1+width/2, value_lists_layered, width, label="LAYERED", hatch="//")    
+        ax.bar(x1+1-width/2, value_lists_id,      width, label="ID",      hatch="-",  color = method_color_map["ID"])    
+        ax.bar(x2+1+width/2, value_lists_layered, width, label="LAYERED", hatch="//", color = method_color_map["LAYERED"])    
             
     elif len(head_split) == 2 and head_split[1] == "CBS":
         width = 0.3 
@@ -235,17 +235,17 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
         x2 = np.arange(len(value_lists_id))
         x3 = np.arange(len(value_lists_layered))
         
-        ax.bar(x1+1-width, value_lists_raw,     width, label="RAW")    
-        ax.bar(x1+1,       value_lists_id,      width, label="ID",      hatch="-")    
-        ax.bar(x2+1+width, value_lists_layered, width, label="LAYERED", hatch="//")  
+        ax.bar(x1+1-width, value_lists_raw,     width, label="RAW",                 color = method_color_map["RAW"])   # orange 
+        ax.bar(x1+1,       value_lists_id,      width, label="ID",      hatch="-",  color = method_color_map["ID"])   # green 
+        ax.bar(x2+1+width, value_lists_layered, width, label="LAYERED", hatch="//", color = method_color_map["LAYERED"])   # blue
         
     else: 
         width = 0.4 
         x1 = np.arange(len(value_lists_raw))
         x2 = np.arange(len(value_lists_layered))
         
-        ax.bar(x1+1-width/2, value_lists_raw,      width, label="RAW")    
-        ax.bar(x2+1+width/2, value_lists_layered, width, label="LAYERED", hatch="//")    
+        ax.bar(x1+1-width/2, value_lists_raw,     width, label="RAW"                , color = method_color_map["RAW"])    
+        ax.bar(x2+1+width/2, value_lists_layered, width, label="LAYERED", hatch="//", color = method_color_map["LAYERED"])    
                         
     plt.xticks(rotation=70)         
         
@@ -440,6 +440,9 @@ method_marker_map2 = {
     name_of_get_subgraph:"o-.",
     name_of_decomposition:"*-."
 }
+
+
+
 map_format_list = [
                  # "empty-16-16",
                  # "empty-32-32",
@@ -575,6 +578,16 @@ map_size_limit = {
 
 }
 
+ORANGE_COLOR = "#FF7E0D"
+GREEN_COLOR  = "#2CA02C"
+BLUE_COLOR   = "#1F78B4"
+ 
+method_color_map = {
+    "RAW"     : ORANGE_COLOR,
+    "LAYERED" : BLUE_COLOR,
+    "ID"      : GREEN_COLOR,
+} 
+ 
 # 1, load all data
 for map_name_key, map_format_value in map_format_map.items():
     data_file_path = data_path_dir + map_name_key + '_la_comp.txt'
