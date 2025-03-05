@@ -610,7 +610,7 @@ int main() {
                               //{MAPFTestConfig_AR0044SR, 1, 20, 2, 2}, // 50, 5, 5
                               //{MAPFTestConfig_AR0203SR, 1, 20, 2, 2}, // 40, 5, 5
                               //{MAPFTestConfig_AR0072SR, 1, 20, 2, 2}, // 30, 5, 5
-                               {MAPFTestConfig_Denver_2_256, 1, 20, 2, 2}, // 80, 10, 10
+                              {MAPFTestConfig_Denver_2_256, 1, 20, 2, 2}, // 80, 10, 10
 
                               // not in test
 //                                {MAPFTestConfig_Boston_2_256, 1, 20, 2, 2}, // ok
