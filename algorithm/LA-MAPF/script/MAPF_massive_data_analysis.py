@@ -136,8 +136,8 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
         ax.yaxis.offsetText.set_fontsize(18)
         ax.yaxis.set_major_formatter(formater) 
         
-        plt.xlabel(xlable, fontsize=14) # 横坐标标题
-        plt.legend(loc='best', fontsize=12) # 图例位置设置
+        plt.xlabel(xlable, fontsize=16) # 横坐标标题
+        plt.legend(loc='best', fontsize=16) # 图例位置设置
 
         y_range = plt.ylim()      
         # if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage(MB)":
