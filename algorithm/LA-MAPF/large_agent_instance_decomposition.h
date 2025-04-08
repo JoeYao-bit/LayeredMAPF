@@ -1490,9 +1490,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
 
         // 2025-0404, test decompose both major set and remain set
+        // store all level (including temp level) in a binary tree and expand them
         void levelDecompositionBinaryTree() {
             std::vector<std::set<int> > all_clusters;
-            auto cluster_of_agents = all_clusters_;
+            auto cluster_of_agents = all_clusters_; //
             int count_top_cluster = 0;
             std::set<int> buffer_agents;
             for(int i=0; i<cluster_of_agents.size(); i++) {
