@@ -4,6 +4,7 @@
 
 #include "../test/test_data.h"
 //#include "multi-agent-path-finding/general_mapf_scene.h"
+#include "../algorithm/constraint_table_CBS/common.h"
 
 #include "../freeNav-base/dependencies/2d_grid/text_map_loader.h"
 #include "../freeNav-base/dependencies/memory_analysis.h"

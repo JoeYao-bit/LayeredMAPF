@@ -312,7 +312,7 @@ namespace freeNav::LayeredMAPF {
                     CBS_Li::MAPFPath path_eecbs;
                     for (int i = 0; i < previous_path.size(); i++) {
                         path_eecbs.push_back(
-                                PathEntry(dim[0] * previous_path[i][1] + previous_path[i][0]));
+                                CBS_Li::PathEntry(dim[0] * previous_path[i][1] + previous_path[i][0]));
                     }
                     layered_ct->insert2CT(path_eecbs);
                 }

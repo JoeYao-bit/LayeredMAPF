@@ -139,13 +139,19 @@ namespace freeNav::LayeredMAPF {
         for(int i=0; i<instance_count; i++) {
             for(const int& required_count : required_counts) {
                 std::set<int> instance; // current instance, id set of instance
-                while(1) {
-                    int current_pick = rand() % total_case_count;
-                    if(instance.find(current_pick) == instance.end()) {
-                        instance.insert(current_pick);
-                        if(instance.size() == required_count) {
-                            retv.push_back(instance);
-                            break;
+                if(required_count >= total_case_count) {
+                    for(int j=0; j<total_case_count; j++) {
+                        instance.insert(j);
+                    }
+                } else {
+                    while(1) {
+                        int current_pick = rand() % total_case_count;
+                        if(instance.find(current_pick) == instance.end()) {
+                            instance.insert(current_pick);
+                            if(instance.size() == required_count) {
+                                retv.push_back(instance);
+                                break;
+                            }
                         }
                     }
                 }
