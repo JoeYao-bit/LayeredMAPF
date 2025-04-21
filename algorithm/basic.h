@@ -143,6 +143,7 @@ namespace freeNav::LayeredMAPF {
                     for(int j=0; j<total_case_count; j++) {
                         instance.insert(j);
                     }
+                    retv.push_back(instance);
                 } else {
                     while(1) {
                         int current_pick = rand() % total_case_count;

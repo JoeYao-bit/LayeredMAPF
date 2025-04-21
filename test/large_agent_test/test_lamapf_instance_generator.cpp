@@ -623,3 +623,16 @@ TEST(Multi_Generate_Agent_And_Compare, test) {
     }
 }
 
+// test random instance generator
+TEST(test, getTestInstance) {
+    std::vector<std::set<int> > case_id_set = pickCasesFromScene<2>(10, {2,4,6,8,9, 10}, 3);
+    for(int i=0; i<case_id_set.size(); i++) {
+        std::cout << i << " th: ";
+        const auto& id_set = case_id_set[i];
+        for(const auto& id : id_set) {
+            std::cout << id << " ";
+        }
+        std::cout << std::endl;
+    }
+}
+
