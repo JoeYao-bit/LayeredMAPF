@@ -161,6 +161,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         virtual void drawOnCanvas(const Pose<int, 2>& pose,
                           Canvas& canvas, const cv::Vec3b& color, bool fill=true) const = 0;
 
+        // draw on canvas, in global pose (x,y,yaw)
+        virtual void drawOnCanvas(const Pointf<3>& pose,
+                                  Canvas& canvas, const cv::Vec3b& color, bool fill=true) const = 0;
+
+
 //        virtual std::pair<Pointis<N>, Pointis<N>> getCoverageGridWithinPose(const Pose<int, N>& pose) const = 0;
 
         float excircle_radius_, incircle_radius_;

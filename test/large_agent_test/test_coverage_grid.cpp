@@ -195,3 +195,25 @@ TEST(BlockRotateCoverageGrid, test) {
     }
 }
 
+TEST(DrawOnCanvas, test) {
+//    visualizeAgentCoverage<BlockAgent_2D >(agent, coverage_pair);
+    Canvas canvas("Coverage visualize", 100, 100, 10., 10);
+    canvas.resolution_ = 10.;
+    BlockAgent_2D  block_agent(Pointf<2>{-20, -20}, Pointf<2>{40, 20}, 0, nullptr);
+    CircleAgent<2> circle_agent(10, 0, nullptr);
+//
+//
+    while(true) {
+        canvas.resetCanvas();
+        canvas.drawEmptyGrid();
+        Pointf<3> ptf{0,0, M_PI/3};
+        //block_agent.drawOnCanvas(Pose<int, 2>(Pointi<2>{50, 50}, 0), canvas, cv::Vec3b(0,255,0));
+
+        block_agent.drawOnCanvas(ptf, canvas, cv::Vec3b::all(0));
+
+        //circle_agent.drawOnCanvas(Pose<int, 2>(Pointi<2>{50, 50}, 0), canvas, cv::Vec3b(255, 0, 0));
+        circle_agent.drawOnCanvas(ptf, canvas, cv::Vec3b::all(0), false);
+
+        char key = canvas.show(100);
+    }
+}
