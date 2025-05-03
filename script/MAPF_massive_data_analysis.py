@@ -388,6 +388,14 @@ def drawSummaryOfMethod(all_data_map, xlable, ylable, title, is_percentage=False
     formater.set_scientific(True)
     formater.set_powerlimits((0,0))
     
+    value_lists_raw_sum = list()
+    value_lists_layered_sum = list()
+    value_lists_id_sum = list()
+    
+    value_lists_raw_x = list()
+    value_lists_layered_x = list()
+    value_lists_id_x = list()
+    
     for method_top, method_value in all_data_map.items():
         value_lists_raw = list()
         value_lists_layered = list()
@@ -422,51 +430,49 @@ def drawSummaryOfMethod(all_data_map, xlable, ylable, title, is_percentage=False
         common_font_size = 12
         common_rotate_angle = 80
         if pre_fix == '':
-            if ylable == "Success rate":
-                if len(value_lists_raw) > 0:
-                    p2 = plt.bar(drawing_method_set.index(method_top)-width/2, np.mean(value_lists_raw), width)   
-                    plt.bar_label(p2, label_type='edge', fmt="%.2g", rotation=common_rotate_angle, fontsize=common_font_size)#, fmt=formater)   
-                if len(value_lists_layered) > 0:
-                    p1 = plt.bar(drawing_method_set.index(method_top)+width/2, np.mean(value_lists_layered), width, hatch="//") 
-                    plt.bar_label(p1, label_type='edge', fmt="%.2g", rotation=common_rotate_angle, fontsize=common_font_size)#, fmt=formater) 
-                        
-            else:
-                if len(value_lists_raw) > 0:
-                    p2 = plt.bar(drawing_method_set.index(method_top)-width/2, np.mean(value_lists_raw), width)   
-                    plt.bar_label(p2, label_type='edge', fmt="%.1e", rotation=common_rotate_angle, fontsize=common_font_size)#, fmt=formater)    
-                if len(value_lists_layered) > 0:
-                    p1 = plt.bar(drawing_method_set.index(method_top)+width/2, np.mean(value_lists_layered), width, hatch="//") 
-                    plt.bar_label(p1, label_type='edge', fmt="%.1e", rotation=common_rotate_angle, fontsize=common_font_size)#, fmt=formater) 
-                        
-            # break      
+            if len(value_lists_raw) > 0:
+                #p2 = plt.bar(drawing_method_set.index(method_top)-width/2, np.mean(value_lists_raw), width, label="RAW")   
+                #plt.bar_label(p2, label_type='edge', fmt="%.2g", rotation=common_rotate_angle, fontsize=common_font_size)#, fmt=formater)   
+                value_lists_raw_sum.append(np.mean(value_lists_raw))
+                value_lists_raw_x.append(drawing_method_set.index(method_top)-width/2)
+            if len(value_lists_layered) > 0:
+                #p1 = plt.bar(drawing_method_set.index(method_top)+width/2, np.mean(value_lists_layered), width, hatch="//", label="LAYERED") 
+                #plt.bar_label(p1, label_type='edge', fmt="%.2g", rotation=common_rotate_angle, fontsize=common_font_size)#, fmt=formater) 
+                value_lists_layered_sum.append(np.mean(value_lists_layered))
+                value_lists_layered_x.append(drawing_method_set.index(method_top)+width/2)
+  
         else:
-            if ylable == "Success rate":
-                if len(value_lists_raw) > 0:
-                    p2 = plt.bar(drawing_method_set.index(method_top)-width, np.mean(value_lists_raw), width)   
-                    plt.bar_label(p2, label_type='edge', fmt="%.2g", rotation=common_rotate_angle, fontsize=common_font_size)#, fmt=formater)  
-                if len(value_lists_layered) > 0:
-                    p1 = plt.bar(drawing_method_set.index(method_top), np.mean(value_lists_layered), width, hatch="//") 
-                    plt.bar_label(p1, label_type='edge', fmt="%.2g", rotation=common_rotate_angle, fontsize=common_font_size)#, fmt=formater) 
-                if len(value_lists_id) > 0:
-                    p1 = plt.bar(drawing_method_set.index(method_top)+width, np.mean(value_lists_id), width, hatch="o") 
-                    plt.bar_label(p1, label_type='edge', fmt="%.2g", rotation=common_rotate_angle, fontsize=common_font_size)#, fmt=formater)     
-                         
-            else:
-                if len(value_lists_raw) > 0:
-                    p2 = plt.bar(drawing_method_set.index(method_top)-width, np.mean(value_lists_raw), width)   
-                    plt.bar_label(p2, label_type='edge', fmt="%.1e", rotation=common_rotate_angle, fontsize=common_font_size)#, fmt=formater)    
-                if len(value_lists_layered) > 0:
-                    p1 = plt.bar(drawing_method_set.index(method_top), np.mean(value_lists_layered), width, hatch="//") 
-                    plt.bar_label(p1, label_type='edge', fmt="%.1e", rotation=common_rotate_angle, fontsize=common_font_size)#, fmt=formater) 
-                if len(value_lists_id) > 0:
-                    p1 = plt.bar(drawing_method_set.index(method_top)+width, np.mean(value_lists_id), width, hatch="o") 
-                    plt.bar_label(p1, label_type='edge', fmt="%.1e", rotation=common_rotate_angle, fontsize=common_font_size)#, fmt=formater)                         
-            # break                
+            if len(value_lists_raw) > 0:
+                #p2 = plt.bar(drawing_method_set.index(method_top)-width, np.mean(value_lists_raw), width, label="RAW")   
+                #plt.bar_label(p2, label_type='edge', fmt="%.2g", rotation=common_rotate_angle, fontsize=common_font_size)#, fmt=formater) 
+                value_lists_raw_sum.append(np.mean(value_lists_raw)) 
+                value_lists_raw_x.append(drawing_method_set.index(method_top)-width)                    
+            if len(value_lists_layered) > 0:
+                #p1 = plt.bar(drawing_method_set.index(method_top), np.mean(value_lists_layered), width, hatch="//", label="LAYERED") 
+                #plt.bar_label(p1, label_type='edge', fmt="%.2g", rotation=common_rotate_angle, fontsize=common_font_size)#, fmt=formater) 
+                value_lists_layered_sum.append(np.mean(value_lists_layered))
+                value_lists_layered_x.append(drawing_method_set.index(method_top))                    
+
+            if len(value_lists_id) > 0:
+                #p1 = plt.bar(drawing_method_set.index(method_top)+width, np.mean(value_lists_id), width, hatch="o", label="ID") 
+                #plt.bar_label(p1, label_type='edge', fmt="%.2g", rotation=common_rotate_angle, fontsize=common_font_size)#, fmt=formater)     
+                value_lists_id_sum.append(np.mean(value_lists_id))
+                value_lists_id_x.append(drawing_method_set.index(method_top)+width)                    
+
+             
+    if pre_fix == '':
+        p1 = plt.bar(value_lists_raw_x,     value_lists_raw_sum,     width, label="RAW")   
+        p2 = plt.bar(value_lists_layered_x, value_lists_layered_sum, width, label="LAYERED", hatch="//")   
+
+    else:
+        p1 = plt.bar(value_lists_raw_x,     value_lists_raw_sum,     width, label="RAW")   
+        p2 = plt.bar(value_lists_layered_x, value_lists_layered_sum, width, label="LAYERED", hatch="//")   
+        p3 = plt.bar(value_lists_id_x,      value_lists_id_sum,      width, label="ID",      hatch="o")   
+ 
     
-    plt.tick_params(axis='both', labelsize=14)
+    plt.tick_params(axis='both', labelsize=18)
 
     ax = plt.gca()
-    ax.yaxis.offsetText.set_fontsize(8)
     ax.yaxis.set_major_formatter(formater)     
     plt.xticks([0,1,2,3,4,5,6], drawing_method_set_2)
     
@@ -476,11 +482,14 @@ def drawSummaryOfMethod(all_data_map, xlable, ylable, title, is_percentage=False
         plt.ylim(y_range[0]/10, y_range[1]*10)  
     else:    
         plt.ylim(0, y_range[1]*1.1)
-    plt.title(ylable)
+    plt.title(ylable, fontsize = 18)
     if is_percentage:
         plt.ylim(0, 1)
         
-    #plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5)
+    offset_text = ax.yaxis.get_offset_text()
+    offset_text.set_fontsize(18)    
+        
+    plt.legend(loc='best', fontsize = 16)#, ncol=1, handletextpad=.5, framealpha=0.5)
     plt.tight_layout()        
     save_path = '../test/pic/layered_MAPF/'+title
     
@@ -491,7 +500,7 @@ def drawSummaryOfMethod(all_data_map, xlable, ylable, title, is_percentage=False
         save_path = save_path + "/" + 'method_summary'+'.png'
     else:
         save_path = save_path + "/" + 'method_summary'+'_id.png'
-    plt.savefig(save_path, dpi = 50, bbox_inches='tight')   
+    plt.savefig(save_path, dpi = 200, bbox_inches='tight')   
     plt.close()
     print("save path to " + save_path)  
 
@@ -806,13 +815,13 @@ for method_key, method_value in all_method_time_cost_map.items():
     # drawMethodMaps(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
     # drawMethodMaps(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)        
     
-    drawMethodMapAgentSizes(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)
-    drawMethodMapAgentSizes(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage", "memory_usage/"+method_key)           
-    drawMethodMapAgentSizes(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
-    drawMethodMapAgentSizes(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
-    drawMethodMapAgentSizes(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)    
-    drawMethodMapAgentSizes(all_method_max_subproblem_map[method_key], "Number of agents", "MaxSubproblemSize", "max_subproblem/"+method_key)    
-    drawMethodMapAgentSizes(all_method_subproblem_size_map[method_key], "Number of agents", "NumberOfSubProblem", "sub_problem_size/"+method_key)    
+    # drawMethodMapAgentSizes(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)
+    # drawMethodMapAgentSizes(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage", "memory_usage/"+method_key)           
+    # drawMethodMapAgentSizes(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
+    # drawMethodMapAgentSizes(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
+    # drawMethodMapAgentSizes(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)    
+    # drawMethodMapAgentSizes(all_method_max_subproblem_map[method_key], "Number of agents", "MaxSubproblemSize", "max_subproblem/"+method_key)    
+    # drawMethodMapAgentSizes(all_method_subproblem_size_map[method_key], "Number of agents", "NumberOfSubProblem", "sub_problem_size/"+method_key)    
 
     # draw summary of maps
     drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)    
