@@ -633,8 +633,8 @@ def removeMethodDataFromFiles(map_format_map_index_local, method_name_local):
 
 
     
-#pre_fix = 'ID/' # use for compare with independence detection
-pre_fix = '' # use for compare with raw mapf
+pre_fix = 'ID/' # use for compare with independence detection
+#pre_fix = '' # use for compare with raw mapf
 
 data_path_dir = '../test/test_data/layered_mapf/'+pre_fix
 
@@ -910,21 +910,21 @@ for method_key, method_value in all_method_time_cost_map.items():
     # drawMethodMaps(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
     # drawMethodMaps(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)        
     
-    drawMethodMapAgentSizes(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)
-    drawMethodMapAgentSizes(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage", "memory_usage/"+method_key)           
-    drawMethodMapAgentSizes(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
-    drawMethodMapAgentSizes(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
-    drawMethodMapAgentSizes(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)    
-    drawMethodMapAgentSizes(all_method_max_subproblem_map[method_key], "Number of agents", "MaxSubproblemSize", "max_subproblem/"+method_key)    
-    drawMethodMapAgentSizes(all_method_subproblem_size_map[method_key], "Number of agents", "NumberOfSubProblem", "sub_problem_size/"+method_key)    
+    # drawMethodMapAgentSizes(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)
+    # drawMethodMapAgentSizes(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage", "memory_usage/"+method_key)           
+    # drawMethodMapAgentSizes(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
+    # drawMethodMapAgentSizes(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
+    # drawMethodMapAgentSizes(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)    
+    # drawMethodMapAgentSizes(all_method_max_subproblem_map[method_key], "Number of agents", "MaxSubproblemSize", "max_subproblem/"+method_key)    
+    # drawMethodMapAgentSizes(all_method_subproblem_size_map[method_key], "Number of agents", "NumberOfSubProblem", "sub_problem_size/"+method_key)    
     
-    # drawMethodMapAgentSizesSingle(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)
-    # drawMethodMapAgentSizesSingle(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage", "memory_usage/"+method_key)           
-    # drawMethodMapAgentSizesSingle(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
-    # drawMethodMapAgentSizesSingle(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
-    # drawMethodMapAgentSizesSingle(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)    
-    # drawMethodMapAgentSizesSingle(all_method_max_subproblem_map[method_key], "Number of agents", "MaxSubproblemSize", "max_subproblem/"+method_key)    
-    # drawMethodMapAgentSizesSingle(all_method_subproblem_size_map[method_key], "Number of agents", "NumberOfSubProblem", "sub_problem_size/"+method_key)  
+    drawMethodMapAgentSizesSingle(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)
+    drawMethodMapAgentSizesSingle(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage", "memory_usage/"+method_key)           
+    drawMethodMapAgentSizesSingle(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
+    drawMethodMapAgentSizesSingle(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
+    drawMethodMapAgentSizesSingle(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)    
+    drawMethodMapAgentSizesSingle(all_method_max_subproblem_map[method_key], "Number of agents", "MaxSubproblemSize", "max_subproblem/"+method_key)    
+    drawMethodMapAgentSizesSingle(all_method_subproblem_size_map[method_key], "Number of agents", "NumberOfSubProblem", "sub_problem_size/"+method_key)  
     
     # draw summary of maps
     # drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)    
@@ -950,7 +950,7 @@ for method_key, method_value in all_method_time_cost_map.items():
 #print('haha')
 
 
-def display_images_in_grid(image_filess, method_name, visualize=False):
+def display_images_in_grid(image_filess, method_name, name_end='_summary', visualize=False):
     """
     读取指定文件夹中的多张图片，并以网格形式显示在一张图上。
     
@@ -1009,14 +1009,14 @@ def display_images_in_grid(image_filess, method_name, visualize=False):
         ax.imshow(img)
         ax.axis('off')  # 隐藏坐标轴
         #ax.set_title(f'Image {i+1}')
-        ax.set_title(method_name)
+        #ax.set_title(method_name)
     
     plt.tight_layout()
-    save_path = '../test/pic/layered_MAPF/'+method_name+'_summary'
+    save_path = '../test/pic/layered_MAPF/'+method_name+name_end
     if pre_fix != '':
         save_path = save_path + '_id'
     print('save summary to ', save_path)    
-    plt.savefig(save_path, dpi = 50, bbox_inches='tight')   
+    plt.savefig(save_path, dpi = 100, bbox_inches='tight')   
     if visualize:
         plt.show()
     
@@ -1048,6 +1048,25 @@ data_type_names = ['time_cost', 'success_rate', 'sum_of_cost', 'makespan', 'memo
 #         all_image_filess.append(all_image_files)
 #     display_images_in_grid(all_image_filess, method_name)
 
+
+
+for method_name in drawing_method_set:
+    for type_name in data_type_names:
+        all_image_filess = []
+        all_image_files = []
+        for i in range(1, 25):
+            load_path = image_folder + type_name +'/'+ method_name +'/'+ 'single_map_'+str(i)
+            if pre_fix != '':
+                load_path = load_path + '_id'
+            print('load from ', load_path)    
+            all_image_files.append(load_path+'.png')
+
+            if i%4 == 0:
+                all_image_filess.append(all_image_files)
+                all_image_files = []
+        display_images_in_grid(all_image_filess, method_name, "_"+type_name+"_single_summary")
+        #break
+    #break
 
 
 # map_format_map_index
