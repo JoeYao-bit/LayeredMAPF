@@ -1489,6 +1489,51 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         }
 
+        // 2025-0404, test decompose both major set and remain set
+        // store all level (including temp level) in a binary tree and expand them
+        void levelDecompositionBinaryTree() {
+            std::vector<std::set<int> > all_clusters;
+            auto cluster_of_agents = all_clusters_; //
+            int count_top_cluster = 0;
+            std::set<int> buffer_agents;
+            for(int i=0; i<cluster_of_agents.size(); i++) {
+                const auto& top_cluster = cluster_of_agents[i];
+                assert(top_cluster.size() >= 1);
+                if(top_cluster.size() == 1) {
+                    // add small clusters at this stage to all_clusters, no need to join further bi-partition
+                    all_clusters.push_back(top_cluster);
+                } else {
+                    count_top_cluster ++;
+                    int count = 0;
+                    buffer_agents = top_cluster;
+                    std::set<int> external_pre = {}, external_next = {};
+                    if(!all_level_pre_and_next_.empty()) {
+                        assert(all_level_pre_and_next_.size() == all_clusters_.size());
+                        external_pre.insert(all_level_pre_and_next_[i].first.begin(), all_level_pre_and_next_[i].first.end());
+                        external_next.insert(all_level_pre_and_next_[i].second.begin(), all_level_pre_and_next_[i].second.end());
+                    }
+                    // bi-partition until can not bi-partition
+                    //if(count_top_cluster == 1)
+                    {
+                        while (buffer_agents.size() > 1) {
+//                            std::cout << "start biPartition of level: " << buffer_agents << std::endl;
+                            auto agents_pair = biPartitionLevel(buffer_agents, external_pre, external_next);
+                            std::swap(buffer_agents, agents_pair.second);
+                            all_clusters.push_back(agents_pair.first);
+                            external_pre.insert(agents_pair.first.begin(), agents_pair.first.end());
+                            count++;
+                        }
+                    }
+                    if (!buffer_agents.empty()) {
+                        all_clusters.push_back(buffer_agents);
+                    }
+                }
+            }
+            // no sorting in increase size, as order of agent matters
+            all_clusters_ = all_clusters;
+
+        }
+
         // (decompose a level (old level) into two) and check whether the two level are complete
         bool isLevelIndependentCheck(const std::set<int>& level,
                                      const std::vector<bool>& cluster_sat_sat,
