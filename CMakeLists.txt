@@ -23,6 +23,10 @@ else()
     message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++14 support. Please use a different C++ compiler.")
 endif()
 
+set(OpenCV_INCLUDE_DIRS "/usr/include/opencv4")
+include_directories(${OpenCV_INCLUDE_DIRS})
+
+include_directories()
 
 #########################################################
 # FIND Pangolin

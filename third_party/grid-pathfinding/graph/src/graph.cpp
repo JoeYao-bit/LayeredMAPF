@@ -5,6 +5,7 @@
 #include <iostream>
 #include <queue>
 #include <regex>
+#include <cstring>
 
 namespace path_pathfinding {
 
