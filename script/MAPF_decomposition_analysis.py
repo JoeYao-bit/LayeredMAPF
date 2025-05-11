@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import ticker
 from scipy.interpolate import griddata
+import os
 
 #import seaborn as sns
 
@@ -126,7 +127,11 @@ def drawMethodMap(single_map_data, value_type):
     plt.xlabel('Num of agents', fontsize = 20)
     #plt.grid()
     plt.tight_layout()
-    save_path = '../test/pic/decomposition/'+value_type+'/'+map_name+"-"+value_type+'.png'
+    save_path = '../test/pic/decomposition/'+value_type
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+        print("Folder: " + save_path + " created")
+    save_path = save_path +'/'+map_name+"-"+value_type+'.png'    
     plt.savefig(save_path, dpi = 200, bbox_inches='tight')   
     plt.close()
     print("save picture to "+save_path)

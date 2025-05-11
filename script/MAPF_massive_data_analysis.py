@@ -633,8 +633,8 @@ def removeMethodDataFromFiles(map_format_map_index_local, method_name_local):
 
 
     
-pre_fix = 'ID/' # use for compare with independence detection
-#pre_fix = '' # use for compare with raw mapf
+#pre_fix = 'ID/' # use for compare with independence detection
+pre_fix = '' # use for compare with raw mapf
 
 data_path_dir = '../test/test_data/layered_mapf/'+pre_fix
 
@@ -778,6 +778,36 @@ map_format_map_index = {
 }
 
 
+map_scale_and_free_grid_size = {
+                 "empty-16-16": [16, 16, 256], # 120
+                 "room-32-32-4": [32, 32, 682], # 200
+                 "maze-32-32-2": [32, 32, 666], # 120
+                 "maze-32-32-4": [32, 32, 790], # 240
+                 "random-32-32-20": [32, 32, 819],# 240
+
+                  "empty-32-32": [32, 32, 1024], # 400
+                 "maze-128-128-2": [128, 128, 10858], # 700
+                 "den312d": [65, 85, 2445], # 800
+                 "room-64-64-8": [64, 64, 3678], # 700
+                 "warehouse-10-20-10-2-1": [161, 63, 5699], # 800
+
+                 "maze-128-128-10":[128, 128, 14818], # 1000
+                 "den520d": [256, 257, 28178], # 900
+                 "Berlin_1_256": [256, 256, 47540], # 900
+                 "Paris_1_256": [256, 256, 47240], # 1000
+                 "ht_chantry": [162, 141, 7461], # 1000
+                 "lak303d": [194, 194, 14784], # 1000
+                 
+                 "random-64-64-20": [64, 64, 3687],  # 1000
+                 "room-64-64-16": [64, 64, 3646], # 1000
+                 "warehouse-10-20-10-2-2": [170, 84, 9776], # 1000
+                 "warehouse-20-40-10-2-1": [321, 123, 22599], # 1000
+                 "warehouse-20-40-10-2-2": [340, 164, 38756], # 1000
+                 "Boston_0_256": [256, 256, 47768], # 1000
+                 "lt_gallowstemplar_n": [251, 180, 10021], # 1000
+                 "ost003d": [194, 194, 13214] # 1000
+
+}
  
 # 1, load all data
 for map_name_key, map_format_value in map_format_map_index.items():
@@ -898,7 +928,7 @@ for single_data in all_single_data:
             all_method_max_subproblem_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.max_sub_problem_size)    
             all_method_subproblem_size_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.total_number_of_subproblem)
 
-for method_key, method_value in all_method_time_cost_map.items(): 
+# for method_key, method_value in all_method_time_cost_map.items(): 
     # if method_key != method_name:
     #     continue
     
@@ -918,13 +948,13 @@ for method_key, method_value in all_method_time_cost_map.items():
     # drawMethodMapAgentSizes(all_method_max_subproblem_map[method_key], "Number of agents", "MaxSubproblemSize", "max_subproblem/"+method_key)    
     # drawMethodMapAgentSizes(all_method_subproblem_size_map[method_key], "Number of agents", "NumberOfSubProblem", "sub_problem_size/"+method_key)    
     
-    drawMethodMapAgentSizesSingle(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)
-    drawMethodMapAgentSizesSingle(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage", "memory_usage/"+method_key)           
-    drawMethodMapAgentSizesSingle(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
-    drawMethodMapAgentSizesSingle(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
-    drawMethodMapAgentSizesSingle(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)    
-    drawMethodMapAgentSizesSingle(all_method_max_subproblem_map[method_key], "Number of agents", "MaxSubproblemSize", "max_subproblem/"+method_key)    
-    drawMethodMapAgentSizesSingle(all_method_subproblem_size_map[method_key], "Number of agents", "NumberOfSubProblem", "sub_problem_size/"+method_key)  
+    # drawMethodMapAgentSizesSingle(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)
+    # drawMethodMapAgentSizesSingle(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage", "memory_usage/"+method_key)           
+    # drawMethodMapAgentSizesSingle(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
+    # drawMethodMapAgentSizesSingle(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
+    # drawMethodMapAgentSizesSingle(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)    
+    # drawMethodMapAgentSizesSingle(all_method_max_subproblem_map[method_key], "Number of agents", "MaxSubproblemSize", "max_subproblem/"+method_key)    
+    # drawMethodMapAgentSizesSingle(all_method_subproblem_size_map[method_key], "Number of agents", "NumberOfSubProblem", "sub_problem_size/"+method_key)  
     
     # draw summary of maps
     # drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)    
@@ -944,7 +974,7 @@ for method_key, method_value in all_method_time_cost_map.items():
 # drawSummaryOfMethod(all_method_max_subproblem_map, "Number of agents", "MaxSubproblemSize", "max_subproblem")      
 # drawSummaryOfMethod(all_method_subproblem_size_map, "Number of agents", "NumberOfSubProblem", "sub_problem_size")      
 
-# TODO: create a big canvas that have all figures, simplify visualization
+# create a big canvas that have all figures, simplify visualization
 # draw all figure of a method under all map (condensed into four fig, each fig have approx 6 maps)
 # five types of data, 
 #print('haha')
@@ -1016,12 +1046,73 @@ def display_images_in_grid(image_filess, method_name, name_end='_summary', visua
     if pre_fix != '':
         save_path = save_path + '_id'
     print('save summary to ', save_path)    
-    plt.savefig(save_path, dpi = 100, bbox_inches='tight')   
+    plt.savefig(save_path, dpi = 200, bbox_inches='tight')   
     if visualize:
         plt.show()
+
+
+def drawMaxSubAgent3D(all_single_data_var):
+    x = list()
+    y = list()
+    z = list()
+    for single_map_data in all_single_data_var:
+        map_name = single_map_data.map_name
+        for line_data in single_map_data.data_list:
+            splited_method_name = line_data.method.split("_")
+            if pre_fix != "":
+                if splited_method_name[0] != "ID":
+                    continue
+            else :
+                if pre_fix == "":
+                    if splited_method_name[0] != "LAYERED":
+                        continue  
+
+            num_of_agent = line_data.agent_count
+            density_of_agent = float(num_of_agent)/map_scale_and_free_grid_size[map_name][2]
+            max_sub_problem = line_data.max_sub_problem_size
+            
+            # print("num_of_agent/density_of_agent/max_sub_problem = ",num_of_agent,' ', density_of_agent, ' ', max_sub_problem)
+            
+            x.append(num_of_agent)
+            y.append(density_of_agent)
+            z.append(max_sub_problem)
+            
+    # 散点图
+    fig = plt.figure(figsize=(5, 4))
+    ax = plt.axes(projection='3d')
+    ax.set_xlabel('Number of Agents', fontsize = 13)
+    ax.set_ylabel('Agent Density', fontsize = 13)
+    ax.set_zlabel('Max Subproblem Size', fontsize = 13)
+    
+    # s：marker标记的大小
+    # c: 颜色  可为单个，可为序列
+    # depthshade: 是否为散点标记着色以呈现深度外观。对 scatter() 的每次调用都将独立执行其深度着色。
+    # marker：样式
+    scatter = ax.scatter(x,y,z,     
+        c=z,              # 颜色基于z值
+        cmap='viridis',   # 颜色映射方案
+        s=30,             # 点的大小（可选）
+        alpha=0.8,        # 透明度（可选）
+        #edgecolor='k',     # 点边缘颜色（可选）
+        marker="."   
+    )
+    # 添加颜色条
+    cbar = plt.colorbar(scatter, ax=ax, location='left', pad=0.01, shrink=0.6)
+    cbar.set_label('Max Subproblem Size', fontsize = 15)
+
+    # plt.show()
+    #plt.tight_layout()
+    if pre_fix == "":
+        save_path = '../test/pic/layered_MAPF/LAYERED_max_subproblem_summary.png'
+    else:
+        save_path = '../test/pic/layered_MAPF/ID_max_subproblem_summary.png'
+    plt.savefig(save_path, dpi = 200)#, bbox_inches='tight')   
+    plt.close()
+    print("save picture to "+save_path)        
     
 image_folder = '../test/pic/layered_MAPF/' 
-data_type_names = ['time_cost', 'success_rate', 'sum_of_cost', 'makespan', 'memory_usage']
+data_type_names = ['time_cost', 'success_rate', 'sum_of_cost', 'makespan', 'memory_usage',
+                    'max_subproblem', 'sub_problem_size']
 # method_name = 'EECBS'
 
 #removeMethodDataFromFiles(map_format_map_index, 'HCA')
@@ -1050,24 +1141,29 @@ data_type_names = ['time_cost', 'success_rate', 'sum_of_cost', 'makespan', 'memo
 
 
 
-for method_name in drawing_method_set:
-    for type_name in data_type_names:
-        all_image_filess = []
-        all_image_files = []
-        for i in range(1, 25):
-            load_path = image_folder + type_name +'/'+ method_name +'/'+ 'single_map_'+str(i)
-            if pre_fix != '':
-                load_path = load_path + '_id'
-            print('load from ', load_path)    
-            all_image_files.append(load_path+'.png')
+# for method_name in drawing_method_set:
+#     for type_name in data_type_names:
+#         all_image_filess = []
+#         all_image_files = []
+#         for i in range(1, 25):
+#             load_path = image_folder + type_name +'/'+ method_name +'/'+ 'single_map_'+str(i)
+#             if pre_fix != '':
+#                 load_path = load_path + '_id'
+#             print('load from ', load_path)    
+#             all_image_files.append(load_path+'.png')
 
-            if i%4 == 0:
-                all_image_filess.append(all_image_files)
-                all_image_files = []
-        display_images_in_grid(all_image_filess, method_name, "_"+type_name+"_single_summary")
-        #break
-    #break
+#             if i%4 == 0:
+#                 all_image_filess.append(all_image_files)
+#                 all_image_files = []
+#         display_images_in_grid(all_image_filess, method_name, "_"+type_name+"_single_summary")
+#         #break
+#     #break
 
+# all_method_max_subproblem_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.max_sub_problem_size)    
+# all_method_subproblem_size_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.total_number_of_subproblem)
+
+
+drawMaxSubAgent3D(all_single_data)
 
 # map_format_map_index
 # 1, empty-16-16: EECBS, PBS, LNS, HCA
