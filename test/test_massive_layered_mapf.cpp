@@ -339,6 +339,10 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 #define RAW_TEST_TYPE getMassiveTextMAPFFunc
 #define LAYERED_TEST_TYPE getLayeredMassiveTextMAPFFunc
 
+    auto CBS = RAW_TEST_TYPE("RAW_CBS", CBS_Li::cbs_MAPF, dim, cutoff_time_cost);
+    // all layered mapf must start with "LAYERED_"
+    auto CBS_LAYERED = LAYERED_TEST_TYPE("LAYERED_CBS", CBS_Li::cbs_MAPF, dim, cutoff_time_cost, true);
+
     auto EECBS = RAW_TEST_TYPE("RAW_EECBS", CBS_Li::eecbs_MAPF, dim, cutoff_time_cost);
     // all layered mapf must start with "LAYERED_"
     auto EECBS_LAYERED = LAYERED_TEST_TYPE("LAYERED_EECBS", CBS_Li::eecbs_MAPF, dim, cutoff_time_cost, true);
@@ -381,6 +385,8 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 
     bool all_success = SingleMapMAPFPathPlanningsTest<2>(dim, is_occupied_func, istss,
                                                          {
+                                                            CBS,
+                                                            CBS_LAYERED,
 //                                                          EECBS, // local test ok
 //                                                          EECBS_LAYERED,
 
@@ -396,8 +402,8 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 //                                                         PIBT2,
 //                                                         PIBT2_LAYERED,
 //
-                                                         HCA,
-                                                         HCA_LAYERED,
+//                                                         HCA,
+//                                                         HCA_LAYERED,
 //
 //                                                          PushAndSwap,
 //                                                          PushAndSwap_LAYERED
@@ -412,10 +418,10 @@ SingleMapMAPFTest(const SingleMapTestConfig <2> &map_test_config,
 // each method have a common range of agents
 int main(void) {
     int cut_off_time = 30;
-    int repeat_times = 10;
+    int repeat_times = 1;
     int flag = 1;
     bool all_in = true;
-    for(int i=0; i<1; i++) {
+    for(int i=0; i<100; i++) {
         // 1,
         if(flag == 1 || all_in) {
             SingleMapMAPFTest(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120},
@@ -603,9 +609,9 @@ SingleMapMAPFTestID(const SingleMapTestConfig <2> &map_test_config,
                                                                  CBS,
                                                                  CBS_LAYERED,
                                                                  CBS_ID,
-                                                                 EECBS,
-                                                                 EECBS_LAYERED,
-                                                                 EECBS_ID
+//                                                                 EECBS,
+//                                                                 EECBS_LAYERED,
+//                                                                 EECBS_ID
                                                         },
                                                          map_test_config.at("output_path_id"),
                                                          prune);

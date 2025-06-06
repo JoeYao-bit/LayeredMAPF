@@ -832,6 +832,7 @@ all_method_max_subproblem_map = dict()
 all_method_subproblem_size_map = dict()    
 
 drawing_method_set = [
+                      "CBS",  
                       "EECBS", # tested ok, advance in time cost, nothing in memory usage
                       "PBS",  # tested ok, advance in time cost, advance in memory usage, full map
                       "PushAndSwap", # some map not ok, advance in time cost, nothing in memory usage, full map
@@ -843,6 +844,7 @@ drawing_method_set = [
                      ]
 
 drawing_method_set_2 = [ 
+                      "CBS",  
                       "EECBS", # tested ok, advance in time cost, nothing in memory usage
                       "PBS",  # tested ok, advance in time cost, advance in memory usage, full map
                       "PAS", # some map not ok, advance in time cost, nothing in memory usage, full map
@@ -915,7 +917,7 @@ for single_data in all_single_data:
             all_method_subproblem_size_map[method_name][single_data.map_name][line_data.method][line_data.agent_count] = list() 
             
         all_method_time_cost_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.time_cost)
-        all_method_time_cost_map[method_name][single_data.map_name][name_of_decomposition][line_data.agent_count].append(line_data.subgraph_init_time_cost)
+        # all_method_time_cost_map[method_name][single_data.map_name][name_of_decomposition][line_data.agent_count].append(line_data.subgraph_init_time_cost)
         all_method_success_rate_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.success)    
         all_method_memory_usage_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.max_memory_usage)
 
@@ -928,7 +930,7 @@ for single_data in all_single_data:
             all_method_max_subproblem_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.max_sub_problem_size)    
             all_method_subproblem_size_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.total_number_of_subproblem)
 
-# for method_key, method_value in all_method_time_cost_map.items(): 
+for method_key, method_value in all_method_time_cost_map.items(): 
     # if method_key != method_name:
     #     continue
     
@@ -956,23 +958,23 @@ for single_data in all_single_data:
     # drawMethodMapAgentSizesSingle(all_method_max_subproblem_map[method_key], "Number of agents", "MaxSubproblemSize", "max_subproblem/"+method_key)    
     # drawMethodMapAgentSizesSingle(all_method_subproblem_size_map[method_key], "Number of agents", "NumberOfSubProblem", "sub_problem_size/"+method_key)  
     
-    # draw summary of maps
-    # drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)    
-    # drawSummaryOfMap(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage", "memory_usage/"+method_key)           
-    # drawSummaryOfMap(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
-    # drawSummaryOfMap(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
-    # drawSummaryOfMap(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)      
-    # drawSummaryOfMap(all_method_max_subproblem_map[method_key], "Number of agents", "MaxSubproblemSize", "max_subproblem/"+method_key)      
-    # drawSummaryOfMap(all_method_subproblem_size_map[method_key], "Number of agents", "NumberOfSubProblem", "sub_problem_size/"+method_key)    
+    # #draw summary of maps
+    drawSummaryOfMap(all_method_time_cost_map[method_key], "Number of agents", "Time cost(ms)", "time_cost/"+method_key)    
+    drawSummaryOfMap(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage", "memory_usage/"+method_key)           
+    drawSummaryOfMap(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
+    drawSummaryOfMap(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
+    drawSummaryOfMap(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)      
+    drawSummaryOfMap(all_method_max_subproblem_map[method_key], "Number of agents", "MaxSubproblemSize", "max_subproblem/"+method_key)      
+    drawSummaryOfMap(all_method_subproblem_size_map[method_key], "Number of agents", "NumberOfSubProblem", "sub_problem_size/"+method_key)    
 
-#draw summary of methods
-# drawSummaryOfMethod(all_method_time_cost_map, "Number of agents", "Time cost(ms)", "time_cost")           
-# drawSummaryOfMethod(all_method_memory_usage_map, "Number of agents", "Memory usage", "memory_usage")           
-# drawSummaryOfMethod(all_method_total_cost_map, "Number of agents", "Sum of cost", "sum_of_cost")           
-# drawSummaryOfMethod(all_method_makespan_map, "Number of agents", "Makespan", "makespan")           
-# drawSummaryOfMethod(all_method_success_rate_map, "Number of agents", "Success rate", "success_rate")      
-# drawSummaryOfMethod(all_method_max_subproblem_map, "Number of agents", "MaxSubproblemSize", "max_subproblem")      
-# drawSummaryOfMethod(all_method_subproblem_size_map, "Number of agents", "NumberOfSubProblem", "sub_problem_size")      
+##draw summary of methods
+#  drawSummaryOfMethod(all_method_time_cost_map, "Number of agents", "Time cost(ms)", "time_cost")           
+#  drawSummaryOfMethod(all_method_memory_usage_map, "Number of agents", "Memory usage", "memory_usage")           
+#  drawSummaryOfMethod(all_method_total_cost_map, "Number of agents", "Sum of cost", "sum_of_cost")           
+#  drawSummaryOfMethod(all_method_makespan_map, "Number of agents", "Makespan", "makespan")           
+#  drawSummaryOfMethod(all_method_success_rate_map, "Number of agents", "Success rate", "success_rate")      
+#  drawSummaryOfMethod(all_method_max_subproblem_map, "Number of agents", "MaxSubproblemSize", "max_subproblem")      
+#  drawSummaryOfMethod(all_method_subproblem_size_map, "Number of agents", "NumberOfSubProblem", "sub_problem_size")      
 
 # create a big canvas that have all figures, simplify visualization
 # draw all figure of a method under all map (condensed into four fig, each fig have approx 6 maps)
@@ -1163,7 +1165,7 @@ data_type_names = ['time_cost', 'success_rate', 'sum_of_cost', 'makespan', 'memo
 # all_method_subproblem_size_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.total_number_of_subproblem)
 
 
-drawMaxSubAgent3D(all_single_data)
+#drawMaxSubAgent3D(all_single_data)
 
 # map_format_map_index
 # 1, empty-16-16: EECBS, PBS, LNS, HCA
