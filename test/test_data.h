@@ -739,6 +739,24 @@ namespace freeNav::LayeredMAPF{
 
             };
 
+    SingleMapTestConfig<2> MAPFTestConfig_solva_failed =
+
+            {
+                    {"map_name",     "solva_failed"},
+                    {"map_path",     "../test/test_data/large_agent_instance/solva_failed.map"},
+                    {"ct_path",   "../test/test_data/solva_failed.ct"},
+                    {"output_path", "../test/test_data/layered_mapf/solva_failed.txt"},
+                    {"output_path_id", "../test/test_data/layered_mapf/ID/solva_failed.txt"},
+                    {"decomposition_output_path", "../test/test_data/decomposition/solva_failed_de.txt"},
+                    {"agent_num",    "3"},
+                    {"cut_off_time", "60"},
+                    {"max_run_time", "60"}, // in second
+                    {"la_ins_path", "../test/test_data/large_agent_instance/solva_failed_la.txt"},
+                    {"la_comp_path", "../test/test_data/large_agent_instance/solva_failed_la_comp.txt"},
+                    {"la_dec_path", "../test/test_data/large_agent_instance/solva_failed_la_dec.txt"}
+
+            };
+
     // TODO: add map from Baldurs Gate II (published September, 2000), like AR0011SR.map
 
     struct MethodConfigs {

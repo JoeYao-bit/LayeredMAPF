@@ -61,6 +61,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<std::pair<AgentPtrs<N>, InstanceOrients<N> > > getTestInstance(const std::vector<int>& required_counts,
                                                                                    int instance_count) {
             std::vector<std::set<int> > case_id_set = pickCasesFromScene<N>(agents_.size(), required_counts, instance_count);
+            std::cout << "case_id_set = " << case_id_set.front() << std::endl;
             std::vector<std::pair<std::vector<AgentPtr<N> >, InstanceOrients<N> > > retv;
             for(int i=0; i<case_id_set.size(); i++) {
                 std::pair<std::vector<AgentPtr<N> >, InstanceOrients<N> > instance;

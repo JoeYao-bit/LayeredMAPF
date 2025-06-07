@@ -180,3 +180,6 @@ target_link_libraries(test_independence_detection freeNav-base lamapf_alg)
 
 add_executable(test_hybird_mapf third_party/Hybrid_MAPF/main.cpp)
 target_link_libraries(test_hybird_mapf freeNav-base lamapf_alg)
+
+add_executable(test_solvability_safe_guard test/large_agent_test/test_solvability_safe_guard.cpp)
+target_link_libraries(test_solvability_safe_guard freeNav-base lamapf_alg)

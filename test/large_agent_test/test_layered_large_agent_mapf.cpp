@@ -2,8 +2,6 @@
 // Created by yaozhuo on 2024/8/15.
 //
 
-#ifndef LAYEREDMAPF_TEST_LAYERED_LARGE_AGENT_MAPF_H
-#define LAYEREDMAPF_TEST_LAYERED_LARGE_AGENT_MAPF_H
 
 #include <gtest/gtest.h>
 #include "common_interfaces.h"
@@ -86,4 +84,3 @@ TEST(test, layered_large_agent_CBS) {
 
 }
 
-#endif //LAYEREDMAPF_TEST_LAYERED_LARGE_AGENT_MAPF_H

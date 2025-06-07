@@ -66,7 +66,7 @@ bool draw_visit_grid_table = false;
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
 
-auto map_test_config = MAPFTestConfig_AR0203SR;
+auto map_test_config = MAPFTestConfig_solva_failed;
 // MAPFTestConfig_Paris_1_256 //  pass
 // MAPFTestConfig_Berlin_1_256; // pass
 // MAPFTestConfig_maze_32_32_4; // pass
@@ -100,7 +100,7 @@ auto dim = loader.getDimensionInfo();
 
 template<Dimension N, class Method>
 void startLargeAgentMAPFTest(const std::vector<AgentPtr<N> >& agents, const InstanceOrients<2>& instances) {
-    zoom_ratio = std::min(2560/dim[0], 1400/dim[1]);
+    zoom_ratio = std::min(1920/dim[0], 1080/dim[1]);
 
     Canvas canvas("Large Agent MAPF Test", dim[0], dim[1], .1, zoom_ratio);
     auto mouse_call_back = [](int event, int x, int y, int flags, void *) {
