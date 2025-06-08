@@ -37,11 +37,8 @@ def loadDataFromfile(file_path, map_name):
                     #continue
                 if new_data.time_cost > 60:
                    new_data.time_cost = 60
-                   new_data.success = 0
-                
-                if head_split[1] == 'CBS' and new_data.success == 0:
-                   new_data.time_cost = 60
-                  
+                    #new_data.success = 0
+                    
                 # if new_data.agent_count >= 10 and new_data.time_cost <= 2: 
                 #     continue
                 
@@ -125,8 +122,8 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
                 # label=map_key+"/"+splited_method_name[0]
                 if len(x) != 0 and len(y) != 0:
                     while len(x) > len(y):
-                        x.pop()    
-                    plt.errorbar(x, y, fmt=method_marker_map2[splited_method_name[0]], color = method_color_map[splited_method_name[0]], markersize=14, label=splited_method_name[0], linewidth=2, elinewidth=4, capsize=4) 
+                        x.pop()
+                    plt.errorbar(x, y, fmt=method_marker_map2[splited_method_name[0]], markersize=14, label=splited_method_name[0], linewidth=2, elinewidth=4, capsize=4) 
 
         plt.tick_params(axis='both', labelsize=18)
         formater = ticker.ScalarFormatter(useMathText=True) 
@@ -136,8 +133,8 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
         ax.yaxis.offsetText.set_fontsize(18)
         ax.yaxis.set_major_formatter(formater) 
         
-        plt.xlabel(xlable, fontsize=16) # 横坐标标题
-        plt.legend(loc='best', fontsize=16) # 图例位置设置
+        plt.xlabel(xlable, fontsize=14) # 横坐标标题
+        plt.legend(loc='best', fontsize=12) # 图例位置设置
 
         y_range = plt.ylim()      
         # if ylable == "Sum of cost" or ylable == "Makespan" or ylable == "Memory usage(MB)":
@@ -194,27 +191,34 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
             if ylable == "max_subproblem_size" or ylable == "num_of_subproblem":
                 width = 0.4                   
                 if head_split[0] == 'ID':
+                    # plt.bar(map_format_list.index(map_key)+1-width/2, np.mean(value), width, label="ID")    
                     value_lists_id.append(np.mean(value))
                 
                 if head_split[0] == 'LAYERED':  
+                    # plt.bar(map_format_list.index(map_key)+1+width/2, np.mean(value), width, label="LAYERED", hatch="//")    
                     value_lists_layered.append(np.mean(value))
                     
             elif len(head_split) == 2 and head_split[1] == "CBS":
                 width = 0.3 
                 if head_split[0] == 'RAW':  
+                    # plt.bar(map_format_list.index(map_key)+1-width, np.mean(value), width, label="RAW")    
                     value_lists_raw.append(np.mean(value))
                     
                 if head_split[0] == 'ID':  
+                    # plt.bar(map_format_list.index(map_key)+1, np.mean(value), width, label="ID", hatch="-")    
                     value_lists_id.append(np.mean(value))
                     
                 if head_split[0] == 'LAYERED':
+                    # plt.bar(map_format_list.index(map_key)+1+width, np.mean(value), width, label="LAYERED", hatch="//")    
                     value_lists_layered.append(np.mean(value))
             else: 
                 width = 0.3 
                 if head_split[0] == 'RAW':  
+                    # plt.bar(map_format_list.index(map_key)+1-width/2, np.mean(value), width, label="RAW")    
                     value_lists_raw.append(np.mean(value))
                     
                 if head_split[0] == 'LAYERED':
+                    # plt.bar(map_format_list.index(map_key)+1+width/2, np.mean(value), width, label="LAYERED", hatch="//")    
                     value_lists_layered.append(np.mean(value))        
         
     if ylable == "max_subproblem_size" or ylable == "num_of_subproblem":
@@ -222,8 +226,8 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
         x1 = np.arange(len(value_lists_id))
         x2 = np.arange(len(value_lists_layered))
         
-        ax.bar(x1+1-width/2, value_lists_id,      width, label="ID",      hatch="-",  color = method_color_map["ID"])    
-        ax.bar(x2+1+width/2, value_lists_layered, width, label="LAYERED", hatch="//", color = method_color_map["LAYERED"])    
+        ax.bar(x1+1-width/2, value_lists_id,      width, label="ID",      hatch="-")    
+        ax.bar(x2+1+width/2, value_lists_layered, width, label="LAYERED", hatch="//")    
             
     elif len(head_split) == 2 and head_split[1] == "CBS":
         width = 0.3 
@@ -231,17 +235,17 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
         x2 = np.arange(len(value_lists_id))
         x3 = np.arange(len(value_lists_layered))
         
-        ax.bar(x1+1-width, value_lists_raw,     width, label="RAW",                 color = method_color_map["RAW"])   # orange 
-        ax.bar(x1+1,       value_lists_id,      width, label="ID",      hatch='\\\\',  color = method_color_map["ID"])   # green 
-        ax.bar(x2+1+width, value_lists_layered, width, label="LAYERED", hatch="//", color = method_color_map["LAYERED"])   # blue
+        ax.bar(x1+1-width, value_lists_raw,     width, label="RAW")    
+        ax.bar(x1+1,       value_lists_id,      width, label="ID",      hatch="-")    
+        ax.bar(x2+1+width, value_lists_layered, width, label="LAYERED", hatch="//")  
         
     else: 
         width = 0.4 
         x1 = np.arange(len(value_lists_raw))
         x2 = np.arange(len(value_lists_layered))
         
-        ax.bar(x1+1-width/2, value_lists_raw,     width, label="RAW"                , color = method_color_map["RAW"])    
-        ax.bar(x2+1+width/2, value_lists_layered, width, label="LAYERED", hatch="//", color = method_color_map["LAYERED"])    
+        ax.bar(x1+1-width/2, value_lists_raw,      width, label="RAW")    
+        ax.bar(x2+1+width/2, value_lists_layered, width, label="LAYERED", hatch="//")    
                         
     plt.xticks(rotation=70)         
         
@@ -436,9 +440,6 @@ method_marker_map2 = {
     name_of_get_subgraph:"o-.",
     name_of_decomposition:"*-."
 }
-
-
-
 map_format_list = [
                  # "empty-16-16",
                  # "empty-32-32",
@@ -574,16 +575,6 @@ map_size_limit = {
 
 }
 
-ORANGE_COLOR = "#FF7E0D"
-GREEN_COLOR  = "#2CA02C"
-BLUE_COLOR   = "#1F78B4"
- 
-method_color_map = {
-    "RAW"     : ORANGE_COLOR,
-    "LAYERED" : BLUE_COLOR,
-    "ID"      : GREEN_COLOR,
-} 
- 
 # 1, load all data
 for map_name_key, map_format_value in map_format_map.items():
     data_file_path = data_path_dir + map_name_key + '_la_comp.txt'

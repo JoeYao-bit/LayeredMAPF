@@ -127,7 +127,6 @@ namespace freeNav::LayeredMAPF {
 
                 for(const auto& neighbor_node_id : node_ptr->current_node_ptr_->connecting_nodes_) {
                     const auto& neighbor_node_ptr = all_hyper_nodes[neighbor_node_id];
-
                     HyperGraphNodeDataPtr<N> next_node_data_ptr = new HyperGraphNodeData<N>(neighbor_node_ptr, node_ptr);
                     all_ptr_set.push_back(next_node_data_ptr);
                     next_h = next_node_data_ptr->g_val_;
@@ -202,6 +201,7 @@ namespace freeNav::LayeredMAPF {
             int other_node_id = current_agent_id + 1;
 
             HyperGraphNodeDataPtr<N> start_node = new HyperGraphNodeData<N>(start_node_ptr, nullptr);
+//            std::cout << "start_node cur and pre " << start_node << " / " << start_node->pa_ << std::endl;
             start_node->h_val_ = heuristic_table[hyper_node_id];
             start_node->open_handle_ = open_list_.push(start_node);
             start_node->in_openlist_ = true;
@@ -236,10 +236,8 @@ namespace freeNav::LayeredMAPF {
                     if(!ignore_cost_set.empty() && neighbor_node_ptr->agent_grid_ptr_ != nullptr) {
                         ignore_cost = ignore_cost_set[neighbor_node_ptr->agent_grid_ptr_->agent_id_];
                     }
-//                    std::cout << "start_node 1 cur and pre " << start_node << " / " << start_node->pa_ << std::endl;
                     auto next_node = new HyperGraphNodeData<N>(neighbor_node_ptr, curr_node, ignore_cost);
                     next_node->h_val_ = heuristic_table[neighbor_node_id];
-
                     bool is_new_node = true;
                     // try to retrieve it from the hash table
                     auto it = allNodes_table_.find(next_node);
@@ -259,7 +257,6 @@ namespace freeNav::LayeredMAPF {
                     {
                         if (!existing_next->in_openlist_) // if it is in the closed list (reopen)
                         {
-
                             existing_next->copy(*next_node);
                             pushNode(existing_next);
                         } else {

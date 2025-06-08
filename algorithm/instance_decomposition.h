@@ -299,7 +299,6 @@ namespace freeNav::LayeredMAPF {
                 auto passing_agents = searchAgent(agent_id, {}, buffer_sat); // pass test
                 all_agents_path.insert({agent_id, passing_agents});
             }
-
             // determine agent's unavoidable agent
             std::map<int, std::set<int> > all_unavoidable_agent = searchUnAvoidAgentForEachAgent(all_agents_path, agents);
 
@@ -476,6 +475,7 @@ namespace freeNav::LayeredMAPF {
             for(const int& agent_id : cluster) {
                 auto passing_sats = searchAgent(agent_id, {}, cluster_sat, true); // pass test
                 assert(!passing_sats.empty());
+                //std::cout << agent_id << " agent passing_sats " << passing_sats << std::endl;
                 sat_path_length_and_agent.push_back({agent_id, passing_sats.size()});
             }
 
@@ -491,7 +491,6 @@ namespace freeNav::LayeredMAPF {
 #else
             for(const auto& agent_id : cluster) {
 #endif
-
                 auto passing_sats = searchAgent(agent_id, {}, cluster_sat, true); // pass test
                 assert(!passing_sats.empty());
 
@@ -602,7 +601,6 @@ namespace freeNav::LayeredMAPF {
             return {ahead_sequence, later_sequence};
         }
 
-
         std::vector<std::set<int> > getSortedLevelFromStrongComponent(const std::vector<std::set<int> >& all_strong_components,
                                                                       const std::map<int, std::set<int> >& ahead_sequence,
                                                                       const std::map<int, std::set<int> >& later_sequence) const {
@@ -684,6 +682,7 @@ namespace freeNav::LayeredMAPF {
                 }
             }
             assert(all_strong_components.size() == sorted_levels.size());
+
             return sorted_levels; // sorted levels
         }
 
@@ -715,6 +714,7 @@ namespace freeNav::LayeredMAPF {
                     }
                 }
             }
+            //std::cout << " count_of_node : " << count_of_node << std::endl;
             std::vector<int> comp(num_vertices(g));
 
             int num = boost::strong_components(g, comp.data());
@@ -726,6 +726,7 @@ namespace freeNav::LayeredMAPF {
 
             std::map<int, int> agent_and_sub_graph; // agent and it's sub-graph id
             for (size_t i = 0; i < num_vertices(g); ++i) {
+                //cout << "add vertex " << i << " to sub graph " << comp[i] << endl;
                 add_vertex(i, *comps[comp[i]]);
                 agent_and_sub_graph.insert({id_to_node_table[i], comp[i]});
             }

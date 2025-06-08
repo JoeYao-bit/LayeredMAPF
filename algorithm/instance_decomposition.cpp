@@ -17,5 +17,4 @@ namespace freeNav::LayeredMAPF {
         }
         return ss.str();
     }
-
 }

@@ -340,7 +340,6 @@ namespace freeNav::LayeredMAPF {
                 }
                 return {};
             }
-
             auto new_isoc = [&](const Pointi<2> & pt) -> bool {
                 if(pt[0] < 0 || pt[0] >= dim[0] || pt[1] < 0 || pt[1] >= dim[1]) { return true; }
                 return isoc(pt) || avoid_locs[pt[1]][pt[0]];
@@ -396,7 +395,6 @@ namespace freeNav::LayeredMAPF {
                     }
                 }
             }
-
             retv.insert(retv.end(), next_paths.begin(), next_paths.end());
             pathss.push_back(next_paths);
 

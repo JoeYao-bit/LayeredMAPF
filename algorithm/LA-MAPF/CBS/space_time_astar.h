@@ -132,8 +132,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 updateFocalList(); // update FOCAL if min f-val increased
                 new_nodes_in_open.clear();
                 auto *curr = popNode();
-
-                 // yz: used in independence detection, set upbound of path length,
+                // yz: used in independence detection, set upbound of path length,
                 // maximum_length_of_paths_ is empty in other place,
                 if(this->path_constraint_ != nullptr) {
                     if (!this->path_constraint_->maximum_length_of_paths_.empty()) {
@@ -151,7 +150,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                         }
                     }
                 }
-
 //                if(this->sub_graph_.agent_.id_ == 4) {
 //                    std::cout << " SpaceTimeAstar pop " << *(this->sub_graph_.all_nodes_[curr->node_id])
 //                          << ", id = " << curr->node_id << ", t = " << curr->timestep << ", h = " << curr->h_val;
