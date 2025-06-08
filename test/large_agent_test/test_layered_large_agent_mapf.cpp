@@ -11,7 +11,8 @@
 
 //#include "../../algorithm/LA-MAPF/LaCAM/large_agent_lacam.h"
 #include "../../algorithm/LA-MAPF/IndependenceDetection/independence_detection.h"
-
+#include "../../algorithm/LA-MAPF/LaCAM/layered_large_agent_LaCAM.h"
+#include "../../algorithm/LA-MAPF/CBS/layered_large_agent_CBS.h"
 
 using namespace freeNav::LayeredMAPF::LA_MAPF;
 
@@ -36,7 +37,8 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
     layered_paths = layeredLargeAgentMAPF<2>(instances.front().second,
                                                   instances.front().first,
                                                   dim, is_occupied,
-                                                  CBS::LargeAgentCBS_func<2>,
+//                                                  CBS::LargeAgentCBS_func<2>,
+                                                  LaCAM::LargeAgentLaCAM_func<2>,
                                                   grid_visit_count_table,
                                                   20, decomposer_ptr,
                                                   false);

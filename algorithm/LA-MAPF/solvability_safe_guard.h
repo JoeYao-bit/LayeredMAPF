@@ -71,9 +71,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                   const LA_MAPF_FUNC<N>& mapf_func,
                                                   const IS_OCCUPIED_FUNC<N>& ex_isoc,
                                                   double time_limit = 30) {
-            struct timezone tz;
-            struct timeval tv_pre, tv_after;
-            gettimeofday(&tv_pre, &tz);
+            auto start_t = clock();
             // the loop will end when run out of time, or merge all subproblem and get the raw problem
             std::vector<std::set<int> > local_levels = levels;
             int local_failed_subproblem_id = failed_subproblem_id;
@@ -110,8 +108,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     local_agents_heuristic_tables_ignore_rotate.push_back(
                             this->agents_heuristic_tables_ignore_rotate_[failed_agent_id]);
                 }
-                gettimeofday(&tv_after, &tz);
-                double time_cost_yet = (tv_after.tv_sec - tv_pre.tv_sec) + (tv_after.tv_usec - tv_pre.tv_usec) / 1e6;
+                auto now_t = clock();
+                double time_cost_yet = ((double)now_t - start_t)/CLOCKS_PER_SEC;
                 double remaining_time = time_limit - time_cost_yet;
                 if(remaining_time < 0) { return false; }
                 // 2, solve it with ignoring other agent
@@ -169,6 +167,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         new_levels.back().insert(local_levels[i].begin(), local_levels[i].end());
                     }
                 }
+                start_of_merge_ = start_of_merge;
+                end_of_merge_ = end_of_merge;
                 //std::cout << "after merge" << std::endl;
                 // the merged subproblem's index is start_of_merge
                 // there should be local_levels.size - (end_of_merge - start_of_merge) in the new levels
@@ -186,7 +186,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 AgentPtrs<N> local_agents_with_global_id;
                 std::vector<size_t> target_node_ids;
                 count_of_ag = 0;
-                for(const auto& failed_agent_id : levels[local_failed_subproblem_id]) {
+                for(const auto& failed_agent_id : local_levels[local_failed_subproblem_id]) {
 
                     target_node_ids.push_back(this->instance_node_ids_[failed_agent_id].second);
 
@@ -203,9 +203,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     local_agents_heuristic_tables_ignore_rotate.push_back(
                             this->agents_heuristic_tables_ignore_rotate_[failed_agent_id]);
                 }
-                gettimeofday(&tv_after, &tz);
-                time_cost_yet = (tv_after.tv_sec - tv_pre.tv_sec) + (tv_after.tv_usec - tv_pre.tv_usec) / 1e6;
+                now_t = clock();
+                time_cost_yet = ((double)now_t - start_t)/CLOCKS_PER_SEC;
                 remaining_time = time_limit - time_cost_yet;
+
                 if(remaining_time < 0) { return {}; }
                 // 4, try solve it with avoid previous subproblem's target and subsequent subproblem's start
                 float max_excircle_radius = getMaximumRadius<N>(this->agents_);
@@ -265,6 +266,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<std::set<int> > new_levels_;
         int merged_subproblem_id_;
         LAMAPF_Paths new_level_paths_;
+
+        int start_of_merge_, end_of_merge_;
     };
 
 }

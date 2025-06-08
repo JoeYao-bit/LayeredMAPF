@@ -293,7 +293,7 @@ void InstanceVisualization(const std::vector<AgentPtr<2> >& agents,
                            const std::vector<InstanceOrient<2> >& instances,
                            const std::vector<LAMAPF_Path>& solution,
                            const std::vector<std::vector<int> >& grid_visit_count_table = {}) {
-    zoom_ratio = std::min(2560/dim[0], 1400/dim[1]);
+    zoom_ratio = std::min(1920/dim[0], 1080/dim[1]);
 
     // visualize instance
     Canvas canvas("LargeAgentMAPF InstanceGenerator", dim[0], dim[1], .1, zoom_ratio);
