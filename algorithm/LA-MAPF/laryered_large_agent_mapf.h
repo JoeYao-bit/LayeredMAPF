@@ -360,6 +360,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                    const IS_OCCUPIED_FUNC<N> & isoc,
                                                    const LA_MAPF_FUNC<N> & mapf_func,
                                                    std::vector<std::vector<int> >& grid_visit_count_table,
+                                                   bool& detect_loss_of_solvability,
                                                    double cutoff_time = 60,
                                                    LargeAgentMAPFInstanceDecompositionPtr<N>& decomposer_copy = nullptr,
                                                    bool use_path_constraint = false,
@@ -426,11 +427,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 // add solvability guard to merge unsolvable subproblem until it is solvable or run out of time
                 now_t = clock();
                 remaining_time = (double)cutoff_time - ((double)now_t - start_t)/CLOCKS_PER_SEC;
-                if(remaining_time < 1) {
+                if(remaining_time < 2) {
                     std::cout << " failed run out of time " << std::endl;
                     return {};
                 } else {
                     std::cout << "unsolvable subproblem detected, solvability safeguard start...  " << std::endl;
+                    detect_loss_of_solvability = true;
                 }
                 SolvabilitySafeguard<N> safeguard(instances, agents, dim, isoc,
                                                   decomposer->all_poses_,
@@ -552,15 +554,20 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             merged_paths = multiLayerCompressLargeAgent(decomposer->all_poses_, paths_merge, agents_merge);
             assert(instances.size() == merged_paths.size());
 
-//            int global_count = 0;
-//            for(int i=0; i<agents_merge.size(); i++) {
-//                for(int j=0; j<agents_merge[i].size(); j++) {
-//                    retv[agents_merge[i][j]->id_] = merged_paths[global_count];
-//                    assert(all_cluster_agents[i][j]->id_ == all_cluster_vec[i][j]);
-//                    global_count ++;
-//                }
-//            }
-//            assert(global_count == agents.size());
+            int global_count = 0;
+            for(int i=0; i<agents_merge.size(); i++) {
+                for(int j=0; j<agents_merge[i].size(); j++) {
+                    retv[agents_merge[i][j]->id_] = merged_paths[global_count];
+                    //assert(all_cluster_agents[i][j]->id_ == all_cluster_vec[i][j]);
+                    global_count ++;
+                }
+            }
+            assert(global_count == agents.size());
+            assert(agents.size() == retv.size());
+            for(int i=0; i<agents.size(); i++) {
+                assert(retv[i].front() == decomposer->instance_node_ids_[i].first);
+                assert(retv[i].back()  == decomposer->instance_node_ids_[i].second);
+            }
             now_t = clock();
             double merge_path_time_cost = (double)cutoff_time - ((double)now_t - start_t)/CLOCKS_PER_SEC;
             std::cout << "-- take " << merge_path_time_cost << "ms to merge paths" << std::endl << std::endl;

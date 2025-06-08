@@ -464,7 +464,8 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
 
         auto strs1 = LayeredLAMAPFCompare<2>(agent_and_instances[i].second,
                                             agent_and_instances[i].first,
-                                            CBS::LargeAgentCBS_func<2>, //LaCAM::LargeAgentLaCAM_func<2>,
+                                            //CBS::LargeAgentCBS_func<2>,
+                                                    LaCAM::LargeAgentLaCAM_func<2>,
                                             std::string("CBS"),
                                             time_limit,
                                             false,
@@ -605,12 +606,12 @@ TEST(Multi_Generate_Agent_And_Compare, test) {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
             map_configs = {
-                           {MAPFTestConfig_Paris_1_256,     10, 140, 20, 20},
+//                           {MAPFTestConfig_Paris_1_256,     10, 140, 20, 20},
 //                           {MAPFTestConfig_empty_48_48,     1, 40, 10, 10},
 //                           {MAPFTestConfig_Berlin_1_256,    1, 10, 5, 5},
 //                           {MAPFTestConfig_maze_128_128_10, 1, 10, 5, 5},
-//                           {MAPFTestConfig_den520d,         1, 10, 5, 5},
-//                           {MAPFTestConfig_ost003d,         1, 10, 5, 5},
+                           {MAPFTestConfig_den520d,         1, 10, 5, 5},
+                           {MAPFTestConfig_ost003d,         1, 10, 5, 5},
     };
 
     for(const auto& file_config : map_configs) {

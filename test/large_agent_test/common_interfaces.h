@@ -578,11 +578,14 @@ void loadInstanceAndPlanningLayeredLAMAPF(const LA_MAPF_FUNC<N>& mapf_func,
 
     LargeAgentMAPFInstanceDecompositionPtr<2> decomposer_ptr = nullptr;
     auto start_t = clock();
+    bool detect_loss_of_solvability = false;
+
     auto layered_paths = layeredLargeAgentMAPF<N>(deserializer.getInstances(),
                                                              deserializer.getAgents(),
                                                              dim, is_occupied,
                                                              mapf_func, //CBS::LargeAgentCBS_func<2, AgentType >,
                                                              grid_visit_count_table,
+                                                             detect_loss_of_solvability,
                                                              time_limit, decomposer_ptr,
                                                              path_constraint,
                                                              0,
@@ -927,7 +930,7 @@ std::vector<std::string> LayeredLAMAPFCompare(const InstanceOrients<N>& instance
 //    std::cout << " solvable ?  " << !((generator.getConnectionBetweenNode(7, 89773, 108968)).empty()) << std::endl;
 
     std::vector<std::vector<int> > grid_visit_count_table_layered;
-
+    bool detect_loss_of_solvability = false;
     LargeAgentMAPFInstanceDecompositionPtr<N> decomposer_ptr = nullptr;
     memory_recorder.clear();
     sleep(1);
@@ -938,6 +941,7 @@ std::vector<std::string> LayeredLAMAPFCompare(const InstanceOrients<N>& instance
                                                   dim, is_occupied,
                                                   mapf_func, //CBS::LargeAgentCBS_func<2, AgentType >,
                                                   grid_visit_count_table_layered,
+                                                  detect_loss_of_solvability,
                                                   time_limit, decomposer_ptr,
                                                   path_constraint,
                                                   level_of_decomposition,
@@ -969,7 +973,8 @@ std::vector<std::string> LayeredLAMAPFCompare(const InstanceOrients<N>& instance
                   decomposer_ptr->level_bipartition_time_cost_ << " "
 
                << decomposer_ptr->getMaxSubProblemSize() << " "
-               << decomposer_ptr->getNumberOfSubProblem();
+               << decomposer_ptr->getNumberOfSubProblem() << " "
+               << detect_loss_of_solvability;
 
     memory_recorder.clear();
     sleep(1);

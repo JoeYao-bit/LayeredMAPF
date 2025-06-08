@@ -33,13 +33,14 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
 
     auto instances = deserializer.getTestInstance({40}, 1);
     LAMAPF_Paths layered_paths;
-
+    bool detect_loss_solvability = false;
     layered_paths = layeredLargeAgentMAPF<2>(instances.front().second,
                                                   instances.front().first,
                                                   dim, is_occupied,
 //                                                  CBS::LargeAgentCBS_func<2>,
                                                   LaCAM::LargeAgentLaCAM_func<2>,
                                                   grid_visit_count_table,
+                                                  detect_loss_solvability,
                                                   20, decomposer_ptr,
                                                   false);
 
