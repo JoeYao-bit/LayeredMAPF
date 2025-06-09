@@ -209,11 +209,13 @@ void loadInstanceAndPlanningLayeredLAMAPF(const LA_MAPF_FUNC<N>& mapf_func,
 
     LargeAgentMAPFInstanceDecompositionPtr<2> decomposer_ptr = nullptr;
     auto start_t = clock();
+    bool is_loss_of_solvability = false;
     auto layered_paths = layeredLargeAgentMAPF<N>(deserializer.getInstances(),
                                                              deserializer.getAgents(),
                                                              dim, is_occupied,
                                                              mapf_func, //CBS::LargeAgentCBS_func<2, AgentType >,
                                                              grid_visit_count_table,
+                                                             is_loss_of_solvability,
                                                              time_limit, decomposer_ptr,
                                                              path_constraint,
                                                              0,
@@ -564,11 +566,13 @@ std::vector<std::string> LayeredLAMAPFCompare(const InstanceOrients<N>& instance
     sleep(1);
     float base_usage = memory_recorder.getCurrentMemoryUsage();
     auto start_t = clock();
+    bool is_loss_of_solvability = false;
     auto layered_paths = layeredLargeAgentMAPF<N>(instances,
                                                   agents,
                                                   dim, is_occupied,
                                                   mapf_func, //CBS::LargeAgentCBS_func<2, AgentType >,
                                                   grid_visit_count_table_layered,
+                                                  is_loss_of_solvability,
                                                   time_limit, decomposer_ptr,
                                                   path_constraint,
                                                   level_of_decomposition,
@@ -600,7 +604,8 @@ std::vector<std::string> LayeredLAMAPFCompare(const InstanceOrients<N>& instance
                   decomposer_ptr->level_bipartition_time_cost_ << " "
 
                << decomposer_ptr->getMaxSubProblemSize() << " "
-               << decomposer_ptr->getNumberOfSubProblem();
+               << decomposer_ptr->getNumberOfSubProblem() << " "
+               << is_loss_of_solvability;
 
     memory_recorder.clear();
     sleep(1);

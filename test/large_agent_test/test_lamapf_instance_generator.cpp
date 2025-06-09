@@ -456,19 +456,19 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
 
     for (int i = 0; i < agent_and_instances.size(); i++) {
 
-        auto strs1 = LayeredLAMAPFCompare<2>(agent_and_instances[i].second,
-                                            agent_and_instances[i].first,
-                                            CBS::LargeAgentCBS_func<2>, //LaCAM::LargeAgentLaCAM_func<2>,
-                                            std::string("CBS"),
-                                            time_limit,
-                                            false,
-                                            4,
-                                            true);
+        // auto strs1 = LayeredLAMAPFCompare<2>(agent_and_instances[i].second,
+        //                                     agent_and_instances[i].first,
+        //                                     CBS::LargeAgentCBS_func<2>, //LaCAM::LargeAgentLaCAM_func<2>,
+        //                                     std::string("CBS"),
+        //                                     time_limit,
+        //                                     false,
+        //                                     4,
+        //                                     true);
 
-        for (const auto &str : strs1) {
-            std::cout << str << std::endl;
-        }
-        writeStrsToEndOfFile(strs1, map_test_config.at("la_comp_path"));
+        // for (const auto &str : strs1) {
+        //     std::cout << str << std::endl;
+        // }
+        // writeStrsToEndOfFile(strs1, map_test_config.at("la_comp_path"));
 
         auto strs2 = LayeredLAMAPFCompare<2>(agent_and_instances[i].second,
                                             agent_and_instances[i].first,
@@ -597,28 +597,28 @@ int main() {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
             map_configs = {
-                             //{MAPFTestConfig_Paris_1_256,     1, 20, 2, 2}, // 80, 10, 10
+                        //      {MAPFTestConfig_Paris_1_256,     1, 80, 10, 10}, // 80, 10, 10 / 20, 2, 2s
+                        //     {MAPFTestConfig_empty_48_48,     1, 50, 10, 10}, // 50, 10, 10
+                        //     {MAPFTestConfig_Berlin_1_256,    1, 80, 10, 10}, // 80, 10, 10
+                        //    {MAPFTestConfig_maze_128_128_10, 1, 60, 10, 10}, // 60, 10, 10
 
-                            //{MAPFTestConfig_empty_48_48,     1, 20, 2, 2}, // 50, 10, 10
-                            //{MAPFTestConfig_Berlin_1_256,    1, 20, 2, 2}, // 80, 10, 10
-                           //{MAPFTestConfig_maze_128_128_10, 1, 20, 2, 2}, // 60, 10, 10
-                            //{MAPFTestConfig_den520d,         1, 20, 2, 2},// 100, 10, 10
-                            //{MAPFTestConfig_ost003d,         1, 20, 2, 2},// 100, 10, 10
+                            // {MAPFTestConfig_den520d,         1, 100, 10, 10},// 100, 10, 10
+                            // {MAPFTestConfig_ost003d,         1, 100, 10, 10},// 100, 10, 10
+                            //  {MAPFTestConfig_Boston_2_256, 1, 70, 10, 10}, //  70, 10, 10
+                            //   {MAPFTestConfig_Sydney_2_256, 1, 70, 10, 10}, // 70, 10, 10
 
-                             //{MAPFTestConfig_Boston_2_256, 1, 20, 2, 2}, //  70, 10, 10
-                              //{MAPFTestConfig_Sydney_2_256, 1, 20, 2, 2}, // 70, 10, 10
-                              //{MAPFTestConfig_AR0044SR, 1, 20, 2, 2}, // 50, 5, 5
-                              //{MAPFTestConfig_AR0203SR, 1, 20, 2, 2}, // 40, 5, 5
-                              //{MAPFTestConfig_AR0072SR, 1, 20, 2, 2}, // 30, 5, 5
-                              {MAPFTestConfig_Denver_2_256, 1, 20, 2, 2}, // 80, 10, 10
+                              {MAPFTestConfig_AR0044SR, 1, 20, 5, 5}, // 50, 5, 5
+                              {MAPFTestConfig_AR0203SR, 1, 40, 5, 5}, // 40, 5, 5
+                              {MAPFTestConfig_AR0072SR, 1, 30, 5, 5}, // 30, 5, 5
+                             {MAPFTestConfig_Denver_2_256, 1, 80, 10, 10}, // 80, 10, 10
 
                               // not in test
-//                                {MAPFTestConfig_Boston_2_256, 1, 20, 2, 2}, // ok
-//                                {MAPFTestConfig_Sydney_2_256, 1, 20, 2, 2}, // ok
-//                                {MAPFTestConfig_AR0044SR, 1, 20, 2, 2}, // ok
-//                                {MAPFTestConfig_AR0203SR, 1, 20, 2, 2}, // ok
-//                            {MAPFTestConfig_AR0072SR, 1, 20, 2, 2}, // ok
-//                             {MAPFTestConfig_Denver_2_256, 1, 20, 2, 2} // ok
+                        //        {MAPFTestConfig_Boston_2_256, 1, 20, 2, 2}, // ok
+                        //        {MAPFTestConfig_Sydney_2_256, 1, 20, 2, 2}, // ok
+                        //        {MAPFTestConfig_AR0044SR, 1, 20, 2, 2}, // ok
+                        //        {MAPFTestConfig_AR0203SR, 1, 20, 2, 2}, // ok
+                        //    {MAPFTestConfig_AR0072SR, 1, 20, 2, 2}, // ok
+                        //     {MAPFTestConfig_Denver_2_256, 1, 20, 2, 2} // ok
 
     };
     for(int i=0; i<100;i++)
