@@ -54,7 +54,9 @@ void compareLNSAndBiparitionIteratively(const SingleMapTestConfig<2>& map_file, 
 
     auto ns_decompose = std::make_shared<MAPFInstanceDecompositionLNS<2> >(dim_local,
                                                                            bipartition_decompose->connect_graphs_,
-                                                                           bipartition_decompose->agent_sub_graphs_
+                                                                           bipartition_decompose->agent_sub_graphs_,
+                                                                           bipartition_decompose->heuristic_tables_sat_,
+                                                                           bipartition_decompose->heuristic_tables_
                                                                            );
 
     now_t = clock();
@@ -65,17 +67,20 @@ void compareLNSAndBiparitionIteratively(const SingleMapTestConfig<2>& map_file, 
 
     std::cout << "ns finish in " << total_time_cost <<  "s, valid = " << is_ns_valid << std::endl;
 
-    std::cout << "ns max subproblem = " << getMaxLevelSize(ns_decompose->all_levels_) << std::endl;
+    std::cout << "ns/bi max subproblem = " << getMaxLevelSize(ns_decompose->all_levels_) << "/" <<
+                                              getMaxLevelSize(bipartition_decompose->all_clusters_) << std::endl;
 
 }
 
-TEST(simple_test, LNS_decomposition) {
+int main() {
+//TEST(simple_test, LNS_decomposition) {
 
-    compareLNSAndBiparitionIteratively(MAPFTestConfig_AR0011SR, 20);
+    //compareLNSAndBiparitionIteratively(MAPFTestConfig_AR0011SR, 20);
+    compareLNSAndBiparitionIteratively(MAPFTestConfig_empty_48_48, 60);
 
 }
 
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
+//int main(int argc, char **argv) {
+//    ::testing::InitGoogleTest(&argc, argv);
+//    return RUN_ALL_TESTS();
+//}

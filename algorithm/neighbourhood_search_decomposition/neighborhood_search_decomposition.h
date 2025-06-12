@@ -27,19 +27,25 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     public:
         MAPFInstanceDecompositionLNS(DimensionLength* dim,
                                      const std::vector<ConnectivityGraph>& connectivity_graphs,
-                                     const std::vector<SubGraphOfAgent<N> >& agent_sub_graphs) :
+                                     const std::vector<SubGraphOfAgent<N> >& agent_sub_graphs,
+                                     const std::vector<std::vector<int> >& heuristic_tables_sat, // distinguish_sat = true
+                                     const std::vector<std::vector<int> >& heuristic_tables) :
                                      dim_(dim),
                                      agent_sub_graphs_(agent_sub_graphs),
-                                     connect_graphs_(connectivity_graphs) {
+                                     connect_graphs_(connectivity_graphs),
+                                     heuristic_tables_sat_(heuristic_tables_sat),
+                                     heuristic_tables_(heuristic_tables) {
+
+            auto start_t = clock();
 
             std::set<int> all_agent_id_set;
 
             // 1, calculate heuristic table for each connectivity graph
             for (int i = 0; i < connectivity_graphs.size(); i++) {
-                heuristic_tables_.push_back(
-                        calculateLargeAgentHyperGraphStaticHeuristic<N>(i, dim_, connect_graphs_[i], false));
-                heuristic_tables_sat_.push_back(
-                        calculateLargeAgentHyperGraphStaticHeuristic<N>(i, dim_, connect_graphs_[i], true));
+//                heuristic_tables_.push_back(
+//                        calculateLargeAgentHyperGraphStaticHeuristic<N>(i, dim_, connect_graphs_[i], false));
+//                heuristic_tables_sat_.push_back(
+//                        calculateLargeAgentHyperGraphStaticHeuristic<N>(i, dim_, connect_graphs_[i], true));
                 all_agent_id_set.insert(i);
             }
 
@@ -51,6 +57,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 all_dependency_paths_[agent_id] = passing_start_and_targets;
             }
             all_levels_ = getLevelsFromDependencyPaths(all_dependency_paths_);
+
+            auto now_t = clock();
+
+            double time_cost =  ((double)now_t - start_t)/CLOCKS_PER_SEC;;
+
+            std::cout << "ns decomposition finish in " << time_cost << std::endl;
         }
 
         // ahead_sequence store agent > another agent
