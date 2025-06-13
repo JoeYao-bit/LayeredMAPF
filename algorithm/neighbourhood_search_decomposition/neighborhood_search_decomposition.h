@@ -42,15 +42,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             // 1, calculate heuristic table for each connectivity graph
             for (int i = 0; i < connectivity_graphs.size(); i++) {
-//                heuristic_tables_.push_back(
-//                        calculateLargeAgentHyperGraphStaticHeuristic<N>(i, dim_, connect_graphs_[i], false));
-//                heuristic_tables_sat_.push_back(
-//                        calculateLargeAgentHyperGraphStaticHeuristic<N>(i, dim_, connect_graphs_[i], true));
-                all_agent_id_set.insert(i);
+                all_agent_id_set_.insert(i);
             }
 
             all_dependency_paths_.clear();
-            std::vector<bool> cluster_buffer_sat = AgentIdsToSATID(all_agent_id_set);
+            std::vector<bool> cluster_buffer_sat = AgentIdsToSATID(all_agent_id_set_);
             // 2, init all_dependency_paths_ with every agent's shortest path in connectivity_graphs
             for (int agent_id = 0; agent_id < connectivity_graphs.size(); agent_id++) {
                 auto passing_start_and_targets = searchAgent(agent_id, {}, cluster_buffer_sat, true); // pass test
@@ -63,6 +59,33 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             double time_cost =  ((double)now_t - start_t)/CLOCKS_PER_SEC;;
 
             std::cout << "ns decomposition finish in " << time_cost << std::endl;
+        }
+
+
+        void breakMaxLoop() {
+            // 1, pick the largest loop
+            std::set<int> max_level = getMaxLevel(all_levels_);
+            if(max_level.size() == 1) { return; }
+            // 2, random pick an agent from the loop
+            auto start_iter = max_level.begin();
+            int agent_id;
+            int advance_step = rand() % max_level.size();
+            for(int i=0; i<advance_step; i++) {
+                start_iter ++;
+            }
+            agent_id = *start_iter;
+            // 3, TODO: update its path randomly, with heuristic to break loop
+
+            // 4, get new levels
+            auto new_dependency_path = all_dependency_paths_;
+            auto new_levels = getLevelsFromDependencyPaths(new_dependency_path);
+            size_t old_max_level_size = getMaxLevelSize(new_levels);
+            size_t new_max_level_size = getMaxLevelSize(new_levels);
+            // adopt update only when generate smaller subproblems
+            if(new_max_level_size < old_max_level_size) {
+                all_dependency_paths_ = new_dependency_path;
+                all_levels_ = new_levels;
+            }
         }
 
         // ahead_sequence store agent > another agent
@@ -307,6 +330,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         };
 
 
+        /* constant value during break loops */
 
         DimensionLength* dim_;
 
@@ -317,6 +341,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<std::vector<int> > heuristic_tables_sat_; // distinguish_sat = true
 
         std::vector<std::vector<int> > heuristic_tables_; // distinguish_sat = false
+
+        std::set<int> all_agent_id_set_;
+
+
+        /* variables during break loops */
 
         std::map<int, std::set<int> > all_dependency_paths_; // result of decomposition is determined by all_dependency_paths_
 

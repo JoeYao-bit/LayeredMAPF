@@ -114,12 +114,20 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return r(*MT);
     }
 
-    size_t getMaxLevelSize(const std::vector<std::set<int> >& all_levels) {
+    std::set<int> getMaxLevel(const std::vector<std::set<int> >& all_levels) {
         size_t max_level_size = 0;
+        std::set<int> max_level;
         for(int i=0; i<all_levels.size(); i++) {
-            max_level_size = std::max(max_level_size, all_levels[i].size());
+            if(max_level_size < all_levels[i].size()) {
+                max_level = all_levels[i];
+                max_level_size = all_levels[i].size();
+            }
         }
-        return max_level_size;
+        return max_level;
+    }
+
+    size_t getMaxLevelSize(const std::vector<std::set<int> >& all_levels) {
+        return getMaxLevel(all_levels).size();
     }
 
 }
