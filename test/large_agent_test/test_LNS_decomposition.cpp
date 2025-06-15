@@ -58,7 +58,9 @@ void compareLNSAndBiparitionIteratively(const SingleMapTestConfig<2>& map_file, 
                                                                            bi_decompose->heuristic_tables_sat_,
                                                                            bi_decompose->heuristic_tables_,
                                                                            2,
-                                                                           1000);
+                                                                           1000,
+                                                                           50,
+                                                                           1);
 
     ns_decompose->breakMaxLoopIteratively();
 

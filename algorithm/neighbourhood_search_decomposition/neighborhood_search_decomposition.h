@@ -38,14 +38,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                      const std::vector<std::vector<int> >& heuristic_tables_sat, // distinguish_sat = true
                                      const std::vector<std::vector<int> >& heuristic_tables,
                                      double time_limit = 10,
-                                     int max_break_count = 1e3):
+                                     int max_break_count = 1e3,
+                                     int max_continue_failure = 50,
+                                     int expected_min_level_size = 1):
                                      dim_(dim),
                                      agent_sub_graphs_(agent_sub_graphs),
                                      connect_graphs_(connectivity_graphs),
                                      heuristic_tables_sat_(heuristic_tables_sat),
                                      heuristic_tables_(heuristic_tables),
                                      time_limit_(time_limit),
-                                     max_break_count_(max_break_count) {
+                                     max_break_count_(max_break_count),
+                                     max_continue_failure_(max_continue_failure),
+                                     expected_min_level_size_(expected_min_level_size) {
 
             start_t_ = clock();
 
@@ -103,14 +107,21 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         void breakMaxLoopIteratively() {
             int count_of_break = 0;
+            int count_of_continue_failure = 0;
             while(true) {
                 auto now_t = clock();
                 double time_cost =  ((double)now_t - start_t_)/CLOCKS_PER_SEC;
 
                 if(time_cost > time_limit_) { break; }
                 if(count_of_break >= max_break_count_) { break; }
-
-                breakMaxLoop(count_of_break);
+                if(count_of_continue_failure > max_continue_failure_) { break; }
+                if(getMaxLevelSize(all_levels_) <= expected_min_level_size_) { break; }
+                bool success = breakMaxLoop(count_of_break);
+                if(success) {
+                    count_of_continue_failure = 0;
+                } else {
+                    count_of_continue_failure ++;
+                }
                 count_of_break ++;
             }
 
@@ -204,10 +215,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return avail_nodes;
         }
 
-        void breakMaxLoop(const int& iter_count) {
+        bool breakMaxLoop(const int& iter_count) {
             // 1, pick the largest loop
             std::pair<int, std::set<int> > max_level = getMaxLevel(all_levels_);
-            if(max_level.second.size() == 1) { return; }
+            if(max_level.second.size() == 1) { return false; }
             // 2, random pick an agent from the loop
             auto start_iter = max_level.second.begin();
             int agent_id;
@@ -248,7 +259,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             if(new_dependency_path.empty()) {
                 //std::cout << "break loop (" << max_level.second.size() << ")" << max_level.second << " failed at agent " << agent_id << std::endl;
                 //std::cout << "flag 1" << std::endl;
-                return;
+                return false;
             } else {
                 //std::cout << "break loop (" << max_level.second.size() << ")" << max_level.second << " success at agent " << agent_id << std::endl;
             }
@@ -278,7 +289,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                                       avail_start_and_target, true); // pass test
                 if(new_dependency_path_other.empty()) {
                     //std::cout << "flag 2" << std::endl;
-                    return;
+                    return false;
                 }
                 new_level_paths.insert({agent_id_other, new_dependency_path_other});
             }
@@ -306,7 +317,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             if(new_max_level.second.size() < old_max_level_size) {
                 all_dependency_paths_ = new_dependency_paths;
                 all_levels_ = new_levels;
+                return true;
             }
+            return false;
         }
 
         // ahead_sequence store agent > another agent
@@ -612,9 +625,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         std::vector<bool> cluster_buffer_sat_;
 
-        double time_limit_;
+        double time_limit_; // when run out of time exit
 
-        int max_break_count_;
+        int max_break_count_; // when break reach max times, exit
+
+        int max_continue_failure_; // when break keep failure many times, exit
+
+        int expected_min_level_size_; // when max level size reach this value, do not decompose further
 
         clock_t start_t_;
 
