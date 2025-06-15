@@ -72,10 +72,23 @@ void compareLNSAndBiparitionIteratively(const SingleMapTestConfig<2>& map_file, 
     std::cout << "ns finish in " << total_time_cost <<  "s, valid = " << is_ns_valid << std::endl;
 
     std::cout << "ns / bi max subproblem size(decomposition rate) = "
-              << getMaxLevelSize(ns_decompose->all_levels_)   << "(" << (double)getMaxLevelSize(ns_decompose->all_levels_)/number_of_agents << ") / "
-              << getMaxLevelSize(bi_decompose->all_clusters_) << "(" << (double)getMaxLevelSize(bi_decompose->all_clusters_) / number_of_agents << ")"
+              << getMaxLevelSize(ns_decompose->all_levels_)   << "(" << (double)getMaxLevelSize(ns_decompose->all_levels_)/agent_and_instances.front().second.size() << ") / "
+              << getMaxLevelSize(bi_decompose->all_clusters_) << "(" << (double)getMaxLevelSize(bi_decompose->all_clusters_) / agent_and_instances.front().second.size() << ")"
               << std::endl;
 
+    std::cout << "ns / bi number of subproblem = " << ns_decompose->all_levels_.size() << " / "
+              << bi_decompose->all_clusters_.size() << std::endl;
+
+}
+// pass
+TEST(getMaxLevel, test) {
+//int main() {
+    std::vector<std::set<int> > all_levels = {{7,8,9,10}, {0,1}, {2}, {3}, {4,5,6}};
+
+    for(int i=0; i<all_levels.size(); i++) {
+        auto retv_pair = getMaxLevel(all_levels, i);
+        std::cout << i << " th largest level: " << retv_pair.first << ", " << retv_pair.second << std::endl;
+    }
 }
 
 
@@ -105,7 +118,7 @@ int main() {
 //
 //    // ns / bi max subproblem size(decomposition rate) = 1(0.00666667) / 1(0.00666667)
 //    compareLNSAndBiparitionIteratively(MAPFTestConfig_Berlin_1_256,    150);
-//
+
 //    // ns / bi max subproblem size(decomposition rate) = 15(0.15) / 28(0.28)
 //    compareLNSAndBiparitionIteratively(MAPFTestConfig_maze_128_128_10, 1000);
 

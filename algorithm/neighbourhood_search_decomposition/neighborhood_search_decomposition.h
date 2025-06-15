@@ -108,20 +108,31 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         void breakMaxLoopIteratively() {
             int count_of_break = 0;
             int count_of_continue_failure = 0;
+            int i_th_largest_level = 0;
             while(true) {
                 auto now_t = clock();
                 double time_cost =  ((double)now_t - start_t_)/CLOCKS_PER_SEC;
 
                 if(time_cost > time_limit_) { break; }
                 if(count_of_break >= max_break_count_) { break; }
-                if(count_of_continue_failure > max_continue_failure_) { break; }
-                if(getMaxLevelSize(all_levels_) <= expected_min_level_size_) { break; }
-                bool success = breakMaxLoop(count_of_break);
+                //if(getMaxLevelSize(all_levels_) <= expected_min_level_size_) { break; }
+
+
+                auto retv_pair = getMaxLevel(all_levels_, i_th_largest_level);
+                if(retv_pair.second.size() <= expected_min_level_size_) { break; }
+
+                bool success = breakMaxLoop(count_of_break, i_th_largest_level);
                 if(success) {
                     count_of_continue_failure = 0;
                 } else {
                     count_of_continue_failure ++;
                 }
+
+//                if(count_of_continue_failure > max_continue_failure_) {
+//                    i_th_largest_level ++;
+//                    count_of_continue_failure = 0;
+//                }
+
                 count_of_break ++;
             }
 
@@ -215,9 +226,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return avail_nodes;
         }
 
-        bool breakMaxLoop(const int& iter_count) {
+        bool breakMaxLoop(const int& iter_count, int th_largest_level = 0) {
             // 1, pick the largest loop
-            std::pair<int, std::set<int> > max_level = getMaxLevel(all_levels_);
+            std::pair<int, std::set<int> > max_level = getMaxLevel(all_levels_, th_largest_level);
             if(max_level.second.size() == 1) { return false; }
             // 2, random pick an agent from the loop
             auto start_iter = max_level.second.begin();
@@ -306,12 +317,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             auto new_levels = getLevelsFromDependencyPaths(new_dependency_paths);
             size_t old_max_level_size = max_level.second.size();
-            auto new_max_level = getMaxLevel(new_levels);
+            auto new_max_level = getMaxLevel(new_levels, th_largest_level);
 
             std::cout << "break loop at agent " << agent_id << " success " << std::endl;
             //std::cout << "old_max_level = " << max_level.second << std::endl;
             //std::cout << "new_max_level = " << new_max_level.second << std::endl;
-            std::cout << iter_count << " iter, update: new/old max_level_size = " << new_max_level.second.size() << " / " << old_max_level_size << std::endl;
+            std::cout << th_largest_level << " th largest level, " << iter_count << " iter, update: new/old max_level_size = " << new_max_level.second.size() << " / " << old_max_level_size << std::endl;
 
             // adopt update only when generate smaller subproblems
             if(new_max_level.second.size() < old_max_level_size) {
