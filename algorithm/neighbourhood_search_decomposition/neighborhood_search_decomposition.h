@@ -110,7 +110,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 if(time_cost > time_limit_) { break; }
                 if(count_of_break >= max_break_count_) { break; }
 
-                breakMaxLoop();
+                breakMaxLoop(count_of_break);
                 count_of_break ++;
             }
 
@@ -204,7 +204,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return avail_nodes;
         }
 
-        void breakMaxLoop() {
+        void breakMaxLoop(const int& iter_count) {
             // 1, pick the largest loop
             std::pair<int, std::set<int> > max_level = getMaxLevel(all_levels_);
             if(max_level.second.size() == 1) { return; }
@@ -262,9 +262,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             for(const int& agent_id_other : max_level.second) {
                 if(agent_id_other == agent_id) { continue; }
                 // only update path that contain edge to agent
-//                if(all_dependency_paths_[agent_id_other].find(avoid_node_id) == all_dependency_paths_[agent_id_other].end()) {
-//                    continue;
-//                }
+                if(all_dependency_paths_[agent_id_other].find(avoid_node_id) == all_dependency_paths_[agent_id_other].end()) {
+                    continue;
+                }
 //                auto avoid_start_and_target_other_copy = avoid_start_and_target_other;
 //                avoid_start_and_target_other_copy[2*agent_id_other] = false;
 //                avoid_start_and_target_other_copy[2*agent_id_other + 1] = false;
@@ -300,7 +300,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             std::cout << "break loop at agent " << agent_id << " success " << std::endl;
             //std::cout << "old_max_level = " << max_level.second << std::endl;
             //std::cout << "new_max_level = " << new_max_level.second << std::endl;
-            std::cout << "-- update: new/old max_level_size = " << new_max_level.second.size() << " / " << old_max_level_size << std::endl;
+            std::cout << iter_count << " iter, update: new/old max_level_size = " << new_max_level.second.size() << " / " << old_max_level_size << std::endl;
 
             // adopt update only when generate smaller subproblems
             if(new_max_level.second.size() < old_max_level_size) {
