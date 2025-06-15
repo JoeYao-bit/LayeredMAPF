@@ -273,8 +273,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     releaseNodes();
                     return passed_agents;
                 }
+                auto copy_of_neighbor = con_graph.all_edges_vec_[curr_node->current_node_];
+                // 创建随机数生成器
+                std::random_device rd;       // 真随机数生成器（用于播种）
+                std::mt19937 gen(rd());      // Mersenne Twister 引擎（高效随机）
 
-                for(const auto& neighbor_node_id : con_graph.all_edges_vec_[curr_node->current_node_])
+                // 打乱 vector 元素顺序
+                std::shuffle(copy_of_neighbor.begin(), copy_of_neighbor.end(), gen);
+
+                for(const auto& neighbor_node_id : copy_of_neighbor)
                 {
 
                     bool avoid_failed = false, passing_failed = false;

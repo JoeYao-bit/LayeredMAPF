@@ -976,7 +976,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     extern MemoryRecorder memory_recorder;
 
-    std::set<int> getMaxLevel(const std::vector<std::set<int> >& all_levels);
+    std::pair<int, std::set<int> > getMaxLevel(const std::vector<std::set<int> >& all_levels);
 
     size_t getMaxLevelSize(const std::vector<std::set<int> >& all_levels);
 

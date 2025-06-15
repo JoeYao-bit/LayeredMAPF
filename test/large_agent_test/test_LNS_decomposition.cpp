@@ -34,49 +34,102 @@ void compareLNSAndBiparitionIteratively(const SingleMapTestConfig<2>& map_file, 
 
     auto start_t = clock();
 
-    auto bipartition_decompose = std::make_shared<LargeAgentMAPFInstanceDecomposition<2> >(agent_and_instances.front().second,
-                                                                                           agent_and_instances.front().first,
-                                                                                           dim_local,
-                                                                                           is_occupied_local,
-                                                                                        true,
-                                                                                        4,
-                                                                                        true);
+    auto bi_decompose = std::make_shared<LargeAgentMAPFInstanceDecomposition<2> >(agent_and_instances.front().second,
+                                                                                  agent_and_instances.front().first,
+                                                                                  dim_local,
+                                                                                  is_occupied_local,
+                                                                                  true,
+                                                                                  4,
+                                                                                  true);
 
     auto now_t = clock();
     double total_time_cost = ((double)now_t - start_t)/CLOCKS_PER_SEC;
 
-    bool is_bi_valid = bipartition_decompose->decompositionValidCheckGridMap(bipartition_decompose->all_clusters_);
+    bool is_bi_valid = bi_decompose->decompositionValidCheckGridMap(bi_decompose->all_clusters_);
 
     std::cout << "biparition finish in " << total_time_cost <<  "s, valid = " << is_bi_valid << std::endl;
-    std::cout << "biparition max subproblem = " << getMaxLevelSize(bipartition_decompose->all_clusters_) << std::endl;
+    std::cout << "biparition max subproblem = " << getMaxLevelSize(bi_decompose->all_clusters_) << std::endl;
 
     start_t = clock();
 
     auto ns_decompose = std::make_shared<MAPFInstanceDecompositionLNS<2> >(dim_local,
-                                                                           bipartition_decompose->connect_graphs_,
-                                                                           bipartition_decompose->agent_sub_graphs_,
-                                                                           bipartition_decompose->heuristic_tables_sat_,
-                                                                           bipartition_decompose->heuristic_tables_
-                                                                           );
+                                                                           bi_decompose->connect_graphs_,
+                                                                           bi_decompose->agent_sub_graphs_,
+                                                                           bi_decompose->heuristic_tables_sat_,
+                                                                           bi_decompose->heuristic_tables_,
+                                                                           2,
+                                                                           1000);
+
+    ns_decompose->breakMaxLoopIteratively();
 
     now_t = clock();
 
-    bool is_ns_valid = bipartition_decompose->decompositionValidCheckGridMap(ns_decompose->all_levels_);
+    bool is_ns_valid = bi_decompose->decompositionValidCheckGridMap(ns_decompose->all_levels_);
 
     total_time_cost = ((double)now_t - start_t)/CLOCKS_PER_SEC;
-
     std::cout << "ns finish in " << total_time_cost <<  "s, valid = " << is_ns_valid << std::endl;
 
-    std::cout << "ns/bi max subproblem = " << getMaxLevelSize(ns_decompose->all_levels_) << "/" <<
-                                              getMaxLevelSize(bipartition_decompose->all_clusters_) << std::endl;
+    std::cout << "ns / bi max subproblem size(decomposition rate) = "
+              << getMaxLevelSize(ns_decompose->all_levels_)   << "(" << (double)getMaxLevelSize(ns_decompose->all_levels_)/number_of_agents << ") / "
+              << getMaxLevelSize(bi_decompose->all_clusters_) << "(" << (double)getMaxLevelSize(bi_decompose->all_clusters_) / number_of_agents << ")"
+              << std::endl;
 
 }
+
+
+// {MAPFTestConfig_Paris_1_256,     1, 80, 10, 10}, // 80, 10, 10 / 20, 2, 2s
+// {MAPFTestConfig_empty_48_48,     1, 50, 10, 10}, // 50, 10, 10
+// {MAPFTestConfig_Berlin_1_256,    1, 80, 10, 10}, // 80, 10, 10
+// {MAPFTestConfig_maze_128_128_10, 1, 60, 10, 10}, // 60, 10, 10
+
+// {MAPFTestConfig_den520d,         1, 100, 10, 10},// 100, 10, 10
+// {MAPFTestConfig_ost003d,         1, 100, 10, 10},// 100, 10, 10
+// {MAPFTestConfig_Boston_2_256, 1, 70, 10, 10}, //  70, 10, 10
+// {MAPFTestConfig_Sydney_2_256, 1, 70, 10, 10}, // 70, 10, 10
+
+// {MAPFTestConfig_AR0044SR, 1, 20, 5, 5}, // 50, 5, 5
+// {MAPFTestConfig_AR0203SR, 1, 40, 5, 5}, // 40, 5, 5
+// {MAPFTestConfig_AR0072SR, 1, 30, 5, 5}, // 30, 5, 5
+// {MAPFTestConfig_Denver_2_256, 1, 80, 10, 10}, // 80, 10, 10
 
 int main() {
 //TEST(simple_test, LNS_decomposition) {
 
-    //compareLNSAndBiparitionIteratively(MAPFTestConfig_AR0011SR, 20);
-    compareLNSAndBiparitionIteratively(MAPFTestConfig_empty_48_48, 60);
+//    // ns / bi max subproblem size(decomposition rate) = 1(0.00666667) / 1(0.00666667)
+//    compareLNSAndBiparitionIteratively(MAPFTestConfig_Paris_1_256,     150);
+//
+    // ns / bi max subproblem size(decomposition rate) = 1(0.0166667) / 15(0.25)
+    compareLNSAndBiparitionIteratively(MAPFTestConfig_empty_48_48,     60);
+//
+//    // ns / bi max subproblem size(decomposition rate) = 1(0.00666667) / 1(0.00666667)
+//    compareLNSAndBiparitionIteratively(MAPFTestConfig_Berlin_1_256,    150);
+//
+//    // ns / bi max subproblem size(decomposition rate) = 15(0.15) / 28(0.28)
+//    compareLNSAndBiparitionIteratively(MAPFTestConfig_maze_128_128_10, 1000);
+
+//    // ns / bi max subproblem size(decomposition rate) = 1(0.00666667) / 1(0.00666667)
+//    compareLNSAndBiparitionIteratively(MAPFTestConfig_den520d,          150);
+//
+//    // ns / bi max subproblem size(decomposition rate) = 1(0.01) / 2(0.02)
+//    compareLNSAndBiparitionIteratively(MAPFTestConfig_ost003d,          100);
+//
+//    // ns / bi max subproblem size(decomposition rate) = 1(0.00666667) / 1(0.00666667)
+//    compareLNSAndBiparitionIteratively(MAPFTestConfig_Boston_2_256,     150);
+//
+//    // ns / bi max subproblem size(decomposition rate) = 1(0.00666667) / 1(0.00666667)
+//    compareLNSAndBiparitionIteratively(MAPFTestConfig_Sydney_2_256,     150);
+
+    // ns / bi max subproblem size(decomposition rate) = 1(0.02) / 1(0.02)
+    //compareLNSAndBiparitionIteratively(MAPFTestConfig_AR0044SR,         50);
+
+    // ns / bi max subproblem size(decomposition rate) = 5(0.1) / 5(0.1)
+    //compareLNSAndBiparitionIteratively(MAPFTestConfig_AR0203SR,         50);
+
+    // ns / bi max subproblem size(decomposition rate) = 1(0.0125) / 1(0.0125)
+    //compareLNSAndBiparitionIteratively(MAPFTestConfig_AR0072SR,         80);
+
+    // ns / bi max subproblem size(decomposition rate) = 1(0.00666667) / 1(0.00666667)
+    //compareLNSAndBiparitionIteratively(MAPFTestConfig_Denver_2_256,     150);
 
 }
 

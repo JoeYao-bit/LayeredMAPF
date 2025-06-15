@@ -534,6 +534,9 @@ void generateLargeAgentInstanceForMap(const SingleMapTestConfig<2>& map_file,
             std::cout << "-- find no " << required_agents << " agents and poses after " << i << " sample" <<  std::endl;
         }
     }
+
+
+
 }
 
 // MAPFTestConfig_Berlin_1_256
@@ -541,19 +544,19 @@ TEST(generateLargeAgentInstanceForMap, test) {
     // file_path, times_of_try, required_agents, maximum_sample_count
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int> >
             map_configs = {
-//                           {MAPFTestConfig_Paris_1_256, 140, 100, 1e7}, // ok
-                           {MAPFTestConfig_empty_48_48, 60,  100, 1e7}, // ok
-//                           {MAPFTestConfig_Berlin_1_256, 140, 100, 5e7}, // ok
-//                           {MAPFTestConfig_maze_128_128_10, 100, 100, 5e7}, // ok
-//                           {MAPFTestConfig_den520d, 140, 100, 5e7}, // load failed
-//                           {MAPFTestConfig_ost003d, 100, 100, 5e7} // target overlap
+//                           {MAPFTestConfig_Paris_1_256, 180, 100, 1e7}, //
+//                           {MAPFTestConfig_empty_48_48, 60,  100, 1e7}, // ok
+//                           {MAPFTestConfig_Berlin_1_256, 140, 100, 5e7}, //
+                           {MAPFTestConfig_maze_128_128_10, 100, 100, 5e7}, //
+//                           {MAPFTestConfig_den520d, 140, 100, 5e7}, //
+//                           {MAPFTestConfig_ost003d, 100, 100, 5e7} //
 
-//                            {MAPFTestConfig_Boston_2_256, 70, 100, 1e7}, // ok
-//                            {MAPFTestConfig_Sydney_2_256, 70,  100, 1e7}, // ok
-//                            {MAPFTestConfig_AR0044SR, 50, 100, 5e7}, // ok
-//                            {MAPFTestConfig_AR0203SR, 40, 100, 5e7}, // ok
-//                            {MAPFTestConfig_AR0072SR, 30, 100, 5e7}, // ok
-//                            {MAPFTestConfig_Denver_2_256, 80, 100, 5e7} // ok
+//                            {MAPFTestConfig_Boston_2_256, 70, 100, 1e7}, //
+//                            {MAPFTestConfig_Sydney_2_256, 70,  100, 1e7}, //
+//                            {MAPFTestConfig_AR0044SR, 50, 100, 5e7}, //
+//                            {MAPFTestConfig_AR0203SR, 40, 100, 5e7}, //
+//                            {MAPFTestConfig_AR0072SR, 30, 100, 5e7}, //
+//                            {MAPFTestConfig_Denver_2_256, 80, 100, 5e7} //
 
 
 

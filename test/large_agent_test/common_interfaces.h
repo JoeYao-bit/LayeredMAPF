@@ -66,7 +66,7 @@ bool draw_visit_grid_table = false;
 // MAPFTestConfig_AR0015SR
 // MAPFTestConfig_AR0016SR
 
-auto map_test_config = MAPFTestConfig_solva_failed;
+auto map_test_config = MAPFTestConfig_maze_128_128_10;
 // MAPFTestConfig_Paris_1_256 //  pass
 // MAPFTestConfig_Berlin_1_256; // pass
 // MAPFTestConfig_maze_32_32_4; // pass
@@ -696,7 +696,7 @@ void generateInstanceAndPlanning(const std::vector<AgentPtr<N> >& agents,
 
 template<Dimension N>
 void InstanceDecompositionVisualization(const LargeAgentMAPFInstanceDecomposition<N>& decomposer) {
-    zoom_ratio = std::min(2560/dim[0], 1400/dim[1]);
+    zoom_ratio = std::min(1500/dim[0], 900/dim[1]);
 
     // visualize instance
     Canvas canvas("LargeAgentMAPF Decomposition", dim[0], dim[1], .1, zoom_ratio);
