@@ -2,7 +2,9 @@
 // Created by yaozhuo on 6/13/25.
 //
 
-#include "../algorithm/neighbourhood_search_decomposition/neighborhood_search_decomposition.h"
+#include "../algorithm/break_loop_decomposition/break_loop_decomposition.h"
+#include "../algorithm/break_loop_decomposition/biparition_decomposition.h"
+
 #include "common_interfaces.h"
 #include "../algorithm/connectivity_graph_and_subprgraph.h"
 
@@ -33,45 +35,73 @@ void compareLNSAndBiparitionIteratively(const SingleMapTestConfig<2>& map_file, 
 
     auto agent_and_instances = deserializer.getTestInstance(required_counts, 1);
 
-    auto start_t = clock();
-
-    auto bi_decompose = std::make_shared<LargeAgentMAPFInstanceDecomposition<2> >(agent_and_instances.front().second,
-                                                                                  agent_and_instances.front().first,
-                                                                                  dim_local,
-                                                                                  is_occupied_local,
-                                                                                  true,
-                                                                                  4,
-                                                                                  true);
-
-    auto now_t = clock();
-    double total_time_cost = ((double)now_t - start_t)/CLOCKS_PER_SEC;
-
-    bool is_bi_valid = bi_decompose->decompositionValidCheckGridMap(bi_decompose->all_clusters_);
-
-    std::cout << "biparition finish in " << total_time_cost <<  "s, valid = " << is_bi_valid << std::endl;
-    std::cout << "biparition max subproblem = " << getMaxLevelSize(bi_decompose->all_clusters_) << std::endl;
-
     PrecomputationOfLAMAPF<2> pre(agent_and_instances.front().second,
                                   agent_and_instances.front().first,
                                   dim_local,
                                   is_occupied_local);
 
+    auto start_t = clock();
+
+//    auto bi_decompose = std::make_shared<LargeAgentMAPFInstanceDecomposition<2> >(agent_and_instances.front().second,
+//                                                                                  agent_and_instances.front().first,
+//                                                                                  dim_local,
+//                                                                                  is_occupied_local,
+//                                                                                  true,
+//                                                                                  4,
+//                                                                                  true);
+
+    auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBipartition<2> >(dim_local,
+                                                                                   pre.connect_graphs_,
+                                                                                   pre.agent_sub_graphs_,
+                                                                                   pre.heuristic_tables_sat_,
+                                                                                   pre.heuristic_tables_);
+
+    auto now_t = clock();
+    double total_time_cost = ((double)now_t - start_t)/CLOCKS_PER_SEC;
+
+    bool is_bi_valid = LA_MAPF_DecompositionValidCheckGridMap<2>(bi_decompose->all_clusters_,
+                                                                 dim_local,
+                                                                 is_occupied_local,
+                                                                 agent_and_instances.front().first,
+                                                                 pre.instance_node_ids_,
+                                                                 pre.all_poses_,
+                                                                 pre.agent_sub_graphs_,
+                                                                 pre.agents_heuristic_tables_,
+                                                                 pre.agents_heuristic_tables_ignore_rotate_
+                                                                 );
+
+//    bool is_bi_valid = bi_decompose->decompositionValidCheckGridMap(bi_decompose->all_clusters_);
+
+    std::cout << "biparition finish in " << total_time_cost <<  "s, valid = " << is_bi_valid << std::endl;
+    std::cout << "biparition max subproblem = " << getMaxLevelSize(bi_decompose->all_clusters_) << std::endl;
+
+
     start_t = clock();
 
-    auto ns_decompose = std::make_shared<MAPFInstanceDecompositionLNS<2> >(dim_local,
-                                                                           pre.connect_graphs_,
-                                                                           pre.agent_sub_graphs_,
-                                                                           pre.heuristic_tables_sat_,
-                                                                           2,
-                                                                           1000,
-                                                                           50,
-                                                                           1);
+    auto ns_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<2> >(dim_local,
+                                                                                 pre.connect_graphs_,
+                                                                                 pre.agent_sub_graphs_,
+                                                                                 pre.heuristic_tables_sat_,
+                                                                                 2,
+                                                                                 1000,
+                                                                                 50,
+                                                                                 1);
 
     ns_decompose->breakMaxLoopIteratively();
 
     now_t = clock();
 
-    bool is_ns_valid = bi_decompose->decompositionValidCheckGridMap(ns_decompose->all_levels_);
+    bool is_ns_valid = LA_MAPF_DecompositionValidCheckGridMap<2>(ns_decompose->all_levels_,
+                                                                 dim,
+                                                                 is_occupied_local,
+                                                                 agent_and_instances.front().first,
+                                                                 pre.instance_node_ids_,
+                                                                 pre.all_poses_,
+                                                                 pre.agent_sub_graphs_,
+                                                                 pre.agents_heuristic_tables_,
+                                                                 pre.agents_heuristic_tables_ignore_rotate_
+                                                                );
+
 
     total_time_cost = ((double)now_t - start_t)/CLOCKS_PER_SEC;
     std::cout << "ns finish in " << total_time_cost <<  "s, valid = " << is_ns_valid << std::endl;
@@ -153,7 +183,3 @@ int main() {
 
 }
 
-//int main(int argc, char **argv) {
-//    ::testing::InitGoogleTest(&argc, argv);
-//    return RUN_ALL_TESTS();
-//}

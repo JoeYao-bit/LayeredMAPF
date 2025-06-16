@@ -2,8 +2,8 @@
 // Created by yaozhuo on 6/12/25.
 //
 
-#ifndef LAYEREDMAPF_NEIGHBORHOOD_SEARCH_DECOMPOSITION_H
-#define LAYEREDMAPF_NEIGHBORHOOD_SEARCH_DECOMPOSITION_H
+#ifndef LAYEREDMAPF_BREAK_LOOP_DECOMPOSITION_H
+#define LAYEREDMAPF_BREAK_LOOP_DECOMPOSITION_H
 
 
 #include <sys/time.h>
@@ -17,13 +17,13 @@
 #include "../LA-MAPF/common.h"
 #include "../LA-MAPF/large_agent_dependency_path_search.h"
 
-#include "../LA-MAPF/CBS/space_time_astar.h"
+//#include "../LA-MAPF/CBS/space_time_astar.h"
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
     // a general interfaces for both LA-MAPF and MAPF
     template<Dimension N>
-    class MAPFInstanceDecompositionLNS {
+    class MAPFInstanceDecompositionBreakLoop {
 
     public:
 
@@ -32,14 +32,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         typedef std::vector<std::vector<bool> > LevelOrderGraph;
 
-        MAPFInstanceDecompositionLNS(DimensionLength* dim,
-                                     const std::vector<ConnectivityGraph>& connectivity_graphs,
-                                     const std::vector<SubGraphOfAgent<N> >& agent_sub_graphs,
-                                     const std::vector<std::vector<int> >& heuristic_tables_sat, // distinguish_sat = true
-                                     double time_limit = 10,
-                                     int max_break_count = 1e3,
-                                     int max_continue_failure = 50,
-                                     int expected_min_level_size = 1):
+        MAPFInstanceDecompositionBreakLoop(DimensionLength* dim,
+                                           const std::vector<ConnectivityGraph>& connectivity_graphs,
+                                           const std::vector<SubGraphOfAgent<N> >& agent_sub_graphs,
+                                           const std::vector<std::vector<int> >& heuristic_tables_sat, // distinguish_sat = true
+                                           double time_limit = 10,
+                                           int max_break_count = 1e3,
+                                           int max_continue_failure = 50,
+                                           int expected_min_level_size = 1):
                                      dim_(dim),
                                      agent_sub_graphs_(agent_sub_graphs),
                                      connect_graphs_(connectivity_graphs),
@@ -643,6 +643,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         clock_t start_t_;
 
+        std::vector<AgentPtr<N> > agents_;
+
         /* variables during break loops */
 
         std::map<int, std::set<int> > all_dependency_paths_; // result of decomposition is determined by all_dependency_paths_
@@ -653,4 +655,4 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
 }
 
-#endif //LAYEREDMAPF_NEIGHBORHOOD_SEARCH_DECOMPOSITION_H
+#endif //LAYEREDMAPF_BREAK_LOOP_DECOMPOSITION_H
