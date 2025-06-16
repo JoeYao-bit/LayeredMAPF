@@ -4,6 +4,7 @@
 
 #include "../algorithm/neighbourhood_search_decomposition/neighborhood_search_decomposition.h"
 #include "common_interfaces.h"
+#include "../algorithm/connectivity_graph_and_subprgraph.h"
 
 #include <gtest/gtest.h>
 #include <iostream>
@@ -50,13 +51,17 @@ void compareLNSAndBiparitionIteratively(const SingleMapTestConfig<2>& map_file, 
     std::cout << "biparition finish in " << total_time_cost <<  "s, valid = " << is_bi_valid << std::endl;
     std::cout << "biparition max subproblem = " << getMaxLevelSize(bi_decompose->all_clusters_) << std::endl;
 
+    PrecomputationOfLAMAPF<2> pre(agent_and_instances.front().second,
+                                  agent_and_instances.front().first,
+                                  dim_local,
+                                  is_occupied_local);
+
     start_t = clock();
 
     auto ns_decompose = std::make_shared<MAPFInstanceDecompositionLNS<2> >(dim_local,
-                                                                           bi_decompose->connect_graphs_,
-                                                                           bi_decompose->agent_sub_graphs_,
-                                                                           bi_decompose->heuristic_tables_sat_,
-                                                                           bi_decompose->heuristic_tables_,
+                                                                           pre.connect_graphs_,
+                                                                           pre.agent_sub_graphs_,
+                                                                           pre.heuristic_tables_sat_,
                                                                            2,
                                                                            1000,
                                                                            50,
@@ -112,15 +117,15 @@ int main() {
 
 //    // ns / bi max subproblem size(decomposition rate) = 1(0.00666667) / 1(0.00666667)
 //    compareLNSAndBiparitionIteratively(MAPFTestConfig_Paris_1_256,     150);
-//
-    // ns / bi max subproblem size(decomposition rate) = 1(0.0166667) / 15(0.25)
-    compareLNSAndBiparitionIteratively(MAPFTestConfig_empty_48_48,     60);
-//
-//    // ns / bi max subproblem size(decomposition rate) = 1(0.00666667) / 1(0.00666667)
-//    compareLNSAndBiparitionIteratively(MAPFTestConfig_Berlin_1_256,    150);
 
-//    // ns / bi max subproblem size(decomposition rate) = 15(0.15) / 28(0.28)
-//    compareLNSAndBiparitionIteratively(MAPFTestConfig_maze_128_128_10, 1000);
+    // ns / bi max subproblem size(decomposition rate) = 1(0.0166667) / 15(0.25)
+    //compareLNSAndBiparitionIteratively(MAPFTestConfig_empty_48_48,     60);
+
+    // ns / bi max subproblem size(decomposition rate) = 1(0.00666667) / 1(0.00666667)
+    //compareLNSAndBiparitionIteratively(MAPFTestConfig_Berlin_1_256,    150);
+
+    // ns / bi max subproblem size(decomposition rate) = 15(0.15) / 28(0.28)
+    compareLNSAndBiparitionIteratively(MAPFTestConfig_maze_128_128_10, 1000);
 
 //    // ns / bi max subproblem size(decomposition rate) = 1(0.00666667) / 1(0.00666667)
 //    compareLNSAndBiparitionIteratively(MAPFTestConfig_den520d,          150);

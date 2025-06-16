@@ -205,8 +205,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
 
             SubGraphOfAgent<N> sub_graph(agent);
+            sub_graph.data_ptr_ = std::make_shared<SubGraphOfAgentData<N> >();
 
-            sub_graph.all_nodes_.resize(total_index * 2 * N, nullptr);
+            sub_graph.data_ptr_->all_nodes_.resize(total_index * 2 * N, nullptr);
             sub_graph.start_node_id_ = start_node_id;
             sub_graph.target_node_id_ = target_node_id;
 
@@ -215,18 +216,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 if(all_poses_[id] != nullptr) {
                     const auto& current_pose = all_poses_[id];
                     if(!agent->isCollide(*current_pose, dim_, isoc_, *distance_map_updater_)) {
-                        sub_graph.all_nodes_[id] = current_pose;
+                        sub_graph.data_ptr_->all_nodes_[id] = current_pose;
                     }
                 }
             }
 
-            if (sub_graph.all_nodes_[start_node_id] == nullptr) {
+            if (sub_graph.data_ptr_->all_nodes_[start_node_id] == nullptr) {
                 std::cout << "FATAL: agent " << agent << "'s start " << instances_[agent_id].first.pt_ << "^"
                           << instances_[agent_id].first.orient_ << " is unavailable " << std::endl;
                 solvable = false;
             }
 
-            if (sub_graph.all_nodes_[target_node_id] == nullptr) {
+            if (sub_graph.data_ptr_->all_nodes_[target_node_id] == nullptr) {
                 std::cout << "FATAL: agent " << agent << "'s target " << instances_[agent_id].second.pt_ << "^"
                           << instances_[agent_id].second.orient_ << " is unavailable " << std::endl;
                 solvable = false;
@@ -234,16 +235,16 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             // when add edges, assume agent can only change position or orientation, cannot change both of them
             // and orientation can only change 90 degree at one timestep, that means the two orient must be orthogonal
-            sub_graph.all_edges_.resize(total_index*2*N, {});
-            sub_graph.all_backward_edges_.resize(total_index*2*N, {});
+            sub_graph.data_ptr_->all_edges_.resize(total_index*2*N, {});
+            sub_graph.data_ptr_->all_backward_edges_.resize(total_index*2*N, {});
 
             // debug
 //            std::vector<std::set<size_t> > all_edges_set(total_index*2*N);
 //            std::vector<std::set<size_t> > all_backward_edges_set(total_index*2*N);
 
             Pointis<N> neighbors = GetNearestOffsetGrids<N>();
-            for(size_t pose_id=0; pose_id < sub_graph.all_nodes_.size(); pose_id++) {
-                const auto& node_ptr = sub_graph.all_nodes_[pose_id];
+            for(size_t pose_id=0; pose_id < sub_graph.data_ptr_->all_nodes_.size(); pose_id++) {
+                const auto& node_ptr = sub_graph.data_ptr_->all_nodes_[pose_id];
                 if(node_ptr != nullptr) {
                     // add edges about position changing
                     size_t origin_orient = pose_id%(2*N);
@@ -254,7 +255,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         if(isOutOfBoundary(new_pt, dim_)) { continue; }
                         Id another_node_id = PointiToId<N>(new_pt, dim_)*2*N + origin_orient;
                         if(pose_id == another_node_id) { continue; }
-                        PosePtr<int, N> another_node_ptr = sub_graph.all_nodes_[another_node_id];
+                        PosePtr<int, N> another_node_ptr = sub_graph.data_ptr_->all_nodes_[another_node_id];
                         if(another_node_ptr == nullptr) { continue; }
 
                         // debug
@@ -264,8 +265,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                        assert(direct_legal == reverse_legal);
 
                         if(!agent->isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, *distance_map_updater_)) {
-                            sub_graph.all_edges_[pose_id].push_back(another_node_id);
-                            sub_graph.all_backward_edges_[another_node_id].push_back(pose_id);
+                            sub_graph.data_ptr_->all_edges_[pose_id].push_back(another_node_id);
+                            sub_graph.data_ptr_->all_backward_edges_[another_node_id].push_back(pose_id);
 
                             // debug
 //                            all_edges_set[pose_id].insert(another_node_id);
@@ -279,12 +280,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         if(node_ptr->orient_ == orient) { continue; }
                         // if another node in subgraph
                         size_t another_node_id = base_id + orient;
-                        PosePtr<int, N> another_node_ptr = sub_graph.all_nodes_[another_node_id];
+                        PosePtr<int, N> another_node_ptr = sub_graph.data_ptr_->all_nodes_[another_node_id];
                         if(another_node_ptr == nullptr) { continue; }
                         // check whether can transfer to another node
                         if(!agent->isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, *distance_map_updater_)) {
-                            sub_graph.all_edges_[pose_id].push_back(another_node_id);
-                            sub_graph.all_backward_edges_[another_node_id].push_back(pose_id);
+                            sub_graph.data_ptr_->all_edges_[pose_id].push_back(another_node_id);
+                            sub_graph.data_ptr_->all_backward_edges_[another_node_id].push_back(pose_id);
 
                             // debug
 //                            all_edges_set[pose_id].insert(another_node_id);
@@ -330,7 +331,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     }
                 };  // used by OPEN (heap) to compare nodes (top of the heap has min f-val, and then highest g-val)
             };
-            std::vector<int> agent_heuristic(sub_graph.all_nodes_.size(), MAX<int>);
+            std::vector<int> agent_heuristic(sub_graph.data_ptr_->all_nodes_.size(), MAX<int>);
 
             // generate a heap that can save nodes (and an open_handle)
             boost::heap::pairing_heap<Node, boost::heap::compare<typename Node::compare_node> > heap;
@@ -343,7 +344,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             while (!heap.empty()) {
                 Node curr = heap.top();
                 heap.pop();
-                for (const size_t& next_location : sub_graph.all_backward_edges_[curr.node_id]) {
+                for (const size_t& next_location : sub_graph.data_ptr_->all_backward_edges_[curr.node_id]) {
                     int new_heuristic_value = curr.value + 1;
                     if (agent_heuristic[next_location] > new_heuristic_value) {
                         agent_heuristic[next_location] = new_heuristic_value;
@@ -388,11 +389,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 };  // used by OPEN (heap) to compare nodes (top of the heap has min f-val, and then highest g-val)
             };
 
-            std::vector<int> retv(sub_graph.all_nodes_.size()/(2*N), MAX<int>);
+            std::vector<int> retv(sub_graph.data_ptr_->all_nodes_.size()/(2*N), MAX<int>);
             // 1, get grid connectivity graph
-            std::vector<bool> c_graph(sub_graph.all_nodes_.size()/(2*N), false);
-            for(int i=0; i<sub_graph.all_nodes_.size(); i++) {
-                if(sub_graph.all_nodes_[i] != nullptr) {
+            std::vector<bool> c_graph(sub_graph.data_ptr_->all_nodes_.size()/(2*N), false);
+            for(int i=0; i<sub_graph.data_ptr_->all_nodes_.size(); i++) {
+                if(sub_graph.data_ptr_->all_nodes_[i] != nullptr) {
 //                    std::cout << "flag 4" << std::endl;
                     c_graph[i/(2*N)] = true;
                 }

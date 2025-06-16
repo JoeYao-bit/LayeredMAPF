@@ -36,7 +36,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                      const std::vector<ConnectivityGraph>& connectivity_graphs,
                                      const std::vector<SubGraphOfAgent<N> >& agent_sub_graphs,
                                      const std::vector<std::vector<int> >& heuristic_tables_sat, // distinguish_sat = true
-                                     const std::vector<std::vector<int> >& heuristic_tables,
                                      double time_limit = 10,
                                      int max_break_count = 1e3,
                                      int max_continue_failure = 50,
@@ -45,7 +44,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                      agent_sub_graphs_(agent_sub_graphs),
                                      connect_graphs_(connectivity_graphs),
                                      heuristic_tables_sat_(heuristic_tables_sat),
-                                     heuristic_tables_(heuristic_tables),
                                      time_limit_(time_limit),
                                      max_break_count_(max_break_count),
                                      max_continue_failure_(max_continue_failure),
@@ -575,7 +573,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                   const std::vector<bool>& passing_agents,
                                   bool distinguish_sat = false,
                                   const std::vector<bool>& ignore_cost_set = {}) const {
-            assert(!heuristic_tables_.empty() && !heuristic_tables_sat_.empty());
+            assert(!heuristic_tables_sat_.empty());
             DependencyPathSearch<N> search_machine;
             /*
              * DependencyPathSearch::search(int agent_id,
@@ -592,16 +590,17 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             assert(connect_graphs_[agent_id].start_hyper_node_ != MAX<size_t>);
             assert(connect_graphs_[agent_id].target_hyper_node_ != MAX<size_t>);
 
-            return search_machine.search(agent_id, connect_graphs_[agent_id].start_hyper_node_,
-                                         this->agent_sub_graphs_[agent_id],
+            return search_machine.search(agent_id,
+                                         this->agent_sub_graphs_[agent_id].start_node_id_,
+                                         this->agent_sub_graphs_[agent_id].target_node_id_,
                                          this->connect_graphs_[agent_id],
                                          avoid_agents, passing_agents,
-                                         distinguish_sat ? heuristic_tables_sat_[agent_id] : heuristic_tables_[agent_id],
-                                         distinguish_sat, ignore_cost_set);
+                                         heuristic_tables_sat_[agent_id],
+                                         true, ignore_cost_set);
         }
 
         // get all levels from all agent's dependency paths
-        Levels getLevelsFromDependencyPaths(const std::map<int, std::set<int> >& all_dependency_paths) const {
+        Levels getLevelsFromDependencyPaths(const std::map<int, std::set<int> >& all_dependency_paths)const {
 
             // 1, get relation between agents
             auto ahead_and_later_sequence = getAheadAndLaterSequence(all_dependency_paths);
@@ -629,8 +628,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<SubGraphOfAgent<N> > agent_sub_graphs_;
 
         std::vector<std::vector<int> > heuristic_tables_sat_; // distinguish_sat = true
-
-        std::vector<std::vector<int> > heuristic_tables_; // distinguish_sat = false
 
         std::set<int> all_agent_id_set_;
 

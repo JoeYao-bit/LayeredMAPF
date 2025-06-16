@@ -30,7 +30,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 visited_agent_ = parent->visited_agent_;
             }
             // if is a agent node, rather than a free group node
-            for(const int& agent_id : graph_.hyper_node_with_agents_[current_node_]) {
+            for(const int& agent_id : graph_.data_ptr_->hyper_node_with_agents_[current_node_]) {
                 if(!ignore_cost_agent_ids.empty() && ignore_cost_agent_ids[agent_id]) { continue; }
                 visited_agent_.insert(distinguish_sat ? agent_id : agent_id/2);
             }
@@ -98,7 +98,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     std::vector<int> calculateLargeAgentHyperGraphStaticHeuristic(int agent_id, DimensionLength* dim, const ConnectivityGraph& graph, bool distinguish_sat = false) {
         // the two table update simultaneously
 
-        std::vector<int> heuristic_table(graph.all_edges_vec_.size(), MAX<int>);
+        std::vector<int> heuristic_table(graph.data_ptr_->all_edges_vec_.size(), MAX<int>);
 
         std::vector<HyperGraphNodeDataPtr<N> > current_set, all_ptr_set;
 
@@ -121,7 +121,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
                 current_h = heuristic_table[node_ptr->current_node_];
 
-                for(const auto& neighbor_node_id : graph.all_edges_vec_backward_[node_ptr->current_node_]) {
+                for(const auto& neighbor_node_id : graph.data_ptr_->all_edges_vec_backward_[node_ptr->current_node_]) {
 
                     HyperGraphNodeDataPtr<N> next_node_data_ptr = new HyperGraphNodeData<N>(neighbor_node_id, node_ptr, graph, distinguish_sat);
                     all_ptr_set.push_back(next_node_data_ptr);
@@ -184,35 +184,39 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         // return all agent involve in the path, if return empty set, considering as find no result
         // distinguish_sat means whether considering
         std::set<int> search(int agent_id,
-                             int start_hyper_node_id,
-                             const SubGraphOfAgent<N>& sub_graph,
+                             const int& start_node_id,
+                             const int& target_node_id,
                              const ConnectivityGraph& con_graph,
                              const std::vector<bool> &avoid_agents,
                              const std::vector<bool> &passing_agents,
                              const std::vector<int>& heuristic_table,
                              bool distinguish_sat = false,
                              const std::vector<bool> & ignore_cost_set = {}) {
-            const auto &start_node_id = con_graph.start_hyper_node_;
-            assert(start_node_id != MAX<size_t>);
+
+            const size_t & start_hyper_node_id = con_graph.start_hyper_node_;
+            const size_t & target_hyper_node_id = con_graph.target_hyper_node_;
+
+
+            assert(start_hyper_node_id != MAX<size_t>);
 
 //            // check whether avoid specific agents
 //            if(!avoid_agents.empty() && (avoid_agents[2*agent_id] || avoid_agents[2*agent_id+1]) ) { return {}; }
 //            // check whether passing specific agents, if passing_agents_ == empty, ignore this constraint
 //            if(!passing_agents.empty() && (!passing_agents[2*agent_id] || !passing_agents[2*agent_id+1])) { return {}; }
 
-            assert(sub_graph.start_node_id_ != MAX<size_t>);
-            assert(sub_graph.target_node_id_ != MAX<size_t>);
+            assert(start_node_id != MAX<size_t>);
+            assert(target_node_id != MAX<size_t>);
 //            std::cout << "depend path search: " << std::endl;
             // check whether start/target avoid specific agents
             if(!avoid_agents.empty()) {
                 //std::cout << " start avoid_agents (" << sub_graph.start_node_id_ << "): ";
-                for(const auto& pa : con_graph.related_agents_map_[sub_graph.start_node_id_]) {
+                for(const auto& pa : con_graph.data_ptr_->related_agents_map_[start_node_id]) {
                     //std::cout << pa << " ";
                     if(avoid_agents[pa]) { return {}; }
                 }
                 //std::cout << std::endl;
                 //std::cout << " target avoid_agents: (" << sub_graph.target_node_id_ << "): ";
-                for(const auto& pa : con_graph.related_agents_map_[sub_graph.target_node_id_]) {
+                for(const auto& pa : con_graph.data_ptr_->related_agents_map_[target_node_id]) {
                     //std::cout << pa << " ";
                     if(avoid_agents[pa]) { return {}; }
                 }
@@ -222,13 +226,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             // check whether start/target passing specific agents
             if(!passing_agents.empty()) {
                 //std::cout << " start passing_agents: (" << sub_graph.start_node_id_ << "): ";
-                for(const auto& pa : con_graph.related_agents_map_[sub_graph.start_node_id_]) {
+                for(const auto& pa : con_graph.data_ptr_->related_agents_map_[start_node_id]) {
                     //std::cout << pa << " ";
                     if(!passing_agents[pa]) { return {}; }
                 }
                 //std::cout << std::endl;
                 //std::cout << " target passing_agents: (" << sub_graph.target_node_id_ << "): ";
-                for(const auto& pa : con_graph.related_agents_map_[sub_graph.target_node_id_]) {
+                for(const auto& pa : con_graph.data_ptr_->related_agents_map_[target_node_id]) {
                     //std::cout << pa << " ";
                     if(!passing_agents[pa]) { return {}; }
                 }
@@ -238,7 +242,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             HyperGraphNodeDataPtr<N> start_node = new HyperGraphNodeData<N>(start_hyper_node_id, nullptr, con_graph, distinguish_sat);
 
             assert(start_node->visited_agent_.size() >= 1);
-            assert(con_graph.hyper_node_with_agents_[con_graph.target_hyper_node_].size() >= 1);
+            assert(con_graph.data_ptr_->hyper_node_with_agents_[con_graph.target_hyper_node_].size() >= 1);
 //            std::cout << "start_node cur and pre " << start_node << " / " << start_node->pa_ << std::endl;
             start_node->h_val_ = heuristic_table[start_hyper_node_id];
             start_node->in_openlist_ = true;
@@ -253,7 +257,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 count ++;
                 auto curr_node = popNode();
                 // check if the popped node is a goal
-                if(curr_node->current_node_ == con_graph.target_hyper_node_) // if current node is belong to an agent
+                if(curr_node->current_node_ == target_hyper_node_id) // if current node is belong to an agent
                 {
                     auto passed_agents = getPassingAgents(curr_node);//curr_node->passed_agents_;
                     // debug
@@ -273,7 +277,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     releaseNodes();
                     return passed_agents;
                 }
-                auto copy_of_neighbor = con_graph.all_edges_vec_[curr_node->current_node_];
+                auto copy_of_neighbor = con_graph.data_ptr_->all_edges_vec_[curr_node->current_node_];
                 // 创建随机数生成器
                 std::random_device rd;       // 真随机数生成器（用于播种）
                 std::mt19937 gen(rd());      // Mersenne Twister 引擎（高效随机）
@@ -285,7 +289,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 {
 
                     bool avoid_failed = false, passing_failed = false;
-                    for(const int& agent_id : con_graph.hyper_node_with_agents_[neighbor_node_id]) {
+                    for(const int& agent_id : con_graph.data_ptr_->hyper_node_with_agents_[neighbor_node_id]) {
                         // check whether avoid specific agents
                         if(!avoid_agents.empty() && avoid_agents[agent_id]) { avoid_failed = true; }
                         // check whether passing specific agents, if passing_agents_ == empty, ignore this constraint

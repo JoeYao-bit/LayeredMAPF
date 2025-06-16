@@ -383,10 +383,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return retv;
     }
 
-    // due to each agent may have different shape, each agent have their own connectivity graph
-    struct ConnectivityGraph {
 
-        explicit ConnectivityGraph(int total_nodes) {
+    struct ConnectivityGraphData {
+
+        explicit ConnectivityGraphData(int total_nodes) {
             hyper_node_id_map_.resize(total_nodes, MAX<size_t>);
         }
 
@@ -404,14 +404,24 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         std::vector<std::vector<size_t> > all_edges_vec_backward_; // each hyper node's connecting node, store in vector
 
-
         std::vector<std::set<size_t> > all_edges_set_; // each hyper node's connecting node, store in set
+
+    };
+
+
+    typedef std::shared_ptr<ConnectivityGraphData> ConnectivityGraphDataPtr;
+
+    // due to each agent may have different shape, each agent have their own connectivity graph
+    struct ConnectivityGraph {
+
+        ConnectivityGraphDataPtr data_ptr_ = nullptr;
 
         size_t start_hyper_node_ = MAX<size_t>; // where is start in the hyper graph
 
         size_t target_hyper_node_ = MAX<size_t>; // where is target in the hyper graph
 
     };
+
 
     // consider static grid map when construct sub graph
     // check each pair of agent to see if they have conflict
@@ -809,16 +819,27 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     using LargeAgentStaticConstraintTablePtr = std::shared_ptr<LargeAgentStaticConstraintTable<N> >;
 
     template<Dimension N>
+    struct SubGraphOfAgentData {
+
+        std::vector<PosePtr<int, N> > all_nodes_;
+        std::vector<std::vector<size_t> > all_edges_;
+        std::vector<std::vector<size_t> > all_backward_edges_;
+    };
+
+    template<Dimension N>
+    using SubGraphOfAgentDataPtr = std::shared_ptr<SubGraphOfAgentData<N> >;
+
+    template<Dimension N>
     struct SubGraphOfAgent {
 
         explicit SubGraphOfAgent(const AgentPtr<N>& agent): agent_(agent) {}
 
+        SubGraphOfAgentDataPtr<N> data_ptr_;
+
         const AgentPtr<N>& agent_;
         size_t start_node_id_ = MAX<size_t>;
         size_t target_node_id_ = MAX<size_t>;
-        std::vector<PosePtr<int, N> > all_nodes_;
-        std::vector<std::vector<size_t> > all_edges_;
-        std::vector<std::vector<size_t> > all_backward_edges_;
+
     };
 
     // input: static occupancy map / current solving problem / previous path as constraints

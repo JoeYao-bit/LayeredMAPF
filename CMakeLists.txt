@@ -111,7 +111,7 @@ aux_source_directory(algorithm/LA-MAPF lamapf_src)
 aux_source_directory(algorithm/constraint_table_CBS constraint_table_src)
 
 add_library(alg_lib  ${EECBS_src} ${PBS_src} ${lacam_src} ${CBSH2-RTC_src} ${lacam2_src} ${lacam3_src}
-        ${MAPF_LNS2_src} ${MAPF_LNS2_CBS_src} ${MAPF_LNS2_PIBT_src} ${PIBT2_src} ${Hybird_MAPF_src} ${alg_src} ${lamapf_src} ${constraint_table_src} algorithm/neighbourhood_search_decomposition/neighborhood_search_decomposition.h)
+        ${MAPF_LNS2_src} ${MAPF_LNS2_CBS_src} ${MAPF_LNS2_PIBT_src} ${PIBT2_src} ${Hybird_MAPF_src} ${alg_src} ${lamapf_src} ${constraint_table_src} algorithm/neighbourhood_search_decomposition/neighborhood_search_decomposition.h algorithm/connectivity_graph_and_subprgraph.h)
 
 aux_source_directory(test/visualization vis_src)
 add_library(vis_lib ${vis_src} ${qt_src})
