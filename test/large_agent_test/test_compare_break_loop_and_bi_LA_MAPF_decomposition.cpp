@@ -13,7 +13,7 @@
 
 using namespace freeNav::LayeredMAPF::LA_MAPF;
 
-void compareLNSAndBiparitionIteratively(const SingleMapTestConfig<2>& map_file, int number_of_agents) {
+void compareLNSAndBiDecompose_LA_MAPF(const SingleMapTestConfig<2>& map_file, int number_of_agents) {
 
     map_test_config = map_file;
     auto loader_local = TextMapLoader(map_test_config.at("map_path"), is_char_occupied1);
@@ -155,7 +155,7 @@ int main() {
     //compareLNSAndBiparitionIteratively(MAPFTestConfig_Berlin_1_256,    150);
 
     // ns / bi max subproblem size(decomposition rate) = 15(0.15) / 28(0.28)
-    compareLNSAndBiparitionIteratively(MAPFTestConfig_maze_128_128_10, 1000);
+    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_maze_128_128_10, 1000);
 
 //    // ns / bi max subproblem size(decomposition rate) = 1(0.00666667) / 1(0.00666667)
 //    compareLNSAndBiparitionIteratively(MAPFTestConfig_den520d,          150);

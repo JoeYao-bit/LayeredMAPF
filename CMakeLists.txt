@@ -184,7 +184,10 @@ target_link_libraries(test_hybird_mapf freeNav-base lamapf_alg)
 add_executable(test_solvability_safe_guard test/large_agent_test/test_solvability_safe_guard.cpp)
 target_link_libraries(test_solvability_safe_guard freeNav-base lamapf_alg)
 
+add_executable(test_compare_break_loop_and_bi_LA_MAPF_decomposition
+        test/large_agent_test/test_compare_break_loop_and_bi_LA_MAPF_decomposition.cpp)
+target_link_libraries(test_compare_break_loop_and_bi_LA_MAPF_decomposition freeNav-base lamapf_alg)
 
-
-add_executable(test_LNS_decomposition test/large_agent_test/test_LNS_decomposition.cpp)
-target_link_libraries(test_LNS_decomposition freeNav-base lamapf_alg)
+add_executable(test_compare_break_loop_and_bi_MAPF_decomposition
+        test/large_agent_test/test_compare_break_loop_and_bi_MAPF_decomposition.cpp)
+target_link_libraries(test_compare_break_loop_and_bi_MAPF_decomposition freeNav-base lamapf_alg)

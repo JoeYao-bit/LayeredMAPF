@@ -28,17 +28,36 @@ namespace freeNav::LayeredMAPF {
                                              heuristic_tables_sat_(heuristic_tables_sat),
                                              heuristic_tables_(heuristic_tables) {
 
+            auto start_t = clock();
+
             for(int i=0; i<connectivity_graphs.size(); i++) {
                 instance_id_set_.insert(i);
             }
-
             instanceDecomposition();
 
+            auto now_t = clock();
+            instance_decomposition_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
+
+
+            start_t = clock();
             clusterDecomposition();
+            now_t = clock();
+            cluster_bipartition_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
 
+            start_t = clock();
             levelSorting();
+            now_t = clock();
+            level_sorting_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
 
+            start_t = clock();
             levelDecomposition();
+            now_t = clock();
+            level_bipartition_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
+
+            std::cout << "-- instance_decomposition_time_cost_ (ms) = " << instance_decomposition_time_cost_ << std::endl;
+            std::cout << "-- cluster_bipartition_time_cost_    (ms) = " << cluster_bipartition_time_cost_ << std::endl;
+            std::cout << "-- level_sorting_time_cost_          (ms) = " << level_sorting_time_cost_ << std::endl;
+            std::cout << "-- level_bipartition_time_cost_      (ms) = " << level_bipartition_time_cost_ << std::endl;
 
         }
 
@@ -1007,6 +1026,14 @@ namespace freeNav::LayeredMAPF {
         std::vector<std::pair<std::set<int>, std::set<int> > > all_level_pre_and_next_;
 
 
+        double time_limit_; // TODO: when run out of time, stop and return current decomposition result
+
+        float instance_decomposition_time_cost_ = 0;
+        float cluster_bipartition_time_cost_    = 0;
+        float level_sorting_time_cost_          = 0;
+        float level_bipartition_time_cost_      = 0;
+
+
     };
 
 
@@ -1023,26 +1050,21 @@ namespace freeNav::LayeredMAPF {
                                                 const std::vector<std::vector<int> >& agents_heuristic_tablesignore_rotate
                                                 ) {
 
-        std::cout << "flag 1" << std::endl;
-
         float max_excircle_radius = getMaximumRadius(agents);
         std::vector<LA_MAPF::AgentPtr<N> > pre_agents;
         std::vector<size_t> pre_targets;
 
-        std::cout << "flag 2" << std::endl;
 
         for(int i=0; i<all_levels.size(); i++) {
             std::vector<LA_MAPF::AgentPtr<N> > cur_agents;
             std::vector<size_t> cur_targets;
 
-            std::cout << "flag 3" << std::endl;
 
             for(const auto& agent_id : all_levels[i]) {
                 cur_agents.push_back(agents[agent_id]);
                 cur_targets.push_back(instance_node_ids[agent_id].second);
             }
 
-            std::cout << "flag 4" << std::endl;
 
             LA_MAPF::LargeAgentStaticConstraintTablePtr<N>
                     new_constraint_table_ptr_ = std::make_shared<LA_MAPF::LargeAgentStaticConstraintTable<N> > (
@@ -1053,7 +1075,6 @@ namespace freeNav::LayeredMAPF {
             pre_agents.insert(pre_agents.end(), cur_agents.begin(), cur_agents.end());
             pre_targets.insert(pre_targets.end(), cur_targets.begin(), cur_targets.end());
 
-            std::cout << "flag 5" << std::endl;
 
             // insert future agents' start as static constraint
             for(int j = i+1; j<all_levels.size(); j++)
@@ -1064,8 +1085,6 @@ namespace freeNav::LayeredMAPF {
                 }
             }
 
-            std::cout << "flag 6" << std::endl;
-
 
             new_constraint_table_ptr_->updateEarliestArriveTimeForAgents(cur_agents, cur_targets);
             for(const auto& agent_id : all_levels[i]) {
@@ -1075,8 +1094,6 @@ namespace freeNav::LayeredMAPF {
                                                                   all_poses,
                                                                   dim,
                                                                   isoc);
-
-                std::cout << "flag 7" << std::endl;
 
                 LA_MAPF::CBS::SpaceTimeAstar<N> solver(instance_node_ids[agent_id].first,
                                                        instance_node_ids[agent_id].second,

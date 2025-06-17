@@ -71,7 +71,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             double time_cost =  ((double)now_t - start_t_)/CLOCKS_PER_SEC;;
 
-            std::cout << "ns finish initial decomposition in " << time_cost << std::endl;
+            std::cout << "ns finish initial decomposition in " << time_cost << "s" << std::endl;
         }
 
 
