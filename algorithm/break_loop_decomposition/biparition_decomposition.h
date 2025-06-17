@@ -9,6 +9,7 @@
 #include "../LA-MAPF/large_agent_dependency_path_search.h"
 
 #include "../algorithm/LA-MAPF/CBS/space_time_astar.h"
+#include "../third_party/EECBS/inc/SpaceTimeAStar.h"
 
 namespace freeNav::LayeredMAPF {
 
@@ -38,16 +39,36 @@ namespace freeNav::LayeredMAPF {
             auto now_t = clock();
             instance_decomposition_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
 
+            // debug
+            for(const auto& level : all_clusters_) {
+                for(const auto& agent_id : level) {
+                    assert(agent_id < agent_sub_graphs_.size());
+                }
+            }
 
             start_t = clock();
             clusterDecomposition();
             now_t = clock();
             cluster_bipartition_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
 
+            // debug
+            for(const auto& level : all_clusters_) {
+                for(const auto& agent_id : level) {
+                    assert(agent_id < agent_sub_graphs_.size());
+                }
+            }
+
             start_t = clock();
             levelSorting();
             now_t = clock();
             level_sorting_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
+
+            // debug
+            for(const auto& level : all_clusters_) {
+                for(const auto& agent_id : level) {
+                    assert(agent_id < agent_sub_graphs_.size());
+                }
+            }
 
             start_t = clock();
             levelDecomposition();
@@ -58,6 +79,13 @@ namespace freeNav::LayeredMAPF {
             std::cout << "-- cluster_bipartition_time_cost_    (ms) = " << cluster_bipartition_time_cost_ << std::endl;
             std::cout << "-- level_sorting_time_cost_          (ms) = " << level_sorting_time_cost_ << std::endl;
             std::cout << "-- level_bipartition_time_cost_      (ms) = " << level_bipartition_time_cost_ << std::endl;
+
+            // debug
+            for(const auto& level : all_clusters_) {
+                for(const auto& agent_id : level) {
+                    assert(agent_id < agent_sub_graphs_.size());
+                }
+            }
 
         }
 
@@ -1038,83 +1066,7 @@ namespace freeNav::LayeredMAPF {
 
 
 
-    template<Dimension N>
-    bool LA_MAPF_DecompositionValidCheckGridMap(const std::vector<std::set<int> >& all_levels,
-                                                DimensionLength* dim,
-                                                const IS_OCCUPIED_FUNC<N>& isoc,
-                                                const LA_MAPF::AgentPtrs<N>& agents,
-                                                const std::vector<std::pair<size_t, size_t> >& instance_node_ids,
-                                                const std::vector<PosePtr<int, N> >& all_poses,
-                                                const std::vector<LA_MAPF::SubGraphOfAgent<N> >& agent_sub_graphs,
-                                                const std::vector<std::vector<int> >& agents_heuristic_tables,
-                                                const std::vector<std::vector<int> >& agents_heuristic_tablesignore_rotate
-                                                ) {
 
-        float max_excircle_radius = getMaximumRadius(agents);
-        std::vector<LA_MAPF::AgentPtr<N> > pre_agents;
-        std::vector<size_t> pre_targets;
-
-
-        for(int i=0; i<all_levels.size(); i++) {
-            std::vector<LA_MAPF::AgentPtr<N> > cur_agents;
-            std::vector<size_t> cur_targets;
-
-
-            for(const auto& agent_id : all_levels[i]) {
-                cur_agents.push_back(agents[agent_id]);
-                cur_targets.push_back(instance_node_ids[agent_id].second);
-            }
-
-
-            LA_MAPF::LargeAgentStaticConstraintTablePtr<N>
-                    new_constraint_table_ptr_ = std::make_shared<LA_MAPF::LargeAgentStaticConstraintTable<N> > (
-                    max_excircle_radius, dim, isoc, agents, cur_agents, all_poses);
-
-            new_constraint_table_ptr_->insertPoses(pre_agents, pre_targets);
-
-            pre_agents.insert(pre_agents.end(), cur_agents.begin(), cur_agents.end());
-            pre_targets.insert(pre_targets.end(), cur_targets.begin(), cur_targets.end());
-
-
-            // insert future agents' start as static constraint
-            for(int j = i+1; j<all_levels.size(); j++)
-            {
-                const auto& current_cluster = all_levels[j];
-                for(const int& agent_id : current_cluster) {
-                    new_constraint_table_ptr_->insertPose(agent_id, instance_node_ids[agent_id].first);
-                }
-            }
-
-
-            new_constraint_table_ptr_->updateEarliestArriveTimeForAgents(cur_agents, cur_targets);
-            for(const auto& agent_id : all_levels[i]) {
-                //                    std::cout << "-- agent " << agent_id << " valid check ... " << std::endl;
-                LA_MAPF::CBS::ConstraintTable<N> constraint_table(agent_id,
-                                                                  agents,
-                                                                  all_poses,
-                                                                  dim,
-                                                                  isoc);
-
-                LA_MAPF::CBS::SpaceTimeAstar<N> solver(instance_node_ids[agent_id].first,
-                                                       instance_node_ids[agent_id].second,
-                                                       agents_heuristic_tables[agent_id],
-                                                       agents_heuristic_tablesignore_rotate[agent_id],
-                                                       agent_sub_graphs[agent_id],
-                                                       constraint_table,
-                                                       nullptr,
-                                                       new_constraint_table_ptr_,
-                                                       nullptr //&connect_graphs_[4] // only in debug !
-                );
-                LA_MAPF::LAMAPF_Path path = solver.solve();
-                if(path.empty()) {
-                    std::cout << "FATAL: cluster " << i << ", agent " << agent_id << " unsolvable after decomposition" << std::endl;
-                    assert(0);
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
 
 }
 

@@ -132,8 +132,8 @@ void startLargeAgentMAPFTest(const std::vector<AgentPtr<N> >& agents, const Inst
         const auto& current_subgraph = lacbs.agent_sub_graphs_[current_subgraph_id];
 
         if(draw_all_subgraph_node) {
-            for (int i = 0; i < current_subgraph.all_nodes_.size(); i++) {
-                const auto &node_ptr = current_subgraph.all_nodes_[i];
+            for (int i = 0; i < current_subgraph.data_ptr_->all_nodes_.size(); i++) {
+                const auto &node_ptr = current_subgraph.data_ptr_->all_nodes_[i];
                 if (node_ptr != nullptr) {
                     canvas.drawGrid(node_ptr->pt_[0], node_ptr->pt_[1], COLOR_TABLE[(current_subgraph_id + 2)%30]);
                 }
@@ -143,14 +143,14 @@ void startLargeAgentMAPFTest(const std::vector<AgentPtr<N> >& agents, const Inst
         //int orient = 0;
         for(int orient=0; orient<4; orient++)
         {
-            auto current_node  = current_subgraph.all_nodes_[id * 4 + orient];
-            auto current_edges = current_subgraph.all_edges_[id * 4 + orient];
+            auto current_node  = current_subgraph.data_ptr_->all_nodes_[id * 4 + orient];
+            auto current_edges = current_subgraph.data_ptr_->all_edges_[id * 4 + orient];
             if (current_node != nullptr) {
                 canvas.drawGrid(current_node->pt_[0], current_node->pt_[1], COLOR_TABLE[1]);
                 for (const auto &edge_id : current_edges) {
-                    if (current_subgraph.all_nodes_[edge_id]->pt_ == pt1) { continue; }
-                    canvas.drawGrid(current_subgraph.all_nodes_[edge_id]->pt_[0],
-                                    current_subgraph.all_nodes_[edge_id]->pt_[1],
+                    if (current_subgraph.data_ptr_->all_nodes_[edge_id]->pt_ == pt1) { continue; }
+                    canvas.drawGrid(current_subgraph.data_ptr_->all_nodes_[edge_id]->pt_[0],
+                                    current_subgraph.data_ptr_->all_nodes_[edge_id]->pt_[1],
                                     COLOR_TABLE[2]);
                 }
             }
@@ -740,12 +740,12 @@ void InstanceDecompositionVisualization(const LargeAgentMAPFInstanceDecompositio
                 std::set<int> related_agents;
                 for(int orient=0; orient<4; orient++) {
                     node_id = i*4  + orient;
-                    for(const int& related_agent : hyper_graph.related_agents_map_[node_id]) {
+                    for(const int& related_agent : hyper_graph.data_ptr_->related_agents_map_[node_id]) {
                         related_agents.insert(related_agent);
                     }
                 }
                 const auto& subgraph = decomposer.agent_sub_graphs_[current_subgraph_id];
-                if(subgraph.all_nodes_[node_id] == nullptr) { continue; }
+                if(subgraph.data_ptr_->all_nodes_[node_id] == nullptr) { continue; }
                 std::stringstream ss;
                 ss << "r: ";
                 for(const int& related_agent : related_agents) {
@@ -761,12 +761,12 @@ void InstanceDecompositionVisualization(const LargeAgentMAPFInstanceDecompositio
                 std::set<int> hyper_nodes; // a point have four direction, may be more than one
                 for(int orient=0; orient<4; orient++) {
                     node_id = i*4  + orient;
-                    if(hyper_graph.hyper_node_id_map_[node_id] != MAX<size_t>) {
-                        hyper_nodes.insert(hyper_graph.hyper_node_id_map_[node_id]);
+                    if(hyper_graph.data_ptr_->hyper_node_id_map_[node_id] != MAX<size_t>) {
+                        hyper_nodes.insert(hyper_graph.data_ptr_->hyper_node_id_map_[node_id]);
                     }
                 }
                 const auto& subgraph = decomposer.agent_sub_graphs_[current_subgraph_id];
-                if(subgraph.all_nodes_[node_id] == nullptr) { continue; }
+                if(subgraph.data_ptr_->all_nodes_[node_id] == nullptr) { continue; }
                 std::stringstream ss;
                 ss << "n: ";
                 for(const int& related_agent : hyper_nodes) {
@@ -785,10 +785,10 @@ void InstanceDecompositionVisualization(const LargeAgentMAPFInstanceDecompositio
                 std::set<int> heuristic_values; // a point have four direction, may be more than one
                 for(int orient=0; orient<4; orient++) {
                     node_id = i*4  + orient;
-                    if(subgraph.all_nodes_[node_id] == nullptr) { continue; }
-                    if(hyper_graph.hyper_node_id_map_[node_id] == MAX<size_t>) { continue; }
-                    if(heuristic_table[hyper_graph.hyper_node_id_map_[node_id]] != MAX<int>) {
-                        heuristic_values.insert(heuristic_table[hyper_graph.hyper_node_id_map_[node_id]]);
+                    if(subgraph.data_ptr_->all_nodes_[node_id] == nullptr) { continue; }
+                    if(hyper_graph.data_ptr_->hyper_node_id_map_[node_id] == MAX<size_t>) { continue; }
+                    if(heuristic_table[hyper_graph.data_ptr_->hyper_node_id_map_[node_id]] != MAX<int>) {
+                        heuristic_values.insert(heuristic_table[hyper_graph.data_ptr_->hyper_node_id_map_[node_id]]);
                     }
                 }
                 if(heuristic_values.empty()) { continue; }

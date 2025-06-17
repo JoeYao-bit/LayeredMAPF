@@ -755,6 +755,156 @@ namespace freeNav::LayeredMAPF {
         float initialize_time_cost_ = 0;
 
     };
+
+
+
+    template<Dimension N>
+    bool LA_MAPF_DecompositionValidCheckGridMap(const std::vector<std::set<int> >& all_levels,
+                                                DimensionLength* dim,
+                                                const IS_OCCUPIED_FUNC<N>& isoc,
+                                                const LA_MAPF::AgentPtrs<N>& agents,
+                                                const std::vector<std::pair<size_t, size_t> >& instance_node_ids,
+                                                const std::vector<PosePtr<int, N> >& all_poses,
+                                                const std::vector<LA_MAPF::SubGraphOfAgent<N> >& agent_sub_graphs,
+                                                const std::vector<std::vector<int> >& agents_heuristic_tables,
+                                                const std::vector<std::vector<int> >& agents_heuristic_tablesignore_rotate
+    ) {
+
+        float max_excircle_radius = getMaximumRadius(agents);
+        std::vector<LA_MAPF::AgentPtr<N> > pre_agents;
+        std::vector<size_t> pre_targets;
+
+
+        for(int i=0; i<all_levels.size(); i++) {
+            std::vector<LA_MAPF::AgentPtr<N> > cur_agents;
+            std::vector<size_t> cur_targets;
+
+
+            for(const auto& agent_id : all_levels[i]) {
+                cur_agents.push_back(agents[agent_id]);
+                cur_targets.push_back(instance_node_ids[agent_id].second);
+            }
+
+
+            LA_MAPF::LargeAgentStaticConstraintTablePtr<N>
+                    new_constraint_table_ptr_ = std::make_shared<LA_MAPF::LargeAgentStaticConstraintTable<N> > (
+                    max_excircle_radius, dim, isoc, agents, cur_agents, all_poses);
+
+            new_constraint_table_ptr_->insertPoses(pre_agents, pre_targets);
+
+            pre_agents.insert(pre_agents.end(), cur_agents.begin(), cur_agents.end());
+            pre_targets.insert(pre_targets.end(), cur_targets.begin(), cur_targets.end());
+
+
+            // insert future agents' start as static constraint
+            for(int j = i+1; j<all_levels.size(); j++)
+            {
+                const auto& current_cluster = all_levels[j];
+                for(const int& agent_id : current_cluster) {
+                    new_constraint_table_ptr_->insertPose(agent_id, instance_node_ids[agent_id].first);
+                }
+            }
+
+
+            new_constraint_table_ptr_->updateEarliestArriveTimeForAgents(cur_agents, cur_targets);
+            for(const auto& agent_id : all_levels[i]) {
+                //                    std::cout << "-- agent " << agent_id << " valid check ... " << std::endl;
+                LA_MAPF::CBS::ConstraintTable<N> constraint_table(agent_id,
+                                                                  agents,
+                                                                  all_poses,
+                                                                  dim,
+                                                                  isoc);
+
+                LA_MAPF::CBS::SpaceTimeAstar<N> solver(instance_node_ids[agent_id].first,
+                                                       instance_node_ids[agent_id].second,
+                                                       agents_heuristic_tables[agent_id],
+                                                       agents_heuristic_tablesignore_rotate[agent_id],
+                                                       agent_sub_graphs[agent_id],
+                                                       constraint_table,
+                                                       nullptr,
+                                                       new_constraint_table_ptr_,
+                                                       nullptr //&connect_graphs_[4] // only in debug !
+                );
+                LA_MAPF::LAMAPF_Path path = solver.solve();
+                if(path.empty()) {
+                    std::cout << "FATAL: cluster " << i << ", agent " << agent_id << " unsolvable after decomposition" << std::endl;
+                    assert(0);
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    template<Dimension N>
+    bool isMAPFInstanceSolvable(const Pointi<N>& start_pt, const Pointi<N>& target_pt, const IS_OCCUPIED_FUNC<N>& isoc, DimensionLength* dim) {
+        Pointis<N> neighbors = GetNearestOffsetGrids<N>();
+
+        Id total_index = getTotalIndexOfSpace<N>(dim);
+
+        std::vector<bool> visited(total_index, false);
+        std::vector<Pointi<N> > buffer = {start_pt}, next_buffer;
+        visited[PointiToId<N>(start_pt, dim)] = true;
+
+        while (!buffer.empty()) {
+            next_buffer.clear();
+            for(const Pointi<N>& pt : buffer) {
+                for(const Pointi<N>& offset : neighbors) {
+                    Pointi<N> new_pt = pt + offset;
+                    if(isoc(new_pt)) { continue; }
+                    if(new_pt == target_pt) {
+                        return true;
+                    }
+                    Id new_id = PointiToId<N>(new_pt, dim);
+                    if(visited[new_id]) { continue; }
+                    visited[new_id] = true;
+                    next_buffer.push_back(new_pt);
+                }
+            }
+            std::swap(buffer, next_buffer);
+        }
+        return false;
+    }
+
+    template<Dimension N>
+    bool MAPF_DecompositionValidCheckGridMap(const Instances<N>& instances,
+                                             const std::vector<std::set<int> >& all_levels,
+                                             DimensionLength* dim,
+                                             const IS_OCCUPIED_FUNC<N>& isoc) {
+
+        for(int i=0; i<all_levels.size(); i++) {
+            Id total_index = getTotalIndexOfSpace<N>(dim);
+            std::vector<bool> avoid_locs(total_index, false);
+
+            for(int j = 0; j<all_levels.size(); j++)
+            {
+                if(j == i) continue;
+                const auto& current_level = all_levels[j];
+                for(const int& agent_id : current_level) {
+                    Id id;
+                    if(j < i) {
+                        id = PointiToId(instances[agent_id].second, dim);
+                    } else {
+                        id = PointiToId(instances[agent_id].first, dim);
+                    }
+                    avoid_locs[id] = true;
+                }
+            }
+
+            auto new_isoc = [&](const Pointi<N> & pt) -> bool {
+                if(isOutOfBoundary(pt, dim)) { return true; }
+                return isoc(pt) || avoid_locs[PointiToId(pt, dim)];
+            };
+
+            for(const int& agent_id : all_levels[i]) {
+                if(!isMAPFInstanceSolvable<N>(instances[agent_id].first, instances[agent_id].second, new_isoc, dim)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
 }
 
 #endif //LAYEREDMAPF_CONNECTIVITY_GRAPH_AND_SUBPRGRAPH_H
