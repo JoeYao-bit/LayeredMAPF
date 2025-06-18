@@ -133,10 +133,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     count_of_continue_failure ++;
                 }
 
-//                if(count_of_continue_failure > max_continue_failure_) {
-//                    i_th_largest_level ++;
-//                    count_of_continue_failure = 0;
-//                }
+                if(count_of_continue_failure > max_continue_failure_) {
+                    i_th_largest_level ++;
+                    count_of_continue_failure = 0;
+                }
 
                 count_of_break ++;
             }
@@ -324,7 +324,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             size_t old_max_level_size = max_level.second.size();
             auto new_max_level = getMaxLevel(new_levels, th_largest_level);
 
-            std::cout << "break loop at agent " << agent_id << " success " << std::endl;
+            //std::cout << "break loop at agent " << agent_id << " success " << std::endl;
             //std::cout << "old_max_level = " << max_level.second << std::endl;
             //std::cout << "new_max_level = " << new_max_level.second << std::endl;
             std::cout << th_largest_level << " th largest level, " << iter_count << " iter, update: new/old max_level_size = " << new_max_level.second.size() << " / " << old_max_level_size << std::endl;

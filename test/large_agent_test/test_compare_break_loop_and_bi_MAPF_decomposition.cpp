@@ -19,6 +19,8 @@ using namespace freeNav::LayeredMAPF;
 
 void compareLNSAndBiDecompose_MAPF(const SingleMapTestConfig<2>& map_file, int number_of_agents) {
 
+    std::cout << "load map from " << map_test_config.at("map_path") << std::endl;
+
     map_test_config = map_file;
     auto loader_local = TextMapLoader(map_test_config.at("map_path"), is_char_occupied1);
 
@@ -45,17 +47,9 @@ void compareLNSAndBiDecompose_MAPF(const SingleMapTestConfig<2>& map_file, int n
         istss.push_back(ists);
     }
 
-    PrecomputationOfMAPF<2> pre(istss.front(), dim_local, is_occupied_local);
+    PrecomputationOfMAPF<2> pre(istss.front(), dim_local, is_occupied_local, true);
 
     auto start_t = clock();
-
-//    auto bi_decompose = std::make_shared<LargeAgentMAPFInstanceDecomposition<2> >(agent_and_instances.front().second,
-//                                                                                  agent_and_instances.front().first,
-//                                                                                  dim_local,
-//                                                                                  is_occupied_local,
-//                                                                                  true,
-//                                                                                  4,
-//                                                                                  true);
 
     auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBipartition<2> >(dim_local,
                                                                                    pre.connect_graphs_,
@@ -69,8 +63,6 @@ void compareLNSAndBiDecompose_MAPF(const SingleMapTestConfig<2>& map_file, int n
     bool is_bi_valid = MAPF_DecompositionValidCheckGridMap<2>(istss.front(), bi_decompose->all_clusters_,
                                                               dim_local, is_occupied_local);
 
-//    bool is_bi_valid = bi_decompose->decompositionValidCheckGridMap(bi_decompose->all_clusters_);
-
     std::cout << "biparition finish in " << total_time_cost <<  "s, valid = " << is_bi_valid << std::endl;
     std::cout << "biparition max subproblem = " << getMaxLevelSize(bi_decompose->all_clusters_) << std::endl;
 
@@ -81,8 +73,8 @@ void compareLNSAndBiDecompose_MAPF(const SingleMapTestConfig<2>& map_file, int n
                                                                                  pre.connect_graphs_,
                                                                                  pre.agent_sub_graphs_,
                                                                                  pre.heuristic_tables_sat_,
-                                                                                 100,
-                                                                                 1000,
+                                                                                 200,
+                                                                                 1e4,
                                                                                  50,
                                                                                  1);
 
@@ -111,29 +103,50 @@ void compareLNSAndBiDecompose_MAPF(const SingleMapTestConfig<2>& map_file, int n
 int main() {
 //TEST(simple_test, LNS_decomposition) {
 
-    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_Paris_1_256,     1000);
+    // ns / bi max subproblem size(decomposition rate) = 66(0.55) / 78(0.65)
+    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_empty_16_16,     120);
 
-//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_empty_48_48,     1000);
+    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_empty_32_32,     400);
 
-    //compareLNSAndBiDecompose_MAPF(MAPFTestConfig_Berlin_1_256,    1000);
+    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_32_32_2,     120);
 
-    //compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_128_128_10, 1000);
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_32_32_4,    260);
+//
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_128_128_2,   700);
+//
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_128_128_10,  1000);
+//
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_den312d,          800);
+//
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_den520d,     900);
+//
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_ht_chantry,     1000);
+//
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_lak303d,         1000);
 
-    //compareLNSAndBiDecompose_MAPF(MAPFTestConfig_den520d,          1000);
-
-    //compareLNSAndBiDecompose_MAPF(MAPFTestConfig_ost003d,          100);
-
-    //compareLNSAndBiDecompose_MAPF(MAPFTestConfig_Boston_2_256,     150);
-
-    //compareLNSAndBiDecompose_MAPF(MAPFTestConfig_Sydney_2_256,     150);
-
-    //compareLNSAndBiDecompose_MAPF(MAPFTestConfig_AR0044SR,         50);
-
-    //compareLNSAndBiDecompose_MAPF(MAPFTestConfig_AR0203SR,         50);
-
-    //compareLNSAndBiDecompose_MAPF(MAPFTestConfig_AR0072SR,         80);
-
-    //compareLNSAndBiDecompose_MAPF(MAPFTestConfig_Denver_2_256,     150);
+    // 13,
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_random_32_32_20,         250);
+//
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_random_64_64_10,         1000);
+//
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_room_32_32_4,     200);
+//
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_room_64_64_16,     1000);
+//
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_warehouse_10_20_10_2_1,     800);
+//
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_warehouse_10_20_10_2_2,     1000);
+//
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_warehouse_20_40_10_2_1,     1000);
+//
+//    //
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_warehouse_20_40_10_2_2,     1000);
+//
+//    //
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_lt_gallowstemplar_n,     1000);
+//
+//    //
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_ost003d,     1000);
 
 }
 

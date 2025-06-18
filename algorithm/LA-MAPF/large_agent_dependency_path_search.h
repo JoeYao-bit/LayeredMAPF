@@ -98,6 +98,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     std::vector<int> calculateLargeAgentHyperGraphStaticHeuristic(int agent_id, DimensionLength* dim, const ConnectivityGraph& graph, bool distinguish_sat = false) {
         // the two table update simultaneously
 
+        std::cout << __FUNCTION__ << "graph.nodes size = " << graph.data_ptr_->all_edges_set_.size() << std::endl;
+
         std::vector<int> heuristic_table(graph.data_ptr_->all_edges_vec_.size(), MAX<int>);
 
         std::vector<HyperGraphNodeDataPtr<N> > current_set, all_ptr_set;
@@ -114,7 +116,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         int current_h, next_h;
 
         int count = 0;
+        int count_set = 0;
         while(!current_set.empty()) {
+            count_set += current_set.size();
 //            std::cout << "current_set.size " << current_set.size() << std::endl;
             std::vector<HyperGraphNodeDataPtr<N> > next_set;
             for(const auto& node_ptr : current_set) {
@@ -148,8 +152,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         assert(heuristic_table[graph.target_hyper_node_] != MAX<int>);
         assert(heuristic_table[graph.start_hyper_node_]  != MAX<int>);
 
+        std::cout << "count_set = " << count_set << std::endl;
+
         return heuristic_table;
     }
+
 
     template<Dimension N>
     struct DependencyPathSearch {

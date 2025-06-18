@@ -83,7 +83,7 @@ void compareLNSAndBiDecompose_LA_MAPF(const SingleMapTestConfig<2>& map_file, in
                                                                                  pre.agent_sub_graphs_,
                                                                                  pre.heuristic_tables_sat_,
                                                                                  2,
-                                                                                 1000,
+                                                                                 1e4,
                                                                                  50,
                                                                                  1);
 
@@ -92,7 +92,7 @@ void compareLNSAndBiDecompose_LA_MAPF(const SingleMapTestConfig<2>& map_file, in
     now_t = clock();
 
     bool is_ns_valid = LA_MAPF_DecompositionValidCheckGridMap<2>(ns_decompose->all_levels_,
-                                                                 dim,
+                                                                 dim_local,
                                                                  is_occupied_local,
                                                                  agent_and_instances.front().first,
                                                                  pre.instance_node_ids_,
@@ -145,41 +145,41 @@ TEST(getMaxLevel, test) {
 int main() {
 //TEST(simple_test, LNS_decomposition) {
 
-//    // ns / bi max subproblem size(decomposition rate) = 1(0.00666667) / 1(0.00666667)
-//    compareLNSAndBiparitionIteratively(MAPFTestConfig_Paris_1_256,     150);
+    // ns / bi max subproblem size(decomposition rate) = 1(0.00555556) / 1(0.00555556)
+    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_Paris_1_256,     1000);
 
-    // ns / bi max subproblem size(decomposition rate) = 1(0.0166667) / 15(0.25)
-    //compareLNSAndBiparitionIteratively(MAPFTestConfig_empty_48_48,     60);
+    // ns / bi max subproblem size(decomposition rate) = 33(0.55) / 43(0.716667)
+    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_empty_48_48,     1000);
 
-    // ns / bi max subproblem size(decomposition rate) = 1(0.00666667) / 1(0.00666667)
-    //compareLNSAndBiparitionIteratively(MAPFTestConfig_Berlin_1_256,    150);
+    // ns / bi max subproblem size(decomposition rate) = 1(0.00714286) / 3(0.0214286)
+    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_Berlin_1_256,    1000);
 
-    // ns / bi max subproblem size(decomposition rate) = 15(0.15) / 28(0.28)
+    // ns / bi max subproblem size(decomposition rate) = 62(0.62) / 62(0.62)
     compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_maze_128_128_10, 1000);
 
-//    // ns / bi max subproblem size(decomposition rate) = 1(0.00666667) / 1(0.00666667)
-//    compareLNSAndBiparitionIteratively(MAPFTestConfig_den520d,          150);
-//
-//    // ns / bi max subproblem size(decomposition rate) = 1(0.01) / 2(0.02)
-//    compareLNSAndBiparitionIteratively(MAPFTestConfig_ost003d,          100);
-//
-//    // ns / bi max subproblem size(decomposition rate) = 1(0.00666667) / 1(0.00666667)
-//    compareLNSAndBiparitionIteratively(MAPFTestConfig_Boston_2_256,     150);
-//
-//    // ns / bi max subproblem size(decomposition rate) = 1(0.00666667) / 1(0.00666667)
-//    compareLNSAndBiparitionIteratively(MAPFTestConfig_Sydney_2_256,     150);
+    // ns / bi max subproblem size(decomposition rate) = 1(0.00714286) / 1(0.00714286)
+    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_den520d,          1000);
 
-    // ns / bi max subproblem size(decomposition rate) = 1(0.02) / 1(0.02)
-    //compareLNSAndBiparitionIteratively(MAPFTestConfig_AR0044SR,         50);
+    // ns / bi max subproblem size(decomposition rate) = 1(0.01) / 3(0.03)
+    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_ost003d,          1000);
 
-    // ns / bi max subproblem size(decomposition rate) = 5(0.1) / 5(0.1)
-    //compareLNSAndBiparitionIteratively(MAPFTestConfig_AR0203SR,         50);
+    // ns / bi max subproblem size(decomposition rate) = 1(0.0142857) / 1(0.0142857)
+    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_Boston_2_256,     1000);
 
-    // ns / bi max subproblem size(decomposition rate) = 1(0.0125) / 1(0.0125)
-    //compareLNSAndBiparitionIteratively(MAPFTestConfig_AR0072SR,         80);
+    // ns / bi max subproblem size(decomposition rate) = 1(0.0142857) / 1(0.0142857)
+    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_Sydney_2_256,     1000);
 
-    // ns / bi max subproblem size(decomposition rate) = 1(0.00666667) / 1(0.00666667)
-    //compareLNSAndBiparitionIteratively(MAPFTestConfig_Denver_2_256,     150);
+    // ns / bi max subproblem size(decomposition rate) = 1(0.02) / 3(0.06)
+    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_AR0044SR,         1000);
+
+    // ns / bi max subproblem size(decomposition rate) = 7(0.175) / 23(0.575)
+    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_AR0203SR,         1000);
+
+    // ns / bi max subproblem size(decomposition rate) = 1(0.0333333) / 1(0.0333333)
+    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_AR0072SR,         1000);
+
+    //ns / bi max subproblem size(decomposition rate) = 1(0.0125) / 1(0.0125)
+    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_Denver_2_256,     1000);
 
 }
 
