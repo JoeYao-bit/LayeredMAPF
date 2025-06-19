@@ -55,7 +55,8 @@ void compareLNSAndBiDecompose_MAPF(const SingleMapTestConfig<2>& map_file, int n
                                                                                    pre.connect_graphs_,
                                                                                    pre.agent_sub_graphs_,
                                                                                    pre.heuristic_tables_sat_,
-                                                                                   pre.heuristic_tables_);
+                                                                                   pre.heuristic_tables_,
+                                                                                   20);
 
     auto now_t = clock();
     double total_time_cost = ((double)now_t - start_t)/CLOCKS_PER_SEC;
@@ -75,7 +76,7 @@ void compareLNSAndBiDecompose_MAPF(const SingleMapTestConfig<2>& map_file, int n
                                                                                  pre.heuristic_tables_sat_,
                                                                                  20,
                                                                                  1e4,
-                                                                                 50,
+                                                                                 100,
                                                                                  1);
 
     ns_decompose->breakMaxLoopIteratively();
@@ -104,49 +105,49 @@ int main() {
 //TEST(simple_test, LNS_decomposition) {
 
     // ns / bi max subproblem size(decomposition rate) = 66(0.55) / 78(0.65)
-//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_empty_16_16,     120);
+    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_empty_16_16,     120);
 
     compareLNSAndBiDecompose_MAPF(MAPFTestConfig_empty_32_32,     400);
-//
-//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_32_32_2,     120);
 
-//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_32_32_4,    260);
-//
-//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_128_128_2,   700);
-//
-//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_128_128_10,  1000);
-//
-//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_den312d,          800);
-//
-//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_den520d,     900);
-//
-//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_ht_chantry,     1000);
-//
-//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_lak303d,         1000);
+    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_32_32_2,     120);
+
+    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_32_32_4,    260);
+
+    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_128_128_2,   700);
+
+    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_128_128_10,  1000);
+
+    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_den312d,          800);
+
+    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_den520d,     900);
+
+    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_ht_chantry,     1000);
+
+    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_lak303d,         1000);
 
     // 13,
-//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_random_32_32_20,         250);
-//
-//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_random_64_64_10,         1000);
-//
-//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_room_32_32_4,     200);
-//
-//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_room_64_64_16,     1000);
-//
-//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_warehouse_10_20_10_2_1,     800);
-//
-//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_warehouse_10_20_10_2_2,     1000);
-//
-//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_warehouse_20_40_10_2_1,     1000);
-//
-//    //
-//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_warehouse_20_40_10_2_2,     1000);
-//
-//    //
-//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_lt_gallowstemplar_n,     1000);
-//
-//    //
-//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_ost003d,     1000);
+    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_random_32_32_20,         250);
+
+    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_random_64_64_10,         1000);
+
+    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_room_32_32_4,     200);
+
+    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_room_64_64_16,     1000);
+
+    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_warehouse_10_20_10_2_1,     800);
+
+    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_warehouse_10_20_10_2_2,     1000);
+
+    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_warehouse_20_40_10_2_1,     1000);
+
+    //
+    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_warehouse_20_40_10_2_2,     1000);
+
+    //
+    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_lt_gallowstemplar_n,     1000);
+
+    //
+    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_ost003d,     1000);
 
 }
 

@@ -27,48 +27,43 @@ namespace freeNav::LayeredMAPF {
                                              agent_sub_graphs_(agent_sub_graphs),
                                              connect_graphs_(connectivity_graphs),
                                              heuristic_tables_sat_(heuristic_tables_sat),
-                                             heuristic_tables_(heuristic_tables) {
-
-            auto start_t = clock();
-
-            for(int i=0; i<connectivity_graphs.size(); i++) {
+                                             heuristic_tables_(heuristic_tables),
+                                             time_limit_(time_limit) {
+            start_t_ = clock();
+            for(int i=0; i<connect_graphs_.size(); i++) {
                 instance_id_set_.insert(i);
             }
-            instanceDecomposition();
+            all_clusters_ = {instance_id_set_};
+            bipartition();
 
+            // debug: check whether every agent occur once and only once in all subproblems
+            std::vector<bool> occured_flag(connectivity_graphs.size(), false);
+            for(const auto& cluster : all_clusters_) {
+                for(const auto& agent_id : cluster) {
+                    assert(!occured_flag[agent_id]);
+                    occured_flag[agent_id] = true;
+                }
+            }
+            assert(occured_flag == std::vector<bool>(connectivity_graphs.size(), true));
+        }
+
+        void bipartition() {
+
+            auto start_t = clock();
+            instanceDecomposition();
             auto now_t = clock();
             instance_decomposition_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
 
-            // debug
-            for(const auto& level : all_clusters_) {
-                for(const auto& agent_id : level) {
-                    assert(agent_id < agent_sub_graphs_.size());
-                }
-            }
 
             start_t = clock();
             clusterDecomposition();
             now_t = clock();
             cluster_bipartition_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
 
-            // debug
-            for(const auto& level : all_clusters_) {
-                for(const auto& agent_id : level) {
-                    assert(agent_id < agent_sub_graphs_.size());
-                }
-            }
-
             start_t = clock();
             levelSorting();
             now_t = clock();
             level_sorting_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
-
-            // debug
-            for(const auto& level : all_clusters_) {
-                for(const auto& agent_id : level) {
-                    assert(agent_id < agent_sub_graphs_.size());
-                }
-            }
 
             start_t = clock();
             levelDecomposition();
@@ -80,20 +75,12 @@ namespace freeNav::LayeredMAPF {
             std::cout << "-- level_sorting_time_cost_          (ms) = " << level_sorting_time_cost_ << std::endl;
             std::cout << "-- level_bipartition_time_cost_      (ms) = " << level_bipartition_time_cost_ << std::endl;
 
-            // debug
-            for(const auto& level : all_clusters_) {
-                for(const auto& agent_id : level) {
-                    assert(agent_id < agent_sub_graphs_.size());
-                }
-            }
-
         }
-
 
         std::map<int, std::set<int> > searchUnAvoidSATForEachAgent(const std::map<int, std::set<int> >& all_passing_agent,
                                                                    const std::set<int>& instance_id_set,
                                                                    const std::set<int>& external_pre,
-                                                                   const std::set<int>& external_next) const {
+                                                                   const std::set<int>& external_next) {
             std::map<int, std::set<int> > all_unavoidable_agent;
             std::vector<bool> within_set = AgentIdsToSATID(instance_id_set);
             // set external_pre's start to passable
@@ -229,6 +216,7 @@ namespace freeNav::LayeredMAPF {
                 assert(agents.size() == level_pair.first.size() + level_pair.second.size());
                 int count_of_first_step = 0;
                 while (1) {
+                    if(run_ot_of_time) { return {agents, {}}; }
 //                    std::cout << "flag 2" << std::endl;
                     count_of_first_step ++;
                     std::vector<bool> local_avoid_set(2*this->connect_graphs_.size(), false);
@@ -254,6 +242,7 @@ namespace freeNav::LayeredMAPF {
 //                std::cout << "flag 3" << std::endl;
 
                 while (1) {
+                    if(run_ot_of_time) { return {agents, {}}; }
 //                    std::cout << "flag 4" << std::endl;
 //                    std::cout << "level.first = " << level_pair.first << " / level.second = " << level_pair.second << std::endl;
                     count_of_second_step ++;
@@ -359,11 +348,13 @@ namespace freeNav::LayeredMAPF {
         }
 
         void levelDecomposition() {
+            if(run_ot_of_time) { return; }
             std::vector<std::set<int> > all_clusters;
             auto cluster_of_agents = all_clusters_;
             int count_top_cluster = 0;
             std::set<int> buffer_agents;
             for(int i=0; i<cluster_of_agents.size(); i++) {
+                if(run_ot_of_time) { return; }
                 const auto& top_cluster = cluster_of_agents[i];
                 assert(top_cluster.size() >= 1);
                 if(top_cluster.size() == 1) {
@@ -383,6 +374,7 @@ namespace freeNav::LayeredMAPF {
                     //if(count_top_cluster == 1)
                     {
                         while (buffer_agents.size() > 1) {
+                            if(run_ot_of_time) { return; }
 //                            std::cout << "start biPartition of level: " << buffer_agents << std::endl;
                             auto agents_pair = biPartitionLevel(buffer_agents, external_pre, external_next);
                             std::swap(buffer_agents, agents_pair.second);
@@ -402,11 +394,13 @@ namespace freeNav::LayeredMAPF {
         }
 
         void clusterDecomposition() {
+            if(run_ot_of_time) { return; }
             std::vector<std::set<int> > all_clusters;
             auto cluster_of_agents = all_clusters_;
             int count_top_cluster = 0;
             std::set<int> buffer_agents;
             for(const auto& top_cluster : cluster_of_agents) {
+                if(run_ot_of_time) { return; }
                 if(top_cluster.size() < 2) {
                     // add small clusters at this stage to all_clusters, no need to join further bi-partition
                     all_clusters.push_back(top_cluster);
@@ -418,6 +412,7 @@ namespace freeNav::LayeredMAPF {
                     //if(count_top_cluster == 1)
                     {
                         while (buffer_agents.size() > 1) {
+                            if(run_ot_of_time) { return; }
                             auto agents_pair = biPartitionCluster(buffer_agents);
                             std::swap(buffer_agents, agents_pair.second);
                             all_clusters.push_back(agents_pair.first);
@@ -484,6 +479,7 @@ namespace freeNav::LayeredMAPF {
             int count_of_phase = 0;
             while(1) {
                 while (1) {
+                    if(run_ot_of_time) { return {agents, {}}; }
                     auto retv = clusterIndependentCheck(cluster_pair.second);
                     std::set<int> keep_in_remaining = retv.first, move_to_unavoid = retv.second;
                     // move agent that cannot stay in remaining set to unavoidable set
@@ -497,6 +493,7 @@ namespace freeNav::LayeredMAPF {
                 // till here, the remaining set is independent, it related no external agent to keep completeness
                 std::set<int> specific_set_unavoidable = {};
                 while (1) {
+                    if(run_ot_of_time) { return {agents, {}}; }
                     // when add new agent to unavoidable set, only check new added agent, to save time
                     auto retv = clusterIndependentCheck(cluster_pair.first, specific_set_unavoidable);
                     specific_set_unavoidable.clear();
@@ -563,7 +560,8 @@ namespace freeNav::LayeredMAPF {
         // input: instance_id_set: all agent in current cluster
         //        all_passing_agent: all path of current cluster
         std::map<int, std::set<int> > searchUnAvoidAgentForEachAgent(
-                const std::map<int, std::set<int> >& all_passing_agent, const std::set<int>& instance_id_set, bool distinguish_sat = false) const {
+                const std::map<int, std::set<int> >& all_passing_agent,
+                const std::set<int>& instance_id_set, bool distinguish_sat = false)  {
             std::map<int, std::set<int> > all_unavoidable_agent;
             std::vector<bool> within_set = AgentIdsToSATID(instance_id_set);
             for(const auto& id_agent_pair : all_passing_agent) {
@@ -597,7 +595,7 @@ namespace freeNav::LayeredMAPF {
         // a cluster is split into multiple time indexed level
         // each level may have one or multiple agent
         // by update sat path of agents
-        std::vector<std::set<int> >  clusterDecomposeToLevel(const std::set<int>& cluster, bool active_loop_avoidance = false) const {
+        std::vector<std::set<int> >  clusterDecomposeToLevel(const std::set<int>& cluster, bool active_loop_avoidance = false) {
             // 1, get each agent's sat path
             std::map<int, std::set<int> > all_agents_path;
             // search path which length is in an increasing order
@@ -835,12 +833,14 @@ namespace freeNav::LayeredMAPF {
         }
 
         void levelSorting() {
+            if(run_ot_of_time) { return; }
             // decompose each cluster into multiple time indexed sequence
             // cluster decomposition into level
             all_level_pre_and_next_.clear();
             all_level_pre_and_next_.reserve(connect_graphs_.size()); // maximum number of levels
             std::vector<std::set<int> > all_levels_;
             for(const auto& cluster : all_clusters_) {
+                if(run_ot_of_time) { return; }
                 if(cluster.size() > 1) {
                     auto current_levels = clusterDecomposeToLevel(cluster);
                     all_levels_.insert(all_levels_.end(), current_levels.begin(), current_levels.end());
@@ -908,7 +908,7 @@ namespace freeNav::LayeredMAPF {
 
         // an instance is split into multiple un-realted cluster
         void instanceDecomposition() {
-
+            if(run_ot_of_time) { return; }
             // decompose the whole instance to multiple unrelated cluster
             std::set<int> buffer_agents = instance_id_set_; // all agents
             std::vector<std::set<int> > all_clusters;
@@ -1007,7 +1007,15 @@ namespace freeNav::LayeredMAPF {
                                   const std::vector<bool>& avoid_agents,
                                   const std::vector<bool>& passing_agents,
                                   bool distinguish_sat = false,
-                                  const std::vector<bool>& ignore_cost_set = {}) const {
+                                  const std::vector<bool>& ignore_cost_set = {}) {
+            auto now_t = clock();
+            double time_cost =  ((double)now_t - start_t_)/CLOCKS_PER_SEC;
+            double remain_time = time_limit_ - time_cost;
+            if(remain_time <= 0) {
+                run_ot_of_time = true;
+                return {};
+            }
+
             assert(!heuristic_tables_.empty() && !heuristic_tables_sat_.empty());
             LA_MAPF::DependencyPathSearch<N, HyperNodeType> search_machine;
             /*
@@ -1053,8 +1061,11 @@ namespace freeNav::LayeredMAPF {
         // save each level's pre level and next level (belong to the same cluster) after clusterDecomposeToLevel(...)
         std::vector<std::pair<std::set<int>, std::set<int> > > all_level_pre_and_next_;
 
+        clock_t start_t_;
 
-        double time_limit_; // TODO: when run out of time, stop and return current decomposition result
+        double time_limit_; // when run out of time, stop and return current decomposition result
+
+        bool run_ot_of_time = false;
 
         float instance_decomposition_time_cost_ = 0;
         float cluster_bipartition_time_cost_    = 0;

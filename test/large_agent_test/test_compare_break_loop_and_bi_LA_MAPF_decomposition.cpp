@@ -84,7 +84,7 @@ void compareLNSAndBiDecompose_LA_MAPF(const SingleMapTestConfig<2>& map_file, in
                                                                                  pre.heuristic_tables_sat_,
                                                                                  2,
                                                                                  1e4,
-                                                                                 50,
+                                                                                 100,
                                                                                  1);
 
     ns_decompose->breakMaxLoopIteratively();

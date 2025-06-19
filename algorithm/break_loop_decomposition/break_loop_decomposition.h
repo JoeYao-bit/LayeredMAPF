@@ -114,6 +114,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             int count_of_break = 0;
             int count_of_continue_failure = 0;
             int i_th_largest_level = 0;
+            bool simple_avail = true;
             while(true) {
                 auto now_t = clock();
                 double time_cost =  ((double)now_t - start_t_)/CLOCKS_PER_SEC;
@@ -126,7 +127,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 auto retv_pair = getMaxLevel(all_levels_, i_th_largest_level);
                 if(retv_pair.second.size() <= expected_min_level_size_) { break; }
 
-                bool success = breakMaxLoop(count_of_break, i_th_largest_level);
+                // breakMaxLoopGreedy
+                // breakMaxLoop
+                bool success = breakMaxLoop(count_of_break, i_th_largest_level, simple_avail);
                 if(success) {
                     count_of_continue_failure = 0;
                 } else {
@@ -134,9 +137,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }
 
                 if(count_of_continue_failure > max_continue_failure_) {
-                    i_th_largest_level ++;
-                    count_of_continue_failure = 0;
+                    if(simple_avail) {
+                        simple_avail = false;
+                    } else {
+                        i_th_largest_level ++;
+                        count_of_continue_failure = 0;
+                        simple_avail = true;
+                    }
                 }
+
 
                 count_of_break ++;
             }
@@ -146,10 +155,31 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             std::cout << "finish break loops in " << time_cost << "s, " << count_of_break << " breaks" << std::endl;
         }
 
-        std::vector<bool> getAvailNodesFromOtherLevels(
-                int level_id,
-                std::map<int, std::set<int> >& all_paths,
-                const std::vector<std::set<int> >& all_levels) const {
+        // sort all level and avoid previous' target state and subsequent start state
+        std::vector<bool> getAvailNodesFromOtherLevelsSimple(int level_id,
+                                                             std::map<int, std::set<int> >& all_paths,
+                                                             const std::vector<std::set<int> >& all_levels) {
+            std::vector<bool> avail_nodes(2 * connect_graphs_.size(), true);
+            for(int lid=0; lid<all_levels.size(); lid++) {
+                if(lid < level_id) {
+                    for (const int &aid : all_levels[lid]) {
+                        avail_nodes[2 * aid + 1] = false;
+                        //std::cout << 2 * aid + 1 << " ";
+                    }
+                } else if(lid > level_id) {
+                    for (const int &aid : all_levels[lid]) {
+                        avail_nodes[2 * aid] = false;
+                        //std::cout << 2 * aid << " ";
+                    }
+                }
+            }
+            return avail_nodes;
+        }
+
+        // get available nodes that avoid previous levels' target state and subsequent levels' start state
+        std::vector<bool> getAvailNodesFromOtherLevels(int level_id,
+                                                       std::map<int, std::set<int> >& all_paths,
+                                                       const std::vector<std::set<int> >& all_levels) const {
             const LevelOrderGraph &g = getLevelOrderGraph(all_paths, all_levels);
             assert(g.size() == all_levels.size());
 
@@ -231,7 +261,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return avail_nodes;
         }
 
-        bool breakMaxLoop(const int& iter_count, int th_largest_level = 0) {
+        // random pick agent of the max level and break it
+        bool breakMaxLoop(const int& iter_count, int th_largest_level = 0, bool simple_avail = true) {
             // 1, pick the largest loop
             std::pair<int, std::set<int> > max_level = getMaxLevel(all_levels_, th_largest_level);
             if(max_level.second.size() == 1) { return false; }
@@ -254,17 +285,22 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             // detect edge to agent in current loop
             // try avoid this link in search path
 
-            const std::vector<bool>& avail_start_and_target = getAvailNodesFromOtherLevels(max_level.first,
-                                                                                    all_dependency_paths_,
-                                                                                    all_levels_);
-
+            // getAvailNodesFromOtherLevelsSimple // solving order in linear
+            // getAvailNodesFromOtherLevels // solving order in graph
+            std::vector<bool> avail_start_and_target;
+            if(simple_avail) {
+                avail_start_and_target = getAvailNodesFromOtherLevelsSimple(max_level.first,
+                                                                                              all_dependency_paths_,
+                                                                                              all_levels_);
+            } else {
+                avail_start_and_target = std::vector<bool>(2 * connect_graphs_.size(), true);
+            }
             bool pick_start = (rand() % 2 == 0); // random choose whether earlier than other agents in the same level
 
             std::vector<bool> avoid_start_and_target = getAvoidAgentInCurrentLevel(agent_id, max_level.second, pick_start);
 
             std::set<int> new_dependency_path;
 
-            //avail_start_and_target = std::vector<bool>(2*connect_graphs_.size(), true);
 
             //avoid_start_and_target = std::vector<bool>(2*connect_graphs_.size(), false);
 
@@ -292,13 +328,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 if(all_dependency_paths_[agent_id_other].find(avoid_node_id) == all_dependency_paths_[agent_id_other].end()) {
                     continue;
                 }
-//                auto avoid_start_and_target_other_copy = avoid_start_and_target_other;
-//                avoid_start_and_target_other_copy[2*agent_id_other] = false;
-//                avoid_start_and_target_other_copy[2*agent_id_other + 1] = false;
-//
-//                auto avail_start_and_target_copy = avail_start_and_target;
-//                avail_start_and_target_copy[2*agent_id_other] = true;
-//                avail_start_and_target_copy[2*agent_id_other + 1] = true;
 
                 std::set<int> new_dependency_path_other = searchAgent(agent_id_other,
                                                                       avoid_start_and_target_other,
@@ -336,6 +365,99 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 return true;
             }
             return false;
+        }
+
+
+        // pick all agent of the max level one by one and try to break it
+        bool breakMaxLoopGreedy(const int& iter_count, int th_largest_level = 0) {
+            // 1, pick the largest loop
+            std::pair<int, std::set<int> > max_level = getMaxLevel(all_levels_, th_largest_level);
+            if(max_level.second.size() == 1) { return false; }
+            // 2, check all agent from the loop
+            std::map<int, std::set<int> > best_new_paths;
+            int best_level_size = max_level.second.size();
+
+            // getAvailNodesFromOtherLevelsSimple
+            // getAvailNodesFromOtherLevels
+            //std::vector<bool> avail_start_and_target = getAvailNodesFromOtherLevels(max_level.first,all_dependency_paths_, all_levels_);
+
+            std::vector<bool> avail_start_and_target(2 * connect_graphs_.size(), true);
+
+            for(int i=0; i<2*max_level.second.size(); i++) {
+
+                auto start_iter = max_level.second.begin();
+                int agent_id;
+                int advance_step = i / 2;
+                for(int i=0; i<advance_step; i++) {
+                    start_iter ++;
+                }
+                agent_id = *start_iter;
+
+                bool pick_start = (i % 2 == 0); // random choose whether earlier than other agents in the same level
+
+                std::vector<bool> avoid_start_and_target = getAvoidAgentInCurrentLevel(agent_id, max_level.second, pick_start);
+
+                std::set<int> new_dependency_path;
+                // try avoid edge of target id
+                new_dependency_path = searchAgent(agent_id, avoid_start_and_target, avail_start_and_target, true); // pass test
+
+                // if search path failed, exit
+                if(new_dependency_path.empty()) {
+                    continue;
+                }
+                std::vector<bool> avoid_start_and_target_other = getAvoidAgentInCurrentLevelOther(agent_id, pick_start);
+                std::map<int, std::set<int> > new_level_paths;
+                int avoid_node_id = pick_start ? 2*agent_id + 1 : 2* agent_id;
+                bool success = true;
+                for(const int& agent_id_other : max_level.second) {
+                    if(agent_id_other == agent_id) { continue; }
+                    // only update path that contain edge to agent
+                    if(all_dependency_paths_[agent_id_other].find(avoid_node_id) == all_dependency_paths_[agent_id_other].end()) {
+                        continue;
+                    }
+                    std::set<int> new_dependency_path_other = searchAgent(agent_id_other,
+                                                                          avoid_start_and_target_other,
+                                                                          avail_start_and_target, true); // pass test
+                    if(new_dependency_path_other.empty()) {
+                        //std::cout << "flag 2" << std::endl;
+                        success = false;
+                        break;
+                    }
+                    new_level_paths.insert({agent_id_other, new_dependency_path_other});
+                }
+                if(!success) { continue; }
+                // 4, get new levels
+                auto new_dependency_paths = all_dependency_paths_;
+                new_dependency_paths[agent_id] = new_dependency_path;
+                for(const auto& new_id_and_path : new_level_paths) {
+                    new_dependency_paths[new_id_and_path.first] = new_id_and_path.second;
+                }
+
+                auto new_levels = getLevelsFromDependencyPaths(new_dependency_paths);
+                auto new_max_level = getMaxLevel(new_levels, th_largest_level);
+
+                // adopt update only when generate smaller subproblems
+                if(new_max_level.second.size() < best_level_size) {
+                    best_level_size = new_max_level.second.size();
+                    best_new_paths = new_dependency_paths;
+                }
+            }
+            if(best_level_size < max_level.second.size()) {
+                auto new_dependency_paths = all_dependency_paths_;
+                for(const auto& new_id_and_path : best_new_paths) {
+                    new_dependency_paths[new_id_and_path.first] = new_id_and_path.second;
+                }
+                auto new_levels = getLevelsFromDependencyPaths(new_dependency_paths);
+                auto new_max_level = getMaxLevel(new_levels, th_largest_level);
+
+                std::cout << th_largest_level << " th largest level, " << iter_count
+                << " iter, update: new/old max_level_size = " << new_max_level.second.size() << " / "
+                << max_level.second.size() << std::endl;
+
+                all_dependency_paths_ = new_dependency_paths;
+                all_levels_ = new_levels;
+            }
+            return best_level_size < max_level.second.size();
         }
 
         // ahead_sequence store agent > another agent
