@@ -546,14 +546,14 @@ void loadInstanceAndVisualize(const std::string& file_path) {
 }
 
 //LaCAM::LargeAgentConstraints<2, BlockAgent_2D>
-template<Dimension N>
-void loadInstanceAndPlanningLayeredLAMAPF(const LA_MAPF_FUNC<N>& mapf_func,
+template<typename HyperNodeType>
+void loadInstanceAndPlanningLayeredLAMAPF(const LA_MAPF_FUNC<2>& mapf_func,
                                           const std::string& file_path,
                                           double time_limit = 30,
                                           bool path_constraint = false,
                                           bool debug_mode = true,
                                           bool visualize = false) {
-    InstanceDeserializer<N> deserializer;
+    InstanceDeserializer<2> deserializer;
     if(deserializer.loadInstanceFromFile(file_path, dim)) {
         std::cout << "load from path " << file_path << " success" << std::endl;
     } else {
@@ -576,11 +576,11 @@ void loadInstanceAndPlanningLayeredLAMAPF(const LA_MAPF_FUNC<N>& mapf_func,
 
     std::vector<std::vector<int> > grid_visit_count_table;
 
-    LargeAgentMAPFInstanceDecompositionPtr<2> decomposer_ptr = nullptr;
+    LargeAgentMAPFInstanceDecompositionPtr<2, HyperNodeType> decomposer_ptr = nullptr;
     auto start_t = clock();
     bool detect_loss_of_solvability = false;
 
-    auto layered_paths = layeredLargeAgentMAPF<N>(deserializer.getInstances(),
+    auto layered_paths = layeredLargeAgentMAPF<2>(deserializer.getInstances(),
                                                              deserializer.getAgents(),
                                                              dim, is_occupied,
                                                              mapf_func, //CBS::LargeAgentCBS_func<2, AgentType >,
@@ -596,7 +596,7 @@ void loadInstanceAndPlanningLayeredLAMAPF(const LA_MAPF_FUNC<N>& mapf_func,
               << " in " << total_time_cost << "s " << std::endl;
 
     if(visualize) {
-        LargeAgentMAPF_InstanceGenerator<N> generator(deserializer.getAgents(), is_occupied, dim);
+        LargeAgentMAPF_InstanceGenerator<2> generator(deserializer.getAgents(), is_occupied, dim);
 
         InstanceVisualization(deserializer.getAgents(),
                                          generator.getAllPoses(),
@@ -679,23 +679,23 @@ bool generateInstance(const std::vector<AgentPtr<N> >& agents,
 }
 
 // maximum_sample_count: max times of sample start and target for an agent
-template<Dimension N>
-void generateInstanceAndPlanning(const std::vector<AgentPtr<N> >& agents,
+template<typename HyperNodeType>
+void generateInstanceAndPlanning(const std::vector<AgentPtr<2> >& agents,
                                  const std::string& file_path,
-                                 const LA_MAPF_FUNC<N>& mapf_func,
+                                 const LA_MAPF_FUNC<2>& mapf_func,
                                  int maximum_sample_count = 1e7,
                                  bool debug_mode = true,
                                  bool visualize = false) {
 
     //    loadInstanceAndPlanning<AgentType, MethodType>(file_path);
     if(generateInstance(agents, file_path, maximum_sample_count)) {
-        loadInstanceAndPlanningLayeredLAMAPF<N>(mapf_func, file_path, 5, false, debug_mode, visualize);
+        loadInstanceAndPlanningLayeredLAMAPF<HyperNodeType>(mapf_func, file_path, 5, false, debug_mode, visualize);
     }
 }
 
 
-template<Dimension N>
-void InstanceDecompositionVisualization(const LargeAgentMAPFInstanceDecomposition<N>& decomposer) {
+template<typename HyperNodeType>
+void InstanceDecompositionVisualization(const LargeAgentMAPFInstanceDecomposition<2, HyperNodeType>& decomposer) {
     zoom_ratio = std::min(1500/dim[0], 900/dim[1]);
 
     // visualize instance
@@ -834,9 +834,9 @@ void InstanceDecompositionVisualization(const LargeAgentMAPFInstanceDecompositio
     }
 }
 
-template<Dimension N>
+template<typename HyperNodeType>
 void loadInstanceAndDecomposition(const std::string& file_path) {
-    InstanceDeserializer<N> deserializer;
+    InstanceDeserializer<2> deserializer;
     if (deserializer.loadInstanceFromFile(file_path, dim)) {
         std::cout << "load from path " << file_path << " success" << std::endl;
     } else {
@@ -844,13 +844,13 @@ void loadInstanceAndDecomposition(const std::string& file_path) {
         return;
     }
     std::cout << " map scale ";
-    for(int i=0; i<N-1; i++) {
+    for(int i=0; i<1; i++) {
         std::cout << dim[i] << "*";
     }
-    std::cout << dim[N-1] << std::endl;
+    std::cout << dim[1] << std::endl;
 
     gettimeofday(&tv_pre, &tz);
-    LargeAgentMAPFInstanceDecomposition<N> decomposer(deserializer.getInstances(),
+    LargeAgentMAPFInstanceDecomposition<2, HyperNodeType> decomposer(deserializer.getInstances(),
                                                                  deserializer.getAgents(),
                                                                  dim, is_occupied);
     gettimeofday(&tv_after, &tz);
@@ -863,15 +863,15 @@ void loadInstanceAndDecomposition(const std::string& file_path) {
 }
 
 
-template<Dimension N>
-void generateInstanceAndDecomposition(const std::vector<AgentPtr<N> >& agents,
+template<typename HyperNodeType>
+void generateInstanceAndDecomposition(const std::vector<AgentPtr<2> >& agents,
                                       const std::string& file_path,
-                                      const LA_MAPF_FUNC<N>& mapf_func,
+                                      const LA_MAPF_FUNC<2>& mapf_func,
                                       int maximum_sample_count = 1e7,
                                       bool debug_mode = true,
                                       bool visualize = false) {
     if(generateInstance(agents, file_path, maximum_sample_count)) {
-        loadInstanceAndDecomposition<N>(file_path);
+        loadInstanceAndDecomposition<HyperNodeType>(file_path);
     }
 }
 
@@ -916,7 +916,7 @@ std::vector<std::string> loadInstanceAndCompareLayeredLAMAPF(const LA_MAPF_FUNC<
                                 debug_mode);
 }
 
-template<Dimension N>
+template<Dimension N, typename HyperNodeType>
 std::vector<std::string> LayeredLAMAPFCompare(const InstanceOrients<N>& instances,
                                               const AgentPtrs<N>& agents,
                                               const LA_MAPF_FUNC<N>& mapf_func,
@@ -931,7 +931,7 @@ std::vector<std::string> LayeredLAMAPFCompare(const InstanceOrients<N>& instance
 
     std::vector<std::vector<int> > grid_visit_count_table_layered;
     bool detect_loss_of_solvability = false;
-    LargeAgentMAPFInstanceDecompositionPtr<N> decomposer_ptr = nullptr;
+    LargeAgentMAPFInstanceDecompositionPtr<N, HyperNodeType> decomposer_ptr = nullptr;
     memory_recorder.clear();
     sleep(1);
     float base_usage = memory_recorder.getCurrentMemoryUsage();
@@ -1086,7 +1086,7 @@ void writeStrsToEndOfFile(const std::vector<std::string>& strs, const std::strin
 }
 
 
-template<Dimension N>
+template<Dimension N, typename HyperNodeType>
 bool decompositionOfSingleInstance(const InstanceOrients<N> & instances,
                                    const std::vector<AgentPtr<N> >& agents,
                                    DimensionLength* dim,
@@ -1102,7 +1102,7 @@ bool decompositionOfSingleInstance(const InstanceOrients<N> & instances,
     float basic_usage = memory_recorder.getMaximalMemoryUsage();
     gettimeofday(&tv_pre, &tz);
 
-    auto instance_decompose = std::make_shared<LargeAgentMAPFInstanceDecomposition<N> >(instances,
+    auto instance_decompose = std::make_shared<LargeAgentMAPFInstanceDecomposition<N, HyperNodeType> >(instances,
                                                                                         agents,
                                                                                         dim,
                                                                                         is_occupied,

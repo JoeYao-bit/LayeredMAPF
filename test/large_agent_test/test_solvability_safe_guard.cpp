@@ -11,6 +11,7 @@
 
 #include "../../algorithm/LA-MAPF/LaCAM/layered_large_agent_LaCAM.h"
 #include "../../algorithm/LA-MAPF/LaCAM/large_agent_lacam.h"
+#include "../../algorithm/connectivity_graph_and_subprgraph.h"
 
 using namespace freeNav::LayeredMAPF::LA_MAPF;
 
@@ -26,7 +27,7 @@ auto loader_local = TextMapLoader(map_test_config_local.at("map_path"), is_char_
 auto is_occupied_local = [](const Pointi<2> & pt) -> bool { return loader_local.isOccupied(pt); };
 
 
-template<Dimension N>
+template<Dimension N, typename HyperNodeType>
 void testSolvabilitySafeguard(const LA_MAPF_FUNC<2> & mapf_func) {
     auto file_path_local = map_test_config_local.at("la_ins_path");
 
@@ -44,7 +45,7 @@ void testSolvabilitySafeguard(const LA_MAPF_FUNC<2> & mapf_func) {
     std::cout << "map scale = " << dim_local[0] << "*" << dim_local[1] << std::endl;
 
 
-    LargeAgentMAPFInstanceDecompositionPtr<N> decomposer_ptr = nullptr;
+    LargeAgentMAPFInstanceDecompositionPtr<N, HyperNodeType> decomposer_ptr = nullptr;
     std::vector<std::vector<int> > grid_visit_count_table;
 
     auto instances = deserializer.getTestInstance({15}, 1);
@@ -92,7 +93,7 @@ void testSolvabilitySafeguard(const LA_MAPF_FUNC<2> & mapf_func) {
 int main() {
 
     //testSolvabilitySafeguard<2>(LaCAM::LargeAgentLaCAM_func<2>);
-    testSolvabilitySafeguard<2>(CBS::LargeAgentCBS_func<2>);
+    testSolvabilitySafeguard<2, HyperGraphNodeDataRaw<2>>(CBS::LargeAgentCBS_func<2>);
 
     return 0;
 

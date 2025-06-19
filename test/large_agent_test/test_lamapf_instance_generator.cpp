@@ -16,6 +16,8 @@
 #include "common_interfaces.h"
 //
 #include "../test_data.h"
+#include "../../algorithm/connectivity_graph_and_subprgraph.h"
+
 //
 //using namespace freeNav;
 //using namespace freeNav::LayeredMAPF;
@@ -63,7 +65,7 @@ TEST(GenerateCircleInstance_decomposition, test)
                                                                 .1,
                                                                 dim);
 
-    generateInstanceAndDecomposition<2> (agents,
+    generateInstanceAndDecomposition<HyperGraphNodeDataRaw<2> > (agents,
                                         map_test_config.at("la_ins_path"),
                                         CBS::LargeAgentCBS_func<2>,
                                         1e4, true, true);
@@ -82,7 +84,7 @@ TEST(GenerateBlockInstance_decomposition, test)
                                                               .2, 2.4,
                                                               .1, dim);
 
-    generateInstanceAndDecomposition<2> (agents,
+    generateInstanceAndDecomposition<HyperGraphNodeDataRaw<2> > (agents,
                                          map_test_config.at("la_ins_path"),
                                          CBS::LargeAgentCBS_func<2>,
                                          1e4, true, true);
@@ -102,7 +104,7 @@ TEST(GenerateMixedInstance_decomposition, test)
                                                      .2, 2.,
                                                      .2, 2.,
                                                      .1, dim);
-    generateInstanceAndDecomposition<2> (agents,
+    generateInstanceAndDecomposition<HyperGraphNodeDataRaw<2> > (agents,
                                          map_test_config.at("la_ins_path"),
                                          CBS::LargeAgentCBS_func<2>,
                                          1e8, true, true);
@@ -125,7 +127,7 @@ TEST(GenerateCircleInstance, test)
 //                                       CBS::LargeAgentCBS_func<2>,
 //                                               1e4, true, true);
 
-    generateInstanceAndPlanning<2> (agents,
+    generateInstanceAndPlanning<HyperGraphNodeDataRaw<2> > (agents,
                                     map_test_config.at("la_ins_path"),
                                     LaCAM::LargeAgentLaCAM_func<2>,
                                     1e4, true, true);
@@ -140,7 +142,7 @@ TEST(GenerateBlock_2DInstance, test)
                                                                 .2, 1.4,
                                                                 .2, 1.4,
                                                                 .1, dim);
-    generateInstanceAndPlanning<2>(agents,
+    generateInstanceAndPlanning<HyperGraphNodeDataRaw<2> >(agents,
                                     map_test_config.at("la_ins_path"),
                                     CBS::LargeAgentCBS_func<2>,
                                     1e4, true, true);
@@ -158,7 +160,7 @@ TEST(GenerateMixedInstanceAndPlanning, test)
                                                      .2, 1.4,
                                                      .1, dim);
 
-    generateInstanceAndPlanning<2> (agents,
+    generateInstanceAndPlanning<HyperGraphNodeDataRaw<2> > (agents,
                                     map_test_config.at("la_ins_path"),
                                     CBS::LargeAgentCBS_func<2>,
                                     1e4, true, true);
@@ -187,7 +189,7 @@ TEST(LoadInstance_CBS, test)
     // LargeAgentConstraintTableForLarge
     // LargeAgentConstraintTable
 
-    loadInstanceAndPlanningLayeredLAMAPF<2>(CBS::LargeAgentCBS_func<2>,
+    loadInstanceAndPlanningLayeredLAMAPF<HyperGraphNodeDataRaw<2> >(CBS::LargeAgentCBS_func<2>,
                                                         file_path, 60, false, true, true);
 
 };
@@ -205,7 +207,7 @@ TEST(LoadInstance_LaCAM, test)
 
 //    loadInstanceAndPlanning<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > >(file_path, 30);
 
-    loadInstanceAndPlanningLayeredLAMAPF<2>(LaCAM::LargeAgentLaCAM_func<2>,
+    loadInstanceAndPlanningLayeredLAMAPF<HyperGraphNodeDataRaw<2> >(LaCAM::LargeAgentLaCAM_func<2>,
                                                          file_path, 60, false, true);
 
 };
@@ -233,7 +235,7 @@ TEST(Multi_GenerateCircleInstance, test) {
                                                                        .1,
                                                                        dim);
 
-        generateInstanceAndPlanning<2> (agents,
+        generateInstanceAndPlanning<HyperGraphNodeDataRaw<2> > (agents,
                                            map_test_config.at("la_ins_path"),
                                            CBS::LargeAgentCBS_func<2>,
                                            //LaCAM::LargeAgentLaCAM_func<2>,
@@ -258,7 +260,7 @@ TEST(Multi_GenerateBlock_2DInstance, test) {
                                                                         .2, 1.4,
                                                                         .1, dim);
 
-            generateInstanceAndPlanning<2>(agents,
+            generateInstanceAndPlanning<HyperGraphNodeDataRaw<2> >(agents,
                                             map_test_config.at("la_ins_path"),
                                             CBS::LargeAgentCBS_func<2>,
                                             //LaCAM::LargeAgentLaCAM_func<2, BlockAgent_2D >,
@@ -334,8 +336,8 @@ void Decomposition_test() {
     }
     std::cout << std::endl;
 
-    LargeAgentMAPFInstanceDecomposition<2> decomposer =
-            LargeAgentMAPFInstanceDecomposition<2>(deserializer.getInstances(),
+    LargeAgentMAPFInstanceDecomposition<2, HyperGraphNodeDataRaw<2> > decomposer =
+            LargeAgentMAPFInstanceDecomposition<2, HyperGraphNodeDataRaw<2> >(deserializer.getInstances(),
                                                               deserializer.getAgents(),
                                                               dim,
                                                               is_occupied,
@@ -388,7 +390,7 @@ void multiLoadAgentAndDecomposition(const SingleMapTestConfig<2>& map_file,
         std::vector<OutputStream> strs;
         OutputStream str;
 
-        auto instance_decompose = std::make_shared<LargeAgentMAPFInstanceDecomposition<2> >(agent_and_instances[i].second,
+        auto instance_decompose = std::make_shared<LargeAgentMAPFInstanceDecomposition<2, HyperGraphNodeDataRaw<2>> >(agent_and_instances[i].second,
                                                                                             agent_and_instances[i].first,
                                                                                             dim,
                                                                                             is_occupied,
@@ -462,7 +464,7 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
 
     for (int i = 0; i < agent_and_instances.size(); i++) {
 
-        auto strs1 = LayeredLAMAPFCompare<2>(agent_and_instances[i].second,
+        auto strs1 = LayeredLAMAPFCompare<2, HyperGraphNodeDataRaw<2>>(agent_and_instances[i].second,
                                             agent_and_instances[i].first,
                                             //CBS::LargeAgentCBS_func<2>,
                                                     LaCAM::LargeAgentLaCAM_func<2>,

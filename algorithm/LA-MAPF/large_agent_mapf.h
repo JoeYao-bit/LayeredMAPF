@@ -61,10 +61,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             start_time_ = clock();
             assert(instances.size() == agents.size());
 
-            struct timezone tz;
-            struct timeval  tv_pre;
-            struct timeval  tv_after;
-            gettimeofday(&tv_pre, &tz);
+            auto start_t = clock();
 
             // 0, init and final state overlap check
             for(int i=0; i<instances_.size(); i++) {
@@ -152,9 +149,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                            constructHeuristicTableIgnoreRotate(agent_sub_graphs_[agent], instance_node_ids_[agent].second));
                }
            }
-            gettimeofday(&tv_after, &tz);
-            subgraph_and_heuristic_time_cost_ =
-                    (tv_after.tv_sec - tv_pre.tv_sec) + (tv_after.tv_usec - tv_pre.tv_usec)/1e6;
+            auto now_t = clock();
+            subgraph_and_heuristic_time_cost_ = 10e3 * ((double)now_t - start_t)/CLOCKS_PER_SEC;
+
             std::cout << "-- construct subgraph and heuristic table in " << subgraph_and_heuristic_time_cost_ << "s" << std::endl;
             remaining_time_ = remaining_time_ - subgraph_and_heuristic_time_cost_;
         }

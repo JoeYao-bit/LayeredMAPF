@@ -21,13 +21,14 @@
 
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/graph_utility.hpp>
+#include "../../algorithm/connectivity_graph_and_subprgraph.h"
 
 using namespace freeNav::LayeredMAPF::LA_MAPF;
 
 
 TEST(basic_test, LA_MAPF_decomposition) {
     const std::string file_path = map_test_config.at("la_ins_path");
-    loadInstanceAndDecomposition<2>(file_path);
+    loadInstanceAndDecomposition<HyperGraphNodeDataRaw<2> >(file_path);
 }
 
 TEST(boost_strong_componnet, test) {

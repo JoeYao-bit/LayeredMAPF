@@ -18,6 +18,7 @@
 #include "common_interfaces.h"
 #include "../../algorithm/LA-MAPF/CBS/layered_large_agent_CBS.h"
 
+#include "../../algorithm/connectivity_graph_and_subprgraph.h"
 
 CircleAgent<2> c1(2.5, 0, dim);
 CircleAgent<2> c2(3.5, 1, dim);
@@ -178,7 +179,7 @@ TEST(AgentSubGraph, cbs_test) {
     }
     std::cout << "map scale = " << dim[0] << "*" << dim[1] << std::endl;
 
-    LargeAgentMAPFInstanceDecompositionPtr<2> decomposer_ptr = nullptr;
+    LargeAgentMAPFInstanceDecompositionPtr<2, HyperGraphNodeDataRaw<2> > decomposer_ptr = nullptr;
     std::vector<std::vector<int> > grid_visit_count_table;
 
 

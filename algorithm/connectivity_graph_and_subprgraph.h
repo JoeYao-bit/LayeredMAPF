@@ -7,13 +7,99 @@
 
 #include "LA-MAPF/common.h"
 #include "LA-MAPF/large_agent_mapf.h"
+#include "LA-MAPF/circle_shaped_agent.h"
+#include "LA-MAPF/CBS/space_time_astar.h"
+#include "LA-MAPF/large_agent_dependency_path_search.h"
 
 namespace freeNav::LayeredMAPF {
 
 
-    // generate subgraph and connectivity graph for MAPF and LA-MAPF
+    template<Dimension N>
+    struct HyperGraphNodeDataRaw;
 
     template<Dimension N>
+    using HyperGraphNodeDataRawPtr = HyperGraphNodeDataRaw<N>*;
+
+    template<Dimension N>
+    struct HyperGraphNodeDataRaw : public TreeNode<N, HyperGraphNodeDataRawPtr<N> > {
+
+        explicit HyperGraphNodeDataRaw(const size_t & current_node,
+                                       const HyperGraphNodeDataRawPtr<N>& parent,
+                                       const LA_MAPF::ConnectivityGraph& graph,
+                                       bool distinguish_sat = false, // whether visited grid distinguish start or target
+                                       const std::vector<bool>& ignore_cost_agent_ids = {}) :
+                current_node_(current_node), graph_(graph), TreeNode<N, HyperGraphNodeDataRawPtr<N>>(parent) {
+            if(parent != nullptr) {
+                g_val_ = parent->g_val_;
+            }
+            // if is a agent node, rather than a free group node
+//            for(const int& agent_id : graph_.data_ptr_->hyper_node_with_agents_[current_node_]) {
+//                if(!ignore_cost_agent_ids.empty() && ignore_cost_agent_ids[agent_id]) { continue; }
+//                visited_agent_.insert(distinguish_sat ? agent_id : agent_id/2);
+//            }
+            g_val_ = g_val_ + graph_.data_ptr_->hyper_node_with_agents_[current_node_].size();
+        }
+
+        void copy(const HyperGraphNodeDataRaw<N>& other_node) {
+            g_val_            = other_node.g_val_;
+            h_val_            = other_node.h_val_;
+            current_node_     = other_node.current_node_;
+            this->pa_         = other_node.pa_;
+            this->ch_         = other_node.ch_;
+        }
+
+        size_t current_node_;
+
+        // only considering agent grid it path, ignore free grid group it pass
+        // how many agent it need to cross till reach target, if both start and target of an agent occur in the path, dist plus only one
+        // int g_val_ = MAX<int>; // dist from start to here
+        // g_val = visited_agent_.size()
+
+        //std::set<int> visited_agent_;
+
+        int g_val_ = 0; // an agent id with not occur twice, so no need for std::set, which is every time consuming
+
+        int h_val_ = 0; // estimation dist from here to target
+
+        const LA_MAPF::ConnectivityGraph& graph_;
+
+        int getFVal() {
+            return g_val_ + h_val_;
+        }
+
+        struct compare_node {
+            // returns true if n1 > n2 (note -- this gives us *min*-heap).
+            bool operator()(const HyperGraphNodeDataRawPtr<N> &n1, const HyperGraphNodeDataRawPtr<N> &n2) const {
+                return n1->g_val_ + n1->h_val_ >= n2->g_val_ + n2->h_val_;
+            }
+        };
+
+        struct equal_node {
+            // returns true if n1 > n2 (note -- this gives us *min*-heap).
+            bool operator()(const HyperGraphNodeDataRawPtr<N> &n1, const HyperGraphNodeDataRawPtr<N> &n2) const {
+                return n1->current_node_ == n2->current_node_;
+            }
+        };
+
+        struct NodeHasher
+        {
+            size_t operator() (const HyperGraphNodeDataRawPtr<N>& n) const
+            {
+                return std::hash<int>()(n->current_node_); // yz: 按位异或
+            }
+        };
+
+        bool in_openlist_ = false;
+
+        typedef typename boost::heap::pairing_heap< HyperGraphNodeDataRawPtr<N>, boost::heap::compare<typename HyperGraphNodeDataRaw<N>::compare_node> >::handle_type open_handle_t;
+
+        open_handle_t open_handle_;
+
+    };
+
+    // generate subgraph and connectivity graph for MAPF and LA-MAPF
+
+    template<Dimension N, typename HyperNodeType>
     class PrecomputationOfLAMAPF : public LA_MAPF::LargeAgentMAPF<N> {
     public:
 
@@ -30,9 +116,9 @@ namespace freeNav::LayeredMAPF {
             clock_t start_t = clock();
             for(int i=0; i<agents.size(); i++) {
                 connect_graphs_.push_back(getAgentConnectivityGraph(i));
-                heuristic_tables_sat_.push_back(calculateLargeAgentHyperGraphStaticHeuristic<N>(i, this->dim_, connect_graphs_[i], true));
+                heuristic_tables_sat_.push_back(calculateLargeAgentHyperGraphStaticHeuristic<N, HyperGraphNodeDataRaw<N>>(i, this->dim_, connect_graphs_[i], true));
                 if(with_sat_heu_) {
-                    heuristic_tables_.push_back(calculateLargeAgentHyperGraphStaticHeuristic<N>(i, this->dim_, connect_graphs_[i], false));
+                    heuristic_tables_.push_back(calculateLargeAgentHyperGraphStaticHeuristic<N, HyperGraphNodeDataRaw<N>>(i, this->dim_, connect_graphs_[i], false));
                 }
             }
             clock_t now_t = clock();
@@ -391,106 +477,42 @@ namespace freeNav::LayeredMAPF {
     };
 
 
+
+    // unordered_set
     template<Dimension N>
-    struct HyperGraphNodeDataRaw;
+    std::set<int> getPassingAgents(const HyperGraphNodeDataRawPtr<N>& node_ptr,
+                                   const LA_MAPF::ConnectivityGraph& graph,
+                                   bool distinguish_sat = true) {
+        std::set<int> retv;
+        HyperGraphNodeDataRawPtr<N> buffer = node_ptr;
+        while(buffer != nullptr) {
 
-    template<Dimension N>
-    using HyperGraphNodeDataRawPtr = HyperGraphNodeDataRaw<N>*;
-
-    template<Dimension N>
-    struct HyperGraphNodeDataRaw : public TreeNode<N, HyperGraphNodeDataRawPtr<N> > {
-
-        explicit HyperGraphNodeDataRaw(const size_t & current_node,
-                                       const HyperGraphNodeDataRawPtr<N>& parent,
-                                       const ConnectivityGraph& graph,
-                                       bool distinguish_sat = false, // whether visited grid distinguish start or target
-                                       const std::vector<bool>& ignore_cost_agent_ids = {}) :
-                current_node_(current_node), graph_(graph), TreeNode<N, HyperGraphNodeDataRawPtr<N>>(parent) {
-            if(parent != nullptr) {
-                g_val_ = parent->g_val_;
+            std::set<int> raw_agent_ids = graph.data_ptr_->hyper_node_with_agents_[buffer->current_node_];
+            for(const auto& raw_agent_id : raw_agent_ids) {
+                if(distinguish_sat) {
+                    retv.insert(raw_agent_id);
+                } else {
+                    retv.insert(raw_agent_id / 2);
+                }
             }
-            // if is a agent node, rather than a free group node
-//            for(const int& agent_id : graph_.data_ptr_->hyper_node_with_agents_[current_node_]) {
-//                if(!ignore_cost_agent_ids.empty() && ignore_cost_agent_ids[agent_id]) { continue; }
-//                visited_agent_.insert(distinguish_sat ? agent_id : agent_id/2);
-//            }
-            if(!graph_.data_ptr_->hyper_node_with_agents_[current_node_].empty()) {
-                assert(graph_.data_ptr_->hyper_node_with_agents_[current_node_].size() == 1);
-                g_val_ = g_val_ + 1;
-            }
+            buffer = buffer->pa_;
         }
-
-        void copy(const HyperGraphNodeDataRaw<N>& other_node) {
-            g_val_            = other_node.g_val_;
-            h_val_            = other_node.h_val_;
-            current_node_     = other_node.current_node_;
-            this->pa_         = other_node.pa_;
-            this->ch_         = other_node.ch_;
-        }
-
-        size_t current_node_;
-
-        // only considering agent grid it path, ignore free grid group it pass
-        // how many agent it need to cross till reach target, if both start and target of an agent occur in the path, dist plus only one
-        // int g_val_ = MAX<int>; // dist from start to here
-        // g_val = visited_agent_.size()
-
-        //std::set<int> visited_agent_;
-
-        int g_val_ = 0; // an agent id with not occur twice, so no need for std::set, which is every time consuming
-
-        int h_val_ = 0; // estimation dist from here to target
-
-        const ConnectivityGraph& graph_;
-
-        int getFVal() {
-            return g_val_ + h_val_;
-        }
-
-        struct compare_node {
-            // returns true if n1 > n2 (note -- this gives us *min*-heap).
-            bool operator()(const HyperGraphNodeDataRawPtr<N> &n1, const HyperGraphNodeDataRawPtr<N> &n2) const {
-                return n1->visited_agent_.size() + n1->h_val_ >= n2->visited_agent_.size() + n2->h_val_;
-            }
-        };
-
-        struct equal_node {
-            // returns true if n1 > n2 (note -- this gives us *min*-heap).
-            bool operator()(const HyperGraphNodeDataRawPtr<N> &n1, const HyperGraphNodeDataRawPtr<N> &n2) const {
-                return n1->current_node_ == n2->current_node_;
-            }
-        };
-
-        struct NodeHasher
-        {
-            size_t operator() (const HyperGraphNodeDataRawPtr<N>& n) const
-            {
-                return std::hash<int>()(n->current_node_); // yz: 按位异或
-            }
-        };
-
-        bool in_openlist_ = false;
-
-        typedef typename boost::heap::pairing_heap< HyperGraphNodeDataRawPtr<N>, boost::heap::compare<typename HyperGraphNodeDataRaw<N>::compare_node> >::handle_type open_handle_t;
-
-        open_handle_t open_handle_;
-
-    };
-
+        return retv;
+    }
 
     // calculate static heuristic table, using BFS, dist to target = 0
     // dist is defined like g_val and h_val, how many agent need to cross to reach target
-    template <Dimension N>
-    std::vector<int> calculateAgentHyperGraphStaticHeuristic(int agent_id, DimensionLength* dim, const ConnectivityGraph& graph, bool distinguish_sat = false) {
+    template <Dimension N, typename HyperNodeType>
+    std::vector<int> calculateAgentHyperGraphStaticHeuristic(int agent_id, DimensionLength* dim, const LA_MAPF::ConnectivityGraph& graph, bool distinguish_sat = false) {
         // the two table update simultaneously
 
         //std::cout << __FUNCTION__ << "graph.nodes size = " << graph.data_ptr_->all_edges_set_.size() << std::endl;
 
         std::vector<int> heuristic_table(graph.data_ptr_->all_edges_vec_.size(), MAX<int>);
 
-        std::vector<HyperGraphNodeDataRawPtr<N> > current_set, all_ptr_set;
+        std::vector<HyperNodeType*> current_set, all_ptr_set;
 
-        HyperGraphNodeDataRawPtr<N> init_node_ptr = new HyperGraphNodeDataRaw<N>(graph.target_hyper_node_, nullptr, graph, distinguish_sat);
+        HyperNodeType* init_node_ptr = new HyperNodeType(graph.target_hyper_node_, nullptr, graph, distinguish_sat);
 //        init_node_ptr->visited_agent_ = { distinguish_sat ? 2*agent_id + 1 : agent_id };
 
         current_set.push_back(init_node_ptr);
@@ -506,14 +528,14 @@ namespace freeNav::LayeredMAPF {
         while(!current_set.empty()) {
             count_set += current_set.size();
 //            std::cout << "current_set.size " << current_set.size() << std::endl;
-            std::vector<HyperGraphNodeDataRawPtr<N> > next_set;
+            std::vector<HyperNodeType*> next_set;
             for(const auto& node_ptr : current_set) {
 
                 current_h = heuristic_table[node_ptr->current_node_];
 
                 for(const auto& neighbor_node_id : graph.data_ptr_->all_edges_vec_backward_[node_ptr->current_node_]) {
 
-                    HyperGraphNodeDataRawPtr<N> next_node_data_ptr = new HyperGraphNodeDataRaw<N>(neighbor_node_id, node_ptr, graph, distinguish_sat);
+                    HyperNodeType* next_node_data_ptr = new HyperNodeType(neighbor_node_id, node_ptr, graph, distinguish_sat);
                     all_ptr_set.push_back(next_node_data_ptr);
 
                     next_h = next_node_data_ptr->g_val_;
@@ -544,7 +566,7 @@ namespace freeNav::LayeredMAPF {
     }
 
 
-    template<Dimension N>
+    template<Dimension N, typename HyperNodeType>
     class PrecomputationOfMAPF {
     public:
 
@@ -571,7 +593,7 @@ namespace freeNav::LayeredMAPF {
                 }
             }
 
-            SubGraphOfAgentDataPtr<N> subgraph_data_ptr = constructSubGraphOfAgent();
+            LA_MAPF::SubGraphOfAgentDataPtr<N> subgraph_data_ptr = constructSubGraphOfAgent();
 
             for (int agent_id = 0; agent_id < instances_.size(); agent_id++) {
                 // check start
@@ -582,9 +604,9 @@ namespace freeNav::LayeredMAPF {
 
                 instance_node_ids_.push_back(std::make_pair(start_node_id, target_node_id));
 
-                AgentPtr<N> agent = std::make_shared<CircleAgent<N> >(0.1, agent_id, dim_);
+                LA_MAPF::AgentPtr<N> agent = std::make_shared<LA_MAPF::CircleAgent<N> >(0.1, agent_id, dim_);
 
-                SubGraphOfAgent<N> sub_graph(agent);
+                LA_MAPF::SubGraphOfAgent<N> sub_graph(agent);
 
                 sub_graph.data_ptr_ = subgraph_data_ptr;
 
@@ -611,18 +633,18 @@ namespace freeNav::LayeredMAPF {
 
             auto connect_data_ptr = getAgentConnectivityGraph();
             for(int agent_id=0; agent_id<instances_.size(); agent_id++) {
-                ConnectivityGraph cg;
+                LA_MAPF::ConnectivityGraph cg;
                 cg.data_ptr_ = connect_data_ptr;
                 cg.start_hyper_node_ = connect_data_ptr->hyper_node_id_map_[instance_node_ids_[agent_id].first];
                 cg.target_hyper_node_  = connect_data_ptr->hyper_node_id_map_[instance_node_ids_[agent_id].second];
                 connect_graphs_.push_back(cg);
-                heuristic_tables_sat_.push_back(calculateAgentHyperGraphStaticHeuristic<N>(agent_id,
+                heuristic_tables_sat_.push_back(calculateAgentHyperGraphStaticHeuristic<N, HyperNodeType>(agent_id,
                                                                                                 this->dim_,
                                                                                                 connect_graphs_[agent_id],
                                                                                                 true));
 
                 if(with_sat_heu_) {
-                    heuristic_tables_.push_back(calculateAgentHyperGraphStaticHeuristic<N>(agent_id,
+                    heuristic_tables_.push_back(calculateAgentHyperGraphStaticHeuristic<N, HyperNodeType>(agent_id,
                                                                                                 this->dim_,
                                                                                                 connect_graphs_[agent_id],
                                                                                                 false));
@@ -636,12 +658,12 @@ namespace freeNav::LayeredMAPF {
             std::cout << "-- MAPF initialize_time_cost_ (ms) = " << initialize_time_cost_ << std::endl;
         }
 
-        SubGraphOfAgentDataPtr<N> constructSubGraphOfAgent() {
+        LA_MAPF::SubGraphOfAgentDataPtr<N> constructSubGraphOfAgent() {
             Id total_index = getTotalIndexOfSpace<N>(dim_);
 
             assert(all_poses_.size() == total_index);
 
-            auto data_ptr = std::make_shared<SubGraphOfAgentData<N> >();
+            auto data_ptr = std::make_shared<LA_MAPF::SubGraphOfAgentData<N> >();
 
             data_ptr->all_nodes_.resize(total_index, nullptr);
 
@@ -895,7 +917,7 @@ namespace freeNav::LayeredMAPF {
 
         bool solvable_ = true;
 
-        std::vector<SubGraphOfAgent<N> > agent_sub_graphs_;
+        std::vector<LA_MAPF::SubGraphOfAgent<N> > agent_sub_graphs_;
 
         std::vector<LA_MAPF::ConnectivityGraph> connect_graphs_;
 

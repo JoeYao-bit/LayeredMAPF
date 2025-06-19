@@ -21,7 +21,7 @@
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
     // inherit LargeAgentMAPF to avoid
-    template<Dimension N>
+    template<Dimension N, typename HyperNodeType>
     class LargeAgentMAPFInstanceDecomposition : public LargeAgentMAPF<N> {
     public:
 
@@ -75,8 +75,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             std::cout << "-- start calculateLargeAgentHyperGraphStaticHeuristic" << std::endl;
             // 2, calculate heuristic table for each connectivity graph
             for(int i=0; i<agents.size(); i++) {
-                heuristic_tables_.push_back(calculateLargeAgentHyperGraphStaticHeuristic<N>(i, this->dim_, connect_graphs_[i], false));
-                heuristic_tables_sat_.push_back(calculateLargeAgentHyperGraphStaticHeuristic<N>(i, this->dim_, connect_graphs_[i], true));
+                heuristic_tables_.push_back(calculateLargeAgentHyperGraphStaticHeuristic<N, HyperNodeType>(i, this->dim_, connect_graphs_[i], false));
+                heuristic_tables_sat_.push_back(calculateLargeAgentHyperGraphStaticHeuristic<N, HyperNodeType>(i, this->dim_, connect_graphs_[i], true));
             }
             std::cout << "-- finish calculateLargeAgentHyperGraphStaticHeuristic" << std::endl;
 
@@ -956,7 +956,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                   bool distinguish_sat = false,
                                   const std::vector<bool>& ignore_cost_set = {}) const {
             assert(!heuristic_tables_.empty() && !heuristic_tables_sat_.empty());
-            DependencyPathSearch<N> search_machine;
+            DependencyPathSearch<N, HyperNodeType> search_machine;
             /*
              * DependencyPathSearch::search(int agent_id,
                                             int start_hyper_node_id,
@@ -1951,8 +1951,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     };
 
-    template<Dimension N>
-    using LargeAgentMAPFInstanceDecompositionPtr = std::shared_ptr<LargeAgentMAPFInstanceDecomposition<N> >;
+    template<Dimension N, typename HyperNodeType>
+    using LargeAgentMAPFInstanceDecompositionPtr = std::shared_ptr<LargeAgentMAPFInstanceDecomposition<N, HyperNodeType> >;
 
 }
 #endif //LAYEREDMAPF_LARGE_AGENT_INSTANCE_DECOMPOSITION_H

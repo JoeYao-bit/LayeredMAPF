@@ -47,11 +47,11 @@ void compareLNSAndBiDecompose_MAPF(const SingleMapTestConfig<2>& map_file, int n
         istss.push_back(ists);
     }
 
-    PrecomputationOfMAPF<2> pre(istss.front(), dim_local, is_occupied_local, true);
+    PrecomputationOfMAPF<2, HyperGraphNodeDataRaw<2>> pre(istss.front(), dim_local, is_occupied_local, true);
 
     auto start_t = clock();
 
-    auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBipartition<2> >(dim_local,
+    auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBipartition<2, HyperGraphNodeDataRaw<2> > >(dim_local,
                                                                                    pre.connect_graphs_,
                                                                                    pre.agent_sub_graphs_,
                                                                                    pre.heuristic_tables_sat_,
@@ -69,11 +69,11 @@ void compareLNSAndBiDecompose_MAPF(const SingleMapTestConfig<2>& map_file, int n
 
     start_t = clock();
 
-    auto ns_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<2> >(dim_local,
+    auto ns_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<2, HyperGraphNodeDataRaw<2> > >(dim_local,
                                                                                  pre.connect_graphs_,
                                                                                  pre.agent_sub_graphs_,
                                                                                  pre.heuristic_tables_sat_,
-                                                                                 200,
+                                                                                 20,
                                                                                  1e4,
                                                                                  50,
                                                                                  1);
@@ -104,11 +104,11 @@ int main() {
 //TEST(simple_test, LNS_decomposition) {
 
     // ns / bi max subproblem size(decomposition rate) = 66(0.55) / 78(0.65)
-    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_empty_16_16,     120);
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_empty_16_16,     120);
 
     compareLNSAndBiDecompose_MAPF(MAPFTestConfig_empty_32_32,     400);
-
-    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_32_32_2,     120);
+//
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_32_32_2,     120);
 
 //    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_32_32_4,    260);
 //

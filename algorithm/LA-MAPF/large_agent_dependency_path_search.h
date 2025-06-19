@@ -11,6 +11,7 @@
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
+
     template<Dimension N>
     struct HyperGraphNodeData;
 
@@ -20,12 +21,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     template<Dimension N>
     struct HyperGraphNodeData : public TreeNode<N, HyperGraphNodeDataPtr<N> > {
 
-    explicit HyperGraphNodeData(const size_t & current_node,
-                                const HyperGraphNodeDataPtr<N>& parent,
-                                const ConnectivityGraph& graph,
-                                bool distinguish_sat = false, // whether visited grid distinguish start or target
-                                const std::vector<bool>& ignore_cost_agent_ids = {}) :
-            current_node_(current_node), graph_(graph), TreeNode<N, HyperGraphNodeDataPtr<N>>(parent) {
+        explicit HyperGraphNodeData(const size_t & current_node,
+                                    const HyperGraphNodeDataPtr<N>& parent,
+                                    const LA_MAPF::ConnectivityGraph& graph,
+                                    bool distinguish_sat = false, // whether visited grid distinguish start or target
+                                    const std::vector<bool>& ignore_cost_agent_ids = {}) :
+                current_node_(current_node), graph_(graph), TreeNode<N, HyperGraphNodeDataPtr<N>>(parent) {
             if(parent != nullptr) {
                 visited_agent_ = parent->visited_agent_;
             }
@@ -34,11 +35,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 if(!ignore_cost_agent_ids.empty() && ignore_cost_agent_ids[agent_id]) { continue; }
                 visited_agent_.insert(distinguish_sat ? agent_id : agent_id/2);
             }
+            g_val_ = visited_agent_.size();
         }
 
         void copy(const HyperGraphNodeData<N>& other_node) {
             visited_agent_    = other_node.visited_agent_;
             h_val_            = other_node.h_val_;
+            g_val_            = other_node.g_val_;
             current_node_     = other_node.current_node_;
             this->pa_         = other_node.pa_;
             this->ch_         = other_node.ch_;
@@ -53,9 +56,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         std::set<int> visited_agent_;
 
-        int h_val_ = 0; // estimation dist from here to target
+        int h_val_ = 0, g_val_ = 0; // estimation dist from here to target
 
-        const ConnectivityGraph& graph_;
+        const LA_MAPF::ConnectivityGraph& graph_;
 
         int getFVal() {
             return visited_agent_.size() + h_val_;
@@ -91,27 +94,52 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     };
 
+    // unordered_set
+    template<Dimension N>
+    std::set<int> getPassingAgents(const HyperGraphNodeDataPtr<N>& node_ptr,
+                                   const LA_MAPF::ConnectivityGraph& graph,
+                                   bool distinguish_sat = true) {
+//            std::set<int> retv;
+//            HyperGraphNodeDataPtr<N> buffer = node_ptr;
+//            while(buffer != nullptr) {
+//
+//                std::set<int> raw_agent_ids = buffer->visited_agent_;
+//                for(const auto& raw_agent_id : raw_agent_ids) {
+//                    if(distinguish_sat) {
+//                        retv.insert(raw_agent_id);
+//                    } else {
+//                        retv.insert(raw_agent_id / 2);
+//                    }
+//                }
+//                buffer = buffer->pa_;
+//            }
+//            return retv;
+        return node_ptr->visited_agent_;
+    }
 
     // calculate static heuristic table, using BFS, dist to target = 0
     // dist is defined like g_val and h_val, how many agent need to cross to reach target
-    template <Dimension N>
-    std::vector<int> calculateLargeAgentHyperGraphStaticHeuristic(int agent_id, DimensionLength* dim, const ConnectivityGraph& graph, bool distinguish_sat = false) {
+    template <Dimension N, typename HyperNodeType>
+    std::vector<int> calculateLargeAgentHyperGraphStaticHeuristic(int agent_id,
+                                                                  DimensionLength* dim,
+                                                                  const ConnectivityGraph& graph,
+                                                                  bool distinguish_sat = false) {
         // the two table update simultaneously
 
-        std::cout << __FUNCTION__ << "graph.nodes size = " << graph.data_ptr_->all_edges_set_.size() << std::endl;
+//        std::cout << __FUNCTION__ << "graph.nodes size = " << graph.data_ptr_->all_edges_set_.size() << std::endl;
 
         std::vector<int> heuristic_table(graph.data_ptr_->all_edges_vec_.size(), MAX<int>);
 
-        std::vector<HyperGraphNodeDataPtr<N> > current_set, all_ptr_set;
+        std::vector<HyperNodeType*> current_set, all_ptr_set;
 
-        HyperGraphNodeDataPtr<N> init_node_ptr = new HyperGraphNodeData<N>(graph.target_hyper_node_, nullptr, graph, distinguish_sat);
+        HyperNodeType* init_node_ptr = new HyperNodeType(graph.target_hyper_node_, nullptr, graph, distinguish_sat);
 //        init_node_ptr->visited_agent_ = { distinguish_sat ? 2*agent_id + 1 : agent_id };
 
         current_set.push_back(init_node_ptr);
 
         all_ptr_set.push_back(init_node_ptr);
 
-        heuristic_table[init_node_ptr->current_node_] = init_node_ptr->visited_agent_.size(); // in target, related agent is itself, so heuristic_table = 1
+        heuristic_table[init_node_ptr->current_node_] = init_node_ptr->g_val_;//init_node_ptr->visited_agent_.size(); // in target, related agent is itself, so heuristic_table = 1
 
         int current_h, next_h;
 
@@ -120,17 +148,17 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         while(!current_set.empty()) {
             count_set += current_set.size();
 //            std::cout << "current_set.size " << current_set.size() << std::endl;
-            std::vector<HyperGraphNodeDataPtr<N> > next_set;
+            std::vector<HyperNodeType*> next_set;
             for(const auto& node_ptr : current_set) {
 
                 current_h = heuristic_table[node_ptr->current_node_];
 
                 for(const auto& neighbor_node_id : graph.data_ptr_->all_edges_vec_backward_[node_ptr->current_node_]) {
 
-                    HyperGraphNodeDataPtr<N> next_node_data_ptr = new HyperGraphNodeData<N>(neighbor_node_id, node_ptr, graph, distinguish_sat);
+                    HyperNodeType* next_node_data_ptr = new HyperNodeType(neighbor_node_id, node_ptr, graph, distinguish_sat);
                     all_ptr_set.push_back(next_node_data_ptr);
 
-                    next_h = next_node_data_ptr->visited_agent_.size();
+                    next_h = next_node_data_ptr->g_val_;//next_node_data_ptr->visited_agent_.size();
 
                     if(heuristic_table[neighbor_node_id] > next_h) {
                         heuristic_table[neighbor_node_id] = next_h;
@@ -152,19 +180,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         assert(heuristic_table[graph.target_hyper_node_] != MAX<int>);
         assert(heuristic_table[graph.start_hyper_node_]  != MAX<int>);
 
-        std::cout << "count_set = " << count_set << std::endl;
+//        std::cout << "count_set = " << count_set << std::endl;
 
         return heuristic_table;
     }
 
 
+    // unordered_set
     template<Dimension N>
-    struct DependencyPathSearch {
-
-        explicit DependencyPathSearch() {}
-
-        // unordered_set
-        std::set<int> getPassingAgents(const HyperGraphNodeDataPtr<N>& node_ptr) {
+    std::set<int> getPassingAgents(const HyperGraphNodeDataPtr<N>& node_ptr) {
 //            std::set<int> retv;
 //            HyperGraphNodeDataPtr<N> buffer = node_ptr;
 //            while(buffer != nullptr) {
@@ -180,8 +204,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                buffer = buffer->pa_;
 //            }
 //            return retv;
-            return node_ptr->visited_agent_;
-        }
+        return node_ptr->visited_agent_;
+    }
+
+    template<Dimension N, typename HyperNodeType>
+    struct DependencyPathSearch {
+
+        explicit DependencyPathSearch() {}
 
         /* determine the path for a agent in the hyper graph, considering avoidance for other agents */
         // search in a Best-First way or Breadth-First-way ? I prefer Best-First way
@@ -246,9 +275,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 //std::cout << std::endl;
             }
 
-            HyperGraphNodeDataPtr<N> start_node = new HyperGraphNodeData<N>(start_hyper_node_id, nullptr, con_graph, distinguish_sat);
+            HyperNodeType* start_node = new HyperNodeType(start_hyper_node_id, nullptr, con_graph, distinguish_sat);
 
-            assert(start_node->visited_agent_.size() >= 1);
+            //assert(start_node->visited_agent_.size() >= 1);
             assert(con_graph.data_ptr_->hyper_node_with_agents_[con_graph.target_hyper_node_].size() >= 1);
 //            std::cout << "start_node cur and pre " << start_node << " / " << start_node->pa_ << std::endl;
             start_node->h_val_ = heuristic_table[start_hyper_node_id];
@@ -266,7 +295,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 // check if the popped node is a goal
                 if(curr_node->current_node_ == target_hyper_node_id) // if current node is belong to an agent
                 {
-                    auto passed_agents = getPassingAgents(curr_node);//curr_node->passed_agents_;
+                    auto passed_agents = getPassingAgents(curr_node, con_graph, distinguish_sat);//curr_node->passed_agents_;
                     // debug
 //                    if(agent_id == 4) {
 //                        std::cout << " agent 4 visited hyper node = ";
@@ -305,7 +334,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
                     if(avoid_failed || passing_failed) { continue; }
 
-                    auto next_node = new HyperGraphNodeData<N>(neighbor_node_id, curr_node, con_graph, distinguish_sat, ignore_cost_set);
+                    auto next_node = new HyperNodeType(neighbor_node_id, curr_node, con_graph, distinguish_sat, ignore_cost_set);
                     next_node->h_val_ = heuristic_table[neighbor_node_id];
                     bool is_new_node = true;
                     // try to retrieve it from the hash table
@@ -347,25 +376,25 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return {};
         }
 
-        inline HyperGraphNodeDataPtr<N> popNode() {
+        inline HyperNodeType* popNode() {
             auto node = open_list_.top(); open_list_.pop();
             node->in_openlist_ = false;
             return node;
         }
 
-        inline void pushNode(const HyperGraphNodeDataPtr<N>& node) {
+        inline void pushNode(HyperNodeType* node) {
             node->open_handle_ = open_list_.push(node);
             node->in_openlist_ = true;
         }
 
-        typedef boost::heap::pairing_heap<HyperGraphNodeDataPtr <N>,
-                boost::heap::compare<typename HyperGraphNodeData<N>::compare_node> > heap_open_t;
+        typedef boost::heap::pairing_heap<HyperNodeType*,
+                boost::heap::compare<typename HyperNodeType::compare_node> > heap_open_t;
         heap_open_t open_list_;
 
         // how about considering grid distance of path as focal list ?
 
-        typedef boost::unordered_set<HyperGraphNodeDataPtr<N>, typename HyperGraphNodeData<N>::NodeHasher,
-                typename HyperGraphNodeData<N>::equal_node> hashtable_t;
+        typedef boost::unordered_set<HyperNodeType*, typename HyperNodeType::NodeHasher,
+                typename HyperNodeType::equal_node> hashtable_t;
         hashtable_t allNodes_table_;
 
         void releaseNodes() {

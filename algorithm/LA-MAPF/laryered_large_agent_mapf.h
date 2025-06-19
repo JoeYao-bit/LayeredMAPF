@@ -225,7 +225,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return mergedPaths;
     }
 
-    template<Dimension N>
+    template<Dimension N, typename HyperNodeType>
     std::vector<LAMAPF_Path> solveSubproblem(int subproblem_id, // level_global_id
                                              const std::vector<std::set<int> > levels,
                                              const std::vector<AgentPtr<N> >& pre_agents,
@@ -234,7 +234,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
                                              std::vector<std::vector<int> >& grid_visit_count_table,
                                              double cutoff_time,
-                                             const LargeAgentMAPFInstanceDecompositionPtr<N>& decomposer,
+                                             const LargeAgentMAPFInstanceDecompositionPtr<N, HyperNodeType>& decomposer,
                                              const float& max_excircle_radius,
                                              const InstanceOrients<N> & instances,
                                              const std::vector<AgentPtr<N>>& agents,
@@ -353,7 +353,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     }
 
     // current only considering methods that take external path as constraint, like LA-CBS
-    template<Dimension N>
+    template<Dimension N, typename HyperNodeType>
     std::vector<LAMAPF_Path> layeredLargeAgentMAPF(const InstanceOrients<N> & instances,
                                                    const std::vector<AgentPtr<N>>& agents,
                                                    DimensionLength* dim,
@@ -362,7 +362,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                    std::vector<std::vector<int> >& grid_visit_count_table,
                                                    bool& detect_loss_of_solvability,
                                                    double cutoff_time = 60,
-                                                   LargeAgentMAPFInstanceDecompositionPtr<N>& decomposer_copy = nullptr,
+                                                   LargeAgentMAPFInstanceDecompositionPtr<N, HyperNodeType>& decomposer_copy = nullptr,
                                                    bool use_path_constraint = false,
                                                    int level_of_decomposition = 4,
                                                    bool debug_mode = true
@@ -370,8 +370,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         auto start_t = clock();
 
-        LargeAgentMAPFInstanceDecompositionPtr<N> decomposer =
-                std::make_shared<LargeAgentMAPFInstanceDecomposition<N> >(instances,
+        LargeAgentMAPFInstanceDecompositionPtr<N, HyperNodeType> decomposer =
+                std::make_shared<LargeAgentMAPFInstanceDecomposition<N, HyperNodeType> >(instances,
                                                                      agents, dim, isoc, true, level_of_decomposition, debug_mode);
 
         decomposer_copy = decomposer;

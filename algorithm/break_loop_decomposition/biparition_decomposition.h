@@ -14,7 +14,7 @@
 namespace freeNav::LayeredMAPF {
 
     // a general interfaces for both LA-MAPF and MAPF
-    template<Dimension N>
+    template<Dimension N, typename HyperNodeType>
     class MAPFInstanceDecompositionBipartition {
     public:
 
@@ -1009,7 +1009,7 @@ namespace freeNav::LayeredMAPF {
                                   bool distinguish_sat = false,
                                   const std::vector<bool>& ignore_cost_set = {}) const {
             assert(!heuristic_tables_.empty() && !heuristic_tables_sat_.empty());
-            LA_MAPF::DependencyPathSearch<N> search_machine;
+            LA_MAPF::DependencyPathSearch<N, HyperNodeType> search_machine;
             /*
              * DependencyPathSearch::search(int agent_id,
                                             int start_hyper_node_id,

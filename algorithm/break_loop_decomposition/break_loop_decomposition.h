@@ -22,7 +22,7 @@
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
     // a general interfaces for both LA-MAPF and MAPF
-    template<Dimension N>
+    template<Dimension N, typename HyperNodeType>
     class MAPFInstanceDecompositionBreakLoop {
 
     public:
@@ -254,7 +254,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             // detect edge to agent in current loop
             // try avoid this link in search path
 
-            std::vector<bool> avail_start_and_target = getAvailNodesFromOtherLevels(max_level.first,
+            const std::vector<bool>& avail_start_and_target = getAvailNodesFromOtherLevels(max_level.first,
                                                                                     all_dependency_paths_,
                                                                                     all_levels_);
 
@@ -581,7 +581,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                   bool distinguish_sat = false,
                                   const std::vector<bool>& ignore_cost_set = {}) const {
             assert(!heuristic_tables_sat_.empty());
-            DependencyPathSearch<N> search_machine;
+            DependencyPathSearch<N, HyperNodeType> search_machine;
             /*
              * DependencyPathSearch::search(int agent_id,
                                             int start_hyper_node_id,
