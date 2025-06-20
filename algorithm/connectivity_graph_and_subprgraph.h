@@ -116,9 +116,9 @@ namespace freeNav::LayeredMAPF {
             clock_t start_t = clock();
             for(int i=0; i<agents.size(); i++) {
                 connect_graphs_.push_back(getAgentConnectivityGraph(i));
-                heuristic_tables_sat_.push_back(calculateLargeAgentHyperGraphStaticHeuristic<N, HyperGraphNodeDataRaw<N>>(i, this->dim_, connect_graphs_[i], true));
+                heuristic_tables_sat_.push_back(LA_MAPF::calculateLargeAgentHyperGraphStaticHeuristic<N, HyperGraphNodeDataRaw<N>>(i, this->dim_, connect_graphs_[i], true));
                 if(with_sat_heu_) {
-                    heuristic_tables_.push_back(calculateLargeAgentHyperGraphStaticHeuristic<N, HyperGraphNodeDataRaw<N>>(i, this->dim_, connect_graphs_[i], false));
+                    heuristic_tables_.push_back(LA_MAPF::calculateLargeAgentHyperGraphStaticHeuristic<N, HyperGraphNodeDataRaw<N>>(i, this->dim_, connect_graphs_[i], false));
                 }
             }
             clock_t now_t = clock();
