@@ -183,6 +183,9 @@ namespace freeNav::LayeredMAPF {
             std::map<int, std::set<int> > all_agents_path;
             for(const int& agent_id : agents) {
                 auto passing_agents = searchAgent(agent_id, {}, cluster_buffer_sat, true); // pass test
+                if(run_ot_of_time) {
+                    return {agents, {}};
+                }
                 assert(!passing_agents.empty());
                 all_agents_path.insert({agent_id, passing_agents});
             }

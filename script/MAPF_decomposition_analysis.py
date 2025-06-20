@@ -2,6 +2,7 @@ import matplotlib as mp
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import ticker
+import os
 
 #import seaborn as sns
 
@@ -29,7 +30,8 @@ def loadDataFromfile(file_path):
                 new_data.level_1           = float(splited_line[7])
                 new_data.level_2           = float(splited_line[8])
                 new_data.level_3           = float(splited_line[9])
-                
+                new_data.level_4           = float(splited_line[10])
+
                 data_list.append(new_data)
     except Exception as e:            
         print(e)       
@@ -46,6 +48,7 @@ class LineData:
     level_1           = 0.
     level_2           = 0.
     level_3           = 0.
+    level_4           = 0.
         
 
 # all data in a txt file
@@ -58,7 +61,7 @@ def drawMethodMap(single_map_data, value_type):
     fig = plt.figure(figsize=(5,3.5)) #添加绘图框
     map_name = single_map_data.map_name
     
-    all_raw_data = [dict(), dict(), dict()]
+    all_raw_data = dict()
 
 
     for data in single_map_data.data_list:
@@ -68,40 +71,38 @@ def drawMethodMap(single_map_data, value_type):
         max_cluster       = data.max_cluster
         memory_usage      = data.memory_usage
         num_of_subproblem = data.num_of_subproblem
+        level             = data.level
         
-        if all_raw_data[0].get(total_size) == None:
-            all_raw_data[0][total_size] = list()
-            all_raw_data[1][total_size] = list()
-            all_raw_data[2][total_size] = list()            
-        
-        assert(data.level>= 1 and data.level <= 3)
+        if all_raw_data.get(level) == None:
+            all_raw_data[level] = dict()
+
+        if all_raw_data[level].get(total_size) == None:
+            all_raw_data[level][total_size] = list()        
         
         if value_type == "decomposition_rate":
-            all_raw_data[data.level-1][total_size].append(max_cluster / total_size)    
+            all_raw_data[level][total_size].append(max_cluster / total_size)    
         elif value_type == "time_cost":
-            all_raw_data[data.level-1][total_size].append(time_cost)    
+            all_raw_data[level][total_size].append(time_cost)    
         elif value_type == "memory_usage":
-            all_raw_data[data.level-1][total_size].append(memory_usage)        
+            all_raw_data[level][total_size].append(memory_usage)        
         elif value_type == "num_of_subproblem":
-            all_raw_data[data.level-1][total_size].append(num_of_subproblem)     
-    label_buffer = "1"        
-    for i in range(0,3):    
+            all_raw_data[level][total_size].append(num_of_subproblem)  
+
+
+    for level_key, level_value in all_raw_data.items():    
         x = list()
         y = list()    
         std_val = list()
-        if value_type == "decomposition_rate":
-            for data_key, data_val in all_raw_data[i].items():
-                x.append(data_key)        
-                y.append(np.mean(data_val))
-                std_val.append(np.std(data_val))
-        else:
-            for data_key, data_val in all_raw_data[i].items():
-                x.append(data_key)        
-                y.append(np.mean(data_val))
-                std_val.append(np.std(data_val))
+
+        for data_key, data_val in all_raw_data[level_key].items():
+            x.append(data_key)        
+            y.append(np.mean(data_val))
+            std_val.append(np.std(data_val))
+
+
         # yerr=std_val
-        plt.errorbar(x, y, label=label_buffer, markersize=14, fmt=step_fmt[i], linewidth= 4, elinewidth=4, capsize=4)
-        label_buffer = label_buffer + ", " + str(i+2)          
+        plt.errorbar(x, y, label=level_flag_map[level_key], markersize=14, fmt=step_fmt[level_key], linewidth= 4, elinewidth=4, capsize=4)
+        #break    
 
     plt.legend(loc='best')    
     plt.tick_params(axis='both', labelsize=18)
@@ -122,13 +123,21 @@ def drawMethodMap(single_map_data, value_type):
     plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5)
     #plt.grid()
     plt.tight_layout()
-    save_path = '../test/pic/decomposition/'+value_type+'/'+map_name+"-"+value_type+'.png'
+    save_path = '../test/pic/decomposition/'+value_type+'/'
+
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+        print("Folder: " + save_path + " created")
+
+    save_path = save_path +map_name+"-"+value_type+'.png'
     plt.savefig(save_path, dpi = 200, bbox_inches='tight')   
     plt.close()
     print("save picture to "+save_path)
 
     
-step_fmt = ["x-","o-.","^--"]    
+step_fmt = {3:"x-", 4:"o-.", 5:"^--"}    
+
+level_flag_map = {3:"Raw-Bi", 4:"Bi-level", 5:"Break loop"}
     
 data_path_dir = '../test/test_data/decomposition/'
 all_map_name = [
