@@ -19,7 +19,7 @@
 
 //#include "../LA-MAPF/CBS/space_time_astar.h"
 
-namespace freeNav::LayeredMAPF::LA_MAPF {
+namespace freeNav::LayeredMAPF {
 
     // a general interfaces for both LA-MAPF and MAPF
     template<Dimension N, typename HyperNodeType>
@@ -33,8 +33,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         typedef std::vector<std::vector<bool> > LevelOrderGraph;
 
         MAPFInstanceDecompositionBreakLoop(DimensionLength* dim,
-                                           const std::vector<ConnectivityGraph>& connectivity_graphs,
-                                           const std::vector<SubGraphOfAgent<N> >& agent_sub_graphs,
+                                           const std::vector<LA_MAPF::ConnectivityGraph>& connectivity_graphs,
+                                           const std::vector<LA_MAPF::SubGraphOfAgent<N> >& agent_sub_graphs,
                                            const std::vector<std::vector<int> >& heuristic_tables_sat, // distinguish_sat = true
                                            double time_limit = 10,
                                            int max_break_count = 1e3,
@@ -124,7 +124,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 //if(getMaxLevelSize(all_levels_) <= expected_min_level_size_) { break; }
 
 
-                auto retv_pair = getMaxLevel(all_levels_, i_th_largest_level);
+                auto retv_pair = LA_MAPF::getMaxLevel(all_levels_, i_th_largest_level);
                 if(retv_pair.second.size() <= expected_min_level_size_) { break; }
 
                 // breakMaxLoopGreedy
@@ -264,7 +264,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         // random pick agent of the max level and break it
         bool breakMaxLoop(const int& iter_count, int th_largest_level = 0, bool simple_avail = true) {
             // 1, pick the largest loop
-            std::pair<int, std::set<int> > max_level = getMaxLevel(all_levels_, th_largest_level);
+            std::pair<int, std::set<int> > max_level = LA_MAPF::getMaxLevel(all_levels_, th_largest_level);
             if(max_level.second.size() == 1) { return false; }
             // 2, random pick an agent from the loop
             auto start_iter = max_level.second.begin();
@@ -351,7 +351,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             auto new_levels = getLevelsFromDependencyPaths(new_dependency_paths);
             size_t old_max_level_size = max_level.second.size();
-            auto new_max_level = getMaxLevel(new_levels, th_largest_level);
+            auto new_max_level = LA_MAPF::getMaxLevel(new_levels, th_largest_level);
 
             //std::cout << "break loop at agent " << agent_id << " success " << std::endl;
             //std::cout << "old_max_level = " << max_level.second << std::endl;
@@ -371,7 +371,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         // pick all agent of the max level one by one and try to break it
         bool breakMaxLoopGreedy(const int& iter_count, int th_largest_level = 0) {
             // 1, pick the largest loop
-            std::pair<int, std::set<int> > max_level = getMaxLevel(all_levels_, th_largest_level);
+            std::pair<int, std::set<int> > max_level = LA_MAPF::getMaxLevel(all_levels_, th_largest_level);
             if(max_level.second.size() == 1) { return false; }
             // 2, check all agent from the loop
             std::map<int, std::set<int> > best_new_paths;
@@ -703,7 +703,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                   bool distinguish_sat = false,
                                   const std::vector<bool>& ignore_cost_set = {}) const {
             assert(!heuristic_tables_sat_.empty());
-            DependencyPathSearch<N, HyperNodeType> search_machine;
+            LA_MAPF::DependencyPathSearch<N, HyperNodeType> search_machine;
             /*
              * DependencyPathSearch::search(int agent_id,
                                             int start_hyper_node_id,
@@ -752,9 +752,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         DimensionLength* dim_;
 
-        std::vector<ConnectivityGraph> connect_graphs_;
+        std::vector<LA_MAPF::ConnectivityGraph> connect_graphs_;
 
-        std::vector<SubGraphOfAgent<N> > agent_sub_graphs_;
+        std::vector<LA_MAPF::SubGraphOfAgent<N> > agent_sub_graphs_;
 
         std::vector<std::vector<int> > heuristic_tables_sat_; // distinguish_sat = true
 
@@ -772,7 +772,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         clock_t start_t_;
 
-        std::vector<AgentPtr<N> > agents_;
+        std::vector<LA_MAPF::AgentPtr<N> > agents_;
 
         /* variables during break loops */
 
