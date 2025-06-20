@@ -47,6 +47,8 @@ void compareLNSAndBiDecompose_MAPF(const SingleMapTestConfig<2>& map_file, int n
         istss.push_back(ists);
     }
 
+    double time_limit_s = 10;
+
     PrecomputationOfMAPF<2, HyperGraphNodeDataRaw<2>> pre(istss.front(), dim_local, is_occupied_local, true);
 
     auto start_t = clock();
@@ -56,7 +58,7 @@ void compareLNSAndBiDecompose_MAPF(const SingleMapTestConfig<2>& map_file, int n
                                                                                    pre.agent_sub_graphs_,
                                                                                    pre.heuristic_tables_sat_,
                                                                                    pre.heuristic_tables_,
-                                                                                   20);
+                                                                                                              time_limit_s);
 
     auto now_t = clock();
     double total_time_cost = ((double)now_t - start_t)/CLOCKS_PER_SEC;
@@ -74,7 +76,7 @@ void compareLNSAndBiDecompose_MAPF(const SingleMapTestConfig<2>& map_file, int n
                                                                                  pre.connect_graphs_,
                                                                                  pre.agent_sub_graphs_,
                                                                                  pre.heuristic_tables_sat_,
-                                                                                 20,
+                                                                                                            time_limit_s,
                                                                                  1e4,
                                                                                  100,
                                                                                  1);

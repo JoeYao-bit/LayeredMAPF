@@ -10,7 +10,7 @@
 
 #include "../algorithm/LA-MAPF/CBS/space_time_astar.h"
 #include "../third_party/EECBS/inc/SpaceTimeAStar.h"
-
+#include <algorithm>
 namespace freeNav::LayeredMAPF {
 
     // a general interfaces for both LA-MAPF and MAPF
@@ -36,15 +36,19 @@ namespace freeNav::LayeredMAPF {
             all_clusters_ = {instance_id_set_};
             bipartition();
 
+
+        }
+
+        void debugCheck() const {
             // debug: check whether every agent occur once and only once in all subproblems
-            std::vector<bool> occured_flag(connectivity_graphs.size(), false);
+            std::vector<bool> occured_flag(connect_graphs_.size(), false);
             for(const auto& cluster : all_clusters_) {
                 for(const auto& agent_id : cluster) {
                     assert(!occured_flag[agent_id]);
                     occured_flag[agent_id] = true;
                 }
             }
-            assert(occured_flag == std::vector<bool>(connectivity_graphs.size(), true));
+            assert(occured_flag == std::vector<bool>(connect_graphs_.size(), true));
         }
 
         void bipartition() {
@@ -53,27 +57,37 @@ namespace freeNav::LayeredMAPF {
             instanceDecomposition();
             auto now_t = clock();
             instance_decomposition_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
+            std::cout << "-- instance_decomposition_time_cost_ (ms) = " << instance_decomposition_time_cost_ << std::endl;
 
+            debugCheck();
+            assert(decompositionValidCheck(all_clusters_));
 
             start_t = clock();
             clusterDecomposition();
             now_t = clock();
             cluster_bipartition_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
+            std::cout << "-- cluster_bipartition_time_cost_    (ms) = " << cluster_bipartition_time_cost_ << std::endl;
+
+            debugCheck();
+            assert(decompositionValidCheck(all_clusters_));
 
             start_t = clock();
             levelSorting();
             now_t = clock();
             level_sorting_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
+            std::cout << "-- level_sorting_time_cost_          (ms) = " << level_sorting_time_cost_ << std::endl;
+
+            debugCheck();
+            assert(decompositionValidCheck(all_clusters_));
 
             start_t = clock();
             levelDecomposition();
             now_t = clock();
             level_bipartition_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
-
-            std::cout << "-- instance_decomposition_time_cost_ (ms) = " << instance_decomposition_time_cost_ << std::endl;
-            std::cout << "-- cluster_bipartition_time_cost_    (ms) = " << cluster_bipartition_time_cost_ << std::endl;
-            std::cout << "-- level_sorting_time_cost_          (ms) = " << level_sorting_time_cost_ << std::endl;
             std::cout << "-- level_bipartition_time_cost_      (ms) = " << level_bipartition_time_cost_ << std::endl;
+
+            debugCheck();
+            assert(decompositionValidCheck(all_clusters_));
 
         }
 
@@ -234,9 +248,6 @@ namespace freeNav::LayeredMAPF {
                         break;
                     }
                 }
-//                if(count_of_first_step > 1) {
-//                    std::cout << "biPartitionLevel step 1 exit after " << count_of_first_step << std::endl;
-//                }
                 int count_of_second_step = 0;
                 // till here, the remaining set is independent, it related no external agent to keep completeness
 //                std::cout << "flag 3" << std::endl;
@@ -284,9 +295,6 @@ namespace freeNav::LayeredMAPF {
                     count_of_second_step ++;
 
                 }
-//                if(count_of_second_step > 1) {
-//                    std::cout << "biPartitionLevel step 2 exit after " << count_of_second_step << std::endl;
-//                }
                 std::vector<bool> local_avoid_set_pre(2*this->connect_graphs_.size(), false);
                 setStartSATToUnpassable(local_avoid_set_pre, level_pair.second);
 
@@ -303,10 +311,8 @@ namespace freeNav::LayeredMAPF {
                 }
 
             }
-//            if(count_of_phase > 1) {
-//                std::cout << "biPartitionLevel exit after " << count_of_phase << std::endl;
-//            }
             assert(agents.size() == level_pair.first.size() + level_pair.second.size());
+            if(run_ot_of_time) { return {agents, {}}; }
             return level_pair;
         }
 
@@ -388,9 +394,9 @@ namespace freeNav::LayeredMAPF {
                     }
                 }
             }
+            if(run_ot_of_time) { return; }
             // no sorting in increase size, as order of agent matters
             all_clusters_ = all_clusters;
-
         }
 
         void clusterDecomposition() {
@@ -399,8 +405,17 @@ namespace freeNav::LayeredMAPF {
             auto cluster_of_agents = all_clusters_;
             int count_top_cluster = 0;
             std::set<int> buffer_agents;
+            auto remain_cluster_of_agents = cluster_of_agents;
+            std::reverse(remain_cluster_of_agents.begin(), remain_cluster_of_agents.end());
             for(const auto& top_cluster : cluster_of_agents) {
-                if(run_ot_of_time) { return; }
+                if(run_ot_of_time) {
+                    // sorting in increase size, to enable large cluster have fewer external path constraint
+                    std::reverse(remain_cluster_of_agents.begin(), remain_cluster_of_agents.end());
+                    all_clusters.insert(all_clusters.end(), remain_cluster_of_agents.begin(), remain_cluster_of_agents.end());
+                    std::sort(all_clusters.begin(), all_clusters.end(), [](std::set<int> x,std::set<int> y){return x.size()>y.size();});
+                    all_clusters_ = all_clusters;
+                    return;
+                }
                 if(top_cluster.size() < 2) {
                     // add small clusters at this stage to all_clusters, no need to join further bi-partition
                     all_clusters.push_back(top_cluster);
@@ -408,26 +423,37 @@ namespace freeNav::LayeredMAPF {
                     count_top_cluster ++;
                     int count = 0;
                     buffer_agents = top_cluster;
+                    std::vector<std::set<int> > local_clusters;
                     // bi-partition until can not bi-partition
                     //if(count_top_cluster == 1)
                     {
                         while (buffer_agents.size() > 1) {
-                            if(run_ot_of_time) { return; }
+                            if(run_ot_of_time) {
+                                // sorting in increase size, to enable large cluster have fewer external path constraint
+                                std::reverse(remain_cluster_of_agents.begin(), remain_cluster_of_agents.end());
+                                all_clusters.insert(all_clusters.end(), remain_cluster_of_agents.begin(), remain_cluster_of_agents.end());
+                                std::sort(all_clusters.begin(), all_clusters.end(), [](std::set<int> x,std::set<int> y){return x.size()>y.size();});
+                                all_clusters_ = all_clusters;
+                                return;
+                            }
                             auto agents_pair = biPartitionCluster(buffer_agents);
                             std::swap(buffer_agents, agents_pair.second);
-                            all_clusters.push_back(agents_pair.first);
+                            //all_clusters.push_back(agents_pair.first);
+                            local_clusters.push_back(agents_pair.first);
                             count++;
                         }
                     }
                     if (!buffer_agents.empty()) {
-                        all_clusters.push_back(buffer_agents);
+                        //all_clusters.push_back(buffer_agents);
+                        local_clusters.push_back(buffer_agents);
                     }
+                    all_clusters.insert(all_clusters.end(), local_clusters.begin(), local_clusters.end());
                 }
+                remain_cluster_of_agents.pop_back();
             }
             // sorting in increase size, to enable large cluster have fewer external path constraint
             std::sort(all_clusters.begin(), all_clusters.end(), [](std::set<int> x,std::set<int> y){return x.size()>y.size();});
             all_clusters_ = all_clusters;
-
         }
 
 
@@ -444,6 +470,9 @@ namespace freeNav::LayeredMAPF {
             std::vector<bool> buffer_sat = AgentIdsToSATID(agents);
             for(const int& agent_id : agents) {
                 auto passing_agents = searchAgent(agent_id, {}, buffer_sat); // pass test
+                if(run_ot_of_time) {
+                    return {agents, {}};
+                }
                 assert(!passing_agents.empty());
                 all_agents_path.insert({agent_id, passing_agents});
             }
@@ -605,6 +634,9 @@ namespace freeNav::LayeredMAPF {
             std::vector<bool> cluster_sat = AgentIdsToSATID(cluster);
             for(const int& agent_id : cluster) {
                 auto passing_sats = searchAgent(agent_id, {}, cluster_sat, true); // pass test
+                if(run_ot_of_time) {
+                    return {cluster};
+                }
                 assert(!passing_sats.empty());
                 //std::cout << agent_id << " agent passing_sats " << passing_sats << std::endl;
                 sat_path_length_and_agent.push_back({agent_id, passing_sats.size()});
@@ -623,8 +655,10 @@ namespace freeNav::LayeredMAPF {
                 for(const auto& agent_id : cluster) {
 #endif
                 auto passing_sats = searchAgent(agent_id, {}, cluster_sat, true); // pass test
+                if(run_ot_of_time) {
+                    return {cluster};
+                }
                 assert(!passing_sats.empty());
-
                 // add agent's sat path in an incremental way
                 all_agents_path.insert({agent_id, passing_sats});
             }
@@ -838,12 +872,20 @@ namespace freeNav::LayeredMAPF {
             // cluster decomposition into level
             all_level_pre_and_next_.clear();
             all_level_pre_and_next_.reserve(connect_graphs_.size()); // maximum number of levels
-            std::vector<std::set<int> > all_levels_;
+            std::vector<std::set<int> > all_levels;
+            auto remain_clusters = all_clusters_;
+            std::reverse(remain_clusters.begin(), remain_clusters.end());
             for(const auto& cluster : all_clusters_) {
-                if(run_ot_of_time) { return; }
+                if(run_ot_of_time) {
+                    std::reverse(remain_clusters.begin(), remain_clusters.end());
+                    all_levels.insert(all_levels.end(), remain_clusters.begin(), remain_clusters.end());
+                    all_clusters_ = all_levels;
+                    return;
+                }
                 if(cluster.size() > 1) {
                     auto current_levels = clusterDecomposeToLevel(cluster);
-                    all_levels_.insert(all_levels_.end(), current_levels.begin(), current_levels.end());
+                    all_levels.insert(all_levels.end(), current_levels.begin(), current_levels.end());
+                    remain_clusters.pop_back();
                     for(int i=0; i<current_levels.size(); i++) {
                         std::pair<std::set<int>, std::set<int> > pre_and_next;
                         for(int j=0; j<current_levels.size(); j++) {
@@ -859,12 +901,13 @@ namespace freeNav::LayeredMAPF {
                         all_level_pre_and_next_.push_back(pre_and_next);
                     }
                 } else {
-                    all_levels_.push_back(cluster);
+                    all_levels.push_back(cluster);
+                    remain_clusters.pop_back();
                     std::pair<std::set<int>, std::set<int> > pre_and_next;
                     all_level_pre_and_next_.push_back(pre_and_next);
                 }
             }
-            all_clusters_ = all_levels_;
+            all_clusters_ = all_levels;
         }
 
 
@@ -918,6 +961,9 @@ namespace freeNav::LayeredMAPF {
             std::vector<bool> buffer_sat = AgentIdsToSATID(buffer_agents);
             for(const int& agent_id : buffer_agents) {
                 auto passing_agents = searchAgent(agent_id, {}, buffer_sat); // pass test
+                if(run_ot_of_time) {
+                    return;
+                }
                 assert(!passing_agents.empty());
                 all_agents_path.insert({agent_id, passing_agents});
             }
@@ -1040,6 +1086,71 @@ namespace freeNav::LayeredMAPF {
                                          avoid_agents, passing_agents,
                                          distinguish_sat ? heuristic_tables_sat_[agent_id] : heuristic_tables_[agent_id],
                                          distinguish_sat, ignore_cost_set);
+        }
+
+        // return path that consists of agents
+        // distinguish_sat whether consider start and target as one in calculate cost
+        std::set<int> searchAgentIgnoreTimeLimit(int agent_id,
+                                  const std::vector<bool>& avoid_agents,
+                                  const std::vector<bool>& passing_agents,
+                                  bool distinguish_sat = false,
+                                  const std::vector<bool>& ignore_cost_set = {}) const {
+
+            assert(!heuristic_tables_.empty() && !heuristic_tables_sat_.empty());
+            LA_MAPF::DependencyPathSearch<N, HyperNodeType> search_machine;
+            /*
+             * DependencyPathSearch::search(int agent_id,
+                                            int start_hyper_node_id,
+                                            const SubGraphOfAgent<N>& sub_graph,
+                                            const ConnectivityGraph& con_graph,
+                                            const std::vector<bool> &avoid_agents,
+                                            const std::vector<bool> &passing_agents,
+                                            const std::vector<int> heuristic_table,
+                                            bool distinguish_sat = false,
+                                            const std::vector<int> & ignore_cost_set = {}
+                                             )
+             * */
+            assert(connect_graphs_[agent_id].start_hyper_node_ != MAX<size_t>);
+            assert(connect_graphs_[agent_id].target_hyper_node_ != MAX<size_t>);
+
+            return search_machine.search(agent_id,
+                                         this->agent_sub_graphs_[agent_id].start_node_id_,
+                                         this->agent_sub_graphs_[agent_id].target_node_id_,
+                                         this->connect_graphs_[agent_id],
+                                         avoid_agents, passing_agents,
+                                         distinguish_sat ? heuristic_tables_sat_[agent_id] : heuristic_tables_[agent_id],
+                                         distinguish_sat, ignore_cost_set);
+        }
+
+
+        bool decompositionValidCheck(const std::vector<std::set<int> >& all_levels) {
+            for(int i=0; i<all_levels.size(); i++) {
+//                std::cout << " level " << i << " valid check ... " << std::endl;
+                std::vector<bool> avoid_sats(2*this->connect_graphs_.size(), false);
+                for(int j=0; j<all_levels.size(); j++) {
+                    if(i == j) { continue; }
+                    if(i > j) {
+                        for(const int& pre_agent : all_levels[j]) {
+                            avoid_sats[2*pre_agent + 1] = true;
+//                            std::cout << "set " << pre_agent << " target to occupied" << std::endl;
+                        }
+                    } else {
+                        for(const int& after_agent : all_levels[j]) {
+                            avoid_sats[2*after_agent] = true;
+//                            std::cout << "set " << after_agent << " start to occupied" << std::endl;
+                        }
+                    }
+                }
+                for(const int& agent : all_levels[i]) {
+                    auto passing_agents = searchAgentIgnoreTimeLimit(agent, avoid_sats, {}, true);
+                    if(passing_agents.empty()) {
+                        std::cout << "ERROR: cluster " << i << ", agent " << agent << " is im-complete" << std::endl;
+//                        assert(0);
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
 
         // store which agents current agent passing, may change after method
