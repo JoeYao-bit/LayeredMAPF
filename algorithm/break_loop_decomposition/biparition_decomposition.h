@@ -23,12 +23,15 @@ namespace freeNav::LayeredMAPF {
                                              const std::vector<LA_MAPF::SubGraphOfAgent<N> >& agent_sub_graphs,
                                              const std::vector<std::vector<int> >& heuristic_tables_sat,
                                              const std::vector<std::vector<int> >& heuristic_tables,
-                                             double time_limit = 10) :
+                                             double time_limit = 10,
+                                             int decompose_level = 4) :
                                              agent_sub_graphs_(agent_sub_graphs),
                                              connect_graphs_(connectivity_graphs),
                                              heuristic_tables_sat_(heuristic_tables_sat),
                                              heuristic_tables_(heuristic_tables),
-                                             time_limit_(time_limit) {
+                                             time_limit_(time_limit),
+                                             decompose_level_(decompose_level) {
+            assert(decompose_level <= 4 && decompose_level >= 1);
             start_t_ = clock();
             for(int i=0; i<connect_graphs_.size(); i++) {
                 instance_id_set_.insert(i);
@@ -59,26 +62,40 @@ namespace freeNav::LayeredMAPF {
             instance_decomposition_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
             std::cout << "-- instance_decomposition_time_cost_ (ms) = " << instance_decomposition_time_cost_ << std::endl;
 
-            debugCheck();
-            assert(decompositionValidCheck(all_clusters_));
-
+//            debugCheck();
+//            assert(decompositionValidCheck(all_clusters_));
+            if(decompose_level_ <= 1) {
+                debugCheck();
+                assert(decompositionValidCheck(all_clusters_));
+                return;
+            }
             start_t = clock();
             clusterDecomposition();
             now_t = clock();
             cluster_bipartition_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
             std::cout << "-- cluster_bipartition_time_cost_    (ms) = " << cluster_bipartition_time_cost_ << std::endl;
+            if(decompose_level_ <= 2) {
+                debugCheck();
+                assert(decompositionValidCheck(all_clusters_));
+                return;
+            }
 
-            debugCheck();
-            assert(decompositionValidCheck(all_clusters_));
+//            debugCheck();
+//            assert(decompositionValidCheck(all_clusters_));
 
             start_t = clock();
             levelSorting();
             now_t = clock();
             level_sorting_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
             std::cout << "-- level_sorting_time_cost_          (ms) = " << level_sorting_time_cost_ << std::endl;
+            if(decompose_level_ <= 3) {
+                debugCheck();
+                assert(decompositionValidCheck(all_clusters_));
+                return;
+            }
 
-            debugCheck();
-            assert(decompositionValidCheck(all_clusters_));
+//            debugCheck();
+//            assert(decompositionValidCheck(all_clusters_));
 
             start_t = clock();
             levelDecomposition();
@@ -357,10 +374,17 @@ namespace freeNav::LayeredMAPF {
             if(run_ot_of_time) { return; }
             std::vector<std::set<int> > all_clusters;
             auto cluster_of_agents = all_clusters_;
+            auto remain_cluster_of_agents = cluster_of_agents;
+            std::reverse(remain_cluster_of_agents.begin(), remain_cluster_of_agents.end());
             int count_top_cluster = 0;
             std::set<int> buffer_agents;
             for(int i=0; i<cluster_of_agents.size(); i++) {
-                if(run_ot_of_time) { return; }
+                if(run_ot_of_time) {
+                    std::reverse(remain_cluster_of_agents.begin(), remain_cluster_of_agents.end());
+                    all_clusters.insert(all_clusters.end(), remain_cluster_of_agents.begin(), remain_cluster_of_agents.end());
+                    all_clusters_ = all_clusters;
+                    return;
+                }
                 const auto& top_cluster = cluster_of_agents[i];
                 assert(top_cluster.size() >= 1);
                 if(top_cluster.size() == 1) {
@@ -376,25 +400,34 @@ namespace freeNav::LayeredMAPF {
                         external_pre.insert(all_level_pre_and_next_[i].first.begin(), all_level_pre_and_next_[i].first.end());
                         external_next.insert(all_level_pre_and_next_[i].second.begin(), all_level_pre_and_next_[i].second.end());
                     }
+                    std::vector<std::set<int> > local_clusters;
                     // bi-partition until can not bi-partition
                     //if(count_top_cluster == 1)
                     {
                         while (buffer_agents.size() > 1) {
-                            if(run_ot_of_time) { return; }
+                            if(run_ot_of_time) {
+                                std::reverse(remain_cluster_of_agents.begin(), remain_cluster_of_agents.end());
+                                all_clusters.insert(all_clusters.end(), remain_cluster_of_agents.begin(), remain_cluster_of_agents.end());
+                                all_clusters_ = all_clusters;
+                                return;
+                            }
 //                            std::cout << "start biPartition of level: " << buffer_agents << std::endl;
                             auto agents_pair = biPartitionLevel(buffer_agents, external_pre, external_next);
                             std::swap(buffer_agents, agents_pair.second);
-                            all_clusters.push_back(agents_pair.first);
+                            //all_clusters.push_back(agents_pair.first);
+                            local_clusters.push_back(agents_pair.first);
                             external_pre.insert(agents_pair.first.begin(), agents_pair.first.end());
                             count++;
                         }
                     }
                     if (!buffer_agents.empty()) {
-                        all_clusters.push_back(buffer_agents);
+                        //all_clusters.push_back(buffer_agents);
+                        local_clusters.push_back(buffer_agents);
                     }
+                    all_clusters.insert(all_clusters.end(), local_clusters.begin(), local_clusters.end());
                 }
+                remain_cluster_of_agents.pop_back();
             }
-            if(run_ot_of_time) { return; }
             // no sorting in increase size, as order of agent matters
             all_clusters_ = all_clusters;
         }
@@ -1175,6 +1208,8 @@ namespace freeNav::LayeredMAPF {
         clock_t start_t_;
 
         double time_limit_; // when run out of time, stop and return current decomposition result
+
+        int decompose_level_ = 4;
 
         bool run_ot_of_time = false;
 

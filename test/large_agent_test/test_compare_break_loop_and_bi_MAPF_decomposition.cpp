@@ -58,7 +58,8 @@ void compareLNSAndBiDecompose_MAPF(const SingleMapTestConfig<2>& map_file, int n
                                                                                    pre.agent_sub_graphs_,
                                                                                    pre.heuristic_tables_sat_,
                                                                                    pre.heuristic_tables_,
-                                                                                                              time_limit_s);
+                                                                                   time_limit_s,
+                                                                                   3);
 
     auto now_t = clock();
     double total_time_cost = ((double)now_t - start_t)/CLOCKS_PER_SEC;

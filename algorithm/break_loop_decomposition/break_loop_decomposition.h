@@ -356,7 +356,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             //std::cout << "break loop at agent " << agent_id << " success " << std::endl;
             //std::cout << "old_max_level = " << max_level.second << std::endl;
             //std::cout << "new_max_level = " << new_max_level.second << std::endl;
-            std::cout << th_largest_level << " th largest level, " << iter_count << " iter, update: new/old max_level_size = " << new_max_level.second.size() << " / " << old_max_level_size << std::endl;
+            //std::cout << th_largest_level << " th largest level, " << iter_count << " iter, update: new/old max_level_size = " << new_max_level.second.size() << " / " << old_max_level_size << std::endl;
 
             // adopt update only when generate smaller subproblems
             if(new_max_level.second.size() < old_max_level_size) {
