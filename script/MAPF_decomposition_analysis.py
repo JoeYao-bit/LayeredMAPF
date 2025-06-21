@@ -30,7 +30,7 @@ def loadDataFromfile(file_path):
                 new_data.level_1           = float(splited_line[7])
                 new_data.level_2           = float(splited_line[8])
                 new_data.level_3           = float(splited_line[9])
-                new_data.level_4           = float(splited_line[10])
+                #new_data.level_4           = float(splited_line[10])
 
                 data_list.append(new_data)
     except Exception as e:            
@@ -184,9 +184,11 @@ for map_name in all_map_name:
     single = SingleTestData()
     single.map_name = map_name
     single.data_list = loadDataFromfile(data_file_path)
+    #break
     if len(single.data_list) == 0:
         continue
     all_single_data.append(single)
+    #break
     
 for single_map_data in all_single_data:
     drawMethodMap(single_map_data, "time_cost")

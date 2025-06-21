@@ -150,7 +150,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                }
            }
             auto now_t = clock();
-            subgraph_and_heuristic_time_cost_ = 10e3 * ((double)now_t - start_t)/CLOCKS_PER_SEC;
+            subgraph_and_heuristic_time_cost_ = ((double)now_t - start_t)/CLOCKS_PER_SEC;
 
             std::cout << "-- construct subgraph and heuristic table in " << subgraph_and_heuristic_time_cost_ << "s" << std::endl;
             remaining_time_ = remaining_time_ - subgraph_and_heuristic_time_cost_;
