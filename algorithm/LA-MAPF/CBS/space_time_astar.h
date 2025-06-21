@@ -71,7 +71,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             connect_graph_(connect_graph) {
             //
 //            std::cout << "space time search agent " <<  this->sub_graph_.agent_ << std::endl;
-            grid_visit_count_table_.resize(sub_graph.all_nodes_.size() / (2*N));
+            grid_visit_count_table_.resize(sub_graph.data_ptr_->all_nodes_.size() / (2*N));
         }
 
         virtual LAMAPF_Path solve() override {
@@ -195,7 +195,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 int next_timestep = // curr->timestep + 1
                         curr->timestep >= static_time_step ? curr->timestep : curr->timestep + 1;
 
-                auto next_locations = this->sub_graph_.all_edges_[curr->node_id];//instance.getNeighbors(curr->location);
+                auto next_locations = this->sub_graph_.data_ptr_->all_edges_[curr->node_id];//instance.getNeighbors(curr->location);
                 if(next_timestep < static_time_step) {
                     next_locations.emplace_back(curr->node_id); // considering wait before every obstacle is static
                 }
@@ -293,8 +293,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                     // resulting no getNumOfConflictsForStep might be faster than use it
                     int next_internal_conflicts = curr->num_of_conflicts +
                             (this->constraint_avoidance_table_ == nullptr ? 0 :
-                             this->constraint_avoidance_table_->getNumOfConflictsForStep(*this->sub_graph_.all_nodes_[curr->node_id],
-                                                                                         *this->sub_graph_.all_nodes_[next_node_id],
+                             this->constraint_avoidance_table_->getNumOfConflictsForStep(*this->sub_graph_.data_ptr_->all_nodes_[curr->node_id],
+                                                                                         *this->sub_graph_.data_ptr_->all_nodes_[next_node_id],
                                                                                          curr->timestep));
 
                     // generate (maybe temporary) node

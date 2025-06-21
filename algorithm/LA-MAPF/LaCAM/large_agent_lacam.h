@@ -159,7 +159,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
 
 //                    auto C = S->C[i]->neighbor;
 //                    C.push_back(S->C[i]);
-                    auto C = this->agent_sub_graphs_[i].all_edges_[S->C[i]];
+                    auto C = this->agent_sub_graphs_[i].data_ptr_->all_edges_[S->C[i]];
                     C.push_back(S->C[i]);
                     if (MT != nullptr) std::shuffle(C.begin(), C.end(), *MT);  // randomize
 
@@ -348,7 +348,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
 
         bool funcPIBT(AgentLaCAM *ai, int next_t, ConstraintTable& constraint_table) {
             const auto i = ai->id;
-            const auto& neighbor = this->agent_sub_graphs_[ai->id].all_edges_[ai->v_now];
+            const auto& neighbor = this->agent_sub_graphs_[ai->id].data_ptr_->all_edges_[ai->v_now];
             const auto K = neighbor.size();
 
             // get candidates for next locations
@@ -476,7 +476,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
                 for (size_t i = 0; i < this->instance_node_ids_.size(); ++i) {
                     auto v_i_from = solution[t - 1][i];
                     auto v_i_to = solution[t][i];
-                    const auto& neighbor = this->agent_sub_graphs_[i].all_edges_[v_i_from];
+                    const auto& neighbor = this->agent_sub_graphs_[i].data_ptr_->all_edges_[v_i_from];
                     // check connectivity
                     if (v_i_from != v_i_to &&
 //                        std::find(v_i_to->neighbor.begin(), v_i_to->neighbor.end(),
@@ -508,8 +508,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
                         if(path_constraint->hasCollideWithSAT(this->agent_sub_graphs_[i].agent_->id_, v_i_from, v_i_to)) {
                             std::cout << "LaCAM hasCollideWithSAT_2: "
                                       << this->agent_sub_graphs_[i].agent_ << ", "
-                                      << *this->agent_sub_graphs_[i].all_nodes_[v_i_from] << "->"
-                                      << *this->agent_sub_graphs_[i].all_nodes_[v_i_to]
+                                      << *this->agent_sub_graphs_[i].data_ptr_->all_nodes_[v_i_from] << "->"
+                                      << *this->agent_sub_graphs_[i].data_ptr_->all_nodes_[v_i_to]
                                       << std::endl;
                             return false;
                         }

@@ -4,6 +4,7 @@
 
 #include "../test/test_data.h"
 //#include "multi-agent-path-finding/general_mapf_scene.h"
+#include "../algorithm/constraint_table_CBS/common.h"
 
 #include "../freeNav-base/dependencies/2d_grid/text_map_loader.h"
 #include "../freeNav-base/dependencies/memory_analysis.h"
@@ -17,6 +18,10 @@
 #include "pibt2/include/driver.h"
 
 #include "../algorithm/layered_mapf.h"
+#include "../algorithm/break_loop_decomposition/break_loop_decomposition.h"
+#include "../algorithm/break_loop_decomposition/biparition_decomposition.h"
+#include "../algorithm/connectivity_graph_and_subprgraph.h"
+
 #include <sys/resource.h>
 
 //ThreadPool viewer_thread(1);
@@ -193,6 +198,112 @@ bool decompositionOfSingleInstance(const freeNav::Instances<N>& ists, DimensionL
     return is_legal;
 }
 
+
+// level 5 is a flag to different from bipartition decomposition
+template<Dimension N>
+bool decompositionOfSingleInstanceBreakLoop(const freeNav::Instances<N>& ists, DimensionLength* dim,
+                                            const IS_OCCUPIED_FUNC<N>& isoc, OutputStream& outputStream,
+                                            double time_limit_s, int level=5) {
+
+
+    memory_recorder.clear();
+    sleep(1);
+    float basic_usage = memory_recorder.getMaximalMemoryUsage();
+    auto start_t = clock();
+
+    PrecomputationOfMAPF<2, HyperGraphNodeDataRaw<2>> pre(ists, dim, isoc, true);
+
+    auto ns_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<2, HyperGraphNodeDataRaw<2> > >(dim,
+            pre.connect_graphs_,
+            pre.agent_sub_graphs_,
+            pre.heuristic_tables_sat_,
+            time_limit_s - pre.initialize_time_cost_/1e3,
+            1e4,
+            100,
+            1);
+
+    ns_decompose->breakMaxLoopIteratively();
+
+    auto now_t = clock();
+    double time_cost =  1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
+
+    sleep(1);
+    float peak_usage = memory_recorder.getMaximalMemoryUsage();
+    float memory_usage = peak_usage - basic_usage;
+    bool is_legal = MAPF_DecompositionValidCheckGridMap<2>(ists, ns_decompose->all_levels_, dim, isoc);
+
+
+    outputStream.clear();
+    std::stringstream ss;
+    ss << " " << time_cost << " "
+       << LA_MAPF::getMaxLevelSize(ns_decompose->all_levels_) << " "
+       << ists.size() << " "
+       << is_legal << " "
+       << level
+       << " "
+       << memory_usage << " "
+       << ns_decompose->all_levels_.size() << " "
+       << 0 << " "
+       << 0 << " "
+       << 0 << " "
+       << 0 << " ";
+
+    outputStream = ss.str();
+    std::cout << " memory_usage = " << memory_usage << std::endl;
+    return is_legal;
+}
+
+// level 5 is a flag to different from bipartition decomposition
+template<Dimension N>
+bool decompositionOfSingleInstanceBipartition(const freeNav::Instances<N>& ists, DimensionLength* dim,
+                                              const IS_OCCUPIED_FUNC<N>& isoc, OutputStream& outputStream,
+                                              double time_limit_s, int level=3) {
+
+
+    memory_recorder.clear();
+    sleep(1);
+    float basic_usage = memory_recorder.getMaximalMemoryUsage();
+    auto start_t = clock();
+
+    PrecomputationOfMAPF<2, HyperGraphNodeDataRaw<2>> pre(ists, dim, isoc, true);
+
+    auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBipartition<2, HyperGraphNodeDataRaw<2> > >(dim,
+                        pre.connect_graphs_,
+                        pre.agent_sub_graphs_,
+                        pre.heuristic_tables_sat_,
+                        pre.heuristic_tables_,
+                        time_limit_s - pre.initialize_time_cost_/1e3,
+                        level);
+
+    auto now_t = clock();
+    double time_cost =  1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
+
+    sleep(1);
+    float peak_usage = memory_recorder.getMaximalMemoryUsage();
+    float memory_usage = peak_usage - basic_usage;
+    bool is_legal = MAPF_DecompositionValidCheckGridMap<2>(ists, bi_decompose->all_clusters_, dim, isoc);
+
+
+    outputStream.clear();
+    std::stringstream ss;
+    ss << " " << time_cost << " "
+       << LA_MAPF::getMaxLevelSize(bi_decompose->all_clusters_) << " "
+       << ists.size() << " "
+       << is_legal << " "
+       << level
+       << " "
+       << memory_usage << " "
+       << bi_decompose->all_clusters_.size() << " "
+       << bi_decompose->instance_decomposition_time_cost_ << " "
+       << bi_decompose->cluster_bipartition_time_cost_ << " "
+       << bi_decompose->level_sorting_time_cost_ << " "
+       << bi_decompose->level_bipartition_time_cost_ << " ";
+
+    outputStream = ss.str();
+    std::cout << " memory_usage = " << memory_usage << std::endl;
+    return is_legal;
+}
+
 bool getProcessResourceUsage()
 {
     FILE* fp = fopen("/proc/self/status", "r");
@@ -208,9 +319,11 @@ bool getProcessResourceUsage()
 
 
 int count_of_instance_total = 0;
-bool SingleMapDecompositionTest(const SingleMapTestConfig <2> &map_test_config,
-                                  const std::vector<int>& agent_in_instances,
-                                  const int& count_of_instance) {
+
+bool SingleMapDecompositionTestMAPF(const SingleMapTestConfig <2> &map_test_config,
+                                    const std::vector<int>& agent_in_instances,
+                                    const int& count_of_instance,
+                                    double timecost_limit_s = 10) {
 
     count_of_instance_total += agent_in_instances.size();
     // 0, load scenerio
@@ -250,25 +363,48 @@ bool SingleMapDecompositionTest(const SingleMapTestConfig <2> &map_test_config,
         output_streamss.clear();
         OutputStream ostream;
         std::cout << " start decomposition " << std::endl;
-        if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream, 1)) {
+
+//        if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream, 1)) {
+//            std::cout << " decomposition failed " << std::endl;
+//            return false;
+//        }
+//        std::cout << "-- finish level 0 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
+//
+//        output_streamss.push_back(ostream);
+//        if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream, 2)) {
+//            std::cout << " decomposition failed " << std::endl;
+//            return false;
+//        }
+//        std::cout << "-- finish level 1 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
+//        output_streamss.push_back(ostream);
+//
+//        if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream, 3)) {
+//            std::cout << " decomposition failed " << std::endl;
+//            return false;
+//        }
+//        std::cout << "-- finish level 2 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
+
+        if(!decompositionOfSingleInstanceBipartition<2>(ists, dim, is_occupied_func, ostream, timecost_limit_s, 3)) {
             std::cout << " decomposition failed " << std::endl;
             return false;
         }
-        std::cout << "-- finish level 0 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
-        output_streamss.push_back(ostream);
-        if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream, 2)) {
-            std::cout << " decomposition failed " << std::endl;
-            return false;
-        }
-        std::cout << "-- finish level 1 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
+        std::cout << "-- finish level 3 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
         output_streamss.push_back(ostream);
 
-        if(!decompositionOfSingleInstance<2>(ists, dim, is_occupied_func, ostream, 3)) {
+        if(!decompositionOfSingleInstanceBipartition<2>(ists, dim, is_occupied_func, ostream, timecost_limit_s, 4)) {
             std::cout << " decomposition failed " << std::endl;
             return false;
         }
-        std::cout << "-- finish level 2 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
+        std::cout << "-- finish level 4 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
         output_streamss.push_back(ostream);
+
+        if(!decompositionOfSingleInstanceBreakLoop<2>(ists, dim, is_occupied_func, ostream, timecost_limit_s, 5)) {
+            std::cout << " decomposition failed " << std::endl;
+            return false;
+        }
+        std::cout << "-- finish level 5 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
+        output_streamss.push_back(ostream);
+
         for(const auto& content : output_streamss) {
             appendToFile(map_test_config.at("decomposition_output_path"), content);
         }
@@ -280,80 +416,94 @@ bool SingleMapDecompositionTest(const SingleMapTestConfig <2> &map_test_config,
 // do decomposition test
 int main() {
 
-    for(int i=0; i<1; i++) {
-        int count_of_instances = 100;
+    for(int i=0; i<100; i++) {
+        int count_of_instances = 1;
 
-        SingleMapDecompositionTest(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400},
-                                   count_of_instances);
+//        SingleMapDecompositionTest(MAPFTestConfig_empty_32_32, {400},
+//                                   count_of_instances);
+//
+//        SingleMapDecompositionTest(MAPFTestConfig_empty_16_16, {120},
+//                                   count_of_instances);
 
-        SingleMapDecompositionTest(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120},
-                                   count_of_instances);
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400},
+                                       count_of_instances);
 
-        SingleMapDecompositionTest(MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120},
-                                   count_of_instances);
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120},
+                                       count_of_instances);
 
-        SingleMapDecompositionTest(MAPFTestConfig_maze_32_32_4, {60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260},
-                                   count_of_instances);
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120},
+                                       count_of_instances);
 
-        SingleMapDecompositionTest(MAPFTestConfig_maze_128_128_2, {100, 200, 300, 400, 500, 600, 700},
-                                   count_of_instances);
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_maze_32_32_4,
+                                       {60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260},
+                                       count_of_instances);
 
-        SingleMapDecompositionTest(MAPFTestConfig_maze_128_128_10, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                   count_of_instances);
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_maze_128_128_2, {100, 200, 300, 400, 500, 600, 700},
+                                       count_of_instances);
 
-        SingleMapDecompositionTest(MAPFTestConfig_den312d, {100, 200, 300, 400, 500, 600, 700, 800},
-                                   count_of_instances);
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_maze_128_128_10,
+                                       {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                                       count_of_instances);
 
-        SingleMapDecompositionTest(MAPFTestConfig_den520d, {100, 200, 300, 400, 500, 600, 700, 800, 900},
-                                   count_of_instances);
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_den312d, {100, 200, 300, 400, 500, 600, 700, 800},
+                                       count_of_instances);
 
-        SingleMapDecompositionTest(MAPFTestConfig_Berlin_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900},
-                                   count_of_instances);
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_den520d, {100, 200, 300, 400, 500, 600, 700, 800, 900},
+                                       count_of_instances);
 
-        SingleMapDecompositionTest(MAPFTestConfig_Paris_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                   count_of_instances);
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_Berlin_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900},
+                                       count_of_instances);
 
-        SingleMapDecompositionTest(MAPFTestConfig_ht_chantry, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                   count_of_instances);
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_Paris_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                                       count_of_instances);
 
-        SingleMapDecompositionTest(MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                   count_of_instances);
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_ht_chantry, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                                       count_of_instances);
 
-        SingleMapDecompositionTest(MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240},
-                                   count_of_instances);
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                                       count_of_instances);
 
-        SingleMapDecompositionTest(MAPFTestConfig_random_64_64_20, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                   count_of_instances);
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240},
+                                       count_of_instances);
 
-        SingleMapDecompositionTest(MAPFTestConfig_room_32_32_4, {10, 20, 40, 60, 80, 120, 160, 200},
-                                   count_of_instances);
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_random_64_64_20,
+                                       {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                                       count_of_instances);
 
-        SingleMapDecompositionTest(MAPFTestConfig_room_64_64_8, {100, 200, 300, 400, 500, 600, 700},
-                                   count_of_instances);
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_room_32_32_4, {10, 20, 40, 60, 80, 120, 160, 200},
+                                       count_of_instances);
 
-        SingleMapDecompositionTest(MAPFTestConfig_room_64_64_16, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                   count_of_instances);
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_room_64_64_8, {100, 200, 300, 400, 500, 600, 700},
+                                       count_of_instances);
 
-        SingleMapDecompositionTest(MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800},
-                                   count_of_instances);
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_room_64_64_16,
+                                       {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                                       count_of_instances);
 
-        SingleMapDecompositionTest(MAPFTestConfig_warehouse_10_20_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                   count_of_instances);
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800},
+                                       count_of_instances);
 
-        SingleMapDecompositionTest(MAPFTestConfig_warehouse_20_40_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                   count_of_instances);
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_warehouse_10_20_10_2_2,
+                                       {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                                       count_of_instances);
 
-        SingleMapDecompositionTest(MAPFTestConfig_warehouse_20_40_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                   count_of_instances);
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_warehouse_20_40_10_2_1,
+                                       {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                                       count_of_instances);
 
-        SingleMapDecompositionTest(MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                   count_of_instances);
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_warehouse_20_40_10_2_2,
+                                       {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                                       count_of_instances);
 
-        SingleMapDecompositionTest(MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                   count_of_instances);
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                                       count_of_instances);
 
-        SingleMapDecompositionTest(MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                   count_of_instances);
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_lt_gallowstemplar_n,
+                                       {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                                       count_of_instances);
+
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+                                       count_of_instances);
     }
     std::cout << "count_of_instance_total = " << count_of_instance_total << std::endl;
     return 0;

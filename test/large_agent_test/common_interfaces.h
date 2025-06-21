@@ -17,6 +17,7 @@
 #include "../../algorithm/LA-MAPF/large_agent_instance_generator.h"
 #include "../../algorithm/LA-MAPF/instance_serialize_and_deserialize.h"
 #include "../../algorithm/LA-MAPF/large_agent_instance_decomposition.h"
+#include "../../algorithm/connectivity_graph_and_subprgraph.h"
 
 //#include "../../freeNav-base/visualization/canvas/canvas.h"
 #include "../../freeNav-base/dependencies/2d_grid/text_map_loader.h"
@@ -207,7 +208,7 @@ void loadInstanceAndPlanningLayeredLAMAPF(const LA_MAPF_FUNC<N>& mapf_func,
 
     std::vector<std::vector<int> > grid_visit_count_table;
 
-    LargeAgentMAPFInstanceDecompositionPtr<2> decomposer_ptr = nullptr;
+    LargeAgentMAPFInstanceDecompositionPtr<2, HyperGraphNodeDataRaw<2> > decomposer_ptr = nullptr;
     auto start_t = clock();
     bool is_loss_of_solvability = false;
     auto layered_paths = layeredLargeAgentMAPF<N>(deserializer.getInstances(),
@@ -480,7 +481,7 @@ void loadInstanceAndDecomposition(const std::string& file_path) {
     std::cout << dim[N-1] << std::endl;
 
     gettimeofday(&tv_pre, &tz);
-    LargeAgentMAPFInstanceDecomposition<N> decomposer(deserializer.getInstances(),
+    LargeAgentMAPFInstanceDecomposition<N, HyperGraphNodeDataRaw<N>> decomposer(deserializer.getInstances(),
                                                                  deserializer.getAgents(),
                                                                  dim, is_occupied);
     gettimeofday(&tv_after, &tz);
@@ -561,7 +562,7 @@ std::vector<std::string> LayeredLAMAPFCompare(const InstanceOrients<N>& instance
 
     std::vector<std::vector<int> > grid_visit_count_table_layered;
 
-    LargeAgentMAPFInstanceDecompositionPtr<N> decomposer_ptr = nullptr;
+    LargeAgentMAPFInstanceDecompositionPtr<N, HyperGraphNodeDataRaw<N> > decomposer_ptr = nullptr;
     memory_recorder.clear();
     sleep(1);
     float base_usage = memory_recorder.getCurrentMemoryUsage();
@@ -733,7 +734,7 @@ bool decompositionOfSingleInstance(const InstanceOrients<N> & instances,
     float basic_usage = memory_recorder.getMaximalMemoryUsage();
     gettimeofday(&tv_pre, &tz);
 
-    auto instance_decompose = std::make_shared<LargeAgentMAPFInstanceDecomposition<N> >(instances,
+    auto instance_decompose = std::make_shared<LargeAgentMAPFInstanceDecomposition<N, HyperGraphNodeDataRaw<2>> >(instances,
                                                                                         agents,
                                                                                         dim,
                                                                                         is_occupied,

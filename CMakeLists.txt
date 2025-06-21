@@ -74,8 +74,8 @@ INSTALL(DIRECTORY algorithm DESTINATION include/LA-MAPF)
 #add_executable(test_lacam3 test/test_lacam3.cpp)
 #target_link_libraries(test_lacam3 lamapf_alg)
 
-#add_executable(test_massive_decomposition test/test_massive_decomposition.cpp)
-#target_link_libraries(test_massive_decomposition lamapf_alg)
+add_executable(test_massive_decomposition test/test_massive_decomposition.cpp)
+target_link_libraries(test_massive_decomposition lamapf_alg)
 
 #add_executable(test_massive_layered_mapf test/test_massive_layered_mapf.cpp)
 #target_link_libraries(test_massive_layered_mapf lamapf_alg)
@@ -93,3 +93,6 @@ target_link_libraries(test_lamapf_instance_generator lamapf_alg)
 
 #add_executable(test_hybird_mapf third_party/Hybrid_MAPF/main.cpp)
 #target_link_libraries(test_hybird_mapf freeNav-base lamapf_alg)
+
+add_executable(test_massive_decomposition_LAMAPF test/large_agent_test/test_massive_decomposition.cpp)
+target_link_libraries(test_massive_decomposition_LAMAPF lamapf_alg)

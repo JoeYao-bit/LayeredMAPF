@@ -205,7 +205,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     // 1, pick start nodes from its subgraph
                     start_id = rd() % all_poses_.size();
 
-                    if(agent_sub_graphs_[i].all_nodes_[start_id] == nullptr) {
+                    if(agent_sub_graphs_[i].data_ptr_->all_nodes_[start_id] == nullptr) {
                         continue;
                     }
                     if(agent_component_id_maps_[agent->id_].components_[component_id_map[start_id]].size() <= 1) {
@@ -214,7 +214,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                    std::cout << "pick agent " << i << "'s start " << *all_poses_[start_id] <<  std::endl;
                     // 2, if it has conflict with other agents, re-pick util no conflicts
                     bool repick = false;
-                    start_occ_grids = agent->getPoseOccupiedGrid(*agent_sub_graphs_[i].all_nodes_[start_id]).first;
+                    start_occ_grids = agent->getPoseOccupiedGrid(*agent_sub_graphs_[i].data_ptr_->all_nodes_[start_id]).first;
                     for(const auto& pt : start_occ_grids) {
                         Id id = PointiToId(pt, dim_);
                         if(occ_state[id]) {
@@ -254,7 +254,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     const auto& component = agent_component_id_maps_[agent->id_].components_[component_id_map[start_id]];
 
                     target_id = component[rd() % component.size()];
-                    if(agent_sub_graphs_[i].all_nodes_[target_id] == nullptr) {
+                    if(agent_sub_graphs_[i].data_ptr_->all_nodes_[target_id] == nullptr) {
                         continue;
                     }
                     if(start_id/(2*N) == target_id/(2*N)) {
@@ -266,7 +266,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                    std::cout << "pick agent " << i << "'s target " << *all_poses_[target_id] << std::endl;
                     // 2, if it has conflict with other agents, re-pick util no conflicts
                     bool repick = false;
-                    target_occ_grids = agent->getPoseOccupiedGrid(*agent_sub_graphs_[i].all_nodes_[target_id]).first;
+                    target_occ_grids = agent->getPoseOccupiedGrid(*agent_sub_graphs_[i].data_ptr_->all_nodes_[target_id]).first;
                     for(const auto& pt : target_occ_grids) {
                         Id id = PointiToId(pt, dim_);
                         if(occ_state[id]) {
@@ -290,8 +290,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     if(repick) {
                         continue;
                     }
-                    assert(agent_sub_graphs_[i].all_nodes_[start_id] != nullptr &&
-                           agent_sub_graphs_[i].all_nodes_[target_id] != nullptr);
+                    assert(agent_sub_graphs_[i].data_ptr_->all_nodes_[start_id] != nullptr &&
+                           agent_sub_graphs_[i].data_ptr_->all_nodes_[target_id] != nullptr);
                     // 3, check whether there is a path connect them, otherwise re-pick
                     //LAMAPF_Path path = getConnectionBetweenNode(i, start_id, target_id);
 //                    bool connected = agent_component_id_maps_[agent->id_].component_id_map_[start_id] ==
@@ -452,7 +452,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             SubGraphOfAgent<N> sub_graph(agent);
 
 
-            sub_graph.all_nodes_.resize(total_index * 2 * N, nullptr);
+            sub_graph.data_ptr_->all_nodes_.resize(total_index * 2 * N, nullptr);
 
 
             // initial nodes in subgraph
@@ -461,7 +461,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 if(all_poses_[id] != nullptr) {
                     const auto& current_pose = all_poses_[id];
                     if(!agent->isCollide(*current_pose, dim_, isoc_, distance_map_updater_)) {
-                        sub_graph.all_nodes_[id] = current_pose;
+                        sub_graph.data_ptr_->all_nodes_[id] = current_pose;
                         count_of_nodes ++;
                     }
                 }
@@ -469,12 +469,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             // when add edges, assume agent can only change position or orientation, cannot change both of them
             // and orientation can only change 90 degree at one timestep, that means the two orient must be orthogonal
-            sub_graph.all_edges_.resize(total_index*2*N, {});
-            sub_graph.all_backward_edges_.resize(total_index*2*N, {});
+            sub_graph.data_ptr_->all_edges_.resize(total_index*2*N, {});
+            sub_graph.data_ptr_->all_backward_edges_.resize(total_index*2*N, {});
             Pointis<N> neighbors = GetNearestOffsetGrids<N>();
             int count_of_edges = 0;
-            for(size_t pose_id=0; pose_id < sub_graph.all_nodes_.size(); pose_id++) {
-                const auto& node_ptr = sub_graph.all_nodes_[pose_id];
+            for(size_t pose_id=0; pose_id < sub_graph.data_ptr_->all_nodes_.size(); pose_id++) {
+                const auto& node_ptr = sub_graph.data_ptr_->all_nodes_[pose_id];
                 if(node_ptr != nullptr) {
                     // add edges about position changing
                     size_t origin_orient = pose_id%(2*N);
@@ -484,13 +484,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         new_pt = origin_pt + offset;
                         if(isOutOfBoundary(new_pt, dim_)) { continue; }
                         Id another_node_id = PointiToId<N>(new_pt, dim_)*2*N + origin_orient;
-                        PosePtr<int, N> another_node_ptr = sub_graph.all_nodes_[another_node_id];
+                        PosePtr<int, N> another_node_ptr = sub_graph.data_ptr_->all_nodes_[another_node_id];
                         if(another_node_ptr == nullptr) { continue; }
 
                         if(!agent->isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, distance_map_updater_)) {
                             count_of_edges ++;
-                            sub_graph.all_edges_[pose_id].push_back(another_node_id);
-                            sub_graph.all_backward_edges_[another_node_id].push_back(pose_id);
+                            sub_graph.data_ptr_->all_edges_[pose_id].push_back(another_node_id);
+                            sub_graph.data_ptr_->all_backward_edges_[another_node_id].push_back(pose_id);
                         }
                     }
                     // add edges about orientation changing
@@ -500,13 +500,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                         if(node_ptr->orient_ == orient) { continue; }
                         // if another node in subgraph
                         size_t another_node_id = base_id + orient;
-                        PosePtr<int, N> another_node_ptr = sub_graph.all_nodes_[another_node_id];
+                        PosePtr<int, N> another_node_ptr = sub_graph.data_ptr_->all_nodes_[another_node_id];
                         if(another_node_ptr == nullptr) { continue; }
                         // check whether can transfer to another node
                         if(!agent->isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, distance_map_updater_)) {
                             count_of_edges ++;
-                            sub_graph.all_edges_[pose_id].push_back(another_node_id);
-                            sub_graph.all_backward_edges_[another_node_id].push_back(pose_id);
+                            sub_graph.data_ptr_->all_edges_[pose_id].push_back(another_node_id);
+                            sub_graph.data_ptr_->all_backward_edges_[another_node_id].push_back(pose_id);
                         }
                     }
                 }
@@ -523,9 +523,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             typedef adjacency_list<vecS, vecS, directedS, Vertex> Graph;
 
-            const auto& all_poses = sub_graph.all_nodes_;
-            const auto& all_edges = sub_graph.all_edges_;
-            const auto& all_backward_edges = sub_graph.all_backward_edges_;
+            const auto& all_poses = sub_graph.data_ptr_->all_nodes_;
+            const auto& all_edges = sub_graph.data_ptr_->all_edges_;
+            const auto& all_backward_edges = sub_graph.data_ptr_->all_backward_edges_;
 
             ComponentIdMap cmap;
 

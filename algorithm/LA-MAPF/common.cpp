@@ -114,4 +114,45 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return r(*MT);
     }
 
+    std::pair<int, std::set<int> > getMaxLevel(const std::vector<std::set<int> >& all_levels) {
+        size_t max_level_size = 0;
+        std::set<int> max_level;
+        int index = 0;
+        for(int i=0; i<all_levels.size(); i++) {
+            if(max_level_size < all_levels[i].size()) {
+                max_level = all_levels[i];
+                max_level_size = all_levels[i].size();
+                index = i;
+            }
+        }
+        return {index, max_level};
+    }
+
+    size_t getMaxLevelSize(const std::vector<std::set<int> >& all_levels) {
+        return getMaxLevel(all_levels).second.size();
+    }
+
+
+    // get the i th largest level, i_th start with 0
+    std::pair<int, std::set<int> > getMaxLevel(const std::vector<std::set<int> >& all_levels, const int& i_th) {
+        assert(!all_levels.empty());
+        std::vector<int> sorting_vec(1, 0); // length, index
+        for(int i=1; i<all_levels.size(); i++) {
+            for(int j=0; j<sorting_vec.size(); j++) {
+                if(all_levels[i].size() > all_levels[sorting_vec[j]].size()) {
+                    sorting_vec.insert(sorting_vec.begin() + j, i);
+                    break;
+                } else if(j == sorting_vec.size() - 1) {
+                    sorting_vec.push_back(i);
+                    break;
+                }
+            }
+        }
+        if(i_th > sorting_vec.size()) {
+            return {0, {}};
+        } else {
+            return {sorting_vec[i_th], {all_levels[sorting_vec[i_th]]}};
+        }
+    }
+
 }

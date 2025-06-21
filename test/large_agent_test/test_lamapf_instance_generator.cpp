@@ -327,8 +327,8 @@ void Decomposition_test() {
     }
     std::cout << std::endl;
 
-    LargeAgentMAPFInstanceDecomposition<2> decomposer =
-            LargeAgentMAPFInstanceDecomposition<2>(deserializer.getInstances(),
+    LargeAgentMAPFInstanceDecomposition<2, HyperGraphNodeDataRaw<2>> decomposer =
+            LargeAgentMAPFInstanceDecomposition<2, HyperGraphNodeDataRaw<2>>(deserializer.getInstances(),
                                                               deserializer.getAgents(),
                                                               dim,
                                                               is_occupied,
@@ -382,13 +382,14 @@ void multiLoadAgentAndDecomposition(const SingleMapTestConfig<2>& map_file,
         std::vector<OutputStream> strs;
         OutputStream str;
 
-        auto instance_decompose = std::make_shared<LargeAgentMAPFInstanceDecomposition<2> >(agent_and_instances[i].second,
-                                                                                            agent_and_instances[i].first,
-                                                                                            dim,
-                                                                                            is_occupied,
-                                                                                            true,
-                                                                                            4,
-                                                                                            true);
+        auto instance_decompose = std::make_shared<LargeAgentMAPFInstanceDecomposition<2, HyperGraphNodeDataRaw<2>> >(
+                agent_and_instances[i].second,
+                agent_and_instances[i].first,
+                dim,
+                is_occupied,
+                true,
+                4,
+                true);
         /*
 
            ss << time_cost << " "

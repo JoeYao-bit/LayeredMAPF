@@ -100,6 +100,8 @@ namespace freeNav::LayeredMAPF {
     template <Dimension N>
     std::vector<int> calculateHyperGraphStaticHeuristic(const HyperGraphNodePtr<N>& target_ptr, const HyperGraphNodePtrs<N> all_hyper_nodes) {
 
+        //std::cout << __FUNCTION__ << "graph.nodes size = " <<  all_hyper_nodes.size() << std::endl;
+
         // the two table update simultaneously
         std::vector<int> heuristic_table(all_hyper_nodes.size(), MAX<int>);
         std::vector<HyperGraphNodeDataPtr<N> > nearest_node_table(all_hyper_nodes.size(), nullptr);
@@ -119,7 +121,9 @@ namespace freeNav::LayeredMAPF {
         assert(target_id%2 == 1);
         int start_id = target_id - 1;
         int count = 0;
+        int count_set = 0;
         while(!current_set.empty()) {
+            count_set += current_set.size();
             HyperGraphNodeDataPtrs<N> next_set;
             for(const auto& node_ptr : current_set) {
 
@@ -141,6 +145,7 @@ namespace freeNav::LayeredMAPF {
             std::swap(current_set, next_set);
             count ++;
         }
+        //std::cout << "count_set = " << count_set << std::endl;
         // release data
         for(auto& a_ptr : all_ptr_set) {
             delete a_ptr;
