@@ -416,7 +416,7 @@ bool SingleMapDecompositionTestMAPF(const SingleMapTestConfig <2> &map_test_conf
 // do decomposition test
 int main() {
 
-    for(int i=0; i<1; i++) {
+    for(int i=0; i<100; i++) {
         int count_of_instances = 1;
 
 //        SingleMapDecompositionTest(MAPFTestConfig_empty_32_32, {400},
