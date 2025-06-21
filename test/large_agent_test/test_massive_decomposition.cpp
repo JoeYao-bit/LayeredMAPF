@@ -255,50 +255,50 @@ int main() {
 //                                         {40, 80, 120, 160, 200},
 //                                         count_of_instances);
 
-        // 1,
-        SingleMapDecompositionTestLAMAPF(MAPFTestConfig_Paris_1_256,
-                                         {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
-                                         count_of_instances);
+        // // 1,
+        // SingleMapDecompositionTestLAMAPF(MAPFTestConfig_Paris_1_256,
+        //                                  {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
+        //                                  count_of_instances);
 
-        // 2,
-        SingleMapDecompositionTestLAMAPF(MAPFTestConfig_empty_48_48,
-                                         {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
-                                         count_of_instances);
+        // // 2,
+        // SingleMapDecompositionTestLAMAPF(MAPFTestConfig_empty_48_48,
+        //                                  {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
+        //                                  count_of_instances);
 
-        // 3,
-        SingleMapDecompositionTestLAMAPF(MAPFTestConfig_Berlin_1_256,
-                                         {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
-                                         count_of_instances);
+        // // 3,
+        // SingleMapDecompositionTestLAMAPF(MAPFTestConfig_Berlin_1_256,
+        //                                  {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
+        //                                  count_of_instances);
 
         // 4,
-        SingleMapDecompositionTestLAMAPF(MAPFTestConfig_maze_128_128_10,
-                                         {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
-                                         count_of_instances);
+        // SingleMapDecompositionTestLAMAPF(MAPFTestConfig_maze_128_128_10,
+        //                                  {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
+        //                                  count_of_instances);
 
-        // 5,
-        SingleMapDecompositionTestLAMAPF(MAPFTestConfig_den520d,
-                                         {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
-                                         count_of_instances);
+        // // 5,
+        // SingleMapDecompositionTestLAMAPF(MAPFTestConfig_den520d,
+        //                                  {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
+        //                                  count_of_instances);
 
-        // 6,
-        SingleMapDecompositionTestLAMAPF(MAPFTestConfig_ost003d,
-                                         {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
-                                         count_of_instances);
+        // // 6,
+        // SingleMapDecompositionTestLAMAPF(MAPFTestConfig_ost003d,
+        //                                  {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
+        //                                  count_of_instances);
 
-        // 7,
-        SingleMapDecompositionTestLAMAPF(MAPFTestConfig_Boston_2_256,
-                                         {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
-                                         count_of_instances);
+        // // 7,
+        // SingleMapDecompositionTestLAMAPF(MAPFTestConfig_Boston_2_256,
+        //                                  {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
+        //                                  count_of_instances);
 
-        // 8,
-        SingleMapDecompositionTestLAMAPF(MAPFTestConfig_Sydney_2_256,
-                                         {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
-                                         count_of_instances);
+        // // 8,
+        // SingleMapDecompositionTestLAMAPF(MAPFTestConfig_Sydney_2_256,
+        //                                  {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
+        //                                  count_of_instances);
 
-        // 9,
-        SingleMapDecompositionTestLAMAPF(MAPFTestConfig_AR0044SR,
-                                         {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
-                                         count_of_instances);
+        // // 9,
+        // SingleMapDecompositionTestLAMAPF(MAPFTestConfig_AR0044SR,
+        //                                  {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
+        //                                  count_of_instances);
 
         // 10,
         SingleMapDecompositionTestLAMAPF(MAPFTestConfig_AR0203SR,

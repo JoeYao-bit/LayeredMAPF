@@ -425,83 +425,107 @@ int main() {
 //        SingleMapDecompositionTest(MAPFTestConfig_empty_16_16, {120},
 //                                   count_of_instances);
 
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400},
-                                       count_of_instances);
+        // // 1,
+        // SingleMapDecompositionTestMAPF(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400},
+        //                                count_of_instances);
 
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120},
-                                       count_of_instances);
+        // // 2,                               
+        // SingleMapDecompositionTestMAPF(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120},
+        //                                count_of_instances);
 
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120},
-                                       count_of_instances);
+        // // 3,                               
+        // SingleMapDecompositionTestMAPF(MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120},
+        //                                count_of_instances);
 
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_maze_32_32_4,
-                                       {60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260},
-                                       count_of_instances);
+        // // 4,                               
+        // SingleMapDecompositionTestMAPF(MAPFTestConfig_maze_32_32_4,
+        //                                {60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260},
+        //                                count_of_instances);
 
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_maze_128_128_2, {100, 200, 300, 400, 500, 600, 700},
-                                       count_of_instances);
+        // // 5,                               
+        // SingleMapDecompositionTestMAPF(MAPFTestConfig_maze_128_128_2, {100, 200, 300, 400, 500, 600, 700},
+        //                                count_of_instances);
 
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_maze_128_128_10,
-                                       {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                       count_of_instances);
+        // // 6,                               
+        // SingleMapDecompositionTestMAPF(MAPFTestConfig_maze_128_128_10,
+        //                                {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+        //                                count_of_instances);
 
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_den312d, {100, 200, 300, 400, 500, 600, 700, 800},
-                                       count_of_instances);
+        // // 7,                               
+        // SingleMapDecompositionTestMAPF(MAPFTestConfig_den312d, {100, 200, 300, 400, 500, 600, 700, 800},
+        //                                count_of_instances);
 
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_den520d, {100, 200, 300, 400, 500, 600, 700, 800, 900},
-                                       count_of_instances);
+        // // 8,                               
+        // SingleMapDecompositionTestMAPF(MAPFTestConfig_den520d, {100, 200, 300, 400, 500, 600, 700, 800, 900},
+        //                                count_of_instances);
 
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_Berlin_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900},
-                                       count_of_instances);
+        // // 9,                               
+        // SingleMapDecompositionTestMAPF(MAPFTestConfig_Berlin_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900},
+        //                                count_of_instances);
 
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_Paris_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                       count_of_instances);
+        // // 10,                               
+        // SingleMapDecompositionTestMAPF(MAPFTestConfig_Paris_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+        //                                count_of_instances);
 
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_ht_chantry, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                       count_of_instances);
+        // // 11,                               
+        // SingleMapDecompositionTestMAPF(MAPFTestConfig_ht_chantry, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+        //                                count_of_instances);
 
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                       count_of_instances);
+        // // 12,                               
+        // SingleMapDecompositionTestMAPF(MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+        //                                count_of_instances);
 
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240},
-                                       count_of_instances);
+        // // 13,                               
+        // SingleMapDecompositionTestMAPF(MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240},
+        //                                count_of_instances);
 
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_random_64_64_20,
-                                       {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                       count_of_instances);
+        // // 14,                               
+        // SingleMapDecompositionTestMAPF(MAPFTestConfig_random_64_64_20,
+        //                                {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+        //                                count_of_instances);
 
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_room_32_32_4, {10, 20, 40, 60, 80, 120, 160, 200},
-                                       count_of_instances);
+        // // 15,                               
+        // SingleMapDecompositionTestMAPF(MAPFTestConfig_room_32_32_4, {10, 20, 40, 60, 80, 120, 160, 200},
+        //                                count_of_instances);
 
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_room_64_64_8, {100, 200, 300, 400, 500, 600, 700},
-                                       count_of_instances);
+        // // 16,                               
+        // SingleMapDecompositionTestMAPF(MAPFTestConfig_room_64_64_8, {100, 200, 300, 400, 500, 600, 700},
+        //                                count_of_instances);
 
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_room_64_64_16,
-                                       {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                       count_of_instances);
+        // // 17,                               
+        // SingleMapDecompositionTestMAPF(MAPFTestConfig_room_64_64_16,
+        //                                {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+        //                                count_of_instances);
 
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800},
-                                       count_of_instances);
+        // // 18,                               
+        // SingleMapDecompositionTestMAPF(MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800},
+        //                                count_of_instances);
 
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_warehouse_10_20_10_2_2,
-                                       {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                       count_of_instances);
+        // // 19,                               
+        // SingleMapDecompositionTestMAPF(MAPFTestConfig_warehouse_10_20_10_2_2,
+        //                                {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+        //                                count_of_instances);
 
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_warehouse_20_40_10_2_1,
-                                       {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                       count_of_instances);
+        // // 20,                               
+        // SingleMapDecompositionTestMAPF(MAPFTestConfig_warehouse_20_40_10_2_1,
+        //                                {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+        //                                count_of_instances);
 
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_warehouse_20_40_10_2_2,
-                                       {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                       count_of_instances);
+        // // 21,                               
+        // SingleMapDecompositionTestMAPF(MAPFTestConfig_warehouse_20_40_10_2_2,
+        //                                {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+        //                                count_of_instances);
 
+        // 22,                               
         SingleMapDecompositionTestMAPF(MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
                                        count_of_instances);
 
+        // 23,                               
         SingleMapDecompositionTestMAPF(MAPFTestConfig_lt_gallowstemplar_n,
                                        {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
                                        count_of_instances);
 
+        // 24,                               
         SingleMapDecompositionTestMAPF(MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
                                        count_of_instances);
     }
