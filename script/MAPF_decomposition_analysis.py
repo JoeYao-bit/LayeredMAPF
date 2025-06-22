@@ -94,11 +94,17 @@ def drawMethodMap(single_map_data, value_type):
         y = list()    
         std_val = list()
 
-        for data_key, data_val in all_raw_data[level_key].items():
-            x.append(data_key)        
-            y.append(np.mean(data_val))
-            std_val.append(np.std(data_val))
+        sorted_keys = sorted(all_raw_data[level_key].keys())
 
+        # for data_key, data_val in all_raw_data[level_key].items():
+        #     x.append(data_key)        
+        #     y.append(np.mean(data_val))
+        #     std_val.append(np.std(data_val))
+
+        for sorted_key in sorted_keys:
+            x.append(sorted_key)        
+            y.append(np.mean(all_raw_data[level_key][sorted_key]))
+            std_val.append(np.std(all_raw_data[level_key][sorted_key]))
 
         # yerr=std_val
         plt.errorbar(x, y, label=level_flag_map[level_key], markersize=14, fmt=step_fmt[level_key], linewidth= 4, elinewidth=4, capsize=4)
