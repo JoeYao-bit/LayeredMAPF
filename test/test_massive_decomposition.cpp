@@ -211,7 +211,7 @@ bool decompositionOfSingleInstanceBreakLoop(const freeNav::Instances<N>& ists, D
     float basic_usage = memory_recorder.getMaximalMemoryUsage();
     auto start_t = clock();
 
-    PrecomputationOfMAPF<2, HyperGraphNodeDataRaw<2>> pre(ists, dim, isoc, true);
+    PrecomputationOfMAPF<2, HyperGraphNodeDataRaw<2>> pre(ists, dim, isoc, false);
 
     auto ns_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<2, HyperGraphNodeDataRaw<2> > >(dim,
             pre.connect_graphs_,

@@ -42,7 +42,7 @@ bool decompositionOfSingleInstanceBipartitionLAMAPF(const InstanceOrients<N> & i
             pre.agent_sub_graphs_,
             pre.heuristic_tables_sat_,
             pre.heuristic_tables_,
-            time_limit_s,// - pre.initialize_time_cost_/1e3,
+            time_limit_s - pre.initialize_time_cost_/1e3,
             level);
 
     auto now_t = clock();
@@ -78,7 +78,8 @@ bool decompositionOfSingleInstanceBipartitionLAMAPF(const InstanceOrients<N> & i
        << bi_decompose->level_bipartition_time_cost_ << " ";
 
     outputStream = ss.str();
-    std::cout << " memory_usage = " << memory_usage << std::endl;
+//    std::cout << " memory_usage = " << memory_usage << std::endl;
+    std::cout << "level" << level << "/raw = " << LA_MAPF::getMaxLevelSize(bi_decompose->all_clusters_) << "/" << agents.size() << std::endl;
     return is_bi_valid;
 }
 
@@ -97,14 +98,14 @@ bool decompositionOfSingleInstanceBreakLoopLAMAPF(const InstanceOrients<N> & ins
     sleep(1);
     float basic_usage = memory_recorder.getMaximalMemoryUsage();
 
-    PrecomputationOfLAMAPF<2, HyperGraphNodeDataRaw<2>> pre(instances, agents, dim, isoc, true);
+    PrecomputationOfLAMAPF<2, HyperGraphNodeDataRaw<2>> pre(instances, agents, dim, isoc, false);
 
     auto start_t = clock();
     auto ns_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<2, HyperGraphNodeDataRaw<2>> >(dim,
             pre.connect_graphs_,
             pre.agent_sub_graphs_,
             pre.heuristic_tables_sat_,
-            time_limit_s,// - pre.initialize_time_cost_/1e3,
+            time_limit_s - pre.initialize_time_cost_/1e3,
             1e4,
             100,
             1);
@@ -142,7 +143,7 @@ bool decompositionOfSingleInstanceBreakLoopLAMAPF(const InstanceOrients<N> & ins
        << 0 << " ";
 
     outputStream = ss.str();
-    std::cout << " memory_usage = " << memory_usage << std::endl;
+    std::cout << "level" << level << "/raw = " << LA_MAPF::getMaxLevelSize(ns_decompose->all_levels_) << "/" << agents.size() << std::endl;
     return is_bi_valid;
 }
 
@@ -251,9 +252,9 @@ int main() {
 //                                         {40, 80, 120, 160, 200},
 //                                         count_of_instances);
 //
-//        SingleMapDecompositionTestLAMAPF(MAPFTestConfig_empty_48_48,
-//                                         {40, 80, 120, 160, 200},
-//                                         count_of_instances);
+        SingleMapDecompositionTestLAMAPF(MAPFTestConfig_empty_48_48,
+                                         {20, 40, 80, 120, 160, 200},
+                                         count_of_instances);
 
         //  // 1,
         //  SingleMapDecompositionTestLAMAPF(MAPFTestConfig_Paris_1_256,
