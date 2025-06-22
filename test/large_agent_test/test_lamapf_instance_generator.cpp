@@ -4,7 +4,6 @@
 #include <gtest/gtest.h>
 #include <random>
 #include "../../algorithm/LA-MAPF/large_agent_instance_generator.h"
-#include "../../freeNav-base/visualization/canvas/canvas.h"
 #include "../../freeNav-base/dependencies/2d_grid/text_map_loader.h"
 #include "../../algorithm/LA-MAPF/CBS/large_agent_CBS.h"
 #include "../../algorithm/LA-MAPF/LaCAM/large_agent_lacam.h"
@@ -16,8 +15,6 @@
 #include "common_interfaces.h"
 //
 #include "../test_data.h"
-#include "../../algorithm/connectivity_graph_and_subprgraph.h"
-
 //
 //using namespace freeNav;
 //using namespace freeNav::LayeredMAPF;
@@ -65,10 +62,10 @@ TEST(GenerateCircleInstance_decomposition, test)
                                                                 .1,
                                                                 dim);
 
-    generateInstanceAndDecomposition<HyperGraphNodeDataRaw<2> > (agents,
+    generateInstanceAndDecomposition<2> (agents,
                                         map_test_config.at("la_ins_path"),
                                         CBS::LargeAgentCBS_func<2>,
-                                        1e4, true, true);
+                                        1e4, true);
 
 //    generateInstance<CircleAgent<2>,
 //        LaCAM::LargeAgentLaCAM<2, CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >
@@ -84,10 +81,10 @@ TEST(GenerateBlockInstance_decomposition, test)
                                                               .2, 2.4,
                                                               .1, dim);
 
-    generateInstanceAndDecomposition<HyperGraphNodeDataRaw<2> > (agents,
+    generateInstanceAndDecomposition<2> (agents,
                                          map_test_config.at("la_ins_path"),
                                          CBS::LargeAgentCBS_func<2>,
-                                         1e4, true, true);
+                                         1e4, true);
 
 //    generateInstance<CircleAgent<2>,
 //        LaCAM::LargeAgentLaCAM<2, CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >
@@ -104,10 +101,10 @@ TEST(GenerateMixedInstance_decomposition, test)
                                                      .2, 2.,
                                                      .2, 2.,
                                                      .1, dim);
-    generateInstanceAndDecomposition<HyperGraphNodeDataRaw<2> > (agents,
+    generateInstanceAndDecomposition<2> (agents,
                                          map_test_config.at("la_ins_path"),
                                          CBS::LargeAgentCBS_func<2>,
-                                         1e8, true, true);
+                                         1e8, true);
 
 //    generateInstance<CircleAgent<2>,
 //        LaCAM::LargeAgentLaCAM<2, CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >
@@ -127,10 +124,10 @@ TEST(GenerateCircleInstance, test)
 //                                       CBS::LargeAgentCBS_func<2>,
 //                                               1e4, true, true);
 
-    generateInstanceAndPlanning<HyperGraphNodeDataRaw<2> > (agents,
+    generateInstanceAndPlanning<2> (agents,
                                     map_test_config.at("la_ins_path"),
                                     LaCAM::LargeAgentLaCAM_func<2>,
-                                    1e4, true, true);
+                                    1e4, true);
 
 };
 
@@ -142,10 +139,10 @@ TEST(GenerateBlock_2DInstance, test)
                                                                 .2, 1.4,
                                                                 .2, 1.4,
                                                                 .1, dim);
-    generateInstanceAndPlanning<HyperGraphNodeDataRaw<2> >(agents,
+    generateInstanceAndPlanning<2>(agents,
                                     map_test_config.at("la_ins_path"),
                                     CBS::LargeAgentCBS_func<2>,
-                                    1e4, true, true);
+                                    1e4, true);
 
 };
 
@@ -160,10 +157,10 @@ TEST(GenerateMixedInstanceAndPlanning, test)
                                                      .2, 1.4,
                                                      .1, dim);
 
-    generateInstanceAndPlanning<HyperGraphNodeDataRaw<2> > (agents,
+    generateInstanceAndPlanning<2> (agents,
                                     map_test_config.at("la_ins_path"),
                                     CBS::LargeAgentCBS_func<2>,
-                                    1e4, true, true);
+                                    1e4, true);
 
 //    generateInstanceAndPlanning<2>(agents,
 //                                   map_test_config.at("la_ins_path"),
@@ -171,12 +168,6 @@ TEST(GenerateMixedInstanceAndPlanning, test)
 //                                   1e4, true, true);
 
 };
-
-TEST(LoadInstanceAndVisualize, test) {
-    const std::string file_path = map_test_config.at("la_ins_path");
-
-    loadInstanceAndVisualize<2>(file_path);
-}
 
 TEST(LoadInstance_CBS, test)
 {
@@ -189,8 +180,8 @@ TEST(LoadInstance_CBS, test)
     // LargeAgentConstraintTableForLarge
     // LargeAgentConstraintTable
 
-    loadInstanceAndPlanningLayeredLAMAPF<HyperGraphNodeDataRaw<2> >(CBS::LargeAgentCBS_func<2>,
-                                                        file_path, 60, false, true, true);
+    loadInstanceAndPlanningLayeredLAMAPF<2>(CBS::LargeAgentCBS_func<2>,
+                                                        file_path, 60, false, true);
 
 };
 
@@ -207,7 +198,7 @@ TEST(LoadInstance_LaCAM, test)
 
 //    loadInstanceAndPlanning<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > >(file_path, 30);
 
-    loadInstanceAndPlanningLayeredLAMAPF<HyperGraphNodeDataRaw<2> >(LaCAM::LargeAgentLaCAM_func<2>,
+    loadInstanceAndPlanningLayeredLAMAPF<2>(LaCAM::LargeAgentLaCAM_func<2>,
                                                          file_path, 60, false, true);
 
 };
@@ -235,11 +226,11 @@ TEST(Multi_GenerateCircleInstance, test) {
                                                                        .1,
                                                                        dim);
 
-        generateInstanceAndPlanning<HyperGraphNodeDataRaw<2> > (agents,
+        generateInstanceAndPlanning<2> (agents,
                                            map_test_config.at("la_ins_path"),
                                            CBS::LargeAgentCBS_func<2>,
                                            //LaCAM::LargeAgentLaCAM_func<2>,
-                                           1e5, true, true);
+                                           1e5, true);
     }
 }
 
@@ -260,12 +251,12 @@ TEST(Multi_GenerateBlock_2DInstance, test) {
                                                                         .2, 1.4,
                                                                         .1, dim);
 
-            generateInstanceAndPlanning<HyperGraphNodeDataRaw<2> >(agents,
+            generateInstanceAndPlanning<2>(agents,
                                             map_test_config.at("la_ins_path"),
                                             CBS::LargeAgentCBS_func<2>,
                                             //LaCAM::LargeAgentLaCAM_func<2, BlockAgent_2D >,
                                             1e4,
-                                            true, false);
+                                            true);
         }
 
     }
@@ -336,8 +327,8 @@ void Decomposition_test() {
     }
     std::cout << std::endl;
 
-    LargeAgentMAPFInstanceDecomposition<2, HyperGraphNodeDataRaw<2> > decomposer =
-            LargeAgentMAPFInstanceDecomposition<2, HyperGraphNodeDataRaw<2> >(deserializer.getInstances(),
+    LargeAgentMAPFInstanceDecomposition<2, HyperGraphNodeDataRaw<2>> decomposer =
+            LargeAgentMAPFInstanceDecomposition<2, HyperGraphNodeDataRaw<2>>(deserializer.getInstances(),
                                                               deserializer.getAgents(),
                                                               dim,
                                                               is_occupied,
@@ -354,6 +345,7 @@ void Decomposition_test() {
 }
 
 TEST(Decomposition, test) {
+//int main() {
     Decomposition_test();
 }
 
@@ -390,13 +382,14 @@ void multiLoadAgentAndDecomposition(const SingleMapTestConfig<2>& map_file,
         std::vector<OutputStream> strs;
         OutputStream str;
 
-        auto instance_decompose = std::make_shared<LargeAgentMAPFInstanceDecomposition<2, HyperGraphNodeDataRaw<2>> >(agent_and_instances[i].second,
-                                                                                            agent_and_instances[i].first,
-                                                                                            dim,
-                                                                                            is_occupied,
-                                                                                            true,
-                                                                                            4,
-                                                                                            true);
+        auto instance_decompose = std::make_shared<LargeAgentMAPFInstanceDecomposition<2, HyperGraphNodeDataRaw<2>> >(
+                agent_and_instances[i].second,
+                agent_and_instances[i].first,
+                dim,
+                is_occupied,
+                true,
+                4,
+                true);
         /*
 
            ss << time_cost << " "
@@ -464,35 +457,34 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
 
     for (int i = 0; i < agent_and_instances.size(); i++) {
 
-        auto strs1 = LayeredLAMAPFCompare<2, HyperGraphNodeDataRaw<2>>(agent_and_instances[i].second,
+        // auto strs1 = LayeredLAMAPFCompare<2>(agent_and_instances[i].second,
+        //                                     agent_and_instances[i].first,
+        //                                     CBS::LargeAgentCBS_func<2>, //LaCAM::LargeAgentLaCAM_func<2>,
+        //                                     std::string("CBS"),
+        //                                     time_limit,
+        //                                     false,
+        //                                     4,
+        //                                     true);
+
+        // for (const auto &str : strs1) {
+        //     std::cout << str << std::endl;
+        // }
+        // writeStrsToEndOfFile(strs1, map_test_config.at("la_comp_path"));
+
+        auto strs2 = LayeredLAMAPFCompare<2>(agent_and_instances[i].second,
                                             agent_and_instances[i].first,
-                                            //CBS::LargeAgentCBS_func<2>,
-                                                    LaCAM::LargeAgentLaCAM_func<2>,
-                                            std::string("CBS"),
+                                            LaCAM::LargeAgentLaCAM_func<2>,
+                                            std::string("LaCAM"),
                                             time_limit,
                                             false,
                                             4,
                                             true);
 
-        for (const auto &str : strs1) {
+        for (const auto &str : strs2) {
             std::cout << str << std::endl;
         }
-        writeStrsToEndOfFile(strs1, map_test_config.at("la_comp_path"));
 
-//        auto strs2 = LayeredLAMAPFCompare<2>(agent_and_instances[i].second,
-//                                            agent_and_instances[i].first,
-//                                            LaCAM::LargeAgentLaCAM_func<2>,
-//                                            std::string("LaCAM"),
-//                                            time_limit,
-//                                            false,
-//                                            4,
-//                                            true);
-//
-//        for (const auto &str : strs2) {
-//            std::cout << str << std::endl;
-//        }
-//
-//        writeStrsToEndOfFile(strs2, map_test_config.at("la_comp_path"));
+        writeStrsToEndOfFile(strs2, map_test_config.at("la_comp_path"));
     }
 
 }
@@ -526,7 +518,6 @@ void generateLargeAgentInstanceForMap(const SingleMapTestConfig<2>& map_file,
             InstanceSerializer<2> serializer(agents, instances);
             if(serializer.saveToFile(map_test_config.at("la_ins_path"))) {
                 std::cout << "save to path " << map_test_config.at("la_ins_path") << " success" << std::endl;
-                Decomposition_test();
                 return;
             } else {
                 std::cout << "save to path " << map_test_config.at("la_ins_path") << " failed" << std::endl;
@@ -536,31 +527,27 @@ void generateLargeAgentInstanceForMap(const SingleMapTestConfig<2>& map_file,
             std::cout << "-- find no " << required_agents << " agents and poses after " << i << " sample" <<  std::endl;
         }
     }
-
-
-
 }
 
 // MAPFTestConfig_Berlin_1_256
-TEST(generateLargeAgentInstanceForMap, test) {
+//TEST(generateLargeAgentInstanceForMap, test) {
+int main3() {
     // file_path, times_of_try, required_agents, maximum_sample_count
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int> >
             map_configs = {
-//                           {MAPFTestConfig_Paris_1_256, 180, 100, 1e7}, //
+//                           {MAPFTestConfig_Paris_1_256, 140, 100, 1e7}, // ok
 //                           {MAPFTestConfig_empty_48_48, 60,  100, 1e7}, // ok
-//                           {MAPFTestConfig_Berlin_1_256, 140, 100, 5e7}, //
-                           {MAPFTestConfig_maze_128_128_10, 100, 100, 5e7}, //
-//                           {MAPFTestConfig_den520d, 140, 100, 5e7}, //
-//                           {MAPFTestConfig_ost003d, 100, 100, 5e7} //
+//                           {MAPFTestConfig_Berlin_1_256, 140, 100, 5e7}, // ok
+//                           {MAPFTestConfig_maze_128_128_10, 100, 100, 5e7}, // ok
+//                           {MAPFTestConfig_den520d, 140, 100, 5e7}, // load failed
+//                           {MAPFTestConfig_ost003d, 100, 100, 5e7} // target overlap
 
-//                            {MAPFTestConfig_Boston_2_256, 70, 100, 1e7}, //
-//                            {MAPFTestConfig_Sydney_2_256, 70,  100, 1e7}, //
-//                            {MAPFTestConfig_AR0044SR, 50, 100, 5e7}, //
-//                            {MAPFTestConfig_AR0203SR, 40, 100, 5e7}, //
-//                            {MAPFTestConfig_AR0072SR, 30, 100, 5e7}, //
-//                            {MAPFTestConfig_Denver_2_256, 80, 100, 5e7} //
-
-
+                            //{MAPFTestConfig_Boston_2_256, 140, 100, 1e7}, // ok
+                            //{MAPFTestConfig_Sydney_2_256, 140,  100, 1e7}, // ok
+                            //{MAPFTestConfig_AR0044SR, 50, 100, 5e7}, // ok
+                            {MAPFTestConfig_AR0203SR, 40, 100, 5e7}, // ok
+                            //{MAPFTestConfig_AR0072SR, 70, 100, 5e7}, // ok
+//                            {MAPFTestConfig_Denver_2_256, 140, 100, 5e7} // ok
 
     };
 
@@ -570,30 +557,29 @@ TEST(generateLargeAgentInstanceForMap, test) {
                                          std::get<2>(map_config),
                                          std::get<3>(map_config));
     }
-
+    return 0;
 }
 
 
-TEST(Multi_Generate_Agent_And_Decomposition, test) { // 2360 count
-    // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
+//TEST(Multi_Generate_Agent_And_Decomposition, test) { // 2360 count
+int main1() {
+// file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
-            map_configs = {
-                           {MAPFTestConfig_Paris_1_256,     100, 200, 10, 10},
-                           {MAPFTestConfig_empty_48_48,     100, 200, 10, 10},
-                           {MAPFTestConfig_Berlin_1_256,    100, 200, 10, 10},
-                           {MAPFTestConfig_maze_128_128_10, 100, 200, 10, 10},
-                           {MAPFTestConfig_den520d,         100, 200, 10, 10},
-                           {MAPFTestConfig_ost003d,         100, 200, 10, 10},
-
-                            {MAPFTestConfig_Boston_2_256, 1, 200, 10, 10}, // ok
-                            {MAPFTestConfig_Sydney_2_256, 1, 200, 10, 10}, // ok
-                            {MAPFTestConfig_AR0044SR, 1, 200, 10, 10}, // ok
-                            {MAPFTestConfig_AR0203SR, 1, 200, 10, 10}, // ok
-                            {MAPFTestConfig_AR0072SR, 1, 200, 10, 10}, // ok
+            map_configs = {//{MAPFTestConfig_Paris_1_256,     100, 200, 10, 10},
+                           //{MAPFTestConfig_empty_48_48,     100, 200, 10, 10},
+//                           {MAPFTestConfig_Berlin_1_256,    100, 200, 10, 10},
+//                           {MAPFTestConfig_maze_128_128_10, 100, 200, 10, 10},
+//                           {MAPFTestConfig_den520d,         100, 200, 10, 10},
+//                           {MAPFTestConfig_ost003d,         100, 200, 10, 10},
+                            // {MAPFTestConfig_Boston_2_256, 1, 200, 10, 10}, // ok
+                            // {MAPFTestConfig_Sydney_2_256, 1, 200, 10, 10}, // ok
+                            // {MAPFTestConfig_AR0044SR, 1, 200, 10, 5}, // ok
+                            // {MAPFTestConfig_AR0203SR, 1, 200, 10, 5}, // ok
+                            {MAPFTestConfig_AR0072SR, 1, 200, 10, 5}, // ok
                             {MAPFTestConfig_Denver_2_256, 1, 200, 10, 10} // ok
     };
     for(int i=0; i<200; i++) {
-        std::cout << "global_decom " << i << std::endl;
+        std::cout << "global decom " << i << std::endl;
         for (const auto &file_config : map_configs) {
             multiLoadAgentAndDecomposition(std::get<0>(file_config),
                                            1, //std::get<1>(file_config),
@@ -602,43 +588,52 @@ TEST(Multi_Generate_Agent_And_Decomposition, test) { // 2360 count
                                            std::get<4>(file_config));
         }
     }
+    return 0;
 }
 
 
 
-TEST(Multi_Generate_Agent_And_Compare, test) {
-
+//TEST(Multi_Generate_Agent_And_Compare, test) {
+int main() {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
             map_configs = {
-//                           {MAPFTestConfig_Paris_1_256,     10, 140, 20, 20},
-//                           {MAPFTestConfig_empty_48_48,     1, 40, 10, 10},
-//                           {MAPFTestConfig_Berlin_1_256,    1, 10, 5, 5},
-//                           {MAPFTestConfig_maze_128_128_10, 1, 10, 5, 5},
-                           {MAPFTestConfig_den520d,         1, 10, 5, 5},
-                           {MAPFTestConfig_ost003d,         1, 10, 5, 5},
+                        //      {MAPFTestConfig_Paris_1_256,     1, 80, 10, 10}, // 80, 10, 10 / 20, 2, 2s
+                        //     {MAPFTestConfig_empty_48_48,     1, 50, 10, 10}, // 50, 10, 10
+                        //     {MAPFTestConfig_Berlin_1_256,    1, 80, 10, 10}, // 80, 10, 10
+                        //    {MAPFTestConfig_maze_128_128_10, 1, 60, 10, 10}, // 60, 10, 10
+
+                            // {MAPFTestConfig_den520d,         1, 100, 10, 10},// 100, 10, 10
+                            // {MAPFTestConfig_ost003d,         1, 100, 10, 10},// 100, 10, 10
+                            //  {MAPFTestConfig_Boston_2_256, 1, 70, 10, 10}, //  70, 10, 10
+                            //   {MAPFTestConfig_Sydney_2_256, 1, 70, 10, 10}, // 70, 10, 10
+
+                              {MAPFTestConfig_AR0044SR, 1, 20, 5, 5}, // 50, 5, 5
+                              {MAPFTestConfig_AR0203SR, 1, 40, 5, 5}, // 40, 5, 5
+                              {MAPFTestConfig_AR0072SR, 1, 30, 5, 5}, // 30, 5, 5
+                             {MAPFTestConfig_Denver_2_256, 1, 80, 10, 10}, // 80, 10, 10
+
+                              // not in test
+                        //        {MAPFTestConfig_Boston_2_256, 1, 20, 2, 2}, // ok
+                        //        {MAPFTestConfig_Sydney_2_256, 1, 20, 2, 2}, // ok
+                        //        {MAPFTestConfig_AR0044SR, 1, 20, 2, 2}, // ok
+                        //        {MAPFTestConfig_AR0203SR, 1, 20, 2, 2}, // ok
+                        //    {MAPFTestConfig_AR0072SR, 1, 20, 2, 2}, // ok
+                        //     {MAPFTestConfig_Denver_2_256, 1, 20, 2, 2} // ok
+
     };
-
-    for(const auto& file_config : map_configs) {
-        multiLoadAgentAndCompare(std::get<0>(file_config),
-                                 std::get<1>(file_config),
-                                 std::get<2>(file_config),
-                                 std::get<3>(file_config),
-                                 std::get<4>(file_config),
-                                 10);
-    }
-}
-
-// test random instance generator
-TEST(test, getTestInstance) {
-    std::vector<std::set<int> > case_id_set = pickCasesFromScene<2>(10, {2,4,6,8,9, 10}, 3);
-    for(int i=0; i<case_id_set.size(); i++) {
-        std::cout << i << " th: ";
-        const auto& id_set = case_id_set[i];
-        for(const auto& id : id_set) {
-            std::cout << id << " ";
+    for(int i=0; i<100;i++)
+    {
+        std::cout << "global layered" << i << std::endl;
+        for(const auto& file_config : map_configs) {
+            multiLoadAgentAndCompare(std::get<0>(file_config),
+                                     std::get<1>(file_config),
+                                     std::get<2>(file_config),
+                                     std::get<3>(file_config),
+                                     std::get<4>(file_config),
+                                     60);
         }
-        std::cout << std::endl;
     }
+    return 0;
 }
 

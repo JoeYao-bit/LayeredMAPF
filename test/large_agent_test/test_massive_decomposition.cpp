@@ -62,23 +62,32 @@ bool decompositionOfSingleInstanceBipartitionLAMAPF(const InstanceOrients<N> & i
                                                                  pre.agents_heuristic_tables_ignore_rotate_
     );
 
+    int max_subproblem = LA_MAPF::getMaxLevelSize(bi_decompose->all_clusters_);
+    int num_of_subproblem = bi_decompose->all_clusters_.size();
+
+    if(max_subproblem == 0) {
+        max_subproblem = agents.size();
+        num_of_subproblem = 1;
+    }
+
     outputStream.clear();
     std::stringstream ss;
     ss << " " << time_cost << " "
-       << LA_MAPF::getMaxLevelSize(bi_decompose->all_clusters_) << " "
+       << max_subproblem << " "
        << agents.size() << " "
        << is_bi_valid << " "
        << level
        << " "
        << memory_usage << " "
-       << bi_decompose->all_clusters_.size() << " "
+       << num_of_subproblem << " "
        << bi_decompose->instance_decomposition_time_cost_ << " "
        << bi_decompose->cluster_bipartition_time_cost_ << " "
        << bi_decompose->level_sorting_time_cost_ << " "
        << bi_decompose->level_bipartition_time_cost_ << " ";
 
     outputStream = ss.str();
-    std::cout << " memory_usage = " << memory_usage << std::endl;
+//    std::cout << " memory_usage = " << memory_usage << std::endl;
+    std::cout << "level " << level << "/raw = " << LA_MAPF::getMaxLevelSize(bi_decompose->all_clusters_) << "/" << agents.size() << std::endl;
     return is_bi_valid;
 }
 
@@ -97,7 +106,7 @@ bool decompositionOfSingleInstanceBreakLoopLAMAPF(const InstanceOrients<N> & ins
     sleep(1);
     float basic_usage = memory_recorder.getMaximalMemoryUsage();
 
-    PrecomputationOfLAMAPF<2, HyperGraphNodeDataRaw<2>> pre(instances, agents, dim, isoc, true);
+    PrecomputationOfLAMAPF<2, HyperGraphNodeDataRaw<2>> pre(instances, agents, dim, isoc, false);
 
     auto start_t = clock();
     auto ns_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<2, HyperGraphNodeDataRaw<2>> >(dim,
@@ -126,23 +135,31 @@ bool decompositionOfSingleInstanceBreakLoopLAMAPF(const InstanceOrients<N> & ins
                                                                  pre.agents_heuristic_tables_ignore_rotate_
     );
 
+    int max_subproblem = LA_MAPF::getMaxLevelSize(ns_decompose->all_levels_);
+    int num_of_subproblem = ns_decompose->all_levels_.size();
+
+    if(max_subproblem == 0) {
+        max_subproblem = agents.size();
+        num_of_subproblem = 1;
+    }
+
     outputStream.clear();
     std::stringstream ss;
     ss << " " << time_cost << " "
-       << LA_MAPF::getMaxLevelSize(ns_decompose->all_levels_) << " "
+       << max_subproblem << " "
        << agents.size() << " "
        << is_bi_valid << " "
        << level
        << " "
        << memory_usage << " "
-       << ns_decompose->all_levels_.size() << " "
+       << num_of_subproblem << " "
        << 0 << " "
        << 0 << " "
        << 0 << " "
        << 0 << " ";
 
     outputStream = ss.str();
-    std::cout << " memory_usage = " << memory_usage << std::endl;
+    std::cout << "level" << level << "/raw = " << LA_MAPF::getMaxLevelSize(ns_decompose->all_levels_) << "/" << agents.size() << std::endl;
     return is_bi_valid;
 }
 
@@ -185,7 +202,7 @@ bool SingleMapDecompositionTestLAMAPF(const SingleMapTestConfig <2> &map_test_co
 
     // 2, do decomposition for each case
     OutputStreamS output_streamss;
-    for(int i=0; i<=agent_and_instances.size(); i++) {
+    for(int i=0; i<agent_and_instances.size(); i++) {
         const auto& ists = agent_and_instances[i];
         output_streamss.clear();
         OutputStream ostream;
@@ -243,75 +260,72 @@ bool SingleMapDecompositionTestLAMAPF(const SingleMapTestConfig <2> &map_test_co
                            {MAPFTestConfig_Denver_2_256, 1, 200, 10, 10} // ok
  * */
 
+std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int> > > test_configs = {
+        {MAPFTestConfig_Paris_1_256,     {20, 40, 60, 80, 100, 120, 140}}, // 1,
+        {MAPFTestConfig_empty_48_48,     {10, 20, 30, 40, 50, 60}}, // 2,
+        {MAPFTestConfig_Berlin_1_256,    {20, 40, 60, 80, 100, 120, 140}}, // 3,
+        {MAPFTestConfig_maze_128_128_10, {20, 40, 60, 80, 100}}, // 4,
+        {MAPFTestConfig_den520d,         {20, 40, 60, 80, 100, 120, 140}}, // 5,
+        {MAPFTestConfig_ost003d,         {20, 40, 60, 80, 100}}, // 6,
+        {MAPFTestConfig_Boston_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 7,
+        {MAPFTestConfig_Sydney_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 8,
+        {MAPFTestConfig_AR0044SR,        {10, 20, 30, 40, 50}}, // 9
+        {MAPFTestConfig_AR0203SR,        {10, 20, 30, 40, 50}}, // 10,
+        {MAPFTestConfig_AR0072SR,        {20, 30, 40, 50, 60, 70}}, // 11,
+        {MAPFTestConfig_Denver_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 12,
+};
+
+std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int> > > test_configs_demo = {
+        {MAPFTestConfig_Paris_1_256,     {20}}, // 1,
+        {MAPFTestConfig_empty_48_48,     {10}}, // 2,
+        {MAPFTestConfig_Berlin_1_256,    {20}}, // 3,
+        {MAPFTestConfig_maze_128_128_10, {20}}, // 4,
+        {MAPFTestConfig_den520d,         {20}}, // 5,
+        {MAPFTestConfig_ost003d,         {20}}, // 6,
+        {MAPFTestConfig_Boston_2_256,    {20}}, // 7,
+        {MAPFTestConfig_Sydney_2_256,    {20}}, // 8,
+        {MAPFTestConfig_AR0044SR,        {10}}, // 9
+        {MAPFTestConfig_AR0203SR,        {10}}, // 10,
+        {MAPFTestConfig_AR0072SR,        {20}}, // 11,
+        {MAPFTestConfig_Denver_2_256,    {20}}, // 12,
+};
+
+// do decomposition test
 int main() {
-    for(int i=0; i<1; i++) {
-        int count_of_instances = 1;
 
-//        SingleMapDecompositionTestLAMAPF(MAPFTestConfig_Paris_1_256,
-//                                         {40, 80, 120, 160, 200},
-//                                         count_of_instances);
-//
-//        SingleMapDecompositionTestLAMAPF(MAPFTestConfig_empty_48_48,
-//                                         {40, 80, 120, 160, 200},
-//                                         count_of_instances);
+    auto test_configs_copy = test_configs; // test_configs, test_configs_demo
 
-        // 1,
-        SingleMapDecompositionTestLAMAPF(MAPFTestConfig_Paris_1_256,
-                                         {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
-                                         count_of_instances);
-
-        // 2,
-        SingleMapDecompositionTestLAMAPF(MAPFTestConfig_empty_48_48,
-                                         {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
-                                         count_of_instances);
-
-        // 3,
-        SingleMapDecompositionTestLAMAPF(MAPFTestConfig_Berlin_1_256,
-                                         {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
-                                         count_of_instances);
-
-        // 4,
-        SingleMapDecompositionTestLAMAPF(MAPFTestConfig_maze_128_128_10,
-                                         {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
-                                         count_of_instances);
-
-        // 5,
-        SingleMapDecompositionTestLAMAPF(MAPFTestConfig_den520d,
-                                         {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
-                                         count_of_instances);
-
-        // 6,
-        SingleMapDecompositionTestLAMAPF(MAPFTestConfig_ost003d,
-                                         {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
-                                         count_of_instances);
-
-        // 7,
-        SingleMapDecompositionTestLAMAPF(MAPFTestConfig_Boston_2_256,
-                                         {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
-                                         count_of_instances);
-
-        // 8,
-        SingleMapDecompositionTestLAMAPF(MAPFTestConfig_Sydney_2_256,
-                                         {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
-                                         count_of_instances);
-
-        // 9,
-        SingleMapDecompositionTestLAMAPF(MAPFTestConfig_AR0044SR,
-                                         {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
-                                         count_of_instances);
-
-        // 10,
-        SingleMapDecompositionTestLAMAPF(MAPFTestConfig_AR0203SR,
-                                         {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
-                                         count_of_instances);
-        // 11,
-        SingleMapDecompositionTestLAMAPF(MAPFTestConfig_AR0072SR,
-                                         {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
-                                         count_of_instances);
-
-        // 12,
-        SingleMapDecompositionTestLAMAPF(MAPFTestConfig_Denver_2_256,
-                                         {20, 40, 60, 80, 100, 120, 140, 160, 180, 200},
-                                         count_of_instances);
+    int interval = 2;
+    int repeat_times = 200;
+    int num_threads = test_configs_copy.size()/interval;
+    std::vector<bool> finished(num_threads, false);
+    for(int j=0; j<num_threads; j++) {
+        auto lambda_func = [&]() {
+            int thread_id = j; // save to avoid change during planning
+            for(int i=0; i<repeat_times; i++) {
+                int count_of_instances = 1;
+                for (int k = 0; k < interval; k++) {
+                    //std::cout << "thread_id = " << thread_id << std::endl;
+                    int map_id = thread_id * interval + k;
+                    std::cout << "map_id = " << map_id << std::endl;
+                    if (thread_id * interval + k >= test_configs_copy.size()) { break; }
+                    SingleMapDecompositionTestLAMAPF(std::get<0>(test_configs_copy[map_id]),
+                                                   std::get<1>(test_configs_copy[map_id]),
+                                                    count_of_instances);
+                }
+            }
+            finished[thread_id] = true;
+            std::cout << "thread " << thread_id << " finished" << std::endl;
+        };
+        std::thread t(lambda_func);
+        t.detach();
+        sleep(1);
     }
+    while(finished != std::vector<bool>(num_threads, true)) {
+        sleep(1);
+    }
+    return 0;
 }
+
+
+

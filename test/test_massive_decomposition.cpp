@@ -211,7 +211,7 @@ bool decompositionOfSingleInstanceBreakLoop(const freeNav::Instances<N>& ists, D
     float basic_usage = memory_recorder.getMaximalMemoryUsage();
     auto start_t = clock();
 
-    PrecomputationOfMAPF<2, HyperGraphNodeDataRaw<2>> pre(ists, dim, isoc, true);
+    PrecomputationOfMAPF<2, HyperGraphNodeDataRaw<2>> pre(ists, dim, isoc, false);
 
     auto ns_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<2, HyperGraphNodeDataRaw<2> > >(dim,
             pre.connect_graphs_,
@@ -232,17 +232,24 @@ bool decompositionOfSingleInstanceBreakLoop(const freeNav::Instances<N>& ists, D
     float memory_usage = peak_usage - basic_usage;
     bool is_legal = MAPF_DecompositionValidCheckGridMap<2>(ists, ns_decompose->all_levels_, dim, isoc);
 
+    int max_subproblem = LA_MAPF::getMaxLevelSize(ns_decompose->all_levels_);
+    int num_of_subproblem = ns_decompose->all_levels_.size();
+
+    if(max_subproblem == 0) {
+        max_subproblem = ists.size();
+        num_of_subproblem = 1;
+    }
 
     outputStream.clear();
     std::stringstream ss;
     ss << " " << time_cost << " "
-       << LA_MAPF::getMaxLevelSize(ns_decompose->all_levels_) << " "
+       << max_subproblem << " "
        << ists.size() << " "
        << is_legal << " "
        << level
        << " "
        << memory_usage << " "
-       << ns_decompose->all_levels_.size() << " "
+       << num_of_subproblem << " "
        << 0 << " "
        << 0 << " "
        << 0 << " "
@@ -283,17 +290,24 @@ bool decompositionOfSingleInstanceBipartition(const freeNav::Instances<N>& ists,
     float memory_usage = peak_usage - basic_usage;
     bool is_legal = MAPF_DecompositionValidCheckGridMap<2>(ists, bi_decompose->all_clusters_, dim, isoc);
 
+    int max_subproblem = LA_MAPF::getMaxLevelSize(bi_decompose->all_clusters_);
+    int num_of_subproblem = bi_decompose->all_clusters_.size();
+
+    if(max_subproblem == 0) {
+        max_subproblem = ists.size();
+        num_of_subproblem = 1;
+    }
 
     outputStream.clear();
     std::stringstream ss;
     ss << " " << time_cost << " "
-       << LA_MAPF::getMaxLevelSize(bi_decompose->all_clusters_) << " "
+       << max_subproblem << " "
        << ists.size() << " "
        << is_legal << " "
        << level
        << " "
        << memory_usage << " "
-       << bi_decompose->all_clusters_.size() << " "
+       << num_of_subproblem << " "
        << bi_decompose->instance_decomposition_time_cost_ << " "
        << bi_decompose->cluster_bipartition_time_cost_ << " "
        << bi_decompose->level_sorting_time_cost_ << " "
@@ -413,99 +427,96 @@ bool SingleMapDecompositionTestMAPF(const SingleMapTestConfig <2> &map_test_conf
     return true;
 }
 
+
+std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int> > > test_configs = {
+    {MAPFTestConfig_empty_32_32,            {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400}}, // 1,
+    {MAPFTestConfig_empty_16_16,            {10, 20, 40, 60, 80, 100, 120}}, // 2,
+    {MAPFTestConfig_maze_32_32_2,           {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120}}, // 3,
+    {MAPFTestConfig_maze_32_32_4,           {60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260}}, // 4,
+    {MAPFTestConfig_maze_128_128_2,         {100, 200, 300, 400, 500, 600, 700}}, // 5,
+    {MAPFTestConfig_maze_128_128_10,        {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}}, // 6,
+    {MAPFTestConfig_den312d,                {100, 200, 300, 400, 500, 600, 700, 800}}, // 7,
+    {MAPFTestConfig_den520d,                {100, 200, 300, 400, 500, 600, 700, 800, 900}}, // 8,
+    {MAPFTestConfig_Berlin_1_256,           {100, 200, 300, 400, 500, 600, 700, 800, 900}}, // 9,
+    {MAPFTestConfig_Paris_1_256,            {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}}, // 10,
+    {MAPFTestConfig_ht_chantry,             {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}}, // 11,
+    {MAPFTestConfig_lak303d,                {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}}, // 12,
+    {MAPFTestConfig_random_32_32_20,        {20, 40, 80, 120, 160, 200, 240}}, // 13,
+    {MAPFTestConfig_random_64_64_20,        {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}}, // 14,
+    {MAPFTestConfig_room_32_32_4,           {10, 20, 40, 60, 80, 120, 160, 200}}, // 15,
+    {MAPFTestConfig_room_64_64_8,           {100, 200, 300, 400, 500, 600, 700}}, // 16
+    {MAPFTestConfig_room_64_64_16,          {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}}, // 17,
+    {MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800}}, // 18,
+    {MAPFTestConfig_warehouse_10_20_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}}, // 19,
+    {MAPFTestConfig_warehouse_20_40_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}}, // 20,
+    {MAPFTestConfig_warehouse_20_40_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}}, // 21,
+    {MAPFTestConfig_Boston_0_256,           {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}}, // 22,
+    {MAPFTestConfig_lt_gallowstemplar_n,    {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}}, // 23,
+    {MAPFTestConfig_ost003d,                {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}} // 24,
+};
+
+std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int> > > test_configs_demo = {
+        {MAPFTestConfig_empty_32_32,            {10}}, // 1,
+        {MAPFTestConfig_empty_16_16,            {10}}, // 2,
+        {MAPFTestConfig_maze_32_32_2,           {20}}, // 3,
+        {MAPFTestConfig_maze_32_32_4,           {60}}, // 4,
+        {MAPFTestConfig_maze_128_128_2,         {100}}, // 5,
+        {MAPFTestConfig_maze_128_128_10,        {100}}, // 6,
+        {MAPFTestConfig_den312d,                {100}}, // 7,
+        {MAPFTestConfig_den520d,                {100}}, // 8,
+        {MAPFTestConfig_Berlin_1_256,           {100}}, // 9,
+        {MAPFTestConfig_Paris_1_256,            {100}}, // 10,
+        {MAPFTestConfig_ht_chantry,             {100}}, // 11,
+        {MAPFTestConfig_lak303d,                {100}}, // 12,
+        {MAPFTestConfig_random_32_32_20,        {20}}, // 13,
+        {MAPFTestConfig_random_64_64_20,        {100}}, // 14,
+        {MAPFTestConfig_room_32_32_4,           {10}}, // 15,
+        {MAPFTestConfig_room_64_64_8,           {100}}, // 16
+        {MAPFTestConfig_room_64_64_16,          {100}}, // 17,
+        {MAPFTestConfig_warehouse_10_20_10_2_1, {100}}, // 18,
+        {MAPFTestConfig_warehouse_10_20_10_2_2, {100}}, // 19,
+        {MAPFTestConfig_warehouse_20_40_10_2_1, {100}}, // 20,
+        {MAPFTestConfig_warehouse_20_40_10_2_2, {100}}, // 21,
+        {MAPFTestConfig_Boston_0_256,           {100}}, // 22,
+        {MAPFTestConfig_lt_gallowstemplar_n,    {100}}, // 23,
+        {MAPFTestConfig_ost003d,                {100}} // 24,
+};
+
 // do decomposition test
 int main() {
 
-    for(int i=0; i<100; i++) {
-        int count_of_instances = 1;
+    auto test_configs_copy = test_configs; // test_configs, test_configs_demo
 
-//        SingleMapDecompositionTest(MAPFTestConfig_empty_32_32, {400},
-//                                   count_of_instances);
-//
-//        SingleMapDecompositionTest(MAPFTestConfig_empty_16_16, {120},
-//                                   count_of_instances);
-
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400},
-                                       count_of_instances);
-
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120},
-                                       count_of_instances);
-
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120},
-                                       count_of_instances);
-
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_maze_32_32_4,
-                                       {60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260},
-                                       count_of_instances);
-
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_maze_128_128_2, {100, 200, 300, 400, 500, 600, 700},
-                                       count_of_instances);
-
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_maze_128_128_10,
-                                       {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                       count_of_instances);
-
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_den312d, {100, 200, 300, 400, 500, 600, 700, 800},
-                                       count_of_instances);
-
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_den520d, {100, 200, 300, 400, 500, 600, 700, 800, 900},
-                                       count_of_instances);
-
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_Berlin_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900},
-                                       count_of_instances);
-
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_Paris_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                       count_of_instances);
-
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_ht_chantry, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                       count_of_instances);
-
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                       count_of_instances);
-
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240},
-                                       count_of_instances);
-
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_random_64_64_20,
-                                       {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                       count_of_instances);
-
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_room_32_32_4, {10, 20, 40, 60, 80, 120, 160, 200},
-                                       count_of_instances);
-
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_room_64_64_8, {100, 200, 300, 400, 500, 600, 700},
-                                       count_of_instances);
-
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_room_64_64_16,
-                                       {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                       count_of_instances);
-
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800},
-                                       count_of_instances);
-
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_warehouse_10_20_10_2_2,
-                                       {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                       count_of_instances);
-
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_warehouse_20_40_10_2_1,
-                                       {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                       count_of_instances);
-
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_warehouse_20_40_10_2_2,
-                                       {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                       count_of_instances);
-
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                       count_of_instances);
-
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_lt_gallowstemplar_n,
-                                       {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                       count_of_instances);
-
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                       count_of_instances);
+    int interval = 2;
+    int repeat_times = 200;
+    int num_threads = test_configs_copy.size()/interval;
+    std::vector<bool> finished(num_threads, false);
+    for(int j=0; j<num_threads; j++) {
+        auto lambda_func = [&]() {
+            int thread_id = j; // save to avoid change during planning
+            for(int i=0; i<repeat_times; i++) {
+                int count_of_instances = 1;
+                for (int k = 0; k < interval; k++) {
+                    //std::cout << "thread_id = " << thread_id << std::endl;
+                    int map_id = thread_id * interval + k;
+                    std::cout << "map_id = " << map_id << std::endl;
+                    if (thread_id * interval + k >= test_configs_copy.size()) { break; }
+                    SingleMapDecompositionTestMAPF(std::get<0>(test_configs_copy[map_id]),
+                                                   std::get<1>(test_configs_copy[map_id]),
+                                                   count_of_instances);
+                }
+            }
+            finished[thread_id] = true;
+            std::cout << "thread " << thread_id << " finished" << std::endl;
+        };
+        std::thread t(lambda_func);
+        t.detach();
+        sleep(1);
     }
-    std::cout << "count_of_instance_total = " << count_of_instance_total << std::endl;
+    while(finished != std::vector<bool>(num_threads, true)) {
+        sleep(1);
+    }
+
     return 0;
 }
 

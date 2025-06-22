@@ -2,6 +2,8 @@
 // Created by yaozhuo on 2024/8/15.
 //
 
+#ifndef LAYEREDMAPF_TEST_LAYERED_LARGE_AGENT_MAPF_H
+#define LAYEREDMAPF_TEST_LAYERED_LARGE_AGENT_MAPF_H
 
 #include <gtest/gtest.h>
 #include "common_interfaces.h"
@@ -11,9 +13,7 @@
 
 //#include "../../algorithm/LA-MAPF/LaCAM/large_agent_lacam.h"
 #include "../../algorithm/LA-MAPF/IndependenceDetection/independence_detection.h"
-#include "../../algorithm/LA-MAPF/LaCAM/layered_large_agent_LaCAM.h"
-#include "../../algorithm/LA-MAPF/CBS/layered_large_agent_CBS.h"
-#include "../../algorithm/connectivity_graph_and_subprgraph.h"
+
 
 using namespace freeNav::LayeredMAPF::LA_MAPF;
 
@@ -29,19 +29,17 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
 
     auto start_t = clock();
 
-    LargeAgentMAPFInstanceDecompositionPtr<2, HyperGraphNodeDataRaw<2> > decomposer_ptr = nullptr;
+    LargeAgentMAPFInstanceDecompositionPtr<2> decomposer_ptr = nullptr;
     std::vector<std::vector<int> > grid_visit_count_table;
 
     auto instances = deserializer.getTestInstance({40}, 1);
     LAMAPF_Paths layered_paths;
-    bool detect_loss_solvability = false;
-    layered_paths = layeredLargeAgentMAPF<2, HyperGraphNodeDataRaw<2> >(instances.front().second,
+
+    layered_paths = layeredLargeAgentMAPF<2>(instances.front().second,
                                                   instances.front().first,
                                                   dim, is_occupied,
-//                                                  CBS::LargeAgentCBS_func<2>,
-                                                  LaCAM::LargeAgentLaCAM_func<2>,
+                                                  CBS::LargeAgentCBS_func<2>,
                                                   grid_visit_count_table,
-                                                  detect_loss_solvability,
                                                   20, decomposer_ptr,
                                                   false);
 
@@ -59,7 +57,7 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
 
     double time_cost = ((double)end_t-start_t)/CLOCKS_PER_SEC;
 
-    std::cout << (layered_paths.size() == instances.front().first.size() ? "success" : "failed")
+    std::cout << (layered_paths.size() == deserializer.getAgents().size() ? "success" : "failed")
               << " layered large agent mapf in " << time_cost << "s " << std::endl;
     std::cout << std::endl;
 
@@ -75,16 +73,12 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
 //    std::cout << (raw_path.size() == deserializer.getAgents().size() ? "success" : "failed")
 //              << " raw large agent mapf in " << time_cost1 << "ms " << std::endl;
 
-    if(decomposer_ptr != nullptr) {
-
-        InstanceVisualization(instances.front().first, decomposer_ptr->getAllPoses(),
-                              instances.front().second, layered_paths, grid_visit_count_table);
-    }
 }
 
-TEST(test, layered_large_agent_CBS) {
-
+//TEST(test, layered_large_agent_CBS) {
+int main() {
     layeredLargeAgentMAPFTest(map_test_config.at("la_ins_path"));
-
+    return 0;
 }
 
+#endif //LAYEREDMAPF_TEST_LAYERED_LARGE_AGENT_MAPF_H
