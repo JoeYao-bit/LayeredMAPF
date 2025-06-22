@@ -232,17 +232,24 @@ bool decompositionOfSingleInstanceBreakLoop(const freeNav::Instances<N>& ists, D
     float memory_usage = peak_usage - basic_usage;
     bool is_legal = MAPF_DecompositionValidCheckGridMap<2>(ists, ns_decompose->all_levels_, dim, isoc);
 
+    int max_subproblem = LA_MAPF::getMaxLevelSize(ns_decompose->all_levels_);
+    int num_of_subproblem = ns_decompose->all_levels_.size();
+
+    if(max_subproblem == 0) {
+        max_subproblem = ists.size();
+        num_of_subproblem = 1;
+    }
 
     outputStream.clear();
     std::stringstream ss;
     ss << " " << time_cost << " "
-       << LA_MAPF::getMaxLevelSize(ns_decompose->all_levels_) << " "
+       << max_subproblem << " "
        << ists.size() << " "
        << is_legal << " "
        << level
        << " "
        << memory_usage << " "
-       << ns_decompose->all_levels_.size() << " "
+       << num_of_subproblem << " "
        << 0 << " "
        << 0 << " "
        << 0 << " "
@@ -283,17 +290,24 @@ bool decompositionOfSingleInstanceBipartition(const freeNav::Instances<N>& ists,
     float memory_usage = peak_usage - basic_usage;
     bool is_legal = MAPF_DecompositionValidCheckGridMap<2>(ists, bi_decompose->all_clusters_, dim, isoc);
 
+    int max_subproblem = LA_MAPF::getMaxLevelSize(bi_decompose->all_clusters_);
+    int num_of_subproblem = bi_decompose->all_clusters_.size();
+
+    if(max_subproblem == 0) {
+        max_subproblem = ists.size();
+        num_of_subproblem = 1;
+    }
 
     outputStream.clear();
     std::stringstream ss;
     ss << " " << time_cost << " "
-       << LA_MAPF::getMaxLevelSize(bi_decompose->all_clusters_) << " "
+       << max_subproblem << " "
        << ists.size() << " "
        << is_legal << " "
        << level
        << " "
        << memory_usage << " "
-       << bi_decompose->all_clusters_.size() << " "
+       << num_of_subproblem << " "
        << bi_decompose->instance_decomposition_time_cost_ << " "
        << bi_decompose->cluster_bipartition_time_cost_ << " "
        << bi_decompose->level_sorting_time_cost_ << " "
