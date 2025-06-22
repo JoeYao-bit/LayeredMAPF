@@ -416,14 +416,14 @@ bool SingleMapDecompositionTestMAPF(const SingleMapTestConfig <2> &map_test_conf
 // do decomposition test
 int main() {
 
-    for(int i=0; i<100; i++) {
+    for(int i=0; i<1; i++) {
         int count_of_instances = 1;
 
-//        SingleMapDecompositionTest(MAPFTestConfig_empty_32_32, {400},
-//                                   count_of_instances);
-//
-//        SingleMapDecompositionTest(MAPFTestConfig_empty_16_16, {120},
-//                                   count_of_instances);
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_empty_32_32, {400},
+                                   count_of_instances);
+
+        SingleMapDecompositionTestMAPF(MAPFTestConfig_empty_16_16, {120},
+                                   count_of_instances);
 
         // // 1,
         // SingleMapDecompositionTestMAPF(MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400},
@@ -516,18 +516,18 @@ int main() {
         //                                {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
         //                                count_of_instances);
 
-        // 22,                               
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                       count_of_instances);
-
-        // 23,                               
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_lt_gallowstemplar_n,
-                                       {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                       count_of_instances);
-
-        // 24,                               
-        SingleMapDecompositionTestMAPF(MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
-                                       count_of_instances);
+//        // 22,
+//        SingleMapDecompositionTestMAPF(MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                                       count_of_instances);
+//
+//        // 23,
+//        SingleMapDecompositionTestMAPF(MAPFTestConfig_lt_gallowstemplar_n,
+//                                       {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                                       count_of_instances);
+//
+//        // 24,
+//        SingleMapDecompositionTestMAPF(MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000},
+//                                       count_of_instances);
     }
     std::cout << "count_of_instance_total = " << count_of_instance_total << std::endl;
     return 0;
