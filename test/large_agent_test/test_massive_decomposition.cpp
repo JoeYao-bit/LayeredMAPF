@@ -114,7 +114,7 @@ bool decompositionOfSingleInstanceBreakLoopLAMAPF(const InstanceOrients<N> & ins
             pre.heuristic_tables_sat_,
             time_limit_s,// - pre.initialize_time_cost_/1e3,
             1e4,
-            100,
+            200,
             1);
 
     double time_cost =  mst.elapsed();// + pre.initialize_time_cost_;
@@ -293,8 +293,8 @@ int main() {
 
     auto test_configs_copy = test_configs; // test_configs, test_configs_demo
 
-    int interval = 4;//6; // test_configs_copy.size()
-    int repeat_times = 1;
+    int interval = 2;//6; // test_configs_copy.size()
+    int repeat_times = 100;
     int num_threads = test_configs_copy.size()/interval;
     std::vector<bool> finished(num_threads, false);
     for(int j=0; j<num_threads; j++) {
