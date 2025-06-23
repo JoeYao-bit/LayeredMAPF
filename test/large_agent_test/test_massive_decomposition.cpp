@@ -291,9 +291,9 @@ std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int> > > test_configs
 // do decomposition test
 int main() {
 
-    auto test_configs_copy = test_configs_demo; // test_configs, test_configs_demo
+    auto test_configs_copy = test_configs; // test_configs, test_configs_demo
 
-    int interval = test_configs_copy.size();//6; // test_configs_copy.size()
+    int interval = 4;//6; // test_configs_copy.size()
     int repeat_times = 1;
     int num_threads = test_configs_copy.size()/interval;
     std::vector<bool> finished(num_threads, false);
