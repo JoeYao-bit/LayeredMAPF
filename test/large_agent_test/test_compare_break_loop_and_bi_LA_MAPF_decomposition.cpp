@@ -10,6 +10,7 @@
 
 #include <gtest/gtest.h>
 #include <iostream>
+#include <chrono>
 
 using namespace freeNav::LayeredMAPF::LA_MAPF;
 
@@ -144,13 +145,22 @@ TEST(getMaxLevel, test) {
 // {MAPFTestConfig_Denver_2_256, 1, 80, 10, 10}, // 80, 10, 10
 
 int main() {
+//    auto start_t = std::chrono::steady_clock::now();
+//    while(true) {
+//        sleep(1);
+//        auto end_t = std::chrono::steady_clock::now();
+//        auto duration = end_t - start_t;
+//        auto ms_count = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+//        std::cout << "pass secs = " << ms_count << std::endl;
+//    }
+
 //TEST(simple_test, LNS_decomposition) {
 
-//    // ns / bi max subproblem size(decomposition rate) = 1(0.00555556) / 1(0.00555556)
-//    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_Paris_1_256,     1000);
+    // ns / bi max subproblem size(decomposition rate) = 1(0.00555556) / 1(0.00555556)
+    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_Paris_1_256,     100);
 
     // ns / bi max subproblem size(decomposition rate) = 33(0.55) / 43(0.716667)
-    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_empty_48_48,     1000);
+//    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_empty_48_48,     10);
 //
 //    // ns / bi max subproblem size(decomposition rate) = 1(0.00714286) / 3(0.0214286)
 //    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_Berlin_1_256,    1000);
@@ -167,7 +177,7 @@ int main() {
 //    // ns / bi max subproblem size(decomposition rate) = 1(0.0142857) / 1(0.0142857)
 //    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_Boston_2_256,     1000);
 //
-//    // ns / bi max subproblem size(decomposition rate) = 1(0.0142857) / 1(0.0142857)
+    // ns / bi max subproblem size(decomposition rate) = 1(0.0142857) / 1(0.0142857)
 //    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_Sydney_2_256,     1000);
 //
 //    // ns / bi max subproblem size(decomposition rate) = 1(0.02) / 3(0.06)

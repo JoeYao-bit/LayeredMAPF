@@ -11,6 +11,7 @@
 #include <boost/unordered_set.hpp>
 #include <limits>
 #include "freeNav-base/basic_elements/point.h"
+#include <chrono>
 
 namespace freeNav::LayeredMAPF {
 
@@ -163,6 +164,21 @@ namespace freeNav::LayeredMAPF {
 
     extern size_t max_size_of_stack; // yz: add for statistics in every mapf method's key memory occupation factor
     extern size_t max_size_of_stack_layered; // yz: add for statistics in every mapf method's key memory occupation factor
+
+
+    struct MSTimer {
+        MSTimer() {
+            start_time_ = std::chrono::steady_clock::now();
+        }
+
+        int elapsed() {
+            end_time_ = std::chrono::steady_clock::now();
+            return std::chrono::duration_cast<std::chrono::milliseconds>(end_time_ - start_time_).count();
+        }
+
+        std::chrono::steady_clock::time_point start_time_;
+        std::chrono::steady_clock::time_point end_time_;
+    };
 
 }
 

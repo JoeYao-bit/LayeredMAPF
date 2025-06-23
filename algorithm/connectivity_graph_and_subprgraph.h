@@ -108,22 +108,107 @@ namespace freeNav::LayeredMAPF {
                                DimensionLength* dim,
                                const IS_OCCUPIED_FUNC<N> & isoc,
                                bool with_sat_heu = true,
-                               bool directed_graph = true) :
+                               bool directed_graph = true,
+                               int num_of_CPU = 7) :
                                LA_MAPF::LargeAgentMAPF<N>(instances, agents, dim, isoc),
                                with_sat_heu_(with_sat_heu),
                                directed_graph_(directed_graph) {
 
-            clock_t start_t = clock();
+            MSTimer mst;
+            double connect_time_cost      = 0;
+            double heu_with_sat_time_cost = 0;
+            double heu_ig_sat_time_cost   = 0;
+#if 0
+            // calculate one by one
             for(int i=0; i<agents.size(); i++) {
                 connect_graphs_.push_back(getAgentConnectivityGraph(i));
+                connect_time_cost += 1e3*((double)t_2 - t_1)/CLOCKS_PER_SEC;
                 heuristic_tables_sat_.push_back(LA_MAPF::calculateLargeAgentHyperGraphStaticHeuristic<N, HyperGraphNodeDataRaw<N>>(i, this->dim_, connect_graphs_[i], true));
+                heu_with_sat_time_cost += 1e3*((double)t_3 - t_2)/CLOCKS_PER_SEC;
                 if(with_sat_heu_) {
                     heuristic_tables_.push_back(LA_MAPF::calculateLargeAgentHyperGraphStaticHeuristic<N, HyperGraphNodeDataRaw<N>>(i, this->dim_, connect_graphs_[i], false));
                 }
+                heu_ig_sat_time_cost += 1e3*((double)t_4 - t_3)/CLOCKS_PER_SEC;
             }
-            clock_t now_t = clock();
+#else
+            // initialize in parallel thread to reduce time cost
+            std::map<int, LA_MAPF::ConnectivityGraph> connect_graphs_map;
+            std::map<int, std::vector<int> > heuristic_tables_sat;
+            std::map<int, std::vector<int> > heuristic_tables_ig_sat;
 
-            initialize_time_cost_ =  1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
+            // how many agents in a thread
+            int interval = agents.size()/num_of_CPU;// set to larger value to reduce maximal memory usage and num of threads
+            // num of thread should close to the num of CPU
+//            int num_threads = agents.size()/interval;
+            //std::cout << " num of threads = " << num_threads << std::endl;
+            std::mutex lock_1, lock_2, lock_3, lock_4;
+            std::vector<bool> finished(agents.size(), false);
+            int count_of_instance = 0;
+            while(count_of_instance < instances.size()) {
+                auto lambda_func = [&]() {
+                    for (int k = 0; k < interval; k++) {
+                        //std::cout << "thread_id = " << thread_id << std::endl;
+                        lock_4.lock();
+                        int map_id = count_of_instance;
+                        count_of_instance ++;
+                        lock_4.unlock();
+                        //std::cout << "map_id = " << map_id << std::endl;
+
+                        if (map_id >= agents.size()) { break; }
+                        const auto& connect_graph = getAgentConnectivityGraph(map_id);
+                        const auto& heu_sat_table = LA_MAPF::calculateLargeAgentHyperGraphStaticHeuristic<N, HyperGraphNodeDataRaw<N>>(map_id, this->dim_, connect_graph, true);
+                        std::vector<int> heu_ig_sat_table;
+                        if(with_sat_heu_) {
+                            heu_ig_sat_table = LA_MAPF::calculateLargeAgentHyperGraphStaticHeuristic<N, HyperGraphNodeDataRaw<N>>(map_id, this->dim_, connect_graph, false);
+                        }
+                        lock_1.lock();
+                        connect_graphs_map.insert({map_id, connect_graph});
+                        lock_1.unlock();
+                        lock_2.lock();
+                        heuristic_tables_sat.insert({map_id, heu_sat_table});
+                        lock_2.unlock();
+                        if(with_sat_heu_) {
+                            lock_3.lock();
+                            heuristic_tables_ig_sat.insert({map_id, heu_ig_sat_table});
+                            lock_3.unlock();
+                        }
+                        lock_4.lock();
+                        finished[map_id] = true;
+                        lock_4.unlock();
+                    }
+                    //std::cout << "thread calculation take " << std::chrono::duration_cast<std::chrono::milliseconds>(end_t_4 - start_t_4).count() << "ms" << std::endl;
+                    //std::cout << "thread all take " << std::chrono::duration_cast<std::chrono::milliseconds>(end_t_3 - start_t_3).count() << "ms" << std::endl;
+                    //std::cout << "thread " << thread_id_copy << " finished 1" << std::endl;
+                };
+                std::thread t(lambda_func);
+                t.detach();
+                //usleep(10e3); // sleep 1ms to wait current thread get correct thread_id, 1ms too less
+            }
+            while(finished != std::vector<bool>(agents.size(), true)) {
+                usleep(5e4);
+            }
+            connect_graphs_.resize(agents.size());
+            for(const auto& connec_pair : connect_graphs_map) {
+                connect_graphs_[connec_pair.first] = connec_pair.second;
+            }
+            heuristic_tables_sat_.resize(agents.size());
+            for(const auto& connec_pair : heuristic_tables_sat) {
+                heuristic_tables_sat_[connec_pair.first] = connec_pair.second;
+            }
+            heuristic_tables_.resize(agents.size());
+            for(const auto& heu_pair : heuristic_tables_ig_sat) {
+                heuristic_tables_[heu_pair.first] = heu_pair.second;
+            }
+#endif
+
+            //auto duration_2 = end_t - start_t_2;
+            //std::cout << "merge take " << std::chrono::duration_cast<std::chrono::milliseconds>(duration_2).count() << "ms" << std::endl;
+
+            initialize_time_cost_ =  mst.elapsed(); // // this is not right
+
+//            std::cout << "-- LA-MAPF connect_graphs_ (ms)       = " << connect_time_cost << std::endl;
+//            std::cout << "-- LA-MAPF heuristic_tables_sat_ (ms) = " << heu_with_sat_time_cost << std::endl;
+//            std::cout << "-- LA-MAPF heu_ig_sat_time_cost (ms)  = " << heu_ig_sat_time_cost << std::endl;
 
             std::cout << "-- LA-MAPF initialize_time_cost_ (ms) = " << initialize_time_cost_ << std::endl;
 
@@ -579,7 +664,7 @@ namespace freeNav::LayeredMAPF {
                              isoc_(isoc),
                              with_sat_heu_(with_sat_heu) {
 
-            clock_t start_t = clock();
+            MSTimer mst;
 
             std::cout << "  construct all possible poses" << std::endl;
             Id total_index = getTotalIndexOfSpace<N>(dim_);
@@ -651,9 +736,7 @@ namespace freeNav::LayeredMAPF {
                 }
             }
 
-            clock_t now_t = clock();
-
-            initialize_time_cost_ =  1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
+            initialize_time_cost_ =  mst.elapsed();
 
             std::cout << "-- MAPF initialize_time_cost_ (ms) = " << initialize_time_cost_ << std::endl;
         }

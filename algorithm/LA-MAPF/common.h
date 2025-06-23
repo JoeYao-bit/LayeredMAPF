@@ -832,11 +832,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     template<Dimension N>
     struct SubGraphOfAgent {
 
-        explicit SubGraphOfAgent(const AgentPtr<N>& agent): agent_(agent) {}
+        explicit SubGraphOfAgent(AgentPtr<N> agent): agent_(agent) {}
 
         SubGraphOfAgentDataPtr<N> data_ptr_;
 
-        const AgentPtr<N>& agent_;
+        AgentPtr<N> agent_;
         size_t start_node_id_ = MAX<size_t>;
         size_t target_node_id_ = MAX<size_t>;
 

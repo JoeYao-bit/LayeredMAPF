@@ -48,7 +48,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                        const std::vector<std::vector<int> >& agents_heuristic_tables = {},
                        const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate = {},
 
-                       double time_limit = 60
+                       double time_limit = 60,
+                       int num_of_CPU = 4
                        ) : instances_(instances), agents_(agents), dim_(dim), isoc_(isoc),
                            all_poses_(all_poses), distance_map_updater_(distance_map_updater),
                            agent_sub_graphs_(agent_sub_graphs),
@@ -58,11 +59,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                            remaining_time_(time_limit)
                        {
 
-            start_time_ = clock();
             assert(instances.size() == agents.size());
 
-            auto start_t = clock();
-
+            MSTimer mst;
             // 0, init and final state overlap check
             for(int i=0; i<instances_.size(); i++) {
                 for(int j=i+1; j<instances_.size(); j++) {
@@ -101,58 +100,128 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 distance_map_updater_ = std::make_shared<DistanceMapUpdater<N> >(this->isoc_, this->dim_);
             }
 
+           if(instance_node_ids_.empty()) {
+               instance_node_ids_.reserve(instances_.size());
 
-            if(agent_sub_graphs_.empty()) {
-                std::cout << "  construct agent_sub_graphs" << std::endl;
-                agent_sub_graphs_.reserve(instances_.size());
-                for (int id = 0; id < agents.size(); id++) {
-                    agent_sub_graphs_.push_back(constructSubGraphOfAgent(id));
-                }
-            }
+               for (int agent_id=0; agent_id<agents_.size(); agent_id++) {
+                   // check start
+                   int start_node_id = PointiToId<N>(instances_[agent_id].first.pt_, dim_) * 2 * N +
+                                       instances_[agent_id].first.orient_;
 
-            // debug
-//            for(int i=0; i<agents.size(); i++) {
-//                int count_of_nodes = 0;
-//                for(const auto& ptr : agent_sub_graphs_[i].all_nodes_) {
-//                    if(ptr != nullptr) {
-//                        count_of_nodes ++;
-//                    }
-//                }
-//                int count_of_edges = 0;
-//                for(const auto& nodes : agent_sub_graphs_[i].all_edges_) {
-//                    count_of_edges += nodes.size();
-//                }
-//                std::cout << "LA-MAPF Agent " << agents[i] << "'s subgraph have nodes/edges = "
-//                          << count_of_edges << " / " << count_of_nodes << std::endl;
-//            }
+                   // check target
+                   int target_node_id = PointiToId<N>(instances_[agent_id].second.pt_, dim_) * 2 * N +
+                                        instances_[agent_id].second.orient_;
 
-            if(instance_node_ids_.empty()) {
-                instance_node_ids_.reserve(instances_.size());
-                for (const auto &sub_graph : agent_sub_graphs_) {
-                    instance_node_ids_.push_back({sub_graph.start_node_id_, sub_graph.target_node_id_});
-                }
-            }
-            // 3, construct each agent's heuristic table, i.e., distance from each node to target
-            if(agents_heuristic_tables_.empty()) {
-                std::cout << "  construct agents_heuristic_tables" << std::endl;
-                agents_heuristic_tables_.reserve(instances_.size());
-                for (int agent = 0; agent < instances_.size(); agent++) {
-                    agents_heuristic_tables_.push_back(
-                            constructHeuristicTable(agent_sub_graphs_[agent], instance_node_ids_[agent].second));
-                }
-            }
-           if(agents_heuristic_tables_ignore_rotate_.empty()) {
-               std::cout << "  construct agents_heuristic_tables_ignore_rotate" << std::endl;
-               agents_heuristic_tables_ignore_rotate_.reserve(instances_.size());
-               for (int agent = 0; agent < instances_.size(); agent++) {
-                   agents_heuristic_tables_ignore_rotate_.push_back(
-                           constructHeuristicTableIgnoreRotate(agent_sub_graphs_[agent], instance_node_ids_[agent].second));
+                   instance_node_ids_.push_back({start_node_id, target_node_id});
                }
            }
-            auto now_t = clock();
-            subgraph_and_heuristic_time_cost_ = 10e3 * ((double)now_t - start_t)/CLOCKS_PER_SEC;
 
-            std::cout << "-- construct subgraph and heuristic table in " << subgraph_and_heuristic_time_cost_ << "s" << std::endl;
+//            if(agent_sub_graphs_.empty()) {
+//                std::cout << "  construct agent_sub_graphs" << std::endl;
+//                agent_sub_graphs_.reserve(instances_.size());
+//                for (int id = 0; id < agents.size(); id++) {
+//                    agent_sub_graphs_.push_back(constructSubGraphOfAgent(id));
+//                }
+//            }
+//            // 3, construct each agent's heuristic table, i.e., distance from each node to target
+//            if(agents_heuristic_tables_.empty()) {
+//                std::cout << "  construct agents_heuristic_tables" << std::endl;
+//                agents_heuristic_tables_.reserve(instances_.size());
+//                for (int agent = 0; agent < instances_.size(); agent++) {
+//                    agents_heuristic_tables_.push_back(
+//                            constructHeuristicTable(agent_sub_graphs_[agent], instance_node_ids_[agent].second));
+//                }
+//            }
+//           if(agents_heuristic_tables_ignore_rotate_.empty()) {
+//               std::cout << "  construct agents_heuristic_tables_ignore_rotate" << std::endl;
+//               agents_heuristic_tables_ignore_rotate_.reserve(instances_.size());
+//               for (int agent = 0; agent < instances_.size(); agent++) {
+//                   agents_heuristic_tables_ignore_rotate_.push_back(
+//                           constructHeuristicTableIgnoreRotate(agent_sub_graphs_[agent], instance_node_ids_[agent].second));
+//               }
+//           }
+
+            // initialize in parallel thread to reduce time cost
+            std::map<int, SubGraphOfAgent<N>> sub_graphs_map;
+            std::map<int, std::vector<int> > heuristic_tables_;
+            std::map<int, std::vector<int> > heuristic_tables_ig_rotate;
+            int interval = agents.size()/num_of_CPU;// set to larger value to reduce maximal memory usage and num of threads
+            std::mutex lock_1, lock_2, lock_3, lock_4;
+            std::vector<bool> finished(agents.size(), false);
+            int count_of_instance = 0;
+            while(count_of_instance < instances.size()) {
+                auto lambda_func = [&]() {
+                    auto start_t_3 = std::chrono::steady_clock::now();
+                    //auto start_t_4 = std::chrono::steady_clock::now();
+                    for (int k = 0; k < interval; k++) {
+                        //std::cout << "thread_id = " << thread_id << std::endl;
+                        lock_4.lock();
+                        int map_id = count_of_instance;
+                        count_of_instance ++;
+                        lock_4.unlock();
+                        //std::cout << "map_id = " << map_id << std::endl;
+
+                        if (map_id >= agents.size()) { break; }
+                        if(agent_sub_graphs_.empty()) {
+                            const auto &sub_graph = constructSubGraphOfAgent(map_id);
+                            lock_1.lock();
+                            sub_graphs_map.insert({map_id, sub_graph});
+                            lock_1.unlock();
+                        } else {
+                            sub_graphs_map.insert({map_id, agent_sub_graphs_[map_id]});
+                        }
+                        if(agents_heuristic_tables_.empty()) {
+                            const auto & table = constructHeuristicTable(sub_graphs_map.at(map_id),
+                                                                         instance_node_ids_[map_id].second);
+                            lock_2.lock();
+                            heuristic_tables_.insert({map_id, table});
+                            lock_2.unlock();
+                        }
+                        if(agents_heuristic_tables_ignore_rotate_.empty()) {
+                            const auto & table = constructHeuristicTableIgnoreRotate(sub_graphs_map.at(map_id),
+                                                                                     instance_node_ids_[map_id].second);
+                            lock_3.lock();
+                            heuristic_tables_ig_rotate.insert({map_id, table});
+                            lock_3.unlock();
+                        }
+                        lock_4.lock();
+                        finished[map_id] = true;
+                        lock_4.unlock();
+                    }
+                    //auto end_t_4 = std::chrono::steady_clock::now();
+                    //std::cout << "thread calculation take " << std::chrono::duration_cast<std::chrono::milliseconds>(end_t_4 - start_t_4).count() << "ms" << std::endl;
+                    //auto end_t_3 = std::chrono::steady_clock::now();
+                    //std::cout << "thread all take " << std::chrono::duration_cast<std::chrono::milliseconds>(end_t_3 - start_t_3).count() << "ms" << std::endl;
+                    //std::cout << "thread " << thread_id_copy << " finished 1" << std::endl;
+                };
+                std::thread t(lambda_func);
+                t.detach();
+            }
+            while(finished != std::vector<bool>(agents.size(), true)) {
+                usleep(5e4);
+            }
+            if(agent_sub_graphs_.empty()) {
+                agent_sub_graphs_.resize(agents.size(), SubGraphOfAgent<N>(nullptr));
+                for (const auto &subgraph_pair : sub_graphs_map) {
+                    agent_sub_graphs_[subgraph_pair.first] = subgraph_pair.second;
+                }
+            }
+            if(agents_heuristic_tables_.empty()) {
+                agents_heuristic_tables_.resize(agents.size());
+                for (const auto &table_pair : heuristic_tables_) {
+                    agents_heuristic_tables_[table_pair.first] = table_pair.second;
+                }
+            }
+            if(agents_heuristic_tables_ignore_rotate_.empty()) {
+                agents_heuristic_tables_ignore_rotate_.resize(agents.size());
+                for (const auto &table_pair : heuristic_tables_ig_rotate) {
+                    agents_heuristic_tables_ignore_rotate_[table_pair.first] = table_pair.second;
+                }
+            }
+
+            subgraph_and_heuristic_time_cost_ = mst.elapsed();
+
+            std::cout << "-- construct subgraph and heuristic table in " << subgraph_and_heuristic_time_cost_ << "ms" << std::endl;
             remaining_time_ = remaining_time_ - subgraph_and_heuristic_time_cost_;
         }
 
@@ -197,8 +266,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             // check target
             int target_node_id = PointiToId<N>(instances_[agent_id].second.pt_, dim_) * 2 * N +
                                  instances_[agent_id].second.orient_;
-
-            instance_node_ids_.push_back(std::make_pair(start_node_id, target_node_id));
 
 
             SubGraphOfAgent<N> sub_graph(agent);
@@ -541,8 +608,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         double time_limit_ = 60; // s
         double remaining_time_ = 0; // s
-
-        clock_t start_time_;
 
     };
 

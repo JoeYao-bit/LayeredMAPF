@@ -278,25 +278,25 @@ std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int> > > test_configs
 std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int> > > test_configs_demo = {
         {MAPFTestConfig_Paris_1_256,     {20}}, // 1,
         {MAPFTestConfig_empty_48_48,     {10}}, // 2,
-        {MAPFTestConfig_Berlin_1_256,    {20}}, // 3,
-        {MAPFTestConfig_maze_128_128_10, {20}}, // 4,
-        {MAPFTestConfig_den520d,         {20}}, // 5,
-        {MAPFTestConfig_ost003d,         {20}}, // 6,
-        {MAPFTestConfig_Boston_2_256,    {20}}, // 7,
-        {MAPFTestConfig_Sydney_2_256,    {20}}, // 8,
-        {MAPFTestConfig_AR0044SR,        {10}}, // 9
-        {MAPFTestConfig_AR0203SR,        {10}}, // 10,
-        {MAPFTestConfig_AR0072SR,        {20}}, // 11,
-        {MAPFTestConfig_Denver_2_256,    {20}}, // 12,
+//        {MAPFTestConfig_Berlin_1_256,    {20,140}}, // 3,
+//        {MAPFTestConfig_maze_128_128_10, {20,100}}, // 4,
+//        {MAPFTestConfig_den520d,         {20,140}}, // 5,
+//        {MAPFTestConfig_ost003d,         {20,100}}, // 6,
+//        {MAPFTestConfig_Boston_2_256,    {20,140}}, // 7,
+//        {MAPFTestConfig_Sydney_2_256,    {20,140}}, // 8,
+//        {MAPFTestConfig_AR0044SR,        {10,50}}, // 9
+//        {MAPFTestConfig_AR0203SR,        {10,50}}, // 10,
+//        {MAPFTestConfig_AR0072SR,        {20,70}}, // 11,
+//        {MAPFTestConfig_Denver_2_256,    {20,140}}, // 12,
 };
 
 // do decomposition test
 int main() {
 
-    auto test_configs_copy = test_configs; // test_configs, test_configs_demo
+    auto test_configs_copy = test_configs_demo; // test_configs, test_configs_demo
 
-    int interval = 2;
-    int repeat_times = 200;
+    int interval = 2;//test_configs_copy.size();//6; // test_configs_copy.size()
+    int repeat_times = 1;
     int num_threads = test_configs_copy.size()/interval;
     std::vector<bool> finished(num_threads, false);
     for(int j=0; j<num_threads; j++) {
@@ -311,7 +311,8 @@ int main() {
                     if (thread_id * interval + k >= test_configs_copy.size()) { break; }
                     SingleMapDecompositionTestLAMAPF(std::get<0>(test_configs_copy[map_id]),
                                                    std::get<1>(test_configs_copy[map_id]),
-                                                    count_of_instances);
+                                                    count_of_instances,
+                                                    30);
                 }
             }
             finished[thread_id] = true;
