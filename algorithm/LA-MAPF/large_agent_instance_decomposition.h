@@ -62,7 +62,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             debug_data_.resize(4);
 
-            auto start_t = clock();
+            MSTimer mts;
             for(int i=0; i<instances.size(); i++) {
                 instance_id_set_.insert(i);
             }
@@ -80,8 +80,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
             std::cout << "-- finish calculateLargeAgentHyperGraphStaticHeuristic" << std::endl;
 
-            auto now_t = clock();
-            initialize_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
+            initialize_time_cost_ = mts.elapsed();
 
             // initialize all subproblem with only the raw problem
             all_clusters_ = {{}};
@@ -94,12 +93,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             // 3, decompose all instances into multiple cluster
             if(decompose_level >= 1) {
                 memory_recorder.clear();
+                MSTimer mts2;
                 base_usage = memory_recorder.getCurrentMemoryUsage();
-                start_t = clock();
                 instanceDecomposition();
-                now_t = clock();
                 //peak_usage = memory_recorder.getMaximalMemoryUsage();
-                instance_decomposition_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
+                instance_decomposition_time_cost_ = mts2.elapsed();
 
 
 
@@ -121,11 +119,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             if(decompose_level >= 2) {
                 memory_recorder.clear();
                 base_usage = memory_recorder.getCurrentMemoryUsage();
-                start_t = clock();
+                MSTimer mts2;
                 clusterDecomposition();
-                now_t = clock();
                 //peak_usage = memory_recorder.getMaximalMemoryUsage();
-                cluster_bipartition_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
+                cluster_bipartition_time_cost_ = mts2.elapsed();
                 debug_data_[1] = {instance_decomposition_time_cost_ +
                                   cluster_bipartition_time_cost_,
                                   getMaxSubProblemSize(),
@@ -145,11 +142,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             if(decompose_level >= 3) {
                 memory_recorder.clear();
                 base_usage = memory_recorder.getCurrentMemoryUsage();
-                start_t = clock();
+                MSTimer mts2;
                 levelSorting();
-                now_t = clock();
                 peak_usage = memory_recorder.getMaximalMemoryUsage();
-                level_sorting_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
+                level_sorting_time_cost_ = mts2.elapsed();
                 debug_data_[2] = {instance_decomposition_time_cost_ +
                                   cluster_bipartition_time_cost_ + level_sorting_time_cost_,
                                   getMaxSubProblemSize(),
@@ -169,11 +165,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             if(decompose_level >= 4) {
                 memory_recorder.clear();
                 base_usage = memory_recorder.getCurrentMemoryUsage();
-                start_t = clock();
+                MSTimer mts2;
                 levelDecomposition();
-                now_t = clock();
                 peak_usage = memory_recorder.getMaximalMemoryUsage();
-                level_bipartition_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
+                level_bipartition_time_cost_ = mts.elapsed();
                 debug_data_[3] = {instance_decomposition_time_cost_ +
                                   cluster_bipartition_time_cost_ + level_sorting_time_cost_ + level_bipartition_time_cost_,
                                   getMaxSubProblemSize(),
