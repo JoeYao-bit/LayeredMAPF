@@ -29,17 +29,18 @@ void layeredLargeAgentMAPFTest(const std::string& file_path) {
 
     auto start_t = clock();
 
-    LargeAgentMAPFInstanceDecompositionPtr<2> decomposer_ptr = nullptr;
+    LargeAgentMAPFInstanceDecompositionPtr<2, HyperGraphNodeDataRaw<2>> decomposer_ptr = nullptr;
     std::vector<std::vector<int> > grid_visit_count_table;
 
     auto instances = deserializer.getTestInstance({40}, 1);
     LAMAPF_Paths layered_paths;
-
-    layered_paths = layeredLargeAgentMAPF<2>(instances.front().second,
+    bool detect_loss_solvability;
+    layered_paths = layeredLargeAgentMAPF<2, HyperGraphNodeDataRaw<2> >(instances.front().second,
                                                   instances.front().first,
                                                   dim, is_occupied,
                                                   CBS::LargeAgentCBS_func<2>,
                                                   grid_visit_count_table,
+                                                  detect_loss_solvability,
                                                   20, decomposer_ptr,
                                                   false);
 

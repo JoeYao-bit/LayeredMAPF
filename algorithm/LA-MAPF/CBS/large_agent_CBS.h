@@ -61,8 +61,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                                                    constraint_avoidance_table_,
                                                    path_constraint_,
                                                    connect_graph_);
-                auto current_time = clock();
-                auto sum_s = (((double)(current_time - this->start_time_))/CLOCKS_PER_SEC);
+                auto sum_s =  this->mst_.elapsed()/1e3;
                 auto remain_s = time_limit - sum_s;
                 if(remain_s < 0) {
                     this->solvable = false;
@@ -118,8 +117,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             while (!cleanup_list.empty() && !solution_found) {
 //                if(count >= 2000) { break; }
 //                std::cout << "-- " << count << " iteration, open size " << cleanup_list.size() << std::endl;
-                auto current_time = clock();
-                auto remain_s = (((double)(current_time - this->start_time_))/CLOCKS_PER_SEC);
+                auto remain_s = this->mst_.elapsed()/1e3;
                 if(remain_s >= this->remaining_time_) {
                     // run out of time
                     std::cout << "NOTICE: LA-CBS run out of time " << std::endl;
@@ -501,8 +499,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //                constraint_avoidance_table_.insertAgentPathOccGrids(this->agents_[a], this->solutions_[a]);
 //            }
 //            constraint_avoidance_table_.updateAgent(this->agents_[agent]);
-            auto current_time = clock();
-            auto sum_s = (((double)(current_time - this->start_time_))/CLOCKS_PER_SEC);
+            auto sum_s = this->mst_.elapsed()/1e3;
             auto remain_s = this->time_limit_ - sum_s;
             if(remain_s < 0 ) { return false; }
             SpaceTimeAstar<N> astar(start_node_id, target_node_id,
