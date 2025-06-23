@@ -176,6 +176,10 @@ namespace freeNav::LayeredMAPF {
             return std::chrono::duration_cast<std::chrono::milliseconds>(end_time_ - start_time_).count();
         }
 
+        void reset() {
+            start_time_ = std::chrono::steady_clock::now();
+        }
+
         std::chrono::steady_clock::time_point start_time_;
         std::chrono::steady_clock::time_point end_time_;
     };

@@ -49,7 +49,6 @@ namespace freeNav::LayeredMAPF {
                                      max_continue_failure_(max_continue_failure),
                                      expected_min_level_size_(expected_min_level_size) {
 
-            start_t_ = clock();
 
             std::set<int> all_agent_id_set;
 
@@ -67,9 +66,7 @@ namespace freeNav::LayeredMAPF {
             }
             all_levels_ = getLevelsFromDependencyPaths(all_dependency_paths_);
 
-            auto now_t = clock();
-
-            double time_cost =  ((double)now_t - start_t_)/CLOCKS_PER_SEC;;
+            double time_cost = mst_.elapsed()/1e3;
 
             std::cout << "ns finish initial decomposition in " << time_cost << "s" << std::endl;
 
@@ -116,8 +113,7 @@ namespace freeNav::LayeredMAPF {
             int i_th_largest_level = 0;
             bool simple_avail = true;
             while(true) {
-                auto now_t = clock();
-                double time_cost =  ((double)now_t - start_t_)/CLOCKS_PER_SEC;
+                double time_cost = mst_.elapsed()/1e3;
 
                 if(time_cost > time_limit_) { break; }
                 if(count_of_break >= max_break_count_) { break; }
@@ -150,8 +146,7 @@ namespace freeNav::LayeredMAPF {
                 count_of_break ++;
             }
 
-            auto now_t = clock();
-            double time_cost =  ((double)now_t - start_t_)/CLOCKS_PER_SEC;
+            double time_cost = mst_.elapsed()/1e3;
             std::cout << "finish break loops in " << time_cost << "s, " << count_of_break << " breaks" << std::endl;
         }
 
@@ -770,7 +765,7 @@ namespace freeNav::LayeredMAPF {
 
         int expected_min_level_size_; // when max level size reach this value, do not decompose further
 
-        clock_t start_t_;
+        MSTimer mst_;
 
         std::vector<LA_MAPF::AgentPtr<N> > agents_;
 

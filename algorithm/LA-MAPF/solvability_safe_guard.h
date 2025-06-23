@@ -6,7 +6,7 @@
 #define LAYEREDMAPF_SOLVABILITY_SAFE_GUARD_H
 
 #include "large_agent_instance_decomposition.h"
-
+#include "../basic.h"
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
     // when MAPF failed to solve a subproblem within time limit,
@@ -71,7 +71,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                   const LA_MAPF_FUNC<N>& mapf_func,
                                                   const IS_OCCUPIED_FUNC<N>& ex_isoc,
                                                   double time_limit = 30) {
-            auto start_t = clock();
+            MSTimer mst;
             // the loop will end when run out of time, or merge all subproblem and get the raw problem
             std::vector<std::set<int> > local_levels = levels;
             int local_failed_subproblem_id = failed_subproblem_id;
@@ -108,8 +108,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     local_agents_heuristic_tables_ignore_rotate.push_back(
                             this->agents_heuristic_tables_ignore_rotate_[failed_agent_id]);
                 }
-                auto now_t = clock();
-                double time_cost_yet = ((double)now_t - start_t)/CLOCKS_PER_SEC;
+                double time_cost_yet = mst.elapsed()/1e3;
                 double remaining_time = time_limit - time_cost_yet;
                 if(remaining_time < 0) { return false; }
                 // 2, solve it with ignoring other agent
@@ -203,8 +202,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     local_agents_heuristic_tables_ignore_rotate.push_back(
                             this->agents_heuristic_tables_ignore_rotate_[failed_agent_id]);
                 }
-                now_t = clock();
-                time_cost_yet = ((double)now_t - start_t)/CLOCKS_PER_SEC;
+                time_cost_yet = mst.elapsed()/1e3;
                 remaining_time = time_limit - time_cost_yet;
 
                 if(remaining_time < 0) { return {}; }
