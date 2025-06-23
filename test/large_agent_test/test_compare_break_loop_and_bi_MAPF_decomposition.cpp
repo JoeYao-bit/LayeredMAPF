@@ -47,11 +47,11 @@ void compareLNSAndBiDecompose_MAPF(const SingleMapTestConfig<2>& map_file, int n
         istss.push_back(ists);
     }
 
-    double time_limit_s = 10;
+    double time_limit_s = 5;
 
     PrecomputationOfMAPF<2, HyperGraphNodeDataRaw<2>> pre(istss.front(), dim_local, is_occupied_local, true);
 
-    auto start_t = clock();
+    MSTimer mst;
 
     auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBipartition<2, HyperGraphNodeDataRaw<2> > >(dim_local,
                                                                                    pre.connect_graphs_,
@@ -61,8 +61,7 @@ void compareLNSAndBiDecompose_MAPF(const SingleMapTestConfig<2>& map_file, int n
                                                                                    time_limit_s,
                                                                                    3);
 
-    auto now_t = clock();
-    double total_time_cost = ((double)now_t - start_t)/CLOCKS_PER_SEC;
+    double total_time_cost = mst.elapsed()/1e3;
 
     bool is_bi_valid = MAPF_DecompositionValidCheckGridMap<2>(istss.front(), bi_decompose->all_clusters_,
                                                               dim_local, is_occupied_local);
@@ -71,7 +70,7 @@ void compareLNSAndBiDecompose_MAPF(const SingleMapTestConfig<2>& map_file, int n
     std::cout << "biparition max subproblem = " << getMaxLevelSize(bi_decompose->all_clusters_) << std::endl;
 
 
-    start_t = clock();
+    mst.reset();
 
     auto ns_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<2, HyperGraphNodeDataRaw<2> > >(dim_local,
                                                                                  pre.connect_graphs_,
@@ -79,17 +78,15 @@ void compareLNSAndBiDecompose_MAPF(const SingleMapTestConfig<2>& map_file, int n
                                                                                  pre.heuristic_tables_sat_,
                                                                                  time_limit_s,
                                                                                  1e4,
-                                                                                 100,
+                                                                                 50,
                                                                                  1);
 
     ns_decompose->breakMaxLoopIteratively();
 
-    now_t = clock();
-
     bool is_ns_valid = MAPF_DecompositionValidCheckGridMap<2>(istss.front(), ns_decompose->all_levels_, dim_local, is_occupied_local);
 
 
-    total_time_cost = ((double)now_t - start_t)/CLOCKS_PER_SEC;
+    total_time_cost = mst.elapsed()/1e3;
     std::cout << "ns finish in " << total_time_cost <<  "s, valid = " << is_ns_valid << std::endl;
 
     std::cout << "ns / bi max subproblem size(decomposition rate) = "
@@ -112,45 +109,45 @@ int main() {
 
     compareLNSAndBiDecompose_MAPF(MAPFTestConfig_empty_32_32,     400);
 
-    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_32_32_2,     120);
-
-    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_32_32_4,    260);
-
-    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_128_128_2,   700);
-
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_32_32_2,     120);
+//
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_32_32_4,    260);
+//
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_128_128_2,   700);
+//
     compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_128_128_10,  1000);
-
-    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_den312d,          800);
-
-    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_den520d,     900);
-
-    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_ht_chantry,     1000);
-
-    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_lak303d,         1000);
-
-    // 13,
-    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_random_32_32_20,         250);
-
-    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_random_64_64_10,         1000);
-
-    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_room_32_32_4,     200);
-
-    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_room_64_64_16,     1000);
-
-    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_warehouse_10_20_10_2_1,     800);
-
-    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_warehouse_10_20_10_2_2,     1000);
-
-    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_warehouse_20_40_10_2_1,     1000);
-
-    //
-    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_warehouse_20_40_10_2_2,     1000);
-
-    //
-    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_lt_gallowstemplar_n,     1000);
-
-    //
-    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_ost003d,     1000);
+//
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_den312d,          800);
+//
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_den520d,     900);
+//
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_ht_chantry,     1000);
+//
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_lak303d,         1000);
+//
+//    // 13,
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_random_32_32_20,         250);
+//
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_random_64_64_10,         1000);
+//
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_room_32_32_4,     200);
+//
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_room_64_64_16,     1000);
+//
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_warehouse_10_20_10_2_1,     800);
+//
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_warehouse_10_20_10_2_2,     1000);
+//
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_warehouse_20_40_10_2_1,     1000);
+//
+//    //
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_warehouse_20_40_10_2_2,     1000);
+//
+//    //
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_lt_gallowstemplar_n,     1000);
+//
+//    //
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_ost003d,     1000);
 
 }
 

@@ -11,6 +11,8 @@
 #include "../algorithm/LA-MAPF/CBS/space_time_astar.h"
 #include "../third_party/EECBS/inc/SpaceTimeAStar.h"
 #include <algorithm>
+#include "../basic.h"
+
 namespace freeNav::LayeredMAPF {
 
     // a general interfaces for both LA-MAPF and MAPF
@@ -32,7 +34,6 @@ namespace freeNav::LayeredMAPF {
                                              time_limit_(time_limit),
                                              decompose_level_(decompose_level) {
             assert(decompose_level <= 4 && decompose_level >= 1);
-            start_t_ = clock();
             for(int i=0; i<connect_graphs_.size(); i++) {
                 instance_id_set_.insert(i);
             }
@@ -56,10 +57,9 @@ namespace freeNav::LayeredMAPF {
 
         void bipartition() {
 
-            auto start_t = clock();
+            MSTimer mst;
             instanceDecomposition();
-            auto now_t = clock();
-            instance_decomposition_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
+            instance_decomposition_time_cost_ = mst.elapsed();
             std::cout << "-- instance_decomposition_time_cost_ (ms) = " << instance_decomposition_time_cost_ << std::endl;
 
 //            debugCheck();
@@ -69,10 +69,9 @@ namespace freeNav::LayeredMAPF {
                 assert(decompositionValidCheck(all_clusters_));
                 return;
             }
-            start_t = clock();
+            mst.reset();
             clusterDecomposition();
-            now_t = clock();
-            cluster_bipartition_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
+            cluster_bipartition_time_cost_ = mst.elapsed();
             std::cout << "-- cluster_bipartition_time_cost_    (ms) = " << cluster_bipartition_time_cost_ << std::endl;
             if(decompose_level_ <= 2) {
                 debugCheck();
@@ -83,10 +82,9 @@ namespace freeNav::LayeredMAPF {
 //            debugCheck();
 //            assert(decompositionValidCheck(all_clusters_));
 
-            start_t = clock();
+            mst.reset();
             levelSorting();
-            now_t = clock();
-            level_sorting_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
+            level_sorting_time_cost_ = mst.elapsed();
             std::cout << "-- level_sorting_time_cost_          (ms) = " << level_sorting_time_cost_ << std::endl;
             if(decompose_level_ <= 3) {
                 debugCheck();
@@ -97,10 +95,9 @@ namespace freeNav::LayeredMAPF {
 //            debugCheck();
 //            assert(decompositionValidCheck(all_clusters_));
 
-            start_t = clock();
+            mst.reset();
             levelDecomposition();
-            now_t = clock();
-            level_bipartition_time_cost_ = 1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
+            level_bipartition_time_cost_ = mst.elapsed();
             std::cout << "-- level_bipartition_time_cost_      (ms) = " << level_bipartition_time_cost_ << std::endl;
 
             debugCheck();
@@ -1090,8 +1087,7 @@ namespace freeNav::LayeredMAPF {
                                   const std::vector<bool>& passing_agents,
                                   bool distinguish_sat = false,
                                   const std::vector<bool>& ignore_cost_set = {}) {
-            auto now_t = clock();
-            double time_cost =  ((double)now_t - start_t_)/CLOCKS_PER_SEC;
+            double time_cost =  mst_.elapsed()/1e3;
             double remain_time = time_limit_ - time_cost;
             if(remain_time <= 0) {
                 run_ot_of_time = true;
@@ -1208,7 +1204,7 @@ namespace freeNav::LayeredMAPF {
         // save each level's pre level and next level (belong to the same cluster) after clusterDecomposeToLevel(...)
         std::vector<std::pair<std::set<int>, std::set<int> > > all_level_pre_and_next_;
 
-        clock_t start_t_;
+        MSTimer mst_;
 
         double time_limit_; // when run out of time, stop and return current decomposition result
 

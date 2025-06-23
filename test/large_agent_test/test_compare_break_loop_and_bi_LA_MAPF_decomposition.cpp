@@ -14,7 +14,8 @@
 
 using namespace freeNav::LayeredMAPF::LA_MAPF;
 
-void compareLNSAndBiDecompose_LA_MAPF(const SingleMapTestConfig<2>& map_file, int number_of_agents) {
+void compareLNSAndBiDecompose_LA_MAPF(const SingleMapTestConfig<2>& map_file, int number_of_agents,
+                                      double time_limit_s = 10) {
 
     map_test_config = map_file;
     auto loader_local = TextMapLoader(map_test_config.at("map_path"), is_char_occupied1);
@@ -41,8 +42,7 @@ void compareLNSAndBiDecompose_LA_MAPF(const SingleMapTestConfig<2>& map_file, in
                                   dim_local,
                                   is_occupied_local);
 
-    auto start_t = clock();
-
+    MSTimer mst;
 //    auto bi_decompose = std::make_shared<LargeAgentMAPFInstanceDecomposition<2> >(agent_and_instances.front().second,
 //                                                                                  agent_and_instances.front().first,
 //                                                                                  dim_local,
@@ -56,10 +56,9 @@ void compareLNSAndBiDecompose_LA_MAPF(const SingleMapTestConfig<2>& map_file, in
                                                                                    pre.agent_sub_graphs_,
                                                                                    pre.heuristic_tables_sat_,
                                                                                    pre.heuristic_tables_,
-                                                                                   10);
+                                                                                   time_limit_s);
 
-    auto now_t = clock();
-    double total_time_cost = ((double)now_t - start_t)/CLOCKS_PER_SEC;
+    double total_time_cost = mst.elapsed()/1e3;
 
     bool is_bi_valid = LA_MAPF_DecompositionValidCheckGridMap<2>(bi_decompose->all_clusters_,
                                                                  dim_local,
@@ -78,20 +77,17 @@ void compareLNSAndBiDecompose_LA_MAPF(const SingleMapTestConfig<2>& map_file, in
     std::cout << "biparition max subproblem = " << getMaxLevelSize(bi_decompose->all_clusters_) << std::endl;
 
 
-    start_t = clock();
-
+    mst.reset();
     auto ns_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<2, HyperGraphNodeDataRaw<2>> >(dim_local,
                                                                                  pre.connect_graphs_,
                                                                                  pre.agent_sub_graphs_,
                                                                                  pre.heuristic_tables_sat_,
-                                                                                 10,
+                                                                                 time_limit_s,
                                                                                  1e4,
                                                                                  100,
                                                                                  1);
 
     ns_decompose->breakMaxLoopIteratively();
-
-    now_t = clock();
 
     bool is_ns_valid = LA_MAPF_DecompositionValidCheckGridMap<2>(ns_decompose->all_levels_,
                                                                  dim_local,
@@ -105,7 +101,7 @@ void compareLNSAndBiDecompose_LA_MAPF(const SingleMapTestConfig<2>& map_file, in
                                                                 );
 
 
-    total_time_cost = ((double)now_t - start_t)/CLOCKS_PER_SEC;
+    total_time_cost = mst.elapsed()/1e3;
     std::cout << "ns finish in " << total_time_cost <<  "s, valid = " << is_ns_valid << std::endl;
 
     std::cout << "ns / bi max subproblem size(decomposition rate) = "
@@ -157,7 +153,7 @@ int main() {
 //TEST(simple_test, LNS_decomposition) {
 
     // ns / bi max subproblem size(decomposition rate) = 1(0.00555556) / 1(0.00555556)
-    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_Paris_1_256,     100);
+//    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_Paris_1_256,     100);
 
     // ns / bi max subproblem size(decomposition rate) = 33(0.55) / 43(0.716667)
 //    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_empty_48_48,     10);
@@ -189,8 +185,8 @@ int main() {
 //    // ns / bi max subproblem size(decomposition rate) = 1(0.0333333) / 1(0.0333333)
 //    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_AR0072SR,         1000);
 //
-//    //ns / bi max subproblem size(decomposition rate) = 1(0.0125) / 1(0.0125)
-//    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_Denver_2_256,     1000);
+    //ns / bi max subproblem size(decomposition rate) = 1(0.0125) / 1(0.0125)
+    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_Denver_2_256,     1000);
 
 }
 

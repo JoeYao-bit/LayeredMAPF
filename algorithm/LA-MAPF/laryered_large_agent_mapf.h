@@ -10,6 +10,7 @@
 #include "large_agent_instance_decomposition.h"
 #include "../../algorithm/LA-MAPF/CBS/constraint.h"
 #include "solvability_safe_guard.h"
+#include "../basic.h"
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
@@ -275,7 +276,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     decomposer->agents_heuristic_tables_ignore_rotate_[current_id]);
 
         }
-        auto start_t = clock();
+        MSTimer mst;
         LargeAgentStaticConstraintTablePtr<N>
                 new_constraint_table_ptr_ = std::make_shared<LargeAgentStaticConstraintTable<N> > (
                 max_excircle_radius, dim, isoc, agents, cluster_agents, decomposer->all_poses_);
@@ -315,17 +316,16 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
         std::cout << std::endl;
 
-        auto now_t = clock();
-        double update_path_constraint_time_cost = ((double)now_t - start_t)/CLOCKS_PER_SEC;
+        double update_path_constraint_time_cost = mst.elapsed()/1e3;
         std::cout << "-- " << subproblem_id << " th cluster update path constraint take " << update_path_constraint_time_cost << "ms" << std::endl;
 
 
-        double remaining_time = (double)cutoff_time - ((double)now_t - start_t)/CLOCKS_PER_SEC;
+        double remaining_time = (double)cutoff_time - mst.elapsed()/1e3;
         std::cout << "remaining_time = " << remaining_time << "s" << std::endl;
         if(remaining_time <= 0) {
             return {};//retv;
         }
-        start_t = clock();
+        mst.reset();
         std::vector<std::vector<int> > grid_visit_count_table_local;
         std::vector<LAMAPF_Path> next_paths = mapf_func(cluster_instances,
                                                         local_cluster_agents,
@@ -339,9 +339,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                         local_agents_heuristic_tables_ignore_rotate,
                                                         nullptr
         );
-        now_t = clock();
 
-        double mapf_func_time_cost = ((double)now_t - start_t)/CLOCKS_PER_SEC;
+        double mapf_func_time_cost = mst.elapsed()/1e3;
         std::cout << "-- " << subproblem_id << " th cluster mapf func take " << mapf_func_time_cost << "s" << std::endl << std::endl;
 
         if(grid_visit_count_table_local.size() == current_id_vec.size()) {

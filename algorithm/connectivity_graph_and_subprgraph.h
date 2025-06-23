@@ -109,7 +109,7 @@ namespace freeNav::LayeredMAPF {
                                const IS_OCCUPIED_FUNC<N> & isoc,
                                bool with_sat_heu = true,
                                bool directed_graph = true,
-                               int num_of_CPU = 7) :
+                               int num_of_CPU = 6) :
                                LA_MAPF::LargeAgentMAPF<N>(instances, agents, dim, isoc),
                                with_sat_heu_(with_sat_heu),
                                directed_graph_(directed_graph) {
@@ -146,6 +146,7 @@ namespace freeNav::LayeredMAPF {
             int count_of_instance = 0;
             while(count_of_instance < instances.size()) {
                 auto lambda_func = [&]() {
+                    MSTimer mst_1;
                     for (int k = 0; k < interval; k++) {
                         //std::cout << "thread_id = " << thread_id << std::endl;
                         lock_4.lock();
@@ -153,21 +154,17 @@ namespace freeNav::LayeredMAPF {
                         count_of_instance ++;
                         lock_4.unlock();
                         //std::cout << "map_id = " << map_id << std::endl;
-
                         if (map_id >= agents.size()) { break; }
                         const auto& connect_graph = getAgentConnectivityGraph(map_id);
-                        const auto& heu_sat_table = LA_MAPF::calculateLargeAgentHyperGraphStaticHeuristic<N, HyperGraphNodeDataRaw<N>>(map_id, this->dim_, connect_graph, true);
-                        std::vector<int> heu_ig_sat_table;
-                        if(with_sat_heu_) {
-                            heu_ig_sat_table = LA_MAPF::calculateLargeAgentHyperGraphStaticHeuristic<N, HyperGraphNodeDataRaw<N>>(map_id, this->dim_, connect_graph, false);
-                        }
                         lock_1.lock();
                         connect_graphs_map.insert({map_id, connect_graph});
                         lock_1.unlock();
+                        const auto& heu_sat_table = LA_MAPF::calculateLargeAgentHyperGraphStaticHeuristic<N, HyperGraphNodeDataRaw<N>>(map_id, this->dim_, connect_graph, true);
                         lock_2.lock();
                         heuristic_tables_sat.insert({map_id, heu_sat_table});
                         lock_2.unlock();
                         if(with_sat_heu_) {
+                            const auto& heu_ig_sat_table = LA_MAPF::calculateLargeAgentHyperGraphStaticHeuristic<N, HyperGraphNodeDataRaw<N>>(map_id, this->dim_, connect_graph, false);
                             lock_3.lock();
                             heuristic_tables_ig_sat.insert({map_id, heu_ig_sat_table});
                             lock_3.unlock();
@@ -177,12 +174,12 @@ namespace freeNav::LayeredMAPF {
                         lock_4.unlock();
                     }
                     //std::cout << "thread calculation take " << std::chrono::duration_cast<std::chrono::milliseconds>(end_t_4 - start_t_4).count() << "ms" << std::endl;
-                    //std::cout << "thread all take " << std::chrono::duration_cast<std::chrono::milliseconds>(end_t_3 - start_t_3).count() << "ms" << std::endl;
+                    //std::cout << "thread all take " << mst_1.elapsed() << "ms" << std::endl;
                     //std::cout << "thread " << thread_id_copy << " finished 1" << std::endl;
                 };
                 std::thread t(lambda_func);
                 t.detach();
-                //usleep(10e3); // sleep 1ms to wait current thread get correct thread_id, 1ms too less
+                usleep(1e3); // sleep 1ms to wait current thread get correct thread_id, 1ms too less
             }
             while(finished != std::vector<bool>(agents.size(), true)) {
                 usleep(5e4);
