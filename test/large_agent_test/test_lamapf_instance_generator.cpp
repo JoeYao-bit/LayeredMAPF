@@ -555,9 +555,9 @@ int main() {
 //                           {MAPFTestConfig_ost003d, 100, 100, 5e7} // target overlap
 
                             //{MAPFTestConfig_Boston_2_256, 140, 100, 1e7}, // ok
-                            { MAPFTestConfig_empty_32_32,  35, 100, 1e7},
+                            //{ MAPFTestConfig_empty_32_32,  35, 100, 1e7},
                             //{MAPFTestConfig_Sydney_2_256, 140,  100, 1e7}, // ok
-                            //{MAPFTestConfig_AR0044SR, 50, 100, 5e7}, // ok
+                            {MAPFTestConfig_AR0044SR, 140, 100, 5e7}, // ok
                             //{MAPFTestConfig_AR0203SR, 40, 100, 5e7}, // ok
                             //{MAPFTestConfig_AR0072SR, 70, 100, 5e7}, // ok
 //                            {MAPFTestConfig_Denver_2_256, 140, 100, 5e7} // ok

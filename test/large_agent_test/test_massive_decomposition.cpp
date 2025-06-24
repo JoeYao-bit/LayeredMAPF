@@ -114,9 +114,9 @@ bool decompositionOfSingleInstanceBreakLoopLAMAPF(const InstanceOrients<N> & ins
             pre.heuristic_tables_sat_,
             time_limit_s,// - pre.initialize_time_cost_/1e3,
             1e4,
-            100,
+            500,
             1);
-
+    ns_decompose->breakMaxLoopIteratively();
     double time_cost =  mst.elapsed();// + pre.initialize_time_cost_;
 
     sleep(1);
@@ -267,7 +267,7 @@ std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int> > > test_configs
         // {MAPFTestConfig_ost003d,         {20, 40, 60, 80, 100}}, // 6,
         //{MAPFTestConfig_Boston_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 7,
         // {MAPFTestConfig_Sydney_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 8,
-        // {MAPFTestConfig_AR0044SR,        {10, 20, 30, 40, 50}}, // 9
+         {MAPFTestConfig_AR0044SR,        {  30,   50,  70,  90, 100, 120, 140}}, // 9
         // {MAPFTestConfig_AR0203SR,        {10, 20, 30, 40, 50}}, // 10,
          //{MAPFTestConfig_AR0072SR,        {5, 10, 15, 20, 25, 30}}, // 11,
         // {MAPFTestConfig_Denver_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 12,
