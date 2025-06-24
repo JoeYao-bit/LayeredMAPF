@@ -452,6 +452,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             SubGraphOfAgent<N> sub_graph(agent);
 
 
+            if(sub_graph.data_ptr_ == nullptr) {
+                sub_graph.data_ptr_ = std::make_shared<SubGraphOfAgentData<N> >();
+            }
             sub_graph.data_ptr_->all_nodes_.resize(total_index * 2 * N, nullptr);
 
 
