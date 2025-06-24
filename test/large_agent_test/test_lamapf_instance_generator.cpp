@@ -15,6 +15,7 @@
 #include "common_interfaces.h"
 //
 #include "../test_data.h"
+#include "../../algorithm/break_loop_decomposition/biparition_decomposition.h"
 //
 //using namespace freeNav;
 //using namespace freeNav::LayeredMAPF;
@@ -307,34 +308,47 @@ TEST(Generator, test) {
     Generator_test();
 }
 
-void Decomposition_test() {
-    InstanceDeserializer<2> deserializer;
+void Decomposition_test(const SingleMapTestConfig<2>& map_file_local) {
+    InstanceDeserializer<2> deserializer_local;
 
-    const std::string file_path = map_test_config.at("la_ins_path");
+    TextMapLoader tl_local(map_file_local.at("map_path"), is_char_occupied1);
+    std::cout << "start SingleMapTest from map " << map_test_config.at("map_path") << std::endl;
+    auto dim_local = tl_local.getDimensionInfo();
+    auto is_occupied_local = [&tl_local](const freeNav::Pointi<2> &pt) -> bool { return tl_local.isOccupied(pt); };
+    IS_OCCUPIED_FUNC<2> is_occupied_func_local = is_occupied_local;
 
-    if(deserializer.loadInstanceFromFile(file_path, dim)) {
-        std::cout << "load from path " << file_path << " success" << std::endl;
+    const std::string file_path_local = map_file_local.at("la_ins_path");
+
+    if(deserializer_local.loadInstanceFromFile(file_path_local, dim_local)) {
+        std::cout << "load from path " << file_path_local << " success" << std::endl;
     } else {
-        std::cout << "load from path " << file_path << " failed" << std::endl;
+        std::cout << "load from path " << file_path_local << " failed" << std::endl;
         return;
     }
-    std::cout << " map scale " << dim[0] << "*" << dim[1] << std::endl;
+
+    std::cout << " map scale " << dim_local[0] << "*" << dim_local[1] << std::endl;
 
     std::cout << "Instance: " << std::endl;
-    std::vector<std::string> strs = deserializer.getTextString();
+    std::vector<std::string> strs = deserializer_local.getTextString();
     for(const auto& str : strs) {
         std::cout << str << std::endl;
     }
     std::cout << std::endl;
 
-    LargeAgentMAPFInstanceDecomposition<2, HyperGraphNodeDataRaw<2>> decomposer =
-            LargeAgentMAPFInstanceDecomposition<2, HyperGraphNodeDataRaw<2>>(deserializer.getInstances(),
-                                                              deserializer.getAgents(),
-                                                              dim,
-                                                              is_occupied,
-                                                              true,
-                                                              4,
-                                                              false);
+    PrecomputationOfLAMAPF<2, HyperGraphNodeDataRaw<2>> pre(deserializer_local.getInstances(),
+                                                            deserializer_local.getAgents(),
+                                                            dim_local, is_occupied_local, true);
+
+    MAPFInstanceDecompositionBipartition<2, HyperGraphNodeDataRaw<2>> bi_decompose(dim_local,
+                                                                                 pre.connect_graphs_,
+                                                                                 pre.agent_sub_graphs_,
+                                                                                 pre.heuristic_tables_sat_,
+                                                                                 pre.heuristic_tables_,
+                                                                                 60,// - pre.initialize_time_cost_/1e3,
+                                                                                 3);
+
+    std::cout << "bi/raw = " << LA_MAPF::getMaxLevelSize(bi_decompose.all_clusters_) << "/"
+              << deserializer_local.getAgents().size() << std::endl;
 
 //    InstanceVisualization(deserializer.getAgents(),
 //                                     decomposer.getAllPoses(),
@@ -343,12 +357,6 @@ void Decomposition_test() {
 //                                     decomposer.agent_visited_grids_);
 
 }
-
-TEST(Decomposition, test) {
-//int main() {
-    Decomposition_test();
-}
-
 
 void multiLoadAgentAndDecomposition(const SingleMapTestConfig<2>& map_file,
                                     int count_of_test,
@@ -373,8 +381,11 @@ void multiLoadAgentAndDecomposition(const SingleMapTestConfig<2>& map_file,
     for(int c=minimum_agents; c<=std::min(maximum_agents, (int)deserializer.getAgents().size()); c+=agent_interval) {
         required_counts.push_back(c);
     }
+    std::cout << " required_counts size = " << required_counts.size() << std::endl;
+
     auto agent_and_instances = deserializer.getTestInstance(required_counts, count_of_test);
 
+    std::cout << " get " << agent_and_instances.size() << " instance" << std::endl;
 
     //clearFile(map_test_config.at("la_dec_path"));
     for (int i = 0; i < agent_and_instances.size(); i++) {
@@ -535,27 +546,30 @@ int main() {
     // file_path, times_of_try, required_agents, maximum_sample_count
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int> >
             map_configs = {
-                            //{MAPFTestConfig_Paris_1_256, 140, 100, 1e7}, // ok
-                            //{MAPFTestConfig_empty_48_48, 60,  100, 1e7}, // ok
-                            //{MAPFTestConfig_Berlin_1_256, 140, 100, 5e7}, // ok
-                            //{MAPFTestConfig_maze_128_128_10, 100, 100, 5e7}, // ok
-                            //{MAPFTestConfig_den520d, 140, 100, 5e7}, // ok
-                            //{MAPFTestConfig_ost003d, 100, 100, 5e7} // ok
+//                           {MAPFTestConfig_Paris_1_256, 140, 100, 1e7}, // ok
+//                           {MAPFTestConfig_empty_48_48, 60,  100, 1e7}, // ok
+//                           {MAPFTestConfig_Berlin_1_256, 140, 100, 5e7}, // ok
+//                           {MAPFTestConfig_maze_128_128_10, 100, 100, 5e7}, // ok
+//                           {MAPFTestConfig_den520d, 140, 100, 5e7}, // load failed
+//                           {MAPFTestConfig_ost003d, 100, 100, 5e7} // target overlap
 
                             {MAPFTestConfig_Boston_2_256, 140, 100, 1e7}, // ok
                             //{MAPFTestConfig_Sydney_2_256, 140,  100, 1e7}, // ok
                             //{MAPFTestConfig_AR0044SR, 50, 100, 5e7}, // ok
                             //{MAPFTestConfig_AR0203SR, 40, 100, 5e7}, // ok
                             //{MAPFTestConfig_AR0072SR, 70, 100, 5e7}, // ok
-                            //{MAPFTestConfig_Denver_2_256, 140, 100, 5e7} // ok
+//                            {MAPFTestConfig_Denver_2_256, 140, 100, 5e7} // ok
 
     };
 
-    for(const auto & map_config : map_configs) {
-        generateLargeAgentInstanceForMap(std::get<0>(map_config),
-                                         std::get<1>(map_config),
-                                         std::get<2>(map_config),
-                                         std::get<3>(map_config));
+//    for(const auto & map_config : map_configs) {
+//        generateLargeAgentInstanceForMap(std::get<0>(map_config),
+//                                         std::get<1>(map_config),
+//                                         std::get<2>(map_config),
+//                                         std::get<3>(map_config));
+//    }
+    for(const auto& file_config : map_configs) {
+        Decomposition_test(std::get<0>(file_config));
     }
     return 0;
 }
