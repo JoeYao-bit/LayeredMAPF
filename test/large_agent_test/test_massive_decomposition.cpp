@@ -211,24 +211,24 @@ bool SingleMapDecompositionTestLAMAPF(const SingleMapTestConfig <2> &map_test_co
         OutputStream ostream;
         std::cout << " start decomposition " << std::endl;
 
-//
-//        if(!decompositionOfSingleInstanceBipartitionLAMAPF<2>(ists.second, ists.first,
-//                                                              dim, is_occupied_func,
-//                                                              ostream, timecost_limit_s, 3)) {
-//            std::cout << " decomposition failed " << std::endl;
-//            return false;
-//        }
-//        std::cout << "-- finish level 3 decomposition(" << i <<"/" << ists.second.size() << ")" << std::endl;
-//        output_streamss.push_back(ostream);
-//
-//        if(!decompositionOfSingleInstanceBipartitionLAMAPF<2>(ists.second, ists.first,
-//                                                              dim, is_occupied_func,
-//                                                              ostream, timecost_limit_s, 4)) {
-//            std::cout << " decomposition failed " << std::endl;
-//            return false;
-//        }
-//        std::cout << "-- finish level 4 decomposition(" << i <<"/" << ists.second.size() << ")" << std::endl;
-//        output_streamss.push_back(ostream);
+
+        if(!decompositionOfSingleInstanceBipartitionLAMAPF<2>(ists.second, ists.first,
+                                                              dim, is_occupied_func,
+                                                              ostream, timecost_limit_s, 3)) {
+            std::cout << " decomposition failed " << std::endl;
+            return false;
+        }
+        std::cout << "-- finish level 3 decomposition(" << i <<"/" << ists.second.size() << ")" << std::endl;
+        output_streamss.push_back(ostream);
+
+        if(!decompositionOfSingleInstanceBipartitionLAMAPF<2>(ists.second, ists.first,
+                                                              dim, is_occupied_func,
+                                                              ostream, timecost_limit_s, 4)) {
+            std::cout << " decomposition failed " << std::endl;
+            return false;
+        }
+        std::cout << "-- finish level 4 decomposition(" << i <<"/" << ists.second.size() << ")" << std::endl;
+        output_streamss.push_back(ostream);
 
         if(!decompositionOfSingleInstanceBreakLoopLAMAPF<2>(ists.second, ists.first,
                                                             dim, is_occupied_func,
@@ -309,7 +309,7 @@ int main() {
 
     auto test_configs_copy = test_configs; // test_configs, test_configs_demo,test_configs_single
 
-    int interval = 4;//6; // test_configs_copy.size()
+    int interval = 6; // test_configs_copy.size()
     int repeat_times = 100;
     int num_threads = test_configs_copy.size()/interval + 1;
     std::vector<bool> finished(num_threads, false);
