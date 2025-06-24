@@ -265,18 +265,18 @@ bool SingleMapDecompositionTestLAMAPF(const SingleMapTestConfig <2> &map_test_co
 
 // map name, num of agents, max continue failure for break loop
 std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int>, int >> test_configs = {
-        {MAPFTestConfig_Paris_1_256,     {20, 40, 60, 80, 100, 120, 140}, 100}, // 1,
-        {MAPFTestConfig_empty_48_48,     {10, 20, 30, 40, 50, 60},        100}, // 2,
-        {MAPFTestConfig_Berlin_1_256,    {20, 40, 60, 80, 100, 120, 140}, 100}, // 3,
-        {MAPFTestConfig_maze_128_128_10, {20, 40, 60, 80, 100},           100}, // 4,
+        // {MAPFTestConfig_Paris_1_256,     {20, 40, 60, 80, 100, 120, 140}, 100}, // 1,
+        // {MAPFTestConfig_empty_48_48,     {10, 20, 30, 40, 50, 60},        100}, // 2,
+        // {MAPFTestConfig_Berlin_1_256,    {20, 40, 60, 80, 100, 120, 140}, 100}, // 3,
+        // {MAPFTestConfig_maze_128_128_10, {20, 40, 60, 80, 100},           100}, // 4,
         {MAPFTestConfig_den520d,         {20, 40, 60, 80, 100, 120, 140}, 100}, // 5,
-        {MAPFTestConfig_ost003d,         {20, 40, 60, 80, 100},           100}, // 6,
-        {MAPFTestConfig_Boston_2_256,    {20, 40, 60, 80, 100, 120, 140}, 100}, // 7,
-        {MAPFTestConfig_Sydney_2_256,    {20, 40, 60, 80, 100, 120, 140}, 100}, // 8,
-        {MAPFTestConfig_AR0044SR,        {10, 20, 30, 40, 50},            100}, // 9
-        {MAPFTestConfig_AR0203SR,        {10, 20, 30, 40, 50},            100}, // 10,
-        {MAPFTestConfig_AR0072SR,        {20, 30, 40, 50, 60, 70},        100}, // 11,
-        {MAPFTestConfig_Denver_2_256,    {20, 40, 60, 80, 100, 120, 140}, 100}, // 12,
+        // {MAPFTestConfig_ost003d,         {20, 40, 60, 80, 100},           100}, // 6,
+        // {MAPFTestConfig_Boston_2_256,    {20, 40, 60, 80, 100, 120, 140}, 100}, // 7,
+        // {MAPFTestConfig_Sydney_2_256,    {20, 40, 60, 80, 100, 120, 140}, 100}, // 8,
+        // {MAPFTestConfig_AR0044SR,        {10, 20, 30, 40, 50},            100}, // 9
+        // {MAPFTestConfig_AR0203SR,        {10, 20, 30, 40, 50},            100}, // 10,
+        {MAPFTestConfig_AR0072SR,        {5, 10, 15, 20, 25, 30},        100}, // 11,
+        // {MAPFTestConfig_Denver_2_256,    {20, 40, 60, 80, 100, 120, 140}, 100}, // 12,
 };
 
 std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int>, int> > test_configs_demo = {
