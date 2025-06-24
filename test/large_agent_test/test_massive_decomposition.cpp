@@ -269,7 +269,7 @@ std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int>, int >> test_con
         // {MAPFTestConfig_empty_48_48,     {10, 20, 30, 40, 50, 60},        100}, // 2,
         // {MAPFTestConfig_Berlin_1_256,    {20, 40, 60, 80, 100, 120, 140}, 100}, // 3,
         // {MAPFTestConfig_maze_128_128_10, {20, 40, 60, 80, 100},           100}, // 4,
-        {MAPFTestConfig_den520d,         {20, 40, 60, 80, 100, 120, 140}, 100}, // 5,
+       // {MAPFTestConfig_den520d,         {20, 40, 60, 80, 100, 120, 140}, 100}, // 5,
         // {MAPFTestConfig_ost003d,         {20, 40, 60, 80, 100},           100}, // 6,
         // {MAPFTestConfig_Boston_2_256,    {20, 40, 60, 80, 100, 120, 140}, 100}, // 7,
         // {MAPFTestConfig_Sydney_2_256,    {20, 40, 60, 80, 100, 120, 140}, 100}, // 8,
