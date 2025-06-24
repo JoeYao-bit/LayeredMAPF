@@ -535,14 +535,14 @@ int main() {
     // file_path, times_of_try, required_agents, maximum_sample_count
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int> >
             map_configs = {
-                            {MAPFTestConfig_Paris_1_256, 140, 100, 1e7}, // ok
+                            //{MAPFTestConfig_Paris_1_256, 140, 100, 1e7}, // ok
                             //{MAPFTestConfig_empty_48_48, 60,  100, 1e7}, // ok
                             //{MAPFTestConfig_Berlin_1_256, 140, 100, 5e7}, // ok
                             //{MAPFTestConfig_maze_128_128_10, 100, 100, 5e7}, // ok
                             //{MAPFTestConfig_den520d, 140, 100, 5e7}, // ok
                             //{MAPFTestConfig_ost003d, 100, 100, 5e7} // ok
 
-                            //{MAPFTestConfig_Boston_2_256, 140, 100, 1e7}, // ok
+                            {MAPFTestConfig_Boston_2_256, 140, 100, 1e7}, // ok
                             //{MAPFTestConfig_Sydney_2_256, 140,  100, 1e7}, // ok
                             //{MAPFTestConfig_AR0044SR, 50, 100, 5e7}, // ok
                             //{MAPFTestConfig_AR0203SR, 40, 100, 5e7}, // ok
@@ -561,8 +561,8 @@ int main() {
 }
 
 
-TEST(Multi_Generate_Agent_And_Decomposition, test) { // 2360 count
-//int main1() {
+//TEST(Multi_Generate_Agent_And_Decomposition, test) { // 2360 count
+int main1() {
 // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
             map_configs = {//{MAPFTestConfig_Paris_1_256,     100, 200, 10, 10},
@@ -593,8 +593,8 @@ TEST(Multi_Generate_Agent_And_Decomposition, test) { // 2360 count
 
 
 
-TEST(Multi_Generate_Agent_And_Compare, test) {
-//int main() {
+//TEST(Multi_Generate_Agent_And_Compare, test) {
+int main3() {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
             map_configs = {
