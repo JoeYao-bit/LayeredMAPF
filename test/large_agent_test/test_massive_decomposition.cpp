@@ -275,8 +275,8 @@ std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int>, int >> test_con
         // {MAPFTestConfig_Sydney_2_256,    {20, 40, 60, 80, 100, 120, 140}, 100}, // 8,
         // {MAPFTestConfig_AR0044SR,        {10, 20, 30, 40, 50},            100}, // 9
         // {MAPFTestConfig_AR0203SR,        {10, 20, 30, 40, 50},            100}, // 10,
-        {MAPFTestConfig_AR0072SR,        {5, 10, 15, 20, 25, 30},        100}, // 11,
-        // {MAPFTestConfig_Denver_2_256,    {20, 40, 60, 80, 100, 120, 140}, 100}, // 12,
+        {MAPFTestConfig_AR0072SR,        {5, 10, 15, 20, 25, 30},        100}, // 11, //  {5, 10, 15, 20, 25, 30}
+        //{MAPFTestConfig_Denver_2_256,    {20, 40, 60, 80, 100, 120, 140}, 100}, // 12,
 };
 
 std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int>, int> > test_configs_demo = {
@@ -309,36 +309,49 @@ int main() {
 
     auto test_configs_copy = test_configs; // test_configs, test_configs_demo,test_configs_single
 
-    int interval = 6; // test_configs_copy.size()
-    int repeat_times = 100;
-    int num_threads = test_configs_copy.size()/interval + 1;
-    std::vector<bool> finished(num_threads, false);
-    for(int j=0; j<num_threads; j++) {
-        auto lambda_func = [&]() {
-            int thread_id = j; // save to avoid change during planning
-            for(int i=0; i<repeat_times; i++) {
+    int repeat_times = 2;
+    double num_threads = 6;
+    int interval = (int)ceil(test_configs_copy.size() / num_threads); //
+    for(int i=0; i<repeat_times; i++) {
+        int map_id = 0;
+        std::mutex m1, m2;
+        std::vector<bool> finished(test_configs_copy.size(), false);
+        for(int thread_id=0; thread_id<num_threads; thread_id++) {
+            auto lambda_func = [&]() {
                 int count_of_instances = 1;
                 for (int k = 0; k < interval; k++) {
-                    //std::cout << "thread_id = " << thread_id << std::endl;
-                    int map_id = thread_id * interval + k;
-                    std::cout << "map_id = " << map_id << std::endl;
-                    if (map_id >= test_configs_copy.size()) { break; }
-                    SingleMapDecompositionTestLAMAPF(std::get<0>(test_configs_copy[map_id]),
-                                                   std::get<1>(test_configs_copy[map_id]),
-                                                    count_of_instances,
-                                                    30,
-                                                     std::get<2>(test_configs_copy[map_id]));
+                        //std::cout << "thread_id = " << thread_id << std::endl;
+                        m1.lock();
+                        int map_id_copy = map_id;
+                        map_id ++;
+                        m1.unlock();
+                        if (map_id_copy >= test_configs_copy.size()) { break; }
+                        std::cout << "map_id = " << map_id_copy << std::endl;
+                        SingleMapDecompositionTestLAMAPF(std::get<0>(test_configs_copy[map_id_copy]),
+                                                         std::get<1>(test_configs_copy[map_id_copy]),
+                                                         count_of_instances,
+                                                         30,
+                                                         std::get<2>(test_configs_copy[map_id_copy]));
+                        std::cout << "map_id " << map_id_copy << " finished 1" << std::endl;
+                        m2.lock();
+                        finished[map_id_copy] = true;
+                        m2.unlock();
+                        std::cout << "map_id " << map_id_copy << " finished 2" << std::endl;
+                }
+            };
+            std::thread t(lambda_func);
+            t.detach();
+            sleep(1);
+        }
+        while(finished != std::vector<bool>(test_configs_copy.size(), true)) {
+            for(int i=0; i<test_configs_copy.size(); i++) {
+                if(!finished[i]) {
+                    std::cout << i << " ";
                 }
             }
-            finished[thread_id] = true;
-            std::cout << "thread " << thread_id << " finished" << std::endl;
-        };
-        std::thread t(lambda_func);
-        t.detach();
-        sleep(1);
-    }
-    while(finished != std::vector<bool>(num_threads, true)) {
-        sleep(1);
+            std::cout << std::endl;
+            sleep(1);
+        }
     }
     return 0;
 }

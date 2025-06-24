@@ -137,14 +137,16 @@ namespace freeNav::LayeredMAPF {
             std::map<int, std::vector<int> > heuristic_tables_ig_sat;
 
             // how many agents in a thread
-            int interval = agents.size()/num_of_CPU;// set to larger value to reduce maximal memory usage and num of threads
+            int interval = (int)std::ceil(agents.size()/(double)num_of_CPU);// set to larger value to reduce maximal memory usage and num of threads
             // num of thread should close to the num of CPU
 //            int num_threads = agents.size()/interval;
             //std::cout << " num of threads = " << num_threads << std::endl;
+            //std::cout << "flag 2" << std::endl;
             std::mutex lock_1, lock_2, lock_3, lock_4;
             std::vector<bool> finished(agents.size(), false);
             int count_of_instance = 0;
             while(count_of_instance < instances.size()) {
+                //std::cout << "count_of_instance = " << count_of_instance << std::endl;
                 auto lambda_func = [&]() {
                     MSTimer mst_1;
                     for (int k = 0; k < interval; k++) {
@@ -153,7 +155,7 @@ namespace freeNav::LayeredMAPF {
                         int map_id = count_of_instance;
                         count_of_instance ++;
                         lock_4.unlock();
-                        //std::cout << "map_id = " << map_id << std::endl;
+                        //std::cout << "PRE LAMAPF map_id = " << map_id << std::endl;
                         if (map_id >= agents.size()) { break; }
                         const auto& connect_graph = getAgentConnectivityGraph(map_id);
                         lock_1.lock();
@@ -172,10 +174,9 @@ namespace freeNav::LayeredMAPF {
                         lock_4.lock();
                         finished[map_id] = true;
                         lock_4.unlock();
+                        //std::cout << "map " << map_id << " take " << mst_1.elapsed() << "ms" << std::endl;
                     }
-                    //std::cout << "thread calculation take " << std::chrono::duration_cast<std::chrono::milliseconds>(end_t_4 - start_t_4).count() << "ms" << std::endl;
-                    //std::cout << "thread all take " << mst_1.elapsed() << "ms" << std::endl;
-                    //std::cout << "thread " << thread_id_copy << " finished 1" << std::endl;
+
                 };
                 std::thread t(lambda_func);
                 t.detach();
