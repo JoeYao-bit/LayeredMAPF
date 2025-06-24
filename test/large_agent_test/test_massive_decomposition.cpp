@@ -266,7 +266,7 @@ bool SingleMapDecompositionTestLAMAPF(const SingleMapTestConfig <2> &map_test_co
 // map name, num of agents, max continue failure for break loop
 std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int>, int >> test_configs = {
         {MAPFTestConfig_Paris_1_256,     {20, 40, 60, 80, 100, 120, 140}, 100}, // 1,
-        {MAPFTestConfig_empty_48_48,     {10, 20, 30, 40, 50, 60},        500}, // 2,
+        {MAPFTestConfig_empty_48_48,     {10, 20, 30, 40, 50, 60},        100}, // 2,
         {MAPFTestConfig_Berlin_1_256,    {20, 40, 60, 80, 100, 120, 140}, 100}, // 3,
         {MAPFTestConfig_maze_128_128_10, {20, 40, 60, 80, 100},           100}, // 4,
         {MAPFTestConfig_den520d,         {20, 40, 60, 80, 100, 120, 140}, 100}, // 5,
@@ -307,9 +307,9 @@ std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int>, int> > test_con
 // do decomposition test
 int main() {
 
-    auto test_configs_copy = test_configs_single; // test_configs, test_configs_demo
+    auto test_configs_copy = test_configs; // test_configs, test_configs_demo,test_configs_single
 
-    int interval = 2;//6; // test_configs_copy.size()
+    int interval = 4;//6; // test_configs_copy.size()
     int repeat_times = 1;
     int num_threads = test_configs_copy.size()/interval + 1;
     std::vector<bool> finished(num_threads, false);
