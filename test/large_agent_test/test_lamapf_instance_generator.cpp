@@ -308,7 +308,7 @@ TEST(Generator, test) {
     Generator_test();
 }
 
-void Decomposition_test(const SingleMapTestConfig<2>& map_file_local) {
+bool Decomposition_test(const SingleMapTestConfig<2>& map_file_local) {
     InstanceDeserializer<2> deserializer_local;
 
     TextMapLoader tl_local(map_file_local.at("map_path"), is_char_occupied1);
@@ -323,7 +323,7 @@ void Decomposition_test(const SingleMapTestConfig<2>& map_file_local) {
         std::cout << "load from path " << file_path_local << " success" << std::endl;
     } else {
         std::cout << "load from path " << file_path_local << " failed" << std::endl;
-        return;
+        return true;
     }
 
     std::cout << " map scale " << dim_local[0] << "*" << dim_local[1] << std::endl;
@@ -338,17 +338,18 @@ void Decomposition_test(const SingleMapTestConfig<2>& map_file_local) {
     PrecomputationOfLAMAPF<2, HyperGraphNodeDataRaw<2>> pre(deserializer_local.getInstances(),
                                                             deserializer_local.getAgents(),
                                                             dim_local, is_occupied_local, true);
+    return pre.solvable;
 
-    MAPFInstanceDecompositionBipartition<2, HyperGraphNodeDataRaw<2>> bi_decompose(dim_local,
-                                                                                 pre.connect_graphs_,
-                                                                                 pre.agent_sub_graphs_,
-                                                                                 pre.heuristic_tables_sat_,
-                                                                                 pre.heuristic_tables_,
-                                                                                 60,// - pre.initialize_time_cost_/1e3,
-                                                                                 3);
-
-    std::cout << "bi/raw = " << LA_MAPF::getMaxLevelSize(bi_decompose.all_clusters_) << "/"
-              << deserializer_local.getAgents().size() << std::endl;
+    // MAPFInstanceDecompositionBipartition<2, HyperGraphNodeDataRaw<2>> bi_decompose(dim_local,
+    //                                                                              pre.connect_graphs_,
+    //                                                                              pre.agent_sub_graphs_,
+    //                                                                              pre.heuristic_tables_sat_,
+    //                                                                              pre.heuristic_tables_,
+    //                                                                              60,// - pre.initialize_time_cost_/1e3,
+    //                                                                              3);
+    //
+    // std::cout << "bi/raw = " << LA_MAPF::getMaxLevelSize(bi_decompose.all_clusters_) << "/"
+    //           << deserializer_local.getAgents().size() << std::endl;
 
 //    InstanceVisualization(deserializer.getAgents(),
 //                                     decomposer.getAllPoses(),
@@ -553,7 +554,8 @@ int main() {
 //                           {MAPFTestConfig_den520d, 140, 100, 5e7}, // load failed
 //                           {MAPFTestConfig_ost003d, 100, 100, 5e7} // target overlap
 
-                            {MAPFTestConfig_Boston_2_256, 140, 100, 1e7}, // ok
+                            //{MAPFTestConfig_Boston_2_256, 140, 100, 1e7}, // ok
+                            { MAPFTestConfig_empty_32_32,  35, 100, 1e7},
                             //{MAPFTestConfig_Sydney_2_256, 140,  100, 1e7}, // ok
                             //{MAPFTestConfig_AR0044SR, 50, 100, 5e7}, // ok
                             //{MAPFTestConfig_AR0203SR, 40, 100, 5e7}, // ok
@@ -562,14 +564,17 @@ int main() {
 
     };
 
-//    for(const auto & map_config : map_configs) {
-//        generateLargeAgentInstanceForMap(std::get<0>(map_config),
-//                                         std::get<1>(map_config),
-//                                         std::get<2>(map_config),
-//                                         std::get<3>(map_config));
-//    }
-    for(const auto& file_config : map_configs) {
-        Decomposition_test(std::get<0>(file_config));
+    for(const auto & map_config : map_configs) {
+        for (int i=0; i<100; i++) {
+            generateLargeAgentInstanceForMap(std::get<0>(map_config),
+                                             std::get<1>(map_config),
+                                             std::get<2>(map_config),
+                                             std::get<3>(map_config));
+            if ( Decomposition_test(std::get<0>(map_config))) {
+                std::cout << " new instance for " << std::get<0>(map_config).at("map_path") << " success" << std::endl;
+                break;
+            }
+        }
     }
     return 0;
 }

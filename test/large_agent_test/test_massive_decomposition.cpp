@@ -265,12 +265,13 @@ std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int> > > test_configs
         // {MAPFTestConfig_maze_128_128_10, {20, 40, 60, 80, 100}}, // 4,
         // {MAPFTestConfig_den520d,         {20, 40, 60, 80, 100, 120, 140}}, // 5,
         // {MAPFTestConfig_ost003d,         {20, 40, 60, 80, 100}}, // 6,
-        // {MAPFTestConfig_Boston_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 7,
+        //{MAPFTestConfig_Boston_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 7,
         // {MAPFTestConfig_Sydney_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 8,
         // {MAPFTestConfig_AR0044SR,        {10, 20, 30, 40, 50}}, // 9
         // {MAPFTestConfig_AR0203SR,        {10, 20, 30, 40, 50}}, // 10,
-         {MAPFTestConfig_AR0072SR,        {5, 10, 15, 20, 25, 30}}, // 11,
+         //{MAPFTestConfig_AR0072SR,        {5, 10, 15, 20, 25, 30}}, // 11,
         // {MAPFTestConfig_Denver_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 12,
+     {MAPFTestConfig_empty_32_32,    {5, 10, 15, 20, 25, 30, 35}}, // 7,
 };
 
 std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int> > > test_configs_demo = {

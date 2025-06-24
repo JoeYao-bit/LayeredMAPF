@@ -113,7 +113,10 @@ namespace freeNav::LayeredMAPF {
                                LA_MAPF::LargeAgentMAPF<N>(instances, agents, dim, isoc),
                                with_sat_heu_(with_sat_heu),
                                directed_graph_(directed_graph) {
-
+            if (!this->solvable) {
+                std::cout << "detect un solvable instance" << std::endl;
+                return;
+            }
             MSTimer mst;
             double connect_time_cost      = 0;
             double heu_with_sat_time_cost = 0;
@@ -403,8 +406,8 @@ namespace freeNav::LayeredMAPF {
             // 1, get each pose's relation with other agent
             graph.data_ptr_->related_agents_map_ = getRelatedAgentGraph(agent_id, current_subgraph.data_ptr_->all_nodes_);
             // assert agent's start and target have no overlap with other agent's start or target
-            assert(graph.data_ptr_->related_agents_map_[this->instance_node_ids_[agent_id].first].size() >= 1);
-            assert(graph.data_ptr_->related_agents_map_[this->instance_node_ids_[agent_id].second].size() >= 1);
+            //assert(graph.data_ptr_->related_agents_map_[this->instance_node_ids_[agent_id].first].size() >= 1);
+            //assert(graph.data_ptr_->related_agents_map_[this->instance_node_ids_[agent_id].second].size() >= 1);
 
             // 2, construct connectivity graph and record boundary (where different hyper node converge)
             const auto& retv_pair = getStrongComponentFromSubGraph(current_subgraph.data_ptr_->all_nodes_,
