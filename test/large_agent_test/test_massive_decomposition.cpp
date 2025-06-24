@@ -310,7 +310,7 @@ int main() {
     auto test_configs_copy = test_configs; // test_configs, test_configs_demo,test_configs_single
 
     int interval = 4;//6; // test_configs_copy.size()
-    int repeat_times = 1;
+    int repeat_times = 100;
     int num_threads = test_configs_copy.size()/interval + 1;
     std::vector<bool> finished(num_threads, false);
     for(int j=0; j<num_threads; j++) {
