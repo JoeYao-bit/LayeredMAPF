@@ -373,8 +373,11 @@ void multiLoadAgentAndDecomposition(const SingleMapTestConfig<2>& map_file,
     for(int c=minimum_agents; c<=std::min(maximum_agents, (int)deserializer.getAgents().size()); c+=agent_interval) {
         required_counts.push_back(c);
     }
+    std::cout << " required_counts size = " << required_counts.size() << std::endl;
+
     auto agent_and_instances = deserializer.getTestInstance(required_counts, count_of_test);
 
+    std::cout << " get " << agent_and_instances.size() << " instance" << std::endl;
 
     //clearFile(map_test_config.at("la_dec_path"));
     for (int i = 0; i < agent_and_instances.size(); i++) {
@@ -531,7 +534,7 @@ void generateLargeAgentInstanceForMap(const SingleMapTestConfig<2>& map_file,
 
 // MAPFTestConfig_Berlin_1_256
 //TEST(generateLargeAgentInstanceForMap, test) {
-int main3() {
+int main() {
     // file_path, times_of_try, required_agents, maximum_sample_count
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int> >
             map_configs = {
@@ -542,20 +545,27 @@ int main3() {
 //                           {MAPFTestConfig_den520d, 140, 100, 5e7}, // load failed
 //                           {MAPFTestConfig_ost003d, 100, 100, 5e7} // target overlap
 
-                            //{MAPFTestConfig_Boston_2_256, 140, 100, 1e7}, // ok
+                            {MAPFTestConfig_Boston_2_256, 140, 100, 1e7}, // ok
                             //{MAPFTestConfig_Sydney_2_256, 140,  100, 1e7}, // ok
                             //{MAPFTestConfig_AR0044SR, 50, 100, 5e7}, // ok
-                            {MAPFTestConfig_AR0203SR, 40, 100, 5e7}, // ok
+                            //{MAPFTestConfig_AR0203SR, 40, 100, 5e7}, // ok
                             //{MAPFTestConfig_AR0072SR, 70, 100, 5e7}, // ok
 //                            {MAPFTestConfig_Denver_2_256, 140, 100, 5e7} // ok
 
     };
 
-    for(const auto & map_config : map_configs) {
-        generateLargeAgentInstanceForMap(std::get<0>(map_config),
-                                         std::get<1>(map_config),
-                                         std::get<2>(map_config),
-                                         std::get<3>(map_config));
+//    for(const auto & map_config : map_configs) {
+//        generateLargeAgentInstanceForMap(std::get<0>(map_config),
+//                                         std::get<1>(map_config),
+//                                         std::get<2>(map_config),
+//                                         std::get<3>(map_config));
+//    }
+    for(const auto& file_config : map_configs) {
+        multiLoadAgentAndDecomposition(std::get<0>(file_config),
+                                       1,
+                                       std::get<3>(file_config),
+                                       std::get<3>(file_config)-1,
+                                       1);
     }
     return 0;
 }
@@ -594,7 +604,7 @@ int main1() {
 
 
 //TEST(Multi_Generate_Agent_And_Compare, test) {
-int main() {
+int main3() {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
             map_configs = {
