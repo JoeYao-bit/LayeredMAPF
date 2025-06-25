@@ -222,8 +222,6 @@ bool decompositionOfSingleInstanceBreakLoop(const freeNav::Instances<N>& ists, D
             100,
             1);
 
-    ns_decompose->breakMaxLoopIteratively();
-
     auto now_t = clock();
     double time_cost =  1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
 

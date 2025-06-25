@@ -87,7 +87,6 @@ void compareLNSAndBiDecompose_LA_MAPF(const SingleMapTestConfig<2>& map_file, in
                                                                                  300,
                                                                                  1);
 
-    ns_decompose->breakMaxLoopIteratively();
 
     bool is_ns_valid = LA_MAPF_DecompositionValidCheckGridMap<2>(ns_decompose->all_levels_,
                                                                  dim_local,
@@ -156,13 +155,13 @@ int main() {
 //    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_Paris_1_256,     100);
 
     // ns / bi max subproblem size(decomposition rate) = 33(0.55) / 43(0.716667)
-//    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_empty_48_48,     10);
+    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_empty_48_48,     100);
 //
 //    // ns / bi max subproblem size(decomposition rate) = 1(0.00714286) / 3(0.0214286)
 //    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_Berlin_1_256,    1000);
 //
     // ns / bi max subproblem size(decomposition rate) = 62(0.62) / 62(0.62)
-    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_maze_128_128_10, 1000);
+//    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_maze_128_128_10, 1000);
 //
 //    // ns / bi max subproblem size(decomposition rate) = 1(0.00714286) / 1(0.00714286)
 //    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_den520d,          1000);

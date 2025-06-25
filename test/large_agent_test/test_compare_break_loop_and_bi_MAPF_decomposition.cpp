@@ -47,7 +47,7 @@ void compareLNSAndBiDecompose_MAPF(const SingleMapTestConfig<2>& map_file, int n
         istss.push_back(ists);
     }
 
-    double time_limit_s = 5;
+    double time_limit_s = 10;
 
     PrecomputationOfMAPF<2, HyperGraphNodeDataRaw<2>> pre(istss.front(), dim_local, is_occupied_local, true);
 
@@ -81,7 +81,6 @@ void compareLNSAndBiDecompose_MAPF(const SingleMapTestConfig<2>& map_file, int n
                                                                                  50,
                                                                                  1);
 
-    ns_decompose->breakMaxLoopIteratively();
 
     bool is_ns_valid = MAPF_DecompositionValidCheckGridMap<2>(istss.front(), ns_decompose->all_levels_, dim_local, is_occupied_local);
 
@@ -105,9 +104,9 @@ int main() {
 //TEST(simple_test, LNS_decomposition) {
 
     // ns / bi max subproblem size(decomposition rate) = 66(0.55) / 78(0.65)
-    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_empty_16_16,     120);
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_empty_16_16,     120);
 
-    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_empty_32_32,     400);
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_empty_32_32,     400);
 
 //    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_32_32_2,     120);
 //
@@ -115,9 +114,9 @@ int main() {
 //
 //    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_128_128_2,   700);
 //
-    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_128_128_10,  1000);
+//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_maze_128_128_10,  1000);
 //
-//    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_den312d,          800);
+    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_den312d,          800);
 //
 //    compareLNSAndBiDecompose_MAPF(MAPFTestConfig_den520d,     900);
 //
