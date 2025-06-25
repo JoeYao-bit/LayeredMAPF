@@ -71,11 +71,15 @@ namespace freeNav::LayeredMAPF {
             std::cout << "ns finish initial decomposition in " << time_cost << "s" << std::endl;
 
             // debug
-            for(const auto& level : all_levels_) {
-                for(const auto& agent_id : level) {
-                    assert(agent_id < agent_sub_graphs_.size());
-                }
-            }
+//            for(const auto& level : all_levels_) {
+//                for(const auto& agent_id : level) {
+//                    assert(agent_id < agent_sub_graphs_.size());
+//                }
+//            }
+            MSTimer mst;
+            breakMaxLoopIteratively();
+            std::cout << "ns finish break loop in " << mst.elapsed()/1e3 << "s" << std::endl;
+
         }
 
 
@@ -142,6 +146,15 @@ namespace freeNav::LayeredMAPF {
                     }
                 }
 
+//                bool success = breakMaxLoopGreedy(count_of_break, i_th_largest_level, simple_avail);
+//                if(!success) {
+//                    if(simple_avail) {
+//                        simple_avail = false;
+//                    } else {
+//                        i_th_largest_level ++;
+//                        simple_avail = true;
+//                    }
+//                }
 
                 count_of_break ++;
             }
@@ -363,8 +376,8 @@ namespace freeNav::LayeredMAPF {
         }
 
 
-        // pick all agent of the max level one by one and try to break it
-        bool breakMaxLoopGreedy(const int& iter_count, int th_largest_level = 0) {
+        // random pick an agent from the max level, avoid repeat and try to break it
+        bool breakMaxLoopGreedy(const int& iter_count, int th_largest_level = 0, bool simple_avail = true) {
             // 1, pick the largest loop
             std::pair<int, std::set<int> > max_level = LA_MAPF::getMaxLevel(all_levels_, th_largest_level);
             if(max_level.second.size() == 1) { return false; }
@@ -376,13 +389,30 @@ namespace freeNav::LayeredMAPF {
             // getAvailNodesFromOtherLevels
             //std::vector<bool> avail_start_and_target = getAvailNodesFromOtherLevels(max_level.first,all_dependency_paths_, all_levels_);
 
-            std::vector<bool> avail_start_and_target(2 * connect_graphs_.size(), true);
-
+            std::vector<bool> avail_start_and_target;
+            if(simple_avail) {
+                avail_start_and_target = getAvailNodesFromOtherLevelsSimple(max_level.first,
+                                                                            all_dependency_paths_,
+                                                                            all_levels_);
+            } else {
+                avail_start_and_target = std::vector<bool>(2 * connect_graphs_.size(), true);
+            }
+            //std::vector<bool> avail_start_and_target(2 * connect_graphs_.size(), true);
+            std::vector<int> indexes(2 * max_level.second.size());
             for(int i=0; i<2*max_level.second.size(); i++) {
+                indexes[i] = i;
+            }
+            // 创建随机数生成器
+            std::random_device rd;  // 用于获取随机种子
+            std::mt19937 g(rd());   // 使用Mersenne Twister引擎，用rd()的返回值作为种子
+            // 打乱向量
+            std::shuffle(indexes.begin(), indexes.end(), g);
+
+            for(int i=0; i<std::min(int(2*max_level.second.size()), max_continue_failure_); i++) {
 
                 auto start_iter = max_level.second.begin();
                 int agent_id;
-                int advance_step = i / 2;
+                int advance_step = indexes[i] / 2;
                 for(int i=0; i<advance_step; i++) {
                     start_iter ++;
                 }
@@ -429,12 +459,13 @@ namespace freeNav::LayeredMAPF {
                 }
 
                 auto new_levels = getLevelsFromDependencyPaths(new_dependency_paths);
-                auto new_max_level = getMaxLevel(new_levels, th_largest_level);
+                auto new_max_level = LA_MAPF::getMaxLevel(new_levels, th_largest_level);
 
                 // adopt update only when generate smaller subproblems
                 if(new_max_level.second.size() < best_level_size) {
                     best_level_size = new_max_level.second.size();
                     best_new_paths = new_dependency_paths;
+                    break;
                 }
             }
             if(best_level_size < max_level.second.size()) {
@@ -443,11 +474,11 @@ namespace freeNav::LayeredMAPF {
                     new_dependency_paths[new_id_and_path.first] = new_id_and_path.second;
                 }
                 auto new_levels = getLevelsFromDependencyPaths(new_dependency_paths);
-                auto new_max_level = getMaxLevel(new_levels, th_largest_level);
+                auto new_max_level = LA_MAPF::getMaxLevel(new_levels, th_largest_level);
 
-                std::cout << th_largest_level << " th largest level, " << iter_count
-                << " iter, update: new/old max_level_size = " << new_max_level.second.size() << " / "
-                << max_level.second.size() << std::endl;
+//                std::cout << th_largest_level << " th largest level, " << iter_count
+//                << " iter, update: new/old max_level_size = " << new_max_level.second.size() <u8< " / "
+//                << max_level.second.size() << std::endl;
 
                 all_dependency_paths_ = new_dependency_paths;
                 all_levels_ = new_levels;

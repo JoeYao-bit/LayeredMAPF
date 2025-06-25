@@ -182,8 +182,7 @@ all_map_name = [
                 "AR0044SR", 
                 "AR0203SR", 
                 "AR0072SR",
-                "Denver_2_256",
-                "empty-32-32"
+                "Denver_2_256"
                 ]
 all_single_data = list()
 
