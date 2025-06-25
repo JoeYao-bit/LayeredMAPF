@@ -96,3 +96,6 @@ target_link_libraries(test_lamapf_instance_generator lamapf_alg)
 
 add_executable(test_massive_decomposition_LAMAPF test/large_agent_test/test_massive_decomposition.cpp)
 target_link_libraries(test_massive_decomposition_LAMAPF lamapf_alg)
+
+add_executable(test_massive_laryered_lamapf test/large_agent_test/test_massive_laryered_lamapf.cpp)
+target_link_libraries(test_massive_laryered_lamapf lamapf_alg)
