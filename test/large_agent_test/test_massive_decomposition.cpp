@@ -114,7 +114,7 @@ bool decompositionOfSingleInstanceBreakLoopLAMAPF(const InstanceOrients<N> & ins
             pre.heuristic_tables_sat_,
             time_limit_s,// - pre.initialize_time_cost_/1e3,
             1e4,
-            500,
+            100,
             1);
     ns_decompose->breakMaxLoopIteratively();
     double time_cost =  mst.elapsed();// + pre.initialize_time_cost_;
