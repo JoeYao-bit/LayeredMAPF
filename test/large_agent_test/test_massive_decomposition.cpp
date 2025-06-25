@@ -114,7 +114,7 @@ bool decompositionOfSingleInstanceBreakLoopLAMAPF(const InstanceOrients<N> & ins
             pre.heuristic_tables_sat_,
             time_limit_s,// - pre.initialize_time_cost_/1e3,
             1e4,
-            100,
+            2*instances.size(),
             1);
     ns_decompose->breakMaxLoopIteratively();
     double time_cost =  mst.elapsed();// + pre.initialize_time_cost_;
@@ -259,19 +259,19 @@ bool SingleMapDecompositionTestLAMAPF(const SingleMapTestConfig <2> &map_test_co
  * */
 
 std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int> > > test_configs = {
-         {MAPFTestConfig_Paris_1_256,     {20, 40, 60, 80, 100, 120, 140}}, // 1,
-         {MAPFTestConfig_empty_48_48,     {10, 20, 30, 40, 50, 60}}, // 2,
-         {MAPFTestConfig_Berlin_1_256,    {20, 40, 60, 80, 100, 120, 140}}, // 3,
-         {MAPFTestConfig_maze_128_128_10, {20, 40, 60, 80, 100}}, // 4,
-         {MAPFTestConfig_den520d,         {20, 40, 60, 80, 100, 120, 140}}, // 5,
-         {MAPFTestConfig_ost003d,         {20, 40, 60, 80, 100}}, // 6,
-        {MAPFTestConfig_Boston_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 7,
-         {MAPFTestConfig_Sydney_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 8,
-         {MAPFTestConfig_AR0044SR,        {  30,   50,  70,  90, 100, 120, 140}}, // 9
-        {MAPFTestConfig_AR0203SR,        {10, 20, 30, 40, 50}}, // 10,
-         {MAPFTestConfig_AR0072SR,        {5, 10, 15, 20, 25, 30}}, // 11,
-         {MAPFTestConfig_Denver_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 12,
-     {MAPFTestConfig_empty_32_32,    {5, 10, 15, 20, 25, 30, 35}}, // 7,
+        //  {MAPFTestConfig_Paris_1_256,     {20, 40, 60, 80, 100, 120, 140}}, // 1,
+        //  {MAPFTestConfig_empty_48_48,     {10, 20, 30, 40, 50, 60}}, // 2,
+        //  {MAPFTestConfig_Berlin_1_256,    {20, 40, 60, 80, 100, 120, 140}}, // 3,
+        //  {MAPFTestConfig_maze_128_128_10, {20, 40, 60, 80, 100}}, // 4,
+        //  {MAPFTestConfig_den520d,         {20, 40, 60, 80, 100, 120, 140}}, // 5,
+        //  {MAPFTestConfig_ost003d,         {20, 40, 60, 80, 100}}, // 6,
+        // {MAPFTestConfig_Boston_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 7,
+          {MAPFTestConfig_Sydney_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 8,
+        //  {MAPFTestConfig_AR0044SR,        {  30,   50,  70,  90, 100, 120, 140}}, // 9
+        // {MAPFTestConfig_AR0203SR,        {10, 20, 30, 40, 50}}, // 10,
+          {MAPFTestConfig_AR0072SR,        {5, 10, 15, 20, 25, 30}}, // 11,
+          {MAPFTestConfig_Denver_2_256,    {20, 30, 40, 50, 60, 70, 80}}, // 12,
+          {MAPFTestConfig_empty_32_32,    {5, 10, 15, 20, 25, 30, 35}}, // 13,
 };
 
 std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int> > > test_configs_demo = {
@@ -294,9 +294,10 @@ int main() {
 
     auto test_configs_copy = test_configs; // test_configs, test_configs_demo
 
-    int interval = 6;//6; // test_configs_copy.size()
+    double interval = 6;//6; // test_configs_copy.size()
     int repeat_times = 100;
-    int num_threads = test_configs_copy.size()/interval;
+    int num_threads = (int)ceil(test_configs_copy.size()/interval);
+    std::cout << "num_threads = " << num_threads << std::endl;
     std::vector<bool> finished(num_threads, false);
     for(int j=0; j<num_threads; j++) {
         auto lambda_func = [&]() {
