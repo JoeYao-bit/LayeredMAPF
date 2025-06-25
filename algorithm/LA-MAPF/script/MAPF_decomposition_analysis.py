@@ -144,6 +144,7 @@ level_flag_map = {3:"Raw-Bi", 4:"Bi-level", 5:"Break loop"}
     
 data_path_dir = '../../../test/test_data/large_agent_instance/'
 all_map_name = [
+                "empty-32-32",
                 "empty-48-48",
                 
                 # "maze-32-32-2",
