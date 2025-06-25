@@ -2,16 +2,16 @@
 // Created by yaozhuo on 6/20/25.
 //
 
-#include "../algorithm/break_loop_decomposition/break_loop_decomposition.h"
-#include "../algorithm/break_loop_decomposition/biparition_decomposition.h"
-#include "../algorithm/connectivity_graph_and_subprgraph.h"
+#include "../../algorithm/break_loop_decomposition/break_loop_decomposition.h"
+#include "../../algorithm/break_loop_decomposition/biparition_decomposition.h"
+#include "../../algorithm/connectivity_graph_and_subprgraph.h"
 
-#include "../freeNav-base/dependencies/2d_grid/text_map_loader.h"
-#include "../freeNav-base/dependencies/memory_analysis.h"
+#include "../../freeNav-base/dependencies/2d_grid/text_map_loader.h"
+#include "../../freeNav-base/dependencies/memory_analysis.h"
 
 #include <sys/resource.h>
 
-#include "../test/test_data.h"
+#include "../../test/test_data.h"
 
 #include "common_interfaces.h"
 
@@ -259,18 +259,18 @@ bool SingleMapDecompositionTestLAMAPF(const SingleMapTestConfig <2> &map_test_co
  * */
 
 std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int> > > test_configs = {
-        // {MAPFTestConfig_Paris_1_256,     {20, 40, 60, 80, 100, 120, 140}}, // 1,
-        // {MAPFTestConfig_empty_48_48,     {10, 20, 30, 40, 50, 60}}, // 2,
-        // {MAPFTestConfig_Berlin_1_256,    {20, 40, 60, 80, 100, 120, 140}}, // 3,
-        // {MAPFTestConfig_maze_128_128_10, {20, 40, 60, 80, 100}}, // 4,
-        // {MAPFTestConfig_den520d,         {20, 40, 60, 80, 100, 120, 140}}, // 5,
-        // {MAPFTestConfig_ost003d,         {20, 40, 60, 80, 100}}, // 6,
-        //{MAPFTestConfig_Boston_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 7,
-        // {MAPFTestConfig_Sydney_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 8,
+         {MAPFTestConfig_Paris_1_256,     {20, 40, 60, 80, 100, 120, 140}}, // 1,
+         {MAPFTestConfig_empty_48_48,     {10, 20, 30, 40, 50, 60}}, // 2,
+         {MAPFTestConfig_Berlin_1_256,    {20, 40, 60, 80, 100, 120, 140}}, // 3,
+         {MAPFTestConfig_maze_128_128_10, {20, 40, 60, 80, 100}}, // 4,
+         {MAPFTestConfig_den520d,         {20, 40, 60, 80, 100, 120, 140}}, // 5,
+         {MAPFTestConfig_ost003d,         {20, 40, 60, 80, 100}}, // 6,
+        {MAPFTestConfig_Boston_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 7,
+         {MAPFTestConfig_Sydney_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 8,
          {MAPFTestConfig_AR0044SR,        {  30,   50,  70,  90, 100, 120, 140}}, // 9
-        // {MAPFTestConfig_AR0203SR,        {10, 20, 30, 40, 50}}, // 10,
-         //{MAPFTestConfig_AR0072SR,        {5, 10, 15, 20, 25, 30}}, // 11,
-        // {MAPFTestConfig_Denver_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 12,
+        {MAPFTestConfig_AR0203SR,        {10, 20, 30, 40, 50}}, // 10,
+         {MAPFTestConfig_AR0072SR,        {5, 10, 15, 20, 25, 30}}, // 11,
+         {MAPFTestConfig_Denver_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 12,
      {MAPFTestConfig_empty_32_32,    {5, 10, 15, 20, 25, 30, 35}}, // 7,
 };
 
@@ -294,7 +294,7 @@ int main() {
 
     auto test_configs_copy = test_configs; // test_configs, test_configs_demo
 
-    int interval = test_configs_copy.size();//6; // test_configs_copy.size()
+    int interval = 6;//6; // test_configs_copy.size()
     int repeat_times = 100;
     int num_threads = test_configs_copy.size()/interval;
     std::vector<bool> finished(num_threads, false);
