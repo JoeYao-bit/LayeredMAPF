@@ -8,8 +8,8 @@
 #include "../LA-MAPF/common.h"
 #include "../LA-MAPF/large_agent_dependency_path_search.h"
 
-#include "../algorithm/LA-MAPF/CBS/space_time_astar.h"
-#include "../third_party/EECBS/inc/SpaceTimeAStar.h"
+#include "../../algorithm/LA-MAPF/CBS/space_time_astar.h"
+#include "../../third_party/EECBS/inc/SpaceTimeAStar.h"
 #include <algorithm>
 #include "../basic.h"
 
