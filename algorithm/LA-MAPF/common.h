@@ -22,10 +22,10 @@
 #include <random>
 
 #include "../basic.h"
-#include "freeNav-base/basic_elements/distance_map_update.h"
-#include "freeNav-base/basic_elements/point.h"
-#include "freeNav-base/basic_elements/point.h"
-#include "freeNav-base/dependencies/memory_analysis.h"
+#include "../../freeNav-base/basic_elements/distance_map_update.h"
+#include "../../freeNav-base/basic_elements/point.h"
+#include "../../freeNav-base/basic_elements/point.h"
+#include "../../freeNav-base/dependencies/memory_analysis.h"
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 

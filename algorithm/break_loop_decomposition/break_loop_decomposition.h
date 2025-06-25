@@ -429,7 +429,7 @@ namespace freeNav::LayeredMAPF {
                 }
 
                 auto new_levels = getLevelsFromDependencyPaths(new_dependency_paths);
-                auto new_max_level = getMaxLevel(new_levels, th_largest_level);
+                auto new_max_level = LA_MAPF::getMaxLevel(new_levels, th_largest_level);
 
                 // adopt update only when generate smaller subproblems
                 if(new_max_level.second.size() < best_level_size) {
@@ -443,7 +443,7 @@ namespace freeNav::LayeredMAPF {
                     new_dependency_paths[new_id_and_path.first] = new_id_and_path.second;
                 }
                 auto new_levels = getLevelsFromDependencyPaths(new_dependency_paths);
-                auto new_max_level = getMaxLevel(new_levels, th_largest_level);
+                auto new_max_level = LA_MAPF::getMaxLevel(new_levels, th_largest_level);
 
                 std::cout << th_largest_level << " th largest level, " << iter_count
                 << " iter, update: new/old max_level_size = " << new_max_level.second.size() << " / "
