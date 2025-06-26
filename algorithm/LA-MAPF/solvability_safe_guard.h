@@ -15,27 +15,16 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     // get solution pass what target of previous subproblem's agent and start of subsequent subproblem
     // use heuristic during planning to reduce size of final subproblem
     template<Dimension N>
-    class SolvabilitySafeguard : public LargeAgentMAPF<N> {
+    class SolvabilitySafeguard {
     public:
-        SolvabilitySafeguard(const InstanceOrients<N> & instances,
-                             const std::vector<AgentPtr<N> >& agents,
-                             DimensionLength* dim,
-                             const IS_OCCUPIED_FUNC<N> & isoc,
-
-                             // reusable variable, try do not construct them more than once
-                             const std::vector<PosePtr<int, N> >& all_poses = {},
-                             const DistanceMapUpdaterPtr<N>& distance_map_updater = nullptr,
-                             const std::vector<SubGraphOfAgent<N> >& agent_sub_graphs = {},
-                             const std::vector<std::vector<int> >& agents_heuristic_tables = {},
-                             const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate = {},
-
+        SolvabilitySafeguard(const PrecomputationOfMAPFBasePtr<N>& pre,
                              double time_limit = 60
-        ) : LargeAgentMAPF<N>(instances, agents, dim, isoc,
-                              all_poses,
-                              distance_map_updater,
-                              agent_sub_graphs,
-                              agents_heuristic_tables,
-                              agents_heuristic_tables_ignore_rotate,
+        ) : LargeAgentMAPF<N>(pre->instances_, pre->agents_, pre->dim_, pre->isoc_,
+                              pre->all_poses_,
+                              pre->distance_map_updater_,
+                              pre->agent_sub_graphs_,
+                              pre->agents_heuristic_tables_,
+                              pre->agents_heuristic_tables_ignore_rotate_,
                               time_limit) {
             //std::cout << "this->isoc_ 1 " << this->isoc_(Pointi<N>()) << std::endl;
         }

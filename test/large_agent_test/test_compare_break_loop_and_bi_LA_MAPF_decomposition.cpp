@@ -6,7 +6,7 @@
 #include "../algorithm/break_loop_decomposition/biparition_decomposition.h"
 
 #include "common_interfaces.h"
-#include "../algorithm/connectivity_graph_and_subprgraph.h"
+#include "../algorithm/precomputation_for_decomposition.h"
 
 #include <gtest/gtest.h>
 #include <iostream>

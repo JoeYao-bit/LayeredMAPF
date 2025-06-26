@@ -18,7 +18,7 @@
 #include "common_interfaces.h"
 #include "../../algorithm/LA-MAPF/CBS/layered_large_agent_CBS.h"
 
-#include "../../algorithm/connectivity_graph_and_subprgraph.h"
+#include "../../algorithm/precomputation_for_decomposition.h"
 
 CircleAgent<2> c1(2.5, 0, dim);
 CircleAgent<2> c2(3.5, 1, dim);

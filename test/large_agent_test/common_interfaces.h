@@ -17,7 +17,7 @@
 #include "../../algorithm/LA-MAPF/large_agent_instance_generator.h"
 #include "../../algorithm/LA-MAPF/instance_serialize_and_deserialize.h"
 #include "../../algorithm/LA-MAPF/large_agent_instance_decomposition.h"
-#include "../../algorithm/connectivity_graph_and_subprgraph.h"
+#include "../../algorithm/precomputation_for_decomposition.h"
 
 //#include "../../freeNav-base/visualization/canvas/canvas.h"
 #include "../../freeNav-base/dependencies/2d_grid/text_map_loader.h"

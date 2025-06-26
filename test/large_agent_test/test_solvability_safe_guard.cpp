@@ -11,7 +11,7 @@
 
 #include "../../algorithm/LA-MAPF/LaCAM/layered_large_agent_LaCAM.h"
 #include "../../algorithm/LA-MAPF/LaCAM/large_agent_lacam.h"
-#include "../../algorithm/connectivity_graph_and_subprgraph.h"
+#include "../../algorithm/precomputation_for_decomposition.h"
 
 using namespace freeNav::LayeredMAPF::LA_MAPF;
 

@@ -30,6 +30,7 @@
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
+
     template <Dimension N>
     bool isPointSetOverlap(const Pointis<N>& set1, const Pointis<N>& set2, DimensionLength* dim) {
         IdSet ids;
@@ -419,6 +420,90 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         size_t start_hyper_node_ = MAX<size_t>; // where is start in the hyper graph
 
         size_t target_hyper_node_ = MAX<size_t>; // where is target in the hyper graph
+
+    };
+
+
+    template<Dimension N>
+    struct HyperGraphNodeDataRaw;
+
+    template<Dimension N>
+    using HyperGraphNodeDataRawPtr = HyperGraphNodeDataRaw<N>*;
+
+    template<Dimension N>
+    struct HyperGraphNodeDataRaw : public TreeNode<N, HyperGraphNodeDataRawPtr<N> > {
+
+        explicit HyperGraphNodeDataRaw(const size_t & current_node,
+                                       const HyperGraphNodeDataRawPtr<N>& parent,
+                                       const LA_MAPF::ConnectivityGraph& graph,
+                                       bool distinguish_sat = false, // whether visited grid distinguish start or target
+                                       const std::vector<bool>& ignore_cost_agent_ids = {}) :
+                current_node_(current_node), graph_(graph), TreeNode<N, HyperGraphNodeDataRawPtr<N>>(parent) {
+            if(parent != nullptr) {
+                g_val_ = parent->g_val_;
+            }
+            // if is a agent node, rather than a free group node
+//            for(const int& agent_id : graph_.data_ptr_->hyper_node_with_agents_[current_node_]) {
+//                if(!ignore_cost_agent_ids.empty() && ignore_cost_agent_ids[agent_id]) { continue; }
+//                visited_agent_.insert(distinguish_sat ? agent_id : agent_id/2);
+//            }
+            g_val_ = g_val_ + graph_.data_ptr_->hyper_node_with_agents_[current_node_].size();
+        }
+
+        void copy(const HyperGraphNodeDataRaw<N>& other_node) {
+            g_val_            = other_node.g_val_;
+            h_val_            = other_node.h_val_;
+            current_node_     = other_node.current_node_;
+            this->pa_         = other_node.pa_;
+            this->ch_         = other_node.ch_;
+        }
+
+        size_t current_node_;
+
+        // only considering agent grid it path, ignore free grid group it pass
+        // how many agent it need to cross till reach target, if both start and target of an agent occur in the path, dist plus only one
+        // int g_val_ = MAX<int>; // dist from start to here
+        // g_val = visited_agent_.size()
+
+        //std::set<int> visited_agent_;
+
+        int g_val_ = 0; // an agent id with not occur twice, so no need for std::set, which is every time consuming
+
+        int h_val_ = 0; // estimation dist from here to target
+
+        const LA_MAPF::ConnectivityGraph& graph_;
+
+        int getFVal() {
+            return g_val_ + h_val_;
+        }
+
+        struct compare_node {
+            // returns true if n1 > n2 (note -- this gives us *min*-heap).
+            bool operator()(const HyperGraphNodeDataRawPtr<N> &n1, const HyperGraphNodeDataRawPtr<N> &n2) const {
+                return n1->g_val_ + n1->h_val_ >= n2->g_val_ + n2->h_val_;
+            }
+        };
+
+        struct equal_node {
+            // returns true if n1 > n2 (note -- this gives us *min*-heap).
+            bool operator()(const HyperGraphNodeDataRawPtr<N> &n1, const HyperGraphNodeDataRawPtr<N> &n2) const {
+                return n1->current_node_ == n2->current_node_;
+            }
+        };
+
+        struct NodeHasher
+        {
+            size_t operator() (const HyperGraphNodeDataRawPtr<N>& n) const
+            {
+                return std::hash<int>()(n->current_node_); // yz: 按位异或
+            }
+        };
+
+        bool in_openlist_ = false;
+
+        typedef typename boost::heap::pairing_heap< HyperGraphNodeDataRawPtr<N>, boost::heap::compare<typename HyperGraphNodeDataRaw<N>::compare_node> >::handle_type open_handle_t;
+
+        open_handle_t open_handle_;
 
     };
 
@@ -994,6 +1079,63 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     };
 
+    template<Dimension N>
+    std::pair<std::vector<std::set<size_t> >, std::vector<int> > getStrongComponentFromSubGraph(
+            const std::vector<PosePtr<int, N>>& all_poses,
+            const std::vector<std::vector<size_t> >& all_edges,
+            const std::vector<std::vector<size_t> >& all_backward_edges,
+            const std::vector<std::set<int> >& related_agents_map,
+            bool directed_graph = true) {
+
+        using namespace boost;
+        using Vertex = size_t;
+
+        if(directed_graph) {
+            typedef adjacency_list<vecS, vecS, directedS, Vertex> Graph;
+            Graph g(all_poses.size());
+            for(size_t i=0; i<all_edges.size(); i++) {
+                if(all_poses[i] == nullptr) { continue; }
+                if(all_edges[i].empty() || all_backward_edges[i].empty()) {
+                    //add_vertex(i, g); // any non-nullptr should have a position
+//                        add_edge(Vertex(i), Vertex(i), g);
+                    continue;
+                }
+                for(const size_t& j : all_edges[i]) {
+                    assert(i != MAX<size_t> && j != MAX<size_t>);
+                    if(related_agents_map[i] != related_agents_map[j]) { continue; }
+                    add_edge(Vertex(i), Vertex(j), g);
+                }
+            }
+            std::vector<int> component(num_vertices(g));
+            int num = strong_components(g, &component[0]);
+            std::vector<std::set<size_t> > retv(num);
+//                std::cout << "Total number of strong components: " << num << std::endl;
+            for (size_t i = 0; i < component.size(); i++) {
+//                    std::cout << "Vertex " << i << " is in component " << component[i] << std::endl;
+                retv[component[i]].insert(i);
+            }
+
+            return {retv, component};
+        } else {
+            typedef adjacency_list<vecS, vecS, undirectedS, size_t> Graph;
+            Graph g;
+            for(size_t i=0; i<all_edges.size(); i++) {
+                if(all_edges[i].empty()) { continue; }
+                for(const size_t& j : all_edges[i]) {
+                    add_edge(i, j, g);
+                }
+            }
+            std::vector<int> component(num_vertices(g));
+            int num = connected_components(g, &component[0]);
+            std::vector<std::set<size_t> > retv(num);
+//                std::cout << "Total number of strong components: " << num << std::endl;
+            for (size_t i = 0; i < component.size(); ++i) {
+//                    std::cout << "Vertex " << i << " is in component " << component[i] << std::endl;
+                retv[component[i]].insert(i);
+            }
+            return {retv, component};
+        }
+    }
 
     extern MemoryRecorder memory_recorder;
 
@@ -1005,7 +1147,105 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     // get the i th largest level, i_th start with 0
     std::pair<int, std::set<int> > getMaxLevel(const std::vector<std::set<int> >& all_levels, const int& i_th);
 
+    template<Dimension N>
+    bool isMAPFInstanceSolvable(const Pointi<N>& start_pt, const Pointi<N>& target_pt, const IS_OCCUPIED_FUNC<N>& isoc, DimensionLength* dim) {
+        Pointis<N> neighbors = GetNearestOffsetGrids<N>();
 
-}
+        Id total_index = getTotalIndexOfSpace<N>(dim);
+
+        std::vector<bool> visited(total_index, false);
+        std::vector<Pointi<N> > buffer = {start_pt}, next_buffer;
+        visited[PointiToId<N>(start_pt, dim)] = true;
+
+        while (!buffer.empty()) {
+            next_buffer.clear();
+            for(const Pointi<N>& pt : buffer) {
+                for(const Pointi<N>& offset : neighbors) {
+                    Pointi<N> new_pt = pt + offset;
+                    if(isoc(new_pt)) { continue; }
+                    if(new_pt == target_pt) {
+                        return true;
+                    }
+                    Id new_id = PointiToId<N>(new_pt, dim);
+                    if(visited[new_id]) { continue; }
+                    visited[new_id] = true;
+                    next_buffer.push_back(new_pt);
+                }
+            }
+            std::swap(buffer, next_buffer);
+        }
+        return false;
+    }
+
+    template<Dimension N>
+    bool MAPF_DecompositionValidCheckGridMap(const Instances<N>& instances,
+                                             const std::vector<std::set<int> >& all_levels,
+                                             DimensionLength* dim,
+                                             const IS_OCCUPIED_FUNC<N>& isoc) {
+
+        for(int i=0; i<all_levels.size(); i++) {
+            Id total_index = getTotalIndexOfSpace<N>(dim);
+            std::vector<bool> avoid_locs(total_index, false);
+
+            for(int j = 0; j<all_levels.size(); j++)
+            {
+                if(j == i) continue;
+                const auto& current_level = all_levels[j];
+                for(const int& agent_id : current_level) {
+                    Id id;
+                    if(j < i) {
+                        id = PointiToId(instances[agent_id].second, dim);
+                    } else {
+                        id = PointiToId(instances[agent_id].first, dim);
+                    }
+                    avoid_locs[id] = true;
+                }
+            }
+
+            auto new_isoc = [&](const Pointi<N> & pt) -> bool {
+                if(isOutOfBoundary(pt, dim)) { return true; }
+                return isoc(pt) || avoid_locs[PointiToId(pt, dim)];
+            };
+
+            for(const int& agent_id : all_levels[i]) {
+                if(!isMAPFInstanceSolvable<N>(instances[agent_id].first, instances[agent_id].second, new_isoc, dim)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    template<Dimension N>
+    std::vector<std::pair<size_t, size_t> > SATToID_LAMAPF(const InstanceOrients<N> & instances, DimensionLength* dim) {
+        std::vector<std::pair<size_t, size_t> > instance_node_ids;
+        for (int agent_id=0; agent_id<instances.size(); agent_id++) {
+            // check start
+            int start_node_id = PointiToId<N>(instances[agent_id].first.pt_, dim) * 2 * N +
+                                instances[agent_id].first.orient_;
+
+            // check target
+            int target_node_id = PointiToId<N>(instances[agent_id].second.pt_, dim) * 2 * N +
+                                 instances[agent_id].second.orient_;
+
+            instance_node_ids.push_back({start_node_id, target_node_id});
+        }
+        return instance_node_ids;
+    }
+
+
+    template<Dimension N>
+    std::vector<std::pair<size_t, size_t> > SATToID_MAPF(const InstanceOrients<N> & instances, DimensionLength* dim) {
+        std::vector<std::pair<size_t, size_t> > instance_node_ids;
+        for (int agent_id = 0; agent_id < instances.size(); agent_id++) {
+            // start
+            int start_node_id = PointiToId<N>(instances[agent_id].first, dim);
+
+            // target
+            int target_node_id = PointiToId<N>(instances[agent_id].second, dim);
+            instance_node_ids.push_back(std::make_pair(start_node_id, target_node_id));
+        }
+        return instance_node_ids;
+    }
 
 #endif //LAYEREDMAPF_COMMON_H

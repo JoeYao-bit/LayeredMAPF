@@ -4,7 +4,7 @@
 
 #include "../algorithm/break_loop_decomposition/break_loop_decomposition.h"
 #include "../algorithm/break_loop_decomposition/biparition_decomposition.h"
-#include "../algorithm/connectivity_graph_and_subprgraph.h"
+#include "../algorithm/precomputation_for_decomposition.h"
 
 #include "../freeNav-base/dependencies/2d_grid/text_map_loader.h"
 #include "../freeNav-base/dependencies/memory_analysis.h"

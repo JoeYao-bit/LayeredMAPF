@@ -10,7 +10,7 @@
 #include "../algorithm/break_loop_decomposition/biparition_decomposition.h"
 
 #include "common_interfaces.h"
-#include "../algorithm/connectivity_graph_and_subprgraph.h"
+#include "../algorithm/precomputation_for_decomposition.h"
 
 #include <gtest/gtest.h>
 #include <iostream>
@@ -54,10 +54,10 @@ void compareLNSAndBiDecompose_MAPF(const SingleMapTestConfig<2>& map_file, int n
     MSTimer mst;
 
     auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBipartition<2, HyperGraphNodeDataRaw<2> > >(dim_local,
-                                                                                   pre.connect_graphs_,
-                                                                                   pre.agent_sub_graphs_,
-                                                                                   pre.heuristic_tables_sat_,
-                                                                                   pre.heuristic_tables_,
+                                                                                   pre->connect_graphs_,
+                                                                                   pre->agent_sub_graphs_,
+                                                                                   pre->heuristic_tables_sat_,
+                                                                                   pre->heuristic_tables_,
                                                                                    time_limit_s,
                                                                                    3);
 
