@@ -9,23 +9,23 @@
 
 namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
-    template<Dimension N>
+    template<Dimension N, typename State>
     std::vector<LAMAPF_Path> LargeAgentCBS_func(const InstanceOrients<N> & instances,
                                                 const std::vector<AgentPtr<N> >& agents,
                                                 DimensionLength* dim,
                                                 const IS_OCCUPIED_FUNC<N> & isoc,
-                                                const LargeAgentStaticConstraintTablePtr<N>& path_constraint,
+                                                const LargeAgentStaticConstraintTablePtr<N, State>& path_constraint,
                                                 std::vector<std::vector<int> >& grid_visit_count_table,
                                                 double cutoff_time = 30,
 
-                                                const std::vector<PosePtr<int, N> >& all_poses = {},
+                                                const std::vector<std::shared_ptr<State> >& all_poses = {},
                                                 const DistanceMapUpdaterPtr<N>& distance_map_updater = nullptr,
-                                                const std::vector<SubGraphOfAgent<N> >& agent_sub_graphs = {},
+                                                const std::vector<SubGraphOfAgent<N, State> >& agent_sub_graphs = {},
                                                 const std::vector<std::vector<int> >& agents_heuristic_tables = {},
                                                 const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate = {},
                                                 ConnectivityGraph* connect_graph = nullptr) {
 
-        LargeAgentCBS<N> solver(instances, agents, dim, isoc, path_constraint,
+        LargeAgentCBS<N, State> solver(instances, agents, dim, isoc, path_constraint,
                                                                   all_poses,
                                                                   distance_map_updater,
                                                                   agent_sub_graphs,

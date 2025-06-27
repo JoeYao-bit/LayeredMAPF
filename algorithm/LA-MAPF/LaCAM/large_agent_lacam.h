@@ -13,31 +13,31 @@
 #include <random>
 namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
 
-    template<Dimension N, typename ConstraintTable>
-    struct LargeAgentLaCAM : public LargeAgentMAPF<N> {
+    template<Dimension N, typename ConstraintTable, typename State>
+    struct LargeAgentLaCAM : public LargeAgentMAPF<N, State> {
 
         LargeAgentLaCAM(const InstanceOrients<N> & instances,
                         const std::vector<AgentPtr<N> >& agents,
                         DimensionLength* dim,
                         const IS_OCCUPIED_FUNC<N> & isoc,
-                        LargeAgentStaticConstraintTablePtr<N> path_constraint = nullptr,
+                        LargeAgentStaticConstraintTablePtr<N, State> path_constraint = nullptr,
 
-                        const std::vector<PosePtr<int, N> >& all_poses = {},
+                        const std::vector<std::shared_ptr<State> >& all_poses = {},
                         const DistanceMapUpdaterPtr<N>& distance_map_updater = nullptr,
-                        const std::vector<SubGraphOfAgent<N> >& agent_sub_graphs = {},
+                        const std::vector<SubGraphOfAgent<N, State> >& agent_sub_graphs = {},
                         const std::vector<std::vector<int> >& agents_heuristic_tables = {},
                         const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate = {},
 
                         double time_limit = 60
                         )
-                        : LargeAgentMAPF<N>(instances, agents, dim, isoc,
+                        : LargeAgentMAPF<N, State>(instances, agents, dim, isoc,
                                                        all_poses,
                                                        distance_map_updater,
                                                        agent_sub_graphs,
                                                        agents_heuristic_tables,
                                                        agents_heuristic_tables_ignore_rotate,
                                                        time_limit),
-                          V_size(LargeAgentLaCAM<N, ConstraintTable>::all_poses_.size()),
+                          V_size(LargeAgentLaCAM<N, ConstraintTable, State>::all_poses_.size()),
                           C_next(Candidates<N>(agents.size(), std::array<size_t , 2*N*2*N + 1>())), // yz: possible rotation multiple possible transition plus wait
                           tie_breakers(std::vector<float>(V_size, 0)),
                           A(AgentLaCAMs(agents.size(), nullptr)),
@@ -535,7 +535,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
 
         Config starts, targets;
 
-        LargeAgentStaticConstraintTablePtr<N> path_constraint = nullptr;
+        LargeAgentStaticConstraintTablePtr<N, State> path_constraint = nullptr;
 
         // store each grid's distance to target, as a secondary heuristic value
 //        std::vector<std::vector<int> > distance_to_target;

@@ -16,13 +16,13 @@
 namespace freeNav::LayeredMAPF {
 
     // a general interfaces for both LA-MAPF and MAPF
-    template<Dimension N, typename HyperNodeType>
+    template<Dimension N, typename HyperNodeType, typename State>
     class MAPFInstanceDecompositionBipartition {
     public:
 
         MAPFInstanceDecompositionBipartition(DimensionLength* dim,
                                              const std::vector<LA_MAPF::ConnectivityGraph>& connectivity_graphs,
-                                             const std::vector<LA_MAPF::SubGraphOfAgent<N> >& agent_sub_graphs,
+                                             const std::vector<LA_MAPF::SubGraphOfAgent<N, State> >& agent_sub_graphs,
                                              const std::vector<std::vector<int> >& heuristic_tables_sat,
                                              const std::vector<std::vector<int> >& heuristic_tables,
                                              double time_limit = 10,
@@ -1199,7 +1199,7 @@ namespace freeNav::LayeredMAPF {
 
         std::vector<std::vector<int> > heuristic_tables_; // distinguish_sat = false
 
-        std::vector<LA_MAPF::SubGraphOfAgent<N> > agent_sub_graphs_;
+        std::vector<LA_MAPF::SubGraphOfAgent<N, State> > agent_sub_graphs_;
 
         // save each level's pre level and next level (belong to the same cluster) after clusterDecomposeToLevel(...)
         std::vector<std::pair<std::set<int>, std::set<int> > > all_level_pre_and_next_;

@@ -49,15 +49,15 @@ void compareLNSAndBiDecompose_MAPF(const SingleMapTestConfig<2>& map_file, int n
 
     double time_limit_s = 10;
 
-    PrecomputationOfMAPF<2, HyperGraphNodeDataRaw<2>> pre(istss.front(), dim_local, is_occupied_local, true);
+    PrecomputationOfMAPFDecomposition<2, HyperGraphNodeDataRaw<2>> pre(istss.front(), dim_local, is_occupied_local, true);
 
     MSTimer mst;
 
-    auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBipartition<2, HyperGraphNodeDataRaw<2> > >(dim_local,
-                                                                                   pre->connect_graphs_,
-                                                                                   pre->agent_sub_graphs_,
-                                                                                   pre->heuristic_tables_sat_,
-                                                                                   pre->heuristic_tables_,
+    auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBipartition<2, HyperGraphNodeDataRaw<2>, Pointi<2> > >(dim_local,
+                                                                                   pre.connect_graphs_,
+                                                                                   pre.agent_sub_graphs_,
+                                                                                   pre.heuristic_tables_sat_,
+                                                                                   pre.heuristic_tables_,
                                                                                    time_limit_s,
                                                                                    3);
 
@@ -72,7 +72,7 @@ void compareLNSAndBiDecompose_MAPF(const SingleMapTestConfig<2>& map_file, int n
 
     mst.reset();
 
-    auto ns_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<2, HyperGraphNodeDataRaw<2> > >(dim_local,
+    auto ns_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<2, HyperGraphNodeDataRaw<2>, Pointi<2>>>(dim_local,
                                                                                  pre.connect_graphs_,
                                                                                  pre.agent_sub_graphs_,
                                                                                  pre.heuristic_tables_sat_,

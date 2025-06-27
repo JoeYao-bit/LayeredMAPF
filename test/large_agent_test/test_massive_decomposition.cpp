@@ -34,14 +34,15 @@ bool decompositionOfSingleInstanceBipartitionLAMAPF(const InstanceOrients<N> & i
     sleep(1);
     float basic_usage = memory_recorder.getMaximalMemoryUsage();
 
-    PrecomputationOfLAMAPF<2, HyperGraphNodeDataRaw<2>> pre(instances, agents, dim, isoc, true);
+    auto pre =
+            std::make_shared<PrecomputationOfLAMAPFDecomposition<N, LA_MAPF::HyperGraphNodeDataRaw<N>> >(instances, agents, dim, isoc);
 
     MSTimer mst;
-    auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBipartition<2, HyperGraphNodeDataRaw<2> > >(dim,
-            pre.connect_graphs_,
-            pre.agent_sub_graphs_,
-            pre.heuristic_tables_sat_,
-            pre.heuristic_tables_,
+    auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBipartition<N, HyperGraphNodeDataRaw<N>, Pose<int, N>> >(dim,
+            pre->connect_graphs_,
+            pre->agent_sub_graphs_,
+            pre->heuristic_tables_sat_,
+            pre->heuristic_tables_,
             time_limit_s,// - pre.initialize_time_cost_/1e3,
             level);
 
@@ -54,11 +55,11 @@ bool decompositionOfSingleInstanceBipartitionLAMAPF(const InstanceOrients<N> & i
                                                                  dim,
                                                                  isoc,
                                                                  agents,
-                                                                 pre.instance_node_ids_,
-                                                                 pre.all_poses_,
-                                                                 pre.agent_sub_graphs_,
-                                                                 pre.agents_heuristic_tables_,
-                                                                 pre.agents_heuristic_tables_ignore_rotate_
+                                                                 pre->instance_node_ids_,
+                                                                 pre->all_poses_,
+                                                                 pre->agent_sub_graphs_,
+                                                                 pre->agents_heuristic_tables_,
+                                                                 pre->agents_heuristic_tables_ignore_rotate_
     );
 
     int max_subproblem = LA_MAPF::getMaxLevelSize(bi_decompose->all_clusters_);
@@ -105,13 +106,14 @@ bool decompositionOfSingleInstanceBreakLoopLAMAPF(const InstanceOrients<N> & ins
     sleep(1);
     float basic_usage = memory_recorder.getMaximalMemoryUsage();
 
-    PrecomputationOfLAMAPF<2, HyperGraphNodeDataRaw<2>> pre(instances, agents, dim, isoc, false);
+    auto pre =
+            std::make_shared<PrecomputationOfLAMAPFDecomposition<N, LA_MAPF::HyperGraphNodeDataRaw<N>> >(instances, agents, dim, isoc);
 
     MSTimer mst;
-    auto ns_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<2, HyperGraphNodeDataRaw<2>> >(dim,
-            pre.connect_graphs_,
-            pre.agent_sub_graphs_,
-            pre.heuristic_tables_sat_,
+    auto ns_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<N, HyperGraphNodeDataRaw<N>, Pose<int, N>> >(dim,
+            pre->connect_graphs_,
+            pre->agent_sub_graphs_,
+            pre->heuristic_tables_sat_,
             time_limit_s,// - pre.initialize_time_cost_/1e3,
             1e4,
             100,
@@ -126,11 +128,11 @@ bool decompositionOfSingleInstanceBreakLoopLAMAPF(const InstanceOrients<N> & ins
                                                                  dim,
                                                                  isoc,
                                                                  agents,
-                                                                 pre.instance_node_ids_,
-                                                                 pre.all_poses_,
-                                                                 pre.agent_sub_graphs_,
-                                                                 pre.agents_heuristic_tables_,
-                                                                 pre.agents_heuristic_tables_ignore_rotate_
+                                                                 pre->instance_node_ids_,
+                                                                 pre->all_poses_,
+                                                                 pre->agent_sub_graphs_,
+                                                                 pre->agents_heuristic_tables_,
+                                                                 pre->agents_heuristic_tables_ignore_rotate_
     );
 
     int max_subproblem = LA_MAPF::getMaxLevelSize(ns_decompose->all_levels_);

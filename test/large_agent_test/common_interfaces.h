@@ -28,6 +28,11 @@
 #include "../../freeNav-base/dependencies/memory_analysis.h"
 #include "../../algorithm/LA-MAPF/IndependenceDetection/independence_detection.h"
 
+#include "../../algorithm/break_loop_decomposition/biparition_decomposition.h"
+
+#include "../../algorithm/break_loop_decomposition/break_loop_decomposition.h"
+
+
 using namespace freeNav;
 using namespace freeNav::LayeredMAPF;
 using namespace freeNav::LayeredMAPF::LA_MAPF;
@@ -110,7 +115,7 @@ auto dim = loader.getDimensionInfo();
  * */
 
 template<typename MethodType>
-void loadInstanceAndPlanning(const std::string& file_path, double time_limit = 30) {
+void loadLargeAgentInstanceAndPlanning(const std::string& file_path, double time_limit = 30) {
     InstanceDeserializer<2> deserializer;
     if(deserializer.loadInstanceFromFile(file_path, dim)) {
         std::cout << "load from path " << file_path << " success" << std::endl;
@@ -177,72 +182,12 @@ void loadInstanceAndPlanning(const std::string& file_path, double time_limit = 3
 
 // }
 
-//LaCAM::LargeAgentConstraints<2, BlockAgent_2D>
-template<Dimension N>
-void loadInstanceAndPlanningLayeredLAMAPF(const LA_MAPF_FUNC<N>& mapf_func,
-                                          const std::string& file_path,
-                                          double time_limit = 30,
-                                          bool path_constraint = false,
-                                          bool debug_mode = true,
-                                          bool visualize = false) {
-    InstanceDeserializer<N> deserializer;
-    if(deserializer.loadInstanceFromFile(file_path, dim)) {
-        std::cout << "load from path " << file_path << " success" << std::endl;
-    } else {
-        std::cout << "load from path " << file_path << " failed" << std::endl;
-        return;
-    }
-    std::cout << " map scale " << dim[0] << "*" << dim[1] << std::endl;
-
-    // debug: print all agents and instance
-    std::cout << "Instance: " << std::endl;
-    std::vector<std::string> strs = deserializer.getTextString();
-    for(const auto& str : strs) {
-        std::cout << str << std::endl;
-    }
-    std::cout << std::endl;
-
-//    LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(deserializer.getAgents(), is_occupied, dim, 1e7);
-//
-//    std::cout << " solvable ?  " << !((generator.getConnectionBetweenNode(7, 89773, 108968)).empty()) << std::endl;
-
-    std::vector<std::vector<int> > grid_visit_count_table;
-
-    LargeAgentMAPFInstanceDecompositionPtr<2, HyperGraphNodeDataRaw<2> > decomposer_ptr = nullptr;
-    auto start_t = clock();
-    bool is_loss_of_solvability = false;
-    auto layered_paths = layeredLargeAgentMAPF<N>(deserializer.getInstances(),
-                                                             deserializer.getAgents(),
-                                                             dim, is_occupied,
-                                                             mapf_func, //CBS::LargeAgentCBS_func<2, AgentType >,
-                                                             grid_visit_count_table,
-                                                             is_loss_of_solvability,
-                                                             time_limit, decomposer_ptr,
-                                                             path_constraint,
-                                                             0,
-                                                             debug_mode);
-    auto end_t = clock();
-    double total_time_cost = ((double)end_t - start_t)/CLOCKS_PER_SEC;
-    std::cout << "instance has " << deserializer.getAgents().size() << " agents, find solution ? " << !layered_paths.empty()
-              << " in " << total_time_cost << "s " << std::endl;
-
-    // if(visualize) {
-    //     LargeAgentMAPF_InstanceGenerator<N> generator(deserializer.getAgents(), is_occupied, dim);
-
-    //     InstanceVisualization(deserializer.getAgents(),
-    //                                      generator.getAllPoses(),
-    //                                      deserializer.getInstances(),
-    //                                      layered_paths,
-    //                                      grid_visit_count_table);
-    // }
-}
-
 
 // maximum_sample_count: max times of sample start and target for an agent
 template<Dimension N>
-bool generateInstance(const std::vector<AgentPtr<N> >& agents,
-                      const std::string& file_path,
-                      int maximum_sample_count = 1e7) {
+bool generateLargeAgentMAPFInstance(const std::vector<AgentPtr<N> >& agents,
+                                    const std::string& file_path,
+                                    int maximum_sample_count = 1e7) {
     gettimeofday(&tv_pre, &tz);
 
     // get previous texts as backup
@@ -309,164 +254,8 @@ bool generateInstance(const std::vector<AgentPtr<N> >& agents,
     }
 }
 
-// maximum_sample_count: max times of sample start and target for an agent
 template<Dimension N>
-void generateInstanceAndPlanning(const std::vector<AgentPtr<N> >& agents,
-                                 const std::string& file_path,
-                                 const LA_MAPF_FUNC<N>& mapf_func,
-                                 int maximum_sample_count = 1e7,
-                                 bool debug_mode = true,
-                                 bool visualize = false) {
-
-    //    loadInstanceAndPlanning<AgentType, MethodType>(file_path);
-    if(generateInstance(agents, file_path, maximum_sample_count)) {
-        loadInstanceAndPlanningLayeredLAMAPF<N>(mapf_func, file_path, 5, false, debug_mode, visualize);
-    }
-}
-
-
-// template<Dimension N>
-// void InstanceDecompositionVisualization(const LargeAgentMAPFInstanceDecomposition<N>& decomposer) {
-//     zoom_ratio = std::min(2560/dim[0], 1400/dim[1]);
-
-//     // visualize instance
-//     Canvas canvas("LargeAgentMAPF Decomposition", dim[0], dim[1], .1, zoom_ratio);
-
-//     bool draw_related_agents_map = false;
-//     bool draw_hyper_node_id = false;
-//     bool draw_heuristic_table = false;
-//     int total_index = getTotalIndexOfSpace<2>(dim);
-//     std::vector<std::vector<std::string> > grid_strs(total_index);
-
-//     Pointi<2> pt;
-//     size_t node_id;
-//     while(true) {
-//         canvas.resetCanvas();
-//         canvas.drawEmptyGrid();
-//         canvas.drawGridMap(dim, is_occupied);
-
-//         grid_strs = std::vector<std::vector<std::string> >(total_index);
-
-//         if(draw_all_instance) {
-//             const auto& instances = decomposer.instances_;
-//             const auto& agents    = decomposer.agents_;
-//             for (int current_subgraph_id=0; current_subgraph_id<instances.size(); current_subgraph_id++)
-//             {
-//                 const auto &instance = instances[current_subgraph_id];
-//                 agents[current_subgraph_id]->drawOnCanvas(instance.first, canvas, COLOR_TABLE[current_subgraph_id%30]);
-//                 canvas.drawArrowInt(instance.first.pt_[0], instance.first.pt_[1], -orientToPi_2D(instance.first.orient_) ,
-//                                     1, std::max(1,zoom_ratio/10));
-
-//                 agents[current_subgraph_id]->drawOnCanvas(instance.second, canvas, COLOR_TABLE[current_subgraph_id%30]);
-//                 canvas.drawArrowInt(instance.second.pt_[0], instance.second.pt_[1], -orientToPi_2D(instance.second.orient_),
-//                                     1, std::max(1,zoom_ratio/10));
-
-//             }
-//         }
-//         if(draw_related_agents_map) {
-// //            std::cout << " draw_related_agents_map " << std::endl;
-//             const auto& hyper_graph = decomposer.connect_graphs_[current_subgraph_id];
-//             for(int i=0; i<total_index; i++) {
-//                 pt = IdToPointi<2>(i, dim);
-//                 std::set<int> related_agents;
-//                 for(int orient=0; orient<4; orient++) {
-//                     node_id = i*4  + orient;
-//                     for(const int& related_agent : hyper_graph.related_agents_map_[node_id]) {
-//                         related_agents.insert(related_agent);
-//                     }
-//                 }
-//                 const auto& subgraph = decomposer.agent_sub_graphs_[current_subgraph_id];
-//                 if(subgraph.all_nodes_[node_id] == nullptr) { continue; }
-//                 std::stringstream ss;
-//                 ss << "r: ";
-//                 for(const int& related_agent : related_agents) {
-//                     ss << related_agent << " ";
-//                 }
-//                 grid_strs[i].push_back(ss.str());
-//             }
-//         }
-//         if(draw_hyper_node_id) {
-//             const auto& hyper_graph = decomposer.connect_graphs_[current_subgraph_id];
-//             for(int i=0; i<total_index; i++) {
-//                 pt = IdToPointi<2>(i, dim);
-//                 std::set<int> hyper_nodes; // a point have four direction, may be more than one
-//                 for(int orient=0; orient<4; orient++) {
-//                     node_id = i*4  + orient;
-//                     if(hyper_graph.hyper_node_id_map_[node_id] != MAX<size_t>) {
-//                         hyper_nodes.insert(hyper_graph.hyper_node_id_map_[node_id]);
-//                     }
-//                 }
-//                 const auto& subgraph = decomposer.agent_sub_graphs_[current_subgraph_id];
-//                 if(subgraph.all_nodes_[node_id] == nullptr) { continue; }
-//                 std::stringstream ss;
-//                 ss << "n: ";
-//                 for(const int& related_agent : hyper_nodes) {
-//                     ss << related_agent << " ";
-//                 }
-//                 grid_strs[i].push_back(ss.str());
-//             }
-//         }
-//         if(draw_heuristic_table) {
-//             const auto& hyper_graph = decomposer.connect_graphs_[current_subgraph_id];
-//             const auto& heuristic_table = decomposer.heuristic_tables_[current_subgraph_id];
-//             const auto& subgraph = decomposer.agent_sub_graphs_[current_subgraph_id];
-
-//             for(int i=0; i<total_index; i++) {
-//                 pt = IdToPointi<2>(i, dim);
-//                 std::set<int> heuristic_values; // a point have four direction, may be more than one
-//                 for(int orient=0; orient<4; orient++) {
-//                     node_id = i*4  + orient;
-//                     if(subgraph.all_nodes_[node_id] == nullptr) { continue; }
-//                     if(hyper_graph.hyper_node_id_map_[node_id] == MAX<size_t>) { continue; }
-//                     if(heuristic_table[hyper_graph.hyper_node_id_map_[node_id]] != MAX<int>) {
-//                         heuristic_values.insert(heuristic_table[hyper_graph.hyper_node_id_map_[node_id]]);
-//                     }
-//                 }
-//                 if(heuristic_values.empty()) { continue; }
-//                 std::stringstream ss;
-//                 ss << "h: ";
-//                 for(const int& value : heuristic_values) {
-//                     ss << value << " ";
-//                 }
-//                 grid_strs[i].push_back(ss.str());
-//             }
-//         }
-
-//         for(int i=0; i<total_index; i++) {
-//             pt = IdToPointi<2>(i, dim);
-//             canvas.drawMultiTextInt(pt[0], pt[1], grid_strs[i], cv::Vec3b::all(0), 1.0);
-//         }
-
-//         char key = canvas.show(100);
-//         switch (key) {
-//             case 'i':
-//                 draw_all_instance = !draw_all_instance;
-//                 break;
-//             case 'r':
-//                 draw_related_agents_map = !draw_related_agents_map;
-//                 break;
-//             case 'n':
-//                 draw_hyper_node_id = !draw_hyper_node_id;
-//                 break;
-//             case 'h':
-//                 draw_heuristic_table = !draw_heuristic_table;
-//                 break;
-//             case 'w':
-//                 current_subgraph_id = current_subgraph_id+1;
-//                 current_subgraph_id = current_subgraph_id % decomposer.agents_.size();
-//                 break;
-//             case 's':
-//                 current_subgraph_id = current_subgraph_id + decomposer.agents_.size() - 1;
-//                 current_subgraph_id = current_subgraph_id % decomposer.agents_.size();
-//                 break;
-//             default:
-//                 break;
-//         }
-//     }
-// }
-
-template<Dimension N>
-void loadInstanceAndDecomposition(const std::string& file_path) {
+void loadLargeAgentInstanceAndDecomposition(const std::string& file_path) {
     InstanceDeserializer<N> deserializer;
     if (deserializer.loadInstanceFromFile(file_path, dim)) {
         std::cout << "load from path " << file_path << " success" << std::endl;
@@ -481,9 +270,9 @@ void loadInstanceAndDecomposition(const std::string& file_path) {
     std::cout << dim[N-1] << std::endl;
 
     gettimeofday(&tv_pre, &tz);
-    LargeAgentMAPFInstanceDecomposition<N, HyperGraphNodeDataRaw<N>> decomposer(deserializer.getInstances(),
-                                                                 deserializer.getAgents(),
-                                                                 dim, is_occupied);
+    LargeAgentMAPFInstanceDecomposition<N, HyperGraphNodeDataRaw<N>, Pose<int, N>> decomposer(deserializer.getInstances(),
+                                                                                       deserializer.getAgents(),
+                                                                                       dim, is_occupied);
     gettimeofday(&tv_after, &tz);
 
     double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
@@ -495,14 +284,14 @@ void loadInstanceAndDecomposition(const std::string& file_path) {
 
 
 template<Dimension N>
-void generateInstanceAndDecomposition(const std::vector<AgentPtr<N> >& agents,
+void generateLargeAgentInstanceAndDecomposition(const std::vector<AgentPtr<N> >& agents,
                                       const std::string& file_path,
-                                      const LA_MAPF_FUNC<N>& mapf_func,
+                                      const LA_MAPF_FUNC<N, Pose<int, N>>& mapf_func,
                                       int maximum_sample_count = 1e7,
                                       bool debug_mode = true,
                                       bool visualize = false) {
-    if(generateInstance(agents, file_path, maximum_sample_count)) {
-        loadInstanceAndDecomposition<N>(file_path);
+    if(generateLargeAgentMAPFInstance(agents, file_path, maximum_sample_count)) {
+        loadLargeAgentInstanceAndDecomposition<N, Pose<int, N>>(file_path);
     }
 }
 
@@ -510,13 +299,13 @@ void generateInstanceAndDecomposition(const std::vector<AgentPtr<N> >& agents,
 
 //LaCAM::LargeAgentConstraints<2, BlockAgent_2D>
 template<Dimension N>
-std::vector<std::string> loadInstanceAndCompareLayeredLAMAPF(const LA_MAPF_FUNC<N>& mapf_func,
-                                                             const std::string& func_identifer,
-                                                             const std::string& file_path,
-                                                             double time_limit = 30,
-                                                             bool path_constraint = false,
-                                                             int level_of_decomposition = 4,
-                                                             bool debug_mode = true) {
+std::vector<std::string> loadLargeAgentInstanceAndCompareLayeredLAMAPF(const LA_MAPF_FUNC<N, Pose<int, N>>& mapf_func,
+                                                                       const std::string& func_identifer,
+                                                                       const std::string& file_path,
+                                                                       double time_limit = 30,
+                                                                       bool path_constraint = false,
+                                                                       int level_of_decomposition = 4,
+                                                                       bool debug_mode = true) {
     InstanceDeserializer<N> deserializer;
     if(deserializer.loadInstanceFromFile(file_path, dim)) {
         std::cout << "load from path " << file_path << " success" << std::endl;
@@ -547,48 +336,51 @@ std::vector<std::string> loadInstanceAndCompareLayeredLAMAPF(const LA_MAPF_FUNC<
                                 debug_mode);
 }
 
-template<Dimension N>
-std::vector<std::string> LayeredLAMAPFCompare(const InstanceOrients<N>& instances,
+template<Dimension N, typename State>
+std::vector<std::string> LayeredLAMAPFCompare(const std::vector<std::pair<State, State>>& instances,
                                               const AgentPtrs<N>& agents,
-                                              const LA_MAPF_FUNC<N>& mapf_func,
+                                              DimensionLength* dim,
+                                              const IS_OCCUPIED_FUNC<N>& isoc,
+                                              const LA_MAPF_FUNC<N, State>& mapf_func,
                                               const std::string& func_identifer,
-                                              double time_limit = 30,
-                                              bool path_constraint = false,
-                                              int level_of_decomposition = 4,
-                                              bool debug_mode = true) {
-    //    LargeAgentMAPF_InstanceGenerator<2, AgentType> generator(deserializer.getAgents(), is_occupied, dim, 1e7);
-//
-//    std::cout << " solvable ?  " << !((generator.getConnectionBetweenNode(7, 89773, 108968)).empty()) << std::endl;
-
+                                              PrecomputationOfMAPFBasePtr<N, State> pre,
+                                              PrecomputationOfMAPFDecompositionBasePtr pre_dec,
+                                              double pre_time_cost,
+                                              double pre_dec_time_cost,
+                                              double time_limit = 30
+                                              ) {
+    sleep(1);
+    MSTimer mst;
     std::vector<std::vector<int> > grid_visit_count_table_layered;
 
-    LargeAgentMAPFInstanceDecompositionPtr<N, HyperGraphNodeDataRaw<N> > decomposer_ptr = nullptr;
+    auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBipartition<N, HyperGraphNodeDataRaw<N>, State> >(
+                        dim,
+                        pre_dec->connect_graphs_,
+                        pre->agent_sub_graphs_,
+                        pre_dec->heuristic_tables_sat_,
+                        pre_dec->heuristic_tables_,
+                        time_limit);
+
     memory_recorder.clear();
-    sleep(1);
     float base_usage = memory_recorder.getCurrentMemoryUsage();
-    auto start_t = clock();
     bool is_loss_of_solvability = false;
-    auto layered_paths = layeredLargeAgentMAPF<N>(instances,
-                                                  agents,
-                                                  dim, is_occupied,
-                                                  mapf_func, //CBS::LargeAgentCBS_func<2, AgentType >,
-                                                  grid_visit_count_table_layered,
-                                                  is_loss_of_solvability,
-                                                  time_limit, decomposer_ptr,
-                                                  path_constraint,
-                                                  level_of_decomposition,
-                                                  debug_mode);
-    auto end_t = clock();
+    auto layered_paths = layeredLargeAgentMAPF<N, State>(bi_decompose->all_clusters_,
+                                                         mapf_func, //CBS::LargeAgentCBS_func<2, AgentType >,
+                                                         grid_visit_count_table_layered,
+                                                         is_loss_of_solvability,
+                                                         pre,
+                                                         time_limit - pre_dec_time_cost - mst.elapsed()/1e3,
+                                                         false);
+    double total_time_cost = mst.elapsed()/1e3 + pre_dec_time_cost;
     sleep(1);
     float peak_usage = memory_recorder.getMaximalMemoryUsage();
     float memory_usage = peak_usage - base_usage;
 
-    double total_time_cost = ((double)end_t - start_t)/CLOCKS_PER_SEC;
     std::cout << "instance has " << agents.size() << " agents, layered " << func_identifer << " find solution ? " << !layered_paths.empty()
               << " in " << total_time_cost << "s " << std::endl;
 
-    std::cout << "Layered: max subproblem / total = " << decomposer_ptr->getMaxSubProblemSize() << " / " << instances.size() << std::endl;
-    std::cout << "Layered: num of subproblem = " << decomposer_ptr->getNumberOfSubProblem() << std::endl;
+    std::cout << "Layered: max subproblem / total = " << getMaxLevelSize(bi_decompose->all_clusters_) << " / " << instances.size() << std::endl;
+    std::cout << "Layered: num of subproblem = " << bi_decompose->all_clusters_.size() << std::endl;
 
     // agents size / time cost / success / SOC / makespan / success / memory usage / init time cost / decom time cost / max subproblem / num of subproblems
     std::stringstream ss_layered;
@@ -596,36 +388,35 @@ std::vector<std::string> LayeredLAMAPFCompare(const InstanceOrients<N>& instance
                << total_time_cost << " "
                << getSOC(layered_paths) << " " << getMakeSpan(layered_paths) << " "
                << !layered_paths.empty() << " " << memory_usage << " "
-               << decomposer_ptr->subgraph_and_heuristic_time_cost_ << " "
+               << 0 << " "
 
-               << decomposer_ptr->initialize_time_cost_  +
-                  decomposer_ptr->instance_decomposition_time_cost_ +
-                  decomposer_ptr->cluster_bipartition_time_cost_ +
-                  decomposer_ptr->level_sorting_time_cost_ +
-                  decomposer_ptr->level_bipartition_time_cost_ << " "
-
-               << decomposer_ptr->getMaxSubProblemSize() << " "
-               << decomposer_ptr->getNumberOfSubProblem() << " "
+               << 0 << " "
+               << getMaxLevelSize(bi_decompose->all_clusters_) << " "
+               << bi_decompose->all_clusters_.size() << " "
                << is_loss_of_solvability;
 
     memory_recorder.clear();
     sleep(1);
     base_usage = memory_recorder.getCurrentMemoryUsage();
-    start_t = clock();
+    mst.reset();
     std::vector<std::vector<int> > grid_visit_count_table_raw;
     auto raw_paths = mapf_func(instances,
                                agents,
                                dim, is_occupied,
                                nullptr,
                                grid_visit_count_table_raw,
-                               time_limit,
-                               {}, nullptr, {}, {}, {}, nullptr); // default null config for layered MAPF
-    end_t = clock();
+                               time_limit - pre_time_cost,
+                               {},
+                               nullptr,
+                               {},
+                               {},
+                               {},
+                               nullptr); // default null config for layered MAPF
+    total_time_cost = mst.elapsed()/1e3 + pre_time_cost;
     sleep(1);
     peak_usage = memory_recorder.getMaximalMemoryUsage();
     memory_usage = peak_usage - base_usage;
 
-    total_time_cost = ((double)end_t - start_t)/CLOCKS_PER_SEC;
     std::cout << "instance has " << agents.size() << " agents, raw " << func_identifer << " find solution ? " << !raw_paths.empty()
               << " in " << total_time_cost << "s " << std::endl;
 
@@ -642,25 +433,24 @@ std::vector<std::string> LayeredLAMAPFCompare(const InstanceOrients<N>& instance
         memory_recorder.clear();
         sleep(1);
         base_usage = memory_recorder.getCurrentMemoryUsage();
-        start_t = clock();
-        auto id_solver = ID::ID<N>(instances, agents,
-                                   dim, is_occupied, mapf_func, time_limit * 1e3);
+        mst.reset();
+
+        auto id_solver = ID::ID<N, State>(mapf_func, pre, (time_limit - pre_time_cost) * 1e3);
         LAMAPF_Paths id_paths;
         if (id_solver.solve()) {
             id_paths = id_solver.getSolution();
         }
-        end_t = clock();
+        total_time_cost = mst.elapsed()/1e3 + pre_time_cost;
         if (!id_paths.empty()) {
             std::cout << "ID: max subproblem / total = " << id_solver.getMaximalSubProblem() << " / "
                       << instances.size() << std::endl;
             std::cout << "ID: num of subproblem = " << id_solver.getNumberOfSubProblem() << std::endl;
-            std::cout << "ID: is solution valid ? " << isSolutionValid<2>(id_paths, agents, id_solver.all_poses_)
+            std::cout << "ID: is solution valid ? " << isSolutionValid<2>(id_paths, agents, id_solver.pre_->all_poses_)
                       << std::endl;
         }
         sleep(1);
         peak_usage = memory_recorder.getMaximalMemoryUsage();
         memory_usage = peak_usage - base_usage;
-        total_time_cost = ((double) end_t - start_t) / CLOCKS_PER_SEC;
 
         // agents size / time cost / success / SOC / makespan / success / memory usage / max subproblem / num of subproblems
         ss_id << "ID_" << func_identifer << " " << agents.size() << " "
@@ -682,21 +472,21 @@ std::vector<std::string> LayeredLAMAPFCompare(const InstanceOrients<N>& instance
 
 // maximum_sample_count: max times of sample start and target for an agent
 template<Dimension N>
-std::vector<std::string> generateInstanceAndCompare(const std::vector<AgentPtr<N> >& agents,
-                                                    const std::string& file_path,
-                                                    const LA_MAPF_FUNC<N>& mapf_func,
-                                                    const std::string& func_identifer,
-                                                    double time_limit = 30,
-                                                    bool path_constraint = false,
-                                                    int maximum_sample_count = 1e7,
-                                                    bool debug_mode = false) {
-    if(generateInstance(agents, file_path, maximum_sample_count)) {
-        auto retv = loadInstanceAndCompareLayeredLAMAPF<N>(mapf_func,
-                                                           func_identifer,
-                                                           file_path,
-                                                           time_limit,
-                                                           path_constraint,
-                                                           debug_mode);
+std::vector<std::string> generateLargeAgentInstanceAndCompare(const std::vector<AgentPtr<N> >& agents,
+                                                              const std::string& file_path,
+                                                              const LA_MAPF_FUNC<N, Pose<int, N>>& mapf_func,
+                                                              const std::string& func_identifer,
+                                                              double time_limit = 30,
+                                                              bool path_constraint = false,
+                                                              int maximum_sample_count = 1e7,
+                                                              bool debug_mode = false) {
+    if(generateLargeAgentMAPFInstance(agents, file_path, maximum_sample_count)) {
+        auto retv = loadLargeAgentInstanceAndCompareLayeredLAMAPF<N>(mapf_func,
+                                                                     func_identifer,
+                                                                     file_path,
+                                                                     time_limit,
+                                                                     path_constraint,
+                                                                     debug_mode);
         return retv;
     } else {
         return {};
@@ -717,66 +507,6 @@ void writeStrsToEndOfFile(const std::vector<std::string>& strs, const std::strin
     os.close();
 }
 
-
-template<Dimension N>
-bool decompositionOfSingleInstance(const InstanceOrients<N> & instances,
-                                   const std::vector<AgentPtr<N> >& agents,
-                                   DimensionLength* dim,
-                                   const IS_OCCUPIED_FUNC<N> & isoc,
-                                   OutputStream& outputStream, int level=4) {
-
-    struct timezone tz;
-    struct timeval tv_pre;
-    struct timeval tv_after;
-
-    memory_recorder.clear();
-    sleep(1);
-    float basic_usage = memory_recorder.getMaximalMemoryUsage();
-    gettimeofday(&tv_pre, &tz);
-
-    auto instance_decompose = std::make_shared<LargeAgentMAPFInstanceDecomposition<N, HyperGraphNodeDataRaw<2>> >(instances,
-                                                                                        agents,
-                                                                                        dim,
-                                                                                        is_occupied,
-                                                                                        true,
-                                                                                        level,
-                                                                                        true);
-
-    gettimeofday(&tv_after, &tz);
-    sleep(1);
-    float peak_usage = memory_recorder.getMaximalMemoryUsage();
-    float memory_usage = peak_usage - basic_usage;
-    double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
-    bool is_legal = true;//instance_decompose->decompositionValidCheck(instance_decompose->all_clusters_);
-
-    int max_cluster_size = 0, total_count = 0;
-    for(int i=0; i<instance_decompose->all_clusters_.size(); i++) {
-        total_count += instance_decompose->all_clusters_[i].size();
-        if(instance_decompose->all_clusters_[i].size() > max_cluster_size) {
-            max_cluster_size = instance_decompose->all_clusters_[i].size();
-        }
-        //if(all_clusters_[i].size() == 1) { continue; }
-        //std::cout << "-- clusters " << i << " size " << all_clusters_[i].size() << ": " << all_clusters_[i] << std::endl;
-    }
-    assert(total_count == instances.size());
-    outputStream.clear();
-    std::stringstream ss;
-    ss << time_cost << " "
-       << max_cluster_size << " "
-       << instances.size() << " "
-       << is_legal << " " << level << " "
-       << memory_usage << " "
-       << instance_decompose->all_clusters_.size() << " "
-       << instance_decompose->initialize_time_cost_ << " "
-       << instance_decompose->instance_decomposition_time_cost_ << " "
-       << instance_decompose->cluster_bipartition_time_cost_ << " "
-       << instance_decompose->level_sorting_time_cost_ << " "
-       << instance_decompose->level_bipartition_time_cost_;
-
-    outputStream = ss.str();
-    std::cout << " memory_usage = " << memory_usage << std::endl;
-    return is_legal;
-}
 
 // test_count: the total count of start and target pair in the scenario file
 // required_count: required

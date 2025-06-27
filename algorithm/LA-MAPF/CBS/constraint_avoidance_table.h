@@ -12,7 +12,7 @@
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
-    template<Dimension N>
+    template<Dimension N, typename State>
     struct ConstraintAvoidanceTable {
     public:
         struct OccGrid {
@@ -54,7 +54,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         typedef std::vector<OccGridSet> OccGridSets;
 
         explicit ConstraintAvoidanceTable(DimensionLength* dim,
-                                          const std::vector<PosePtr<int, N> >& all_poses,
+                                          const std::vector<std::shared_ptr<State>>& all_poses,
                                           const AgentPtr<N>& agent)
         : dim_(dim), all_poses_(all_poses), agent_(agent) {
             //
@@ -121,7 +121,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         static OccGridLevels getAgentPathOccGrids(const AgentPtr<N>& agent,
                                                   const LAMAPF_Path& path,
-                                                  const std::vector<PosePtr<int, N> >& all_nodes,
+                                                  const std::vector<std::shared_ptr<State> >& all_nodes,
                                                   DimensionLength* dim) {
             OccGridLevels retv;
             for(int t=0; t<path.size()-1; t++) {
@@ -197,7 +197,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
         }
 
-        const std::vector<PosePtr<int, N> >& all_poses_;
+        const std::vector<std::shared_ptr<State> >& all_poses_;
 
         OccGridSets occ_table_;
 
@@ -206,8 +206,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         DimensionLength * dim_;
     };
 
-    template<Dimension N>
-    using ConstraintAvoidanceTablePtr = std::shared_ptr<ConstraintAvoidanceTable<N> >;
+    template<Dimension N, typename State>
+    using ConstraintAvoidanceTablePtr = std::shared_ptr<ConstraintAvoidanceTable<N, State> >;
 
 }
 

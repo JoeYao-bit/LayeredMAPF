@@ -226,7 +226,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return mergedPaths;
     }
 
-    template<Dimension N, typename HyperNodeType>
+    template<Dimension N, typename State>
     std::vector<LAMAPF_Path> solveSubproblem(int subproblem_id, // level_global_id
                                              const std::vector<std::set<int> > levels,
                                              const std::vector<AgentPtr<N> >& pre_agents,
@@ -234,10 +234,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                              const std::map<int, LAMAPF_Path>& pre_pathss,
 
                                              std::vector<std::vector<int> >& grid_visit_count_table,
-                                             const PrecomputationOfMAPFBasePtr<N>& pre,
+                                             const PrecomputationOfMAPFBasePtr<N, State>& pre,
                                              double cutoff_time,
                                              const float& max_excircle_radius,
-                                             const LA_MAPF_FUNC<N> & mapf_func,
+                                             const LA_MAPF_FUNC<N, State> & mapf_func,
                                              bool use_path_constraint = false) {
 
         InstanceOrients<N> cluster_instances;
@@ -248,9 +248,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<int> current_id_vec;
         std::vector<size_t> target_node_ids;
 
-        const std::vector<PosePtr<int, N> >& local_all_poses = pre->all_poses_;
+        const std::vector<std::shared_ptr<State> >& local_all_poses     = pre->all_poses_;
         const DistanceMapUpdaterPtr<N>&      local_distance_map_updater = pre->distance_map_updater_;
-        std::vector<SubGraphOfAgent<N> >     local_agent_sub_graphs;
+        std::vector<SubGraphOfAgent<N, State> >     local_agent_sub_graphs;
         std::vector<std::vector<int> >       local_agents_heuristic_tables;
         std::vector<std::vector<int> >       local_agents_heuristic_tables_ignore_rotate;
 
@@ -273,8 +273,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         }
         MSTimer mst;
-        LargeAgentStaticConstraintTablePtr<N>
-                new_constraint_table_ptr_ = std::make_shared<LargeAgentStaticConstraintTable<N> > (
+        LargeAgentStaticConstraintTablePtr<N, State>
+                new_constraint_table_ptr_ = std::make_shared<LargeAgentStaticConstraintTable<N, State> > (
                 max_excircle_radius, pre->dim_, pre->isoc_, pre->agents_, cluster_agents, pre->all_poses_);
 
         new_constraint_table_ptr_->insertPoses(pre_agents, pre_targets);
@@ -285,9 +285,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             }
         }
         // insert future agents' start as static constraint
-        for(int j = subproblem_id+1; j<pre->all_clusters_.size(); j++)
+        for(int j = subproblem_id+1; j<levels.size(); j++)
         {
-            const auto& current_cluster = pre->all_clusters_[j];
+            const auto& current_cluster = levels[j];
             for(const int& agent_id : current_cluster) {
                 new_constraint_table_ptr_->insertPose(agent_id, pre->instance_node_ids_[agent_id].first);
             }
@@ -348,19 +348,19 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     }
 
     // current only considering methods that take external path as constraint, like LA-CBS
-    template<Dimension N, typename HyperNodeType>
-    std::vector<LAMAPF_Path> layeredLargeAgentMAPF(const std::vector<std::set<int> >& levels,
-                                                   const LA_MAPF_FUNC<N> & mapf_func,
+    template<Dimension N, typename State>
+    std::vector<LAMAPF_Path> layeredLargeAgentMAPF(const std::vector<std::set<int> >& raw_levels,
+                                                   const LA_MAPF_FUNC<N, State> & mapf_func,
                                                    std::vector<std::vector<int> >& grid_visit_count_table,
                                                    bool& detect_loss_of_solvability,
-                                                   const PrecomputationOfMAPFBasePtr<N>& pre,
+                                                   const PrecomputationOfMAPFBasePtr<N, State>& pre,
                                                    double cutoff_time = 60,
                                                    bool use_path_constraint = false
                                                    ) {
 
         MSTimer mst;
 
-        assert(levels.size() >= 1);
+        assert(raw_levels.size() >= 1);
 
         float max_excircle_radius = getMaximumRadius<N>(pre->agents_);
 
@@ -375,6 +375,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<AgentPtr<N> > pre_agents;
         std::vector<size_t> pre_targets;
 
+        std::vector<std::set<int> > levels = raw_levels;
+
         int level_id = 0; // id in current level (may merge if detect of solvability)
 
         while(level_id < levels.size()) {
@@ -382,9 +384,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             double remaining_time = (double)cutoff_time - mst.elapsed()/1e3;
 
-            LAMAPF_Paths next_paths = solveSubproblem(level_id, levels, pre_agents, pre_targets, pre_pathss,
-                                                      grid_visit_count_table, remaining_time,
-                                                      pre,
+            LAMAPF_Paths next_paths = solveSubproblem<N, State>(level_id, levels, pre_agents, pre_targets, pre_pathss,
+                                                      grid_visit_count_table, pre,
+                                                      remaining_time,
                                                       max_excircle_radius,
                                                       mapf_func,
                                                       use_path_constraint);
@@ -405,12 +407,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     std::cout << "unsolvable subproblem detected, solvability safeguard start...  " << std::endl;
                     detect_loss_of_solvability = true;
                 }
-                SolvabilitySafeguard<N> safeguard(pre, remaining_time);
+                SolvabilitySafeguard<N, State> safeguard(pre, remaining_time);
 
                 bool success = safeguard.mergeSubproblemTillSolvable(levels,
                                                                      level_id,
                                                                      mapf_func,
-                                                                     pre->isoc, remaining_time);
+                                                                     pre->isoc_, remaining_time);
                 if(!success) {
                     std::cout << "solvability safe guard failed " << std::endl;
                     remaining_time = (double)cutoff_time - mst.elapsed()/1e3;
@@ -421,8 +423,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 } else {
                     std::cout << "solvability safe success " << std::endl;
                     // update progress of subproblems, as safeguard merge subproblem and solve them
-                    safeguard.new_level_paths_;
-                    safeguard.merged_subproblem_id_;
+//                    safeguard.new_level_paths_;
+//                    safeguard.merged_subproblem_id_;
                     assert(safeguard.new_levels_.size() <= levels.size());
                     int backup_i = level_id;
                     std::cout << "level before merge: ";

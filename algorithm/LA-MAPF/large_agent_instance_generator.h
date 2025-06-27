@@ -385,7 +385,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
 //    private:
 
-        SubGraphOfAgent<N> constructSubGraphOfAgent(const AgentPtr<N>& agent) const {
+        SubGraphOfAgent<N, Pose<int, N>> constructSubGraphOfAgent(const AgentPtr<N>& agent) const {
 //            Id total_index = getTotalIndexOfSpace<N>(dim_);
 //            assert(all_poses_.size() == total_index*2*N);
 //            SubGraphOfAgent<N> sub_graph;
@@ -449,11 +449,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             assert(all_poses_.size() == total_index*2*N);
 
-            SubGraphOfAgent<N> sub_graph(agent);
+            SubGraphOfAgent<N, Pose<int, N>> sub_graph(agent);
 
 
             if(sub_graph.data_ptr_ == nullptr) {
-                sub_graph.data_ptr_ = std::make_shared<SubGraphOfAgentData<N> >();
+                sub_graph.data_ptr_ = std::make_shared<SubGraphOfAgentData<N, Pose<int, N>> >();
             }
             sub_graph.data_ptr_->all_nodes_.resize(total_index * 2 * N, nullptr);
 
@@ -520,7 +520,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return sub_graph;
         }
 
-        ComponentIdMap getStrongComponentIdOfAgent(const SubGraphOfAgent<N>& sub_graph) {
+        ComponentIdMap getStrongComponentIdOfAgent(const SubGraphOfAgent<N, Pose<int, N>>& sub_graph) {
             using namespace boost;
             using Vertex = size_t;
 
@@ -567,7 +567,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         // intermediate variables
         std::vector<PosePtr<int, N> > all_poses_;
         DistanceMapUpdater<N> distance_map_updater_;
-        std::vector<SubGraphOfAgent<N> > agent_sub_graphs_;
+        std::vector<SubGraphOfAgent<N, Pose<int, N>> > agent_sub_graphs_;
         std::vector<ComponentIdMap> agent_component_id_maps_; // current node in which component
         int max_sample_ = 1e5;
 

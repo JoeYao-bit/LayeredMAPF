@@ -10,7 +10,7 @@
 
 namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
-    template<Dimension N>
+    template<Dimension N, typename State>
     struct ConstraintTable {
 
         // agent id / edge id (edge id / node size = from node id, edge id % node size = to node id)
@@ -20,7 +20,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
         ConstraintTable(int agent_id,
                         const std::vector<AgentPtr<N> >& agents,
-                        const std::vector<PosePtr<int, N> >& all_poses,
+                        const std::vector<std::shared_ptr<State>>& all_poses,
                         DimensionLength* dim,
                         const IS_OCCUPIED_FUNC<N> & isoc)
                         : agent_id_(agent_id), node_size_(all_poses.size()), agents_(agents),
@@ -145,7 +145,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
         const std::vector<AgentPtr<N> >& agents_;
 
-        const std::vector<PosePtr<int, N> >& all_poses_;
+        const std::vector<std::shared_ptr<State>>& all_poses_;
 
         float max_excircle_radius_ = 0;
 
@@ -165,8 +165,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
     };
 
-    template<Dimension N>
-    using ConstraintTablePtr = std::shared_ptr<ConstraintTable<N> >;
+    template<Dimension N, typename State>
+    using ConstraintTablePtr = std::shared_ptr<ConstraintTable<N, State> >;
 
 }
 

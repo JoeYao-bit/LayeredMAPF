@@ -8,6 +8,7 @@
 #include "../common.h"
 #include <algorithm>
 #include "../CBS/space_time_astar.h"
+#include "../../precomputation_for_mapf.h"
 
 namespace freeNav::LayeredMAPF::LA_MAPF::ID {
 
@@ -26,19 +27,16 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
 
  * */
 
-    template <Dimension N>
-    class ID : public LargeAgentMAPF<N> {
+    template <Dimension N, typename State>
+    class ID {
     public:
-        ID(const InstanceOrients<N> & instances,
-           const std::vector<AgentPtr<N>>& agents,
-           DimensionLength* dim,
-           const IS_OCCUPIED_FUNC<N> & isoc,
-           const LA_MAPF_FUNC<N> & mapf_func,
-           long long runtime = 3e4,
-           int cf = 1, int fID = 1): LargeAgentMAPF<N>(instances, agents, dim, isoc), la_mapf_func_(mapf_func) {
+        ID(const LA_MAPF_FUNC<N, State> & mapf_func,
+           const PrecomputationOfMAPFBasePtr<N, State>& pre,
+           int runtime = 3e4,
+           int cf = 1, int fID = 1): pre_(pre), la_mapf_func_(mapf_func) {
             cost_function = cf;
             full_ID = fID;
-            max_excircle_radius = getMaximumRadius<N>(agents);
+            max_excircle_radius = getMaximumRadius<N>(pre->agents_);
             time_limit = runtime;
         }
 
@@ -46,23 +44,27 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
             //
         }
 
-        bool solve(int cost_lowerbound = 0, int cost_upperbound = MAX_COST) override {
+        bool solve(int cost_lowerbound = 0, int cost_upperbound = MAX_COST) {
             if(SolveProblem() == 0) {
-                this->solutions_ = current_plan;
+                solutions_ = current_plan;
                 return true;
             } else {
                 return false;
             }
         }
 
+        virtual std::vector<LAMAPF_Path> getSolution() const {
+            return solutions_;
+        }
+
         int SolveProblem() {
 //            std::cout << "flag 1" << std::endl;
             //current_plan = std::vector<std::vector<int> >(inst->agents, std::vector<int>());
-            current_plan = LAMAPF_Paths(this->agents_.size());
+            current_plan = LAMAPF_Paths(pre_->agents_.size());
             freeNav::LayeredMAPF::max_size_of_stack_layered = 0;
 
             // fill groups with single agents
-            for (size_t i = 0; i < this->agents_.size(); i++) {
+            for (size_t i = 0; i < pre_->agents_.size(); i++) {
                 groups.push_back(std::vector<int>(1, i));
                 agent_to_group.push_back(i);
             }
@@ -73,19 +75,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
             for (size_t i = 0; i < groups.size(); i++) {
 //                std::cout << "flag 3, i = " << i << std::endl;
                 //single_path->ShortestPath(inst->start[i], inst->goal[i], current_plan[i]); // yz: get single path
-                const auto& start_node_id  = this->instance_node_ids_[i].first;
-                const auto& target_node_id = this->instance_node_ids_[i].second;
+                const auto& start_node_id  = pre_->instance_node_ids_[i].first;
+                const auto& target_node_id = pre_->instance_node_ids_[i].second;
                 const auto& agent = i;
-                CBS::ConstraintTable<N> constraint_table(agent, this->agents_, this->all_poses_, this->dim_, this->isoc_);
-                CBS::SpaceTimeAstar<N> astar(start_node_id, target_node_id,
-                                        this->agents_heuristic_tables_[agent],
-                                        this->agents_heuristic_tables_ignore_rotate_[agent],
-                                        this->agent_sub_graphs_[agent],
+                CBS::ConstraintTable<N, State> constraint_table(agent, pre_->agents_, pre_->all_poses_, pre_->dim_, pre_->isoc_);
+                CBS::SpaceTimeAstar<N, State> astar(start_node_id, target_node_id,
+                                                    pre_->agents_heuristic_tables_[agent],
+                                                    pre_->agents_heuristic_tables_ignore_rotate_[agent],
+                                                    pre_->agent_sub_graphs_[agent],
                                         constraint_table, nullptr, nullptr, nullptr);
                 LAMAPF_Path solution = astar.solve();
                 if(solution.empty()) {
                     std::cout << "FATAL: unsolvable instance agent " << i << " in Independence Detection " << std::endl;
-                    this->solvable = false;
                 }
                 assert(solution.front() == start_node_id);
                 assert(solution.back() == target_node_id);
@@ -96,7 +97,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
 //            std::cout << "flag 4" << std::endl;
 
             for (size_t i = 0; i < current_plan.size(); i++) {
-                const auto& target_node_id = this->instance_node_ids_[i].second;
+                const auto& target_node_id = pre_->instance_node_ids_[i].second;
                 current_plan[i].resize(max_time, target_node_id); // yz: initial paths, make all path have the same length
             }
 //            std::cout << "flag 5" << std::endl;
@@ -153,7 +154,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
 //                std::cout << "flag 10" << std::endl;
             }
 
-            solved = isSolutionValid<N>(current_plan, this->agents_, this->all_poses_);//inst->CheckPlan(current_plan);
+            solved = isSolutionValid<N>(current_plan, pre_->agents_, pre_->all_poses_);//inst->CheckPlan(current_plan);
             final_makespan = getMakeSpan(current_plan);//inst->GetPlanMakespan(current_plan);
             final_soc = getSOC(current_plan);//inst->GetPlanSoC(current_plan);
 
@@ -181,7 +182,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
             return count_of_group;
         }
 
-        LA_MAPF_FUNC<N> la_mapf_func_;
+        LA_MAPF_FUNC<N, State> la_mapf_func_;
 
         // statistic variables
         int final_makespan;
@@ -195,6 +196,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
         int cost_function; // 1 - Makespan, 2 - Sum of Costs
         int full_ID; // 0 - simple ID, 1 - full ID
 
+        std::vector<LAMAPF_Path> solutions_ ;
+
         float max_excircle_radius;
 
         std::vector<std::vector<int> > groups; // yz: which agents in groups
@@ -207,6 +210,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
         LAMAPF_Paths paths_fr; // yz: freeNav style paths
 
         long long time_limit; // yz: in ms
+
+        PrecomputationOfMAPFBasePtr<N, State> pre_;
 
         // yz: check conflict between two groups, start from t=0
         bool CheckForConflicts(int & g1, int & g2) {
@@ -240,7 +245,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
 //                            return true;
 //                        }
                         auto conflict_ptr = detectFirstConflictBetweenPaths(current_plan[j], current_plan[k],
-                                                                            this->agents_[j], this->agents_[k], this->all_poses_);
+                                                                            pre_->agents_[j], pre_->agents_[k], pre_->all_poses_);
                         if(conflict_ptr != nullptr) {
                             g1 = agent_to_group[j];
                             g2 = agent_to_group[k];
@@ -279,7 +284,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
             // Makespan
             if (cost_function == 1) {
                 for (size_t i = 0; i < groups[g1].size(); i++) {
-                    const auto& goal = this->instance_node_ids_[groups[g1][i]].second;
+                    const auto& goal = pre_->instance_node_ids_[groups[g1][i]].second;
                     for (size_t j = current_plan[groups[g1][i]].size() - 1; j > cost; j--) {
                         if (current_plan[groups[g1][i]][j] == goal &&
                             current_plan[groups[g1][i]][j - 1] != goal) {
@@ -293,7 +298,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
                 // Sum of Costs
             else if (cost_function == 2) {
                 for (size_t i = 0; i < groups[g1].size(); i++) {
-                    const auto& goal = this->instance_node_ids_[groups[g1][i]].second;
+                    const auto& goal = pre_->instance_node_ids_[groups[g1][i]].second;
                     for (int j = current_plan[groups[g1][i]].size() - 1; j >= 0; j--) {
                         if (current_plan[groups[g1][i]][j] != goal) {
                             cost += j + 1;
@@ -323,7 +328,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
             // fix current plan
             if (new_makespan != old_makespan) {
                 for (size_t i = 0; i < current_plan.size(); i++) {
-                    const auto& goal = this->instance_node_ids_[i].second;
+                    const auto& goal = pre_->instance_node_ids_[i].second;
                     current_plan[i].resize(new_makespan, goal);
                 }
             }
@@ -331,7 +336,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
             // fix added plan
             if (new_makespan != found_plan[0].size()) {
                 for (size_t i = 0; i < found_plan.size(); i++) {
-                    const auto& goal = this->instance_node_ids_[agents_to_plan[i]].second;
+                    const auto& goal = pre_->instance_node_ids_[agents_to_plan[i]].second;
                     found_plan[i].resize(new_makespan, goal);
                 }
             }
@@ -345,7 +350,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
         int PlanForGroups(int g1, int g2, int Cost) {
             std::vector<int> agents_to_plan;
             std::vector<std::vector<int> > agents_to_avoid;
-            double time_cost = this->mst_.elapsed()/CLOCKS_PER_SEC;
+            double time_cost = pre_->mst_.elapsed()/CLOCKS_PER_SEC;
 
             auto remain_s = time_limit/1e3 - time_cost;
             std::cout << "remain_s = " << remain_s << std::endl;
@@ -361,28 +366,28 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
             std::vector<int> current_id_vec;
             std::vector<size_t> target_node_ids;
 
-            const std::vector<PosePtr<int, N> >& local_all_poses = this->all_poses_;
-            const DistanceMapUpdaterPtr<N>&      local_distance_map_updater = this->distance_map_updater_;
-            std::vector<SubGraphOfAgent<N> >     local_agent_sub_graphs;
+            const std::vector<std::shared_ptr<State> >& local_all_poses = pre_->all_poses_;
+            const DistanceMapUpdaterPtr<N>&      local_distance_map_updater = pre_->distance_map_updater_;
+            std::vector<SubGraphOfAgent<N, State> >     local_agent_sub_graphs;
             std::vector<std::vector<int> >       local_agents_heuristic_tables;
             std::vector<std::vector<int> >       local_agents_heuristic_tables_ignore_rotate;
 
 
             for(const auto& current_id : current_id_set) {
                 current_id_vec.push_back(current_id);
-                cluster_instances.push_back(this->instances_[current_id]);
-                cluster_agents.push_back(this->agents_[current_id]);
+                cluster_instances.push_back(pre_->instances_[current_id]);
+                cluster_agents.push_back(pre_->agents_[current_id]);
 
 
-                target_node_ids.push_back(this->instance_node_ids_[current_id].second);
+                target_node_ids.push_back(pre_->instance_node_ids_[current_id].second);
 
-                local_agent_sub_graphs.push_back(this->agent_sub_graphs_[current_id]);
+                local_agent_sub_graphs.push_back(pre_->agent_sub_graphs_[current_id]);
 
                 local_agents_heuristic_tables.push_back(
-                        this->agents_heuristic_tables_[current_id]);
+                        pre_->agents_heuristic_tables_[current_id]);
 
                 local_agents_heuristic_tables_ignore_rotate.push_back(
-                        this->agents_heuristic_tables_ignore_rotate_[current_id]);
+                        pre_->agents_heuristic_tables_ignore_rotate_[current_id]);
 
             }
 //            std::cout << "flag 9.2" << std::endl;
@@ -391,15 +396,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
             for(int k=0; k<current_id_vec.size(); k++) {
 
                 const auto &agent_id = current_id_vec[k];
-                AgentPtr<N> local_copy = this->agents_[agent_id]->copy();
+                AgentPtr<N> local_copy = pre_->agents_[agent_id]->copy();
                 local_copy->id_ = k;
                 local_cluster_agents.push_back(local_copy);
             }
 //            std::cout << "flag 9.3" << std::endl;
 
-            LargeAgentStaticConstraintTablePtr<N>
-                    new_constraint_table_ptr_ = std::make_shared<LargeAgentStaticConstraintTable<N> > (
-                    max_excircle_radius, this->dim_, this->isoc_, this->agents_, cluster_agents, this->all_poses_);
+            LargeAgentStaticConstraintTablePtr<N, State>
+                    new_constraint_table_ptr_ = std::make_shared<LargeAgentStaticConstraintTable<N, State> > (
+                    max_excircle_radius, pre_->dim_, pre_->isoc_, pre_->agents_, cluster_agents, pre_->all_poses_);
 
             // insert previous agents' target as static constraint
             new_constraint_table_ptr_->updateEarliestArriveTimeForAgents(cluster_agents, target_node_ids);
@@ -430,7 +435,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
             std::vector<std::vector<int> > grid_visit_count_table_local;
             std::vector<LAMAPF_Path> retv_path = la_mapf_func_(cluster_instances,
                                                                local_cluster_agents,
-                                                               this->dim_, this->isoc_,
+                                                               pre_->dim_, pre_->isoc_,
                                                                new_constraint_table_ptr_,
                                                                grid_visit_count_table_local, remain_s,
                                                                local_all_poses,
@@ -447,8 +452,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
 //            std::cout << "find solution of group " << g1 << "'s " << retv_path.size() << " agents' path" << std::endl;
                 std::vector<LAMAPF_Path> found_plan;
                 for(int i=0; i<retv_path.size(); i++) {
-                    assert(retv_path[i].front() == this->instance_node_ids_[groups[g1][i]].first);
-                    assert(retv_path[i].back()  == this->instance_node_ids_[groups[g1][i]].second);
+                    assert(retv_path[i].front() == pre_->instance_node_ids_[groups[g1][i]].first);
+                    assert(retv_path[i].back()  == pre_->instance_node_ids_[groups[g1][i]].second);
                     found_plan.push_back(retv_path[i]);
                 }
                 FixPlan(agents_to_plan, found_plan);

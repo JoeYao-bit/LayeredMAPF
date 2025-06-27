@@ -14,9 +14,30 @@
 
 namespace freeNav::LayeredMAPF {
 
+    class PrecomputationOfMAPFDecompositionBase {
+    public:
+
+        PrecomputationOfMAPFDecompositionBase(bool with_sat_heu = true):
+                                              with_sat_heu_(with_sat_heu)
+        {}
+
+        std::vector<LA_MAPF::ConnectivityGraph> connect_graphs_;
+
+        std::vector<std::vector<int> > heuristic_tables_sat_; // distinguish_sat = true
+
+        std::vector<std::vector<int> > heuristic_tables_; // distinguish_sat = false
+
+        bool with_sat_heu_ = true; // whether calculate heuristic_tables_
+
+        float initialize_time_cost_ = 0;
+
+    };
+
+    typedef std::shared_ptr<PrecomputationOfMAPFDecompositionBase> PrecomputationOfMAPFDecompositionBasePtr;
 
     template<Dimension N, typename HyperNodeType>
-    class PrecomputationOfLAMAPFDecomposition : public PrecomputationOfLAMAPF<N, HyperNodeType> {
+    class PrecomputationOfLAMAPFDecomposition :
+            public PrecomputationOfMAPFDecompositionBase, public PrecomputationOfLAMAPF<N> {
     public:
 
         PrecomputationOfLAMAPFDecomposition(const InstanceOrients<N> & instances,
@@ -26,9 +47,8 @@ namespace freeNav::LayeredMAPF {
                                bool with_sat_heu = true,
                                bool directed_graph = true,
                                int num_of_CPU = 6) :
-                               PrecomputationOfLAMAPF<N, HyperNodeType>(instances, agents, dim, isoc),
-                               with_sat_heu_(with_sat_heu),
-                               directed_graph_(directed_graph),
+                               PrecomputationOfLAMAPF<N>(instances, agents, dim, isoc),
+                               PrecomputationOfMAPFDecompositionBase(with_sat_heu),
                                num_of_CPU_(num_of_CPU) {
 
 
@@ -36,14 +56,14 @@ namespace freeNav::LayeredMAPF {
 
             constructConnectivityGraphAndHeuristicTable();
 
-            initialize_time_cost_ =  mst.elapsed(); // // this is not right
+            this->initialize_time_cost_ =  mst.elapsed();
 
-            std::cout << "-- LA-MAPF decomposition precomputation time cost (ms) = " << initialize_time_cost_ << std::endl;
+            std::cout << "-- LA-MAPF decomposition precomputation time cost (ms) = " << this->initialize_time_cost_ << std::endl;
 
         }
 
 
-        LA_MAPF::SubGraphOfAgent<N> constructSubGraphOfAgent(int agent_id) {
+        LA_MAPF::SubGraphOfAgent<N, Pose<int, N>> constructSubGraphOfAgent(int agent_id) {
             const LA_MAPF::AgentPtr<N> & agent = this->agents_[agent_id];
             Id total_index = getTotalIndexOfSpace<N>(this->dim_);
 
@@ -58,8 +78,8 @@ namespace freeNav::LayeredMAPF {
                     this->instances_[agent_id].second.orient_;
 
 
-            LA_MAPF::SubGraphOfAgent<N> sub_graph(agent);
-            sub_graph.data_ptr_ = std::make_shared<LA_MAPF::SubGraphOfAgentData<N> >();
+            LA_MAPF::SubGraphOfAgent<N, Pose<int, N>> sub_graph(agent);
+            sub_graph.data_ptr_ = std::make_shared<LA_MAPF::SubGraphOfAgentData<N, Pose<int, N>> >();
 
             sub_graph.data_ptr_->all_nodes_.resize(total_index * 2 * N, nullptr);
             sub_graph.start_node_id_ = start_node_id;
@@ -136,7 +156,7 @@ namespace freeNav::LayeredMAPF {
         void constructSubgraph() {
 
             // initialize in parallel thread to reduce time cost
-            std::map<int, LA_MAPF::SubGraphOfAgent<N>> sub_graphs_map;
+            std::map<int, LA_MAPF::SubGraphOfAgent<N, Pose<int, N>>> sub_graphs_map;
             std::map<int, std::vector<int> > heuristic_tables_;
             std::map<int, std::vector<int> > heuristic_tables_ig_rotate;
             int interval = this->agents.size()/num_of_CPU_;// set to larger value to reduce maximal memory usage and num of threads
@@ -194,7 +214,7 @@ namespace freeNav::LayeredMAPF {
             while(finished != std::vector<bool>(this->agents_.size(), true)) {
                 usleep(5e4);
             }
-            this->agent_sub_graphs_.resize(this->agents_.size(), LA_MAPF::SubGraphOfAgent<N>(nullptr));
+            this->agent_sub_graphs_.resize(this->agents_.size(), LA_MAPF::SubGraphOfAgent<N, Pose<int, N>>(nullptr));
             for (const auto &subgraph_pair : sub_graphs_map) {
                 this->agent_sub_graphs_[subgraph_pair.first] = subgraph_pair.second;
             }
@@ -234,14 +254,14 @@ namespace freeNav::LayeredMAPF {
             std::map<int, std::vector<int> > heuristic_tables_ig_sat;
 
             // how many agents in a thread
-            int interval = this->agents.size()/num_of_CPU_;// set to larger value to reduce maximal memory usage and num of threads
+            int interval = this->agents_.size()/num_of_CPU_;// set to larger value to reduce maximal memory usage and num of threads
             // num of thread should close to the num of CPU
 //            int num_threads = agents.size()/interval;
             //std::cout << " num of threads = " << num_threads << std::endl;
             std::mutex lock_1, lock_2, lock_3, lock_4;
             std::vector<bool> finished(this->agents_.size(), false);
             int count_of_instance = 0;
-            while(count_of_instance < this->instances.size()) {
+            while(count_of_instance < this->instances_.size()) {
                 auto lambda_func = [&]() {
                     MSTimer mst_1;
                     for (int k = 0; k < interval; k++) {
@@ -262,7 +282,7 @@ namespace freeNav::LayeredMAPF {
                         lock_2.lock();
                         heuristic_tables_sat.insert({map_id, heu_sat_table});
                         lock_2.unlock();
-                        if(with_sat_heu_) {
+                        if(this->with_sat_heu_) {
                             const auto& heu_ig_sat_table =
                                     LA_MAPF::calculateLargeAgentHyperGraphStaticHeuristic
                                             <N, HyperNodeType>
@@ -430,7 +450,7 @@ namespace freeNav::LayeredMAPF {
             LA_MAPF::ConnectivityGraph graph;
             graph.data_ptr_ = std::make_shared<LA_MAPF::ConnectivityGraphData>(this->all_poses_.size());
 
-            LA_MAPF::SubGraphOfAgent<N> current_subgraph = this->agent_sub_graphs_[agent_id];
+            LA_MAPF::SubGraphOfAgent<N, Pose<int, N>> current_subgraph = this->agent_sub_graphs_[agent_id];
             assert(current_subgraph.data_ptr_->all_nodes_[this->instance_node_ids_[agent_id].first] != nullptr);
             assert(current_subgraph.data_ptr_->all_nodes_[this->instance_node_ids_[agent_id].second] != nullptr);
 
@@ -441,11 +461,11 @@ namespace freeNav::LayeredMAPF {
             assert(graph.data_ptr_->related_agents_map_[this->instance_node_ids_[agent_id].second].size() >= 1);
 
             // 2, construct connectivity graph and record boundary (where different hyper node converge)
-            const auto& retv_pair = getStrongComponentFromSubGraph(current_subgraph.data_ptr_->all_nodes_,
-                                                                   current_subgraph.data_ptr_->all_edges_,
-                                                                   current_subgraph.data_ptr_->all_backward_edges_,
-                                                                   graph.data_ptr_->related_agents_map_,
-                                                                   directed_graph_);
+            const auto& retv_pair = LA_MAPF::getStrongComponentFromSubGraph<Pose<int, N>>(current_subgraph.data_ptr_->all_nodes_,
+                                                                                    current_subgraph.data_ptr_->all_edges_,
+                                                                                    current_subgraph.data_ptr_->all_backward_edges_,
+                                                                                    graph.data_ptr_->related_agents_map_,
+                                                                                    directed_graph_);
 
 
             const auto& strong_components = retv_pair.first;
@@ -586,17 +606,14 @@ namespace freeNav::LayeredMAPF {
 
         std::vector<std::vector<int> > heuristic_tables_; // distinguish_sat = false
 
-        bool with_sat_heu_ = true; // whether calculate heuristic_tables_
-
         bool directed_graph_ = true;
-
-        float initialize_time_cost_ = 0;
 
         int num_of_CPU_ = 1;
 
     };
 
-
+    template<Dimension N, typename HyperNodeType>
+    using PrecomputationOfLAMAPFDecompositionPtr = std::shared_ptr<PrecomputationOfLAMAPFDecomposition<N, HyperNodeType>>;
 
     // unordered_set
     template<Dimension N, typename HyperNodeType>
@@ -686,11 +703,17 @@ namespace freeNav::LayeredMAPF {
     }
 
 
+
     template<Dimension N, typename HyperNodeType>
-    class PrecomputationOfMAPFDecomposition : public PrecomputationOfMAPF<N, HyperNodeType> {
+    class PrecomputationOfMAPFDecomposition : public PrecomputationOfMAPFDecompositionBase, public PrecomputationOfMAPF<N>  {
     public:
 
-        PrecomputationOfMAPFDecomposition(bool with_sat_heu = true) : with_sat_heu_(with_sat_heu) {
+        PrecomputationOfMAPFDecomposition(const Instances<N>& instance,
+                                          DimensionLength* dim,
+                                          const IS_OCCUPIED_FUNC<N>& isoc,
+                                          bool with_sat_heu = true) :
+                                          PrecomputationOfMAPF<N>(instance, dim, isoc),
+                                          PrecomputationOfMAPFDecompositionBase(with_sat_heu) {
 
             MSTimer mst;
 
@@ -700,23 +723,23 @@ namespace freeNav::LayeredMAPF {
                 cg.data_ptr_ = connect_data_ptr;
                 cg.start_hyper_node_ = connect_data_ptr->hyper_node_id_map_[this->instance_node_ids_[agent_id].first];
                 cg.target_hyper_node_  = connect_data_ptr->hyper_node_id_map_[this->instance_node_ids_[agent_id].second];
-                connect_graphs_.push_back(cg);
-                heuristic_tables_sat_.push_back(calculateAgentHyperGraphStaticHeuristic<N, HyperNodeType>(agent_id,
+                this->connect_graphs_.push_back(cg);
+                this->heuristic_tables_sat_.push_back(calculateAgentHyperGraphStaticHeuristic<N, HyperNodeType>(agent_id,
                                                                                                 this->dim_,
-                                                                                                connect_graphs_[agent_id],
+                                                                                                this->connect_graphs_[agent_id],
                                                                                                 true));
 
-                if(with_sat_heu_) {
-                    heuristic_tables_.push_back(calculateAgentHyperGraphStaticHeuristic<N, HyperNodeType>(agent_id,
+                if(this->with_sat_heu_) {
+                    this->heuristic_tables_.push_back(calculateAgentHyperGraphStaticHeuristic<N, HyperNodeType>(agent_id,
                                                                                                 this->dim_,
-                                                                                                connect_graphs_[agent_id],
+                                                                                                this->connect_graphs_[agent_id],
                                                                                                 false));
                 }
             }
 
-            initialize_time_cost_ =  mst.elapsed();
+            this->initialize_time_cost_ =  mst.elapsed();
 
-            std::cout << "-- MAPF initialize_time_cost_ (ms) = " << initialize_time_cost_ << std::endl;
+            std::cout << "-- MAPF initialize_time_cost_ (ms) = " << this->initialize_time_cost_ << std::endl;
         }
 
 
@@ -733,14 +756,14 @@ namespace freeNav::LayeredMAPF {
                 data_ptr->related_agents_map_[this->instance_node_ids_[i].second] = { 2*i+1 };
             }
 
-            LA_MAPF::SubGraphOfAgent<N> current_subgraph = this->agent_sub_graphs_.front();
+            LA_MAPF::SubGraphOfAgent<N, Pointi<N>> current_subgraph = this->agent_sub_graphs_.front();
 
             // 2, construct connectivity graph and record boundary (where different hyper node converge)
-            const auto& retv_pair = getStrongComponentFromSubGraph(current_subgraph.data_ptr_->all_nodes_,
-                                                                   current_subgraph.data_ptr_->all_edges_,
-                                                                   current_subgraph.data_ptr_->all_backward_edges_,
-                                                                   data_ptr->related_agents_map_,
-                                                                   true);
+            const auto& retv_pair = LA_MAPF::getStrongComponentFromSubGraph<Pointi<N>>(current_subgraph.data_ptr_->all_nodes_,
+                                                                                 current_subgraph.data_ptr_->all_edges_,
+                                                                                 current_subgraph.data_ptr_->all_backward_edges_,
+                                                                                 data_ptr->related_agents_map_,
+                                                                                 true);
 
 
             const auto& strong_components = retv_pair.first;
@@ -860,28 +883,18 @@ namespace freeNav::LayeredMAPF {
             return data_ptr;
         }
 
-        std::vector<LA_MAPF::ConnectivityGraph> connect_graphs_;
-
-        std::vector<std::vector<int> > heuristic_tables_sat_; // distinguish_sat = true
-
-        std::vector<std::vector<int> > heuristic_tables_; // distinguish_sat = false
-
-        bool with_sat_heu_ = true; // whether calculate heuristic_tables_
-
-        float initialize_time_cost_ = 0;
-
     };
 
 
 
-    template<Dimension N>
+    template<Dimension N, typename State>
     bool LA_MAPF_DecompositionValidCheckGridMap(const std::vector<std::set<int> >& all_levels,
                                                 DimensionLength* dim,
                                                 const IS_OCCUPIED_FUNC<N>& isoc,
                                                 const LA_MAPF::AgentPtrs<N>& agents,
                                                 const std::vector<std::pair<size_t, size_t> >& instance_node_ids,
                                                 const std::vector<PosePtr<int, N> >& all_poses,
-                                                const std::vector<LA_MAPF::SubGraphOfAgent<N> >& agent_sub_graphs,
+                                                const std::vector<LA_MAPF::SubGraphOfAgent<N, State> >& agent_sub_graphs,
                                                 const std::vector<std::vector<int> >& agents_heuristic_tables,
                                                 const std::vector<std::vector<int> >& agents_heuristic_tablesignore_rotate
     ) {
@@ -902,8 +915,8 @@ namespace freeNav::LayeredMAPF {
             }
 
 
-            LA_MAPF::LargeAgentStaticConstraintTablePtr<N>
-                    new_constraint_table_ptr_ = std::make_shared<LA_MAPF::LargeAgentStaticConstraintTable<N> > (
+            LA_MAPF::LargeAgentStaticConstraintTablePtr<N, State>
+                    new_constraint_table_ptr_ = std::make_shared<LA_MAPF::LargeAgentStaticConstraintTable<N, State> > (
                     max_excircle_radius, dim, isoc, agents, cur_agents, all_poses);
 
             new_constraint_table_ptr_->insertPoses(pre_agents, pre_targets);
@@ -925,21 +938,21 @@ namespace freeNav::LayeredMAPF {
             new_constraint_table_ptr_->updateEarliestArriveTimeForAgents(cur_agents, cur_targets);
             for(const auto& agent_id : all_levels[i]) {
                 //                    std::cout << "-- agent " << agent_id << " valid check ... " << std::endl;
-                LA_MAPF::CBS::ConstraintTable<N> constraint_table(agent_id,
+                LA_MAPF::CBS::ConstraintTable<N, State> constraint_table(agent_id,
                                                                   agents,
                                                                   all_poses,
                                                                   dim,
                                                                   isoc);
 
-                LA_MAPF::CBS::SpaceTimeAstar<N> solver(instance_node_ids[agent_id].first,
-                                                       instance_node_ids[agent_id].second,
-                                                       agents_heuristic_tables[agent_id],
-                                                       agents_heuristic_tablesignore_rotate[agent_id],
-                                                       agent_sub_graphs[agent_id],
-                                                       constraint_table,
-                                                       nullptr,
-                                                       new_constraint_table_ptr_,
-                                                       nullptr //&connect_graphs_[4] // only in debug !
+                LA_MAPF::CBS::SpaceTimeAstar<N, State> solver(instance_node_ids[agent_id].first,
+                                                                  instance_node_ids[agent_id].second,
+                                                                  agents_heuristic_tables[agent_id],
+                                                                  agents_heuristic_tablesignore_rotate[agent_id],
+                                                                  agent_sub_graphs[agent_id],
+                                                                  constraint_table,
+                                                                  nullptr,
+                                                                  new_constraint_table_ptr_,
+                                                                  nullptr //&connect_graphs_[4] // only in debug !
                 );
                 LA_MAPF::LAMAPF_Path path = solver.solve();
                 if(path.empty()) {
@@ -951,7 +964,6 @@ namespace freeNav::LayeredMAPF {
         }
         return true;
     }
-
 
 }
 

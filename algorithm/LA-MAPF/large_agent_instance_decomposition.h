@@ -21,11 +21,11 @@
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
     // inherit LargeAgentMAPF to avoid
-    template<Dimension N, typename HyperNodeType>
-    class LargeAgentMAPFInstanceDecomposition : public LargeAgentMAPF<N> {
+    template<Dimension N, typename HyperNodeType, typename State>
+    class LargeAgentMAPFInstanceDecomposition : public LargeAgentMAPF<N, State> {
     public:
 
-        LargeAgentMAPFInstanceDecomposition(const InstanceOrients<N> & instances,
+        LargeAgentMAPFInstanceDecomposition(const std::vector<std::pair<State, State>> & instances,
                                             const std::vector<AgentPtr<N> >& agents,
                                             DimensionLength* dim,
                                             const IS_OCCUPIED_FUNC<N> & isoc,
@@ -33,7 +33,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                             int decompose_level=4,
                                             bool debug_mode = true,
                                             double time_limit = 60)
-                                            : LargeAgentMAPF<N>(instances, agents, dim, isoc,
+                                            : LargeAgentMAPF<N, State>(instances, agents, dim, isoc,
                                                                 {}, nullptr, {}, {}, {},
                                                                 time_limit),
                                               directed_graph_(directed_graph),
@@ -275,8 +275,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     cur_targets.push_back(this->instance_node_ids_[agent_id].second);
                 }
 
-                LargeAgentStaticConstraintTablePtr<N>
-                        new_constraint_table_ptr_ = std::make_shared<LargeAgentStaticConstraintTable<N> > (
+                LargeAgentStaticConstraintTablePtr<N, State>
+                        new_constraint_table_ptr_ = std::make_shared<LargeAgentStaticConstraintTable<N, State> > (
                         max_excircle_radius, this->dim_, this->isoc_, this->agents_, cur_agents, this->all_poses_);
 
                 new_constraint_table_ptr_->insertPoses(pre_agents, pre_targets);
@@ -295,22 +295,22 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 new_constraint_table_ptr_->updateEarliestArriveTimeForAgents(cur_agents, cur_targets);
                 for(const auto& agent_id : all_levels[i]) {
 //                    std::cout << "-- agent " << agent_id << " valid check ... " << std::endl;
-                    CBS::ConstraintTable<N> constraint_table(agent_id,
-                                                                        this->agents_,
-                                                                        this->all_poses_,
-                                                                        this->dim_,
-                                                                        this->isoc_);
+                    CBS::ConstraintTable<N, State> constraint_table(agent_id,
+                                                                    this->agents_,
+                                                                    this->all_poses_,
+                                                                    this->dim_,
+                                                                    this->isoc_);
 
-                    CBS::SpaceTimeAstar<N> solver(this->instance_node_ids_[agent_id].first,
-                                                             this->instance_node_ids_[agent_id].second,
-                                                             this->agents_heuristic_tables_[agent_id],
-                                                             this->agents_heuristic_tables_ignore_rotate_[agent_id],
-                                                             this->agent_sub_graphs_[agent_id],
-                                                             constraint_table,
-                                                             nullptr,
-                                                             new_constraint_table_ptr_,
-                                                             nullptr //&connect_graphs_[4] // only in debug !
-                                                             );
+                    CBS::SpaceTimeAstar<N, State> solver(this->instance_node_ids_[agent_id].first,
+                                                         this->instance_node_ids_[agent_id].second,
+                                                         this->agents_heuristic_tables_[agent_id],
+                                                         this->agents_heuristic_tables_ignore_rotate_[agent_id],
+                                                         this->agent_sub_graphs_[agent_id],
+                                                         constraint_table,
+                                                         nullptr,
+                                                         new_constraint_table_ptr_,
+                                                         nullptr //&connect_graphs_[4] // only in debug !
+                                                         );
                     LAMAPF_Path path = solver.solve();
                     grid_paths_[agent_id] = path;
                     agent_visited_grids_[agent_id] = solver.grid_visit_count_table_;
@@ -557,7 +557,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             ConnectivityGraph graph;
             graph.data_ptr_ = std::make_shared<ConnectivityGraphData>(this->all_poses_.size());
 
-            SubGraphOfAgent<N> current_subgraph = this->agent_sub_graphs_[agent_id];
+            SubGraphOfAgent<N, State> current_subgraph = this->agent_sub_graphs_[agent_id];
             assert(current_subgraph.data_ptr_->all_nodes_[this->instance_node_ids_[agent_id].first] != nullptr);
             assert(current_subgraph.data_ptr_->all_nodes_[this->instance_node_ids_[agent_id].second] != nullptr);
 
@@ -1946,8 +1946,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     };
 
-    template<Dimension N, typename HyperNodeType>
-    using LargeAgentMAPFInstanceDecompositionPtr = std::shared_ptr<LargeAgentMAPFInstanceDecomposition<N, HyperNodeType> >;
+    template<Dimension N, typename HyperNodeType, typename State>
+    using LargeAgentMAPFInstanceDecompositionPtr = std::shared_ptr<LargeAgentMAPFInstanceDecomposition<N, HyperNodeType, State> >;
 
 }
 #endif //LAYEREDMAPF_LARGE_AGENT_INSTANCE_DECOMPOSITION_H

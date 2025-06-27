@@ -53,21 +53,21 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
     // debug: record all visited node during expansion and visualize,
     //       to find out why in some cases 10^7 nodes are created
-    template <Dimension N>
-    class SpaceTimeAstar : public SingleAgentSolver<N> {
+    template <Dimension N, typename State>
+    class SpaceTimeAstar : public SingleAgentSolver<N, State> {
     public:
         SpaceTimeAstar(const size_t& start_pose_id,
                        const size_t& target_pose_id,
                        const std::vector<int>& heuristic,
                        const std::vector<int>& heuristic_ignore_rotate,
-                       const SubGraphOfAgent<N>& sub_graph,
+                       const SubGraphOfAgent<N, State>& sub_graph,
 
-                       const ConstraintTable<N>& constraint_table,
-                       const ConstraintAvoidanceTablePtr<N>& constraint_avoidance_table,
-                       const LargeAgentStaticConstraintTablePtr<N>& path_constraint,
+                       const ConstraintTable<N, State>& constraint_table,
+                       const ConstraintAvoidanceTablePtr<N, State>& constraint_avoidance_table,
+                       const LargeAgentStaticConstraintTablePtr<N, State>& path_constraint,
                        ConnectivityGraph* connect_graph = nullptr
-        ) : SingleAgentSolver<N>(start_pose_id, target_pose_id, heuristic, heuristic_ignore_rotate, sub_graph,
-                                        constraint_table, constraint_avoidance_table, path_constraint),
+        ) : SingleAgentSolver<N,  State>(start_pose_id, target_pose_id, heuristic, heuristic_ignore_rotate, sub_graph,
+                                         constraint_table, constraint_avoidance_table, path_constraint),
             connect_graph_(connect_graph) {
             //
 //            std::cout << "space time search agent " <<  this->sub_graph_.agent_ << std::endl;

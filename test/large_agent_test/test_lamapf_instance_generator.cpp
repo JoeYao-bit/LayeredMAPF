@@ -54,156 +54,6 @@ TEST(Block2DAgentTest, generator_test) {
 
 int canvas_size_x = 1000, canvas_size_y = 700;
 
-// generateInstanceAndDecomposition
-
-TEST(GenerateCircleInstance_decomposition, test)
-{
-    const AgentPtrs<2>& agents = RandomCircleAgentsGenerator<2>(30,
-                                                                .4, 2.3,
-                                                                .1,
-                                                                dim);
-
-    generateInstanceAndDecomposition<2> (agents,
-                                        map_test_config.at("la_ins_path"),
-                                        CBS::LargeAgentCBS_func<2>,
-                                        1e4, true);
-
-//    generateInstance<CircleAgent<2>,
-//        LaCAM::LargeAgentLaCAM<2, CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >
-//        (agents, map_test_config.at("la_ins_path"));
-
-};
-
-TEST(GenerateBlockInstance_decomposition, test)
-{
-    const AgentPtrs<2>& agents = RandomBlock2DAgentsGenerator(40,
-                                                              -2.4, -.2,
-                                                              .2, 2.4,
-                                                              .2, 2.4,
-                                                              .1, dim);
-
-    generateInstanceAndDecomposition<2> (agents,
-                                         map_test_config.at("la_ins_path"),
-                                         CBS::LargeAgentCBS_func<2>,
-                                         1e4, true);
-
-//    generateInstance<CircleAgent<2>,
-//        LaCAM::LargeAgentLaCAM<2, CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >
-//        (agents, map_test_config.at("la_ins_path"));
-
-};
-
-TEST(GenerateMixedInstance_decomposition, test)
-{
-    AgentPtrs<2> agents = RandomMixedAgentsGenerator(50,
-                                                     .4, 2.,
-                                                     50,
-                                                     -2., -.2,
-                                                     .2, 2.,
-                                                     .2, 2.,
-                                                     .1, dim);
-    generateInstanceAndDecomposition<2> (agents,
-                                         map_test_config.at("la_ins_path"),
-                                         CBS::LargeAgentCBS_func<2>,
-                                         1e8, true);
-
-//    generateInstance<CircleAgent<2>,
-//        LaCAM::LargeAgentLaCAM<2, CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >
-//        (agents, map_test_config.at("la_ins_path"));
-
-};
-
-TEST(GenerateCircleInstance, test)
-{
-    const AgentPtrs<2>& agents = RandomCircleAgentsGenerator<2>(10,
-                                                                   .4, 1.4,
-                                                                   .1,
-                                                                   dim);
-
-//    generateInstanceAndPlanning<2> (agents,
-//                                       map_test_config.at("la_ins_path"),
-//                                       CBS::LargeAgentCBS_func<2>,
-//                                               1e4, true, true);
-
-    generateInstanceAndPlanning<2> (agents,
-                                    map_test_config.at("la_ins_path"),
-                                    LaCAM::LargeAgentLaCAM_func<2>,
-                                    1e4, true);
-
-};
-
-
-TEST(GenerateBlock_2DInstance, test)
-{
-    const AgentPtrs<2>& agents = RandomBlock2DAgentsGenerator(10,
-                                                                -1.4, -.2,
-                                                                .2, 1.4,
-                                                                .2, 1.4,
-                                                                .1, dim);
-    generateInstanceAndPlanning<2>(agents,
-                                    map_test_config.at("la_ins_path"),
-                                    CBS::LargeAgentCBS_func<2>,
-                                    1e4, true);
-
-};
-
-TEST(GenerateMixedInstanceAndPlanning, test)
-{
-
-    AgentPtrs<2> agents = RandomMixedAgentsGenerator(10,
-                                                     .4, 2.3,
-                                                     10,
-                                                     -1.4, -.2,
-                                                     .2, 1.4,
-                                                     .2, 1.4,
-                                                     .1, dim);
-
-    generateInstanceAndPlanning<2> (agents,
-                                    map_test_config.at("la_ins_path"),
-                                    CBS::LargeAgentCBS_func<2>,
-                                    1e4, true);
-
-//    generateInstanceAndPlanning<2>(agents,
-//                                   map_test_config.at("la_ins_path"),
-//                                   LaCAM::LargeAgentLaCAM_func<2>,
-//                                   1e4, true, true);
-
-};
-
-TEST(LoadInstance_CBS, test)
-{
-    const std::string file_path = map_test_config.at("la_ins_path");
-
-//    loadInstanceAndPlanning<CircleAgent<2>,
-//                            LaCAM::LargeAgentLaCAM<2,
-//                            CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >(file_path);
-
-    // LargeAgentConstraintTableForLarge
-    // LargeAgentConstraintTable
-
-    loadInstanceAndPlanningLayeredLAMAPF<2>(CBS::LargeAgentCBS_func<2>,
-                                                        file_path, 60, false, true);
-
-};
-
-TEST(LoadInstance_LaCAM, test)
-{
-    const std::string file_path = map_test_config.at("la_ins_path");
-
-//    loadInstanceAndPlanning<CircleAgent<2>,
-//                            LaCAM::LargeAgentLaCAM<2,
-//                            CircleAgent<2>, LaCAM::LargeAgentConstraintTableForLarge<2, CircleAgent<2> > > >(file_path);
-
-    // LargeAgentConstraintTableForLarge
-    // LargeAgentConstraintTable
-
-//    loadInstanceAndPlanning<CircleAgent<2>, CBS::LargeAgentCBS<2, CircleAgent<2> > >(file_path, 30);
-
-    loadInstanceAndPlanningLayeredLAMAPF<2>(LaCAM::LargeAgentLaCAM_func<2>,
-                                                         file_path, 60, false, true);
-
-};
-
 
 TEST(resize, test)
 {
@@ -215,54 +65,6 @@ TEST(resize, test)
     std::cout << std::endl;
     // 1 2 3 10 10
 }
-
-TEST(max_size_t, test) {
-    std::cout << "MAX<size_t> = " << MAX<size_t> << std::endl;
-}
-
-TEST(Multi_GenerateCircleInstance, test) {
-    for(int i=0; i<1; i++) {
-        const AgentPtrs<2>& agents = RandomCircleAgentsGenerator<2>(5,
-                                                                       .4, 1.4,
-                                                                       .1,
-                                                                       dim);
-
-        generateInstanceAndPlanning<2> (agents,
-                                           map_test_config.at("la_ins_path"),
-                                           CBS::LargeAgentCBS_func<2>,
-                                           //LaCAM::LargeAgentLaCAM_func<2>,
-                                           1e5, true);
-    }
-}
-
-TEST(Multi_GenerateBlock_2DInstance, test) {
-    int count_of_test = 1;
-    int reapte = 1;
-    for (int i = 0; i < reapte; i++) {
-        for (int i = 0; i < count_of_test; i++) {
-//            const BlockAgents_2D &agents = RandomBlock2DAgentsGenerator(15,
-//                                                                        -1.4, -.2,
-//                                                                        .2, 1.4,
-//                                                                        .2, 1.4,
-//                                                                        .1, dim);
-
-            const AgentPtrs<2> &agents = RandomBlock2DAgentsGenerator(10,
-                                                                        -1.4, -.2,
-                                                                        .2, 1.4,
-                                                                        .2, 1.4,
-                                                                        .1, dim);
-
-            generateInstanceAndPlanning<2>(agents,
-                                            map_test_config.at("la_ins_path"),
-                                            CBS::LargeAgentCBS_func<2>,
-                                            //LaCAM::LargeAgentLaCAM_func<2, BlockAgent_2D >,
-                                            1e4,
-                                            true);
-        }
-
-    }
-}
-
 
 void Generator_test() {
     InstanceDeserializer<2> deserializer;
@@ -292,7 +94,7 @@ void Generator_test() {
 //            std::make_shared<LargeAgentMAPFInstanceDecomposition<2, AgentType> >(deserializer.getInstances(),
 //                                                                                 deserializer.getAgents(), dim, is_occupied);
 
-    CBS::LargeAgentCBS<2> solver(deserializer.getInstances(), deserializer.getAgents(), dim, is_occupied);
+    CBS::LargeAgentCBS<2, Pose<int, 2>> solver(deserializer.getInstances(), deserializer.getAgents(), dim, is_occupied);
 
     for(int i=0; i<deserializer.getAgents().size(); i++) {
         size_t start_id  = solver.agent_sub_graphs_[i].start_node_id_;
@@ -335,11 +137,11 @@ void Decomposition_test(const SingleMapTestConfig<2>& map_file_local) {
     }
     std::cout << std::endl;
 
-    PrecomputationOfLAMAPF<2, HyperGraphNodeDataRaw<2>> pre(deserializer_local.getInstances(),
+    PrecomputationOfLAMAPFDecomposition<2, HyperGraphNodeDataRaw<2>> pre(deserializer_local.getInstances(),
                                                             deserializer_local.getAgents(),
                                                             dim_local, is_occupied_local, true);
 
-    MAPFInstanceDecompositionBipartition<2, HyperGraphNodeDataRaw<2>> bi_decompose(dim_local,
+    MAPFInstanceDecompositionBipartition<2, HyperGraphNodeDataRaw<2>, Pose<int, 2> > bi_decompose(dim_local,
                                                                                  pre.connect_graphs_,
                                                                                  pre.agent_sub_graphs_,
                                                                                  pre.heuristic_tables_sat_,
@@ -358,7 +160,7 @@ void Decomposition_test(const SingleMapTestConfig<2>& map_file_local) {
 
 }
 
-void multiLoadAgentAndDecomposition(const SingleMapTestConfig<2>& map_file,
+void multiLoadLargeAgentAndDecomposition(const SingleMapTestConfig<2>& map_file,
                                     int count_of_test,
                                     int maximum_agents,
                                     int minimum_agents,
@@ -393,7 +195,8 @@ void multiLoadAgentAndDecomposition(const SingleMapTestConfig<2>& map_file,
         std::vector<OutputStream> strs;
         OutputStream str;
 
-        auto instance_decompose = std::make_shared<LargeAgentMAPFInstanceDecomposition<2, HyperGraphNodeDataRaw<2>> >(
+        auto instance_decompose =
+                std::make_shared<LargeAgentMAPFInstanceDecomposition<2, HyperGraphNodeDataRaw<2>, Pose<int, 2>> >(
                 agent_and_instances[i].second,
                 agent_and_instances[i].first,
                 dim,
@@ -451,6 +254,8 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
     loader = TextMapLoader(map_test_config.at("map_path"), is_char_occupied1);
 
     //clearFile(map_test_config.at("la_comp_path"));
+    auto dim_local = loader.getDimensionInfo();
+    auto is_occupied_local = [&](const Pointi<2> & pt) -> bool { return loader.isOccupied(pt); };
 
     InstanceDeserializer<2> deserializer;
     if(deserializer.loadInstanceFromFile(map_test_config.at("la_ins_path"), dim)) {
@@ -482,14 +287,34 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
         // }
         // writeStrsToEndOfFile(strs1, map_test_config.at("la_comp_path"));
 
-        auto strs2 = LayeredLAMAPFCompare<2>(agent_and_instances[i].second,
-                                            agent_and_instances[i].first,
-                                            LaCAM::LargeAgentLaCAM_func<2>,
-                                            std::string("LaCAM"),
-                                            time_limit,
-                                            false,
-                                            4,
-                                            true);
+        MSTimer mst;
+        PrecomputationOfMAPFBasePtr<2, Pose<int, 2>> pre =
+                std::make_shared<PrecomputationOfLAMAPF<2>>(agent_and_instances[i].second,
+                                                            agent_and_instances[i].first,
+                                                            dim_local, is_occupied_local);
+
+
+        double pre_time_cost = mst.elapsed()/1e3;
+
+        mst.reset();
+
+        PrecomputationOfMAPFDecompositionBasePtr pre_dec =
+                std::make_shared<PrecomputationOfLAMAPFDecomposition<2, HyperGraphNodeDataRaw<2>>>(
+                                                                                      agent_and_instances[i].second,
+                                                                                      agent_and_instances[i].first,
+                                                                                      dim_local, is_occupied_local);
+        double pre_dec_time_cost = mst.elapsed()/1e3;
+
+        auto strs2 = LayeredLAMAPFCompare<2, Pose<int, 2> >(agent_and_instances[i].second,
+                                                            agent_and_instances[i].first,
+                                                            dim_local, is_occupied_local,
+                                                            LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2>>,
+                                                            std::string("LaCAM"),
+                                                            pre,
+                                                            pre_dec,
+                                                            pre_time_cost,
+                                                            pre_dec_time_cost,
+                                                            time_limit);
 
         for (const auto &str : strs2) {
             std::cout << str << std::endl;
@@ -595,11 +420,11 @@ int main1() {
     for(int i=0; i<200; i++) {
         std::cout << "global decom " << i << std::endl;
         for (const auto &file_config : map_configs) {
-            multiLoadAgentAndDecomposition(std::get<0>(file_config),
-                                           1, //std::get<1>(file_config),
-                                           std::get<2>(file_config),
-                                           std::get<3>(file_config),
-                                           std::get<4>(file_config));
+            multiLoadLargeAgentAndDecomposition(std::get<0>(file_config),
+                                               1, //std::get<1>(file_config),
+                                               std::get<2>(file_config),
+                                               std::get<3>(file_config),
+                                               std::get<4>(file_config));
         }
     }
     return 0;

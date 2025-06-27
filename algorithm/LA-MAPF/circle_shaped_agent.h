@@ -89,6 +89,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return false;
         }
 
+        virtual bool isCollide(const Pointi<N>& pose,
+                               DimensionLength* dim,
+                               const IS_OCCUPIED_FUNC<N>& isoc,
+                               const DistanceMapUpdater<N>& distance_table) const {
+            if(isoc(pose)) { return true; }
+            return false;
+        }
+
         // assume have pass pose collide check
         // when add edges, assume agent can only change position or orientation, cannot change both of them
         // and orientation can only change 90 degree at one timestep, that means the offset between orient are 1, 2, 4, ... (2^0, 2^1, 2^2...)
@@ -138,6 +146,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //            }
             return false;
         }
+
+
+        virtual bool isCollide(const Pointi<N>& edge_from,
+                               const Pointi<N>& edge_to,
+                               DimensionLength* dim,
+                               const IS_OCCUPIED_FUNC<N>& isoc,
+                               const DistanceMapUpdater<N>& distance_table) const {
+            const Pointi<2> pt1 = edge_from, pt2 = edge_to;
+            if(isoc(pt1) || isoc(pt2)) { return true; }
+            return false;
+        }
+
 
         Pointis<N> getTransferOccupiedGrid(const Pose<int, N>& edge_from,
                                            const Pose<int, N>& edge_to) const override {

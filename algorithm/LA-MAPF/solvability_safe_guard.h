@@ -14,18 +14,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     // if the raw problem is solvable, part of it should still be solvable
     // get solution pass what target of previous subproblem's agent and start of subsequent subproblem
     // use heuristic during planning to reduce size of final subproblem
-    template<Dimension N>
+    template<Dimension N, typename State>
     class SolvabilitySafeguard {
     public:
-        SolvabilitySafeguard(const PrecomputationOfMAPFBasePtr<N>& pre,
+        SolvabilitySafeguard(const PrecomputationOfMAPFBasePtr<N, State>& pre,
                              double time_limit = 60
-        ) : LargeAgentMAPF<N>(pre->instances_, pre->agents_, pre->dim_, pre->isoc_,
-                              pre->all_poses_,
-                              pre->distance_map_updater_,
-                              pre->agent_sub_graphs_,
-                              pre->agents_heuristic_tables_,
-                              pre->agents_heuristic_tables_ignore_rotate_,
-                              time_limit) {
+        ):pre_(pre) {
             //std::cout << "this->isoc_ 1 " << this->isoc_(Pointi<N>()) << std::endl;
         }
 
@@ -37,7 +31,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         bool isStateCollideWithSolution(const AgentPtr<N>& a1, const Pose<int, N>& st,
                                         const AgentPtr<N>& a2, const LAMAPF_Path& path) {
             for(int t=0; t<path.size()-1; t++) {
-                if(isCollide(a1, st, a2, *this->all_poses_[path[t]], *this->all_poses_[path[t+1]])) {
+                if(isCollide(a1, st, a2, *pre_->all_poses_[path[t]], *pre_->all_poses_[path[t+1]])) {
                     return true;
                 }
             }
@@ -57,7 +51,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         bool mergeSubproblemTillSolvable(const std::vector<std::set<int> >& levels,
                                                   const int & failed_subproblem_id,
-                                                  const LA_MAPF_FUNC<N>& mapf_func,
+                                                  const LA_MAPF_FUNC<N, State>& mapf_func,
                                                   const IS_OCCUPIED_FUNC<N>& ex_isoc,
                                                   double time_limit = 30) {
             MSTimer mst;
@@ -67,9 +61,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
             InstanceOrients<N> local_instance;
             AgentPtrs<N> local_agents;
-            std::vector<SubGraphOfAgent<N> >     local_agent_sub_graphs;
-            std::vector<std::vector<int> >       local_agents_heuristic_tables;
-            std::vector<std::vector<int> >       local_agents_heuristic_tables_ignore_rotate;
+            std::vector<SubGraphOfAgent<N, State> > local_agent_sub_graphs;
+            std::vector<std::vector<int> >          local_agents_heuristic_tables;
+            std::vector<std::vector<int> >          local_agents_heuristic_tables_ignore_rotate;
 
            LAMAPF_Paths final_solutions;
            //std::cout << "this->isoc_ 1.1 " << this->isoc_(Pointi<N>()) << std::endl;
@@ -85,17 +79,17 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 //std::cout << "this->isoc_ 1.11 " << this->isoc_(Pointi<N>()) << std::endl;
                 for(const auto& failed_agent_id : levels[local_failed_subproblem_id]) {
 
-                    AgentPtr<N> local_copy = this->agents_[failed_agent_id]->copy();
+                    AgentPtr<N> local_copy = pre_->agents_[failed_agent_id]->copy();
                     local_copy->id_ = count_of_ag;
                     count_of_ag ++;
                     local_agents.push_back(local_copy);
 
 
-                    local_instance.push_back(this->instances_[failed_agent_id]);
-                    local_agent_sub_graphs.push_back(this->agent_sub_graphs_[failed_agent_id]);
-                    local_agents_heuristic_tables.push_back(this->agents_heuristic_tables_[failed_agent_id]);
+                    local_instance.push_back(pre_->instances_[failed_agent_id]);
+                    local_agent_sub_graphs.push_back(pre_->agent_sub_graphs_[failed_agent_id]);
+                    local_agents_heuristic_tables.push_back(pre_->agents_heuristic_tables_[failed_agent_id]);
                     local_agents_heuristic_tables_ignore_rotate.push_back(
-                            this->agents_heuristic_tables_ignore_rotate_[failed_agent_id]);
+                            pre_->agents_heuristic_tables_ignore_rotate_[failed_agent_id]);
                 }
                 double time_cost_yet = mst.elapsed()/1e3;
                 double remaining_time = time_limit - time_cost_yet;
@@ -105,11 +99,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 std::vector<std::vector<int> > grid_visit_count_table_local;
                 std::vector<LAMAPF_Path> local_paths = mapf_func(local_instance,
                                                                 local_agents,
-                                                                this->dim_, ex_isoc,
+                                                                 pre_->dim_, ex_isoc,
                                                                 nullptr,
                                                                 grid_visit_count_table_local, remaining_time,
-                                                                this->all_poses_,
-                                                                this->distance_map_updater_,
+                                                                 pre_->all_poses_,
+                                                                 pre_->distance_map_updater_,
                                                                 local_agent_sub_graphs,
                                                                 local_agents_heuristic_tables,
                                                                 local_agents_heuristic_tables_ignore_rotate,
@@ -124,9 +118,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 int start_of_merge = local_failed_subproblem_id;
                 for(int i=0; i<local_failed_subproblem_id; i++) {
                     for(const auto& agent_id : local_levels[i]) {
-                        const auto& another_agent = this->agents_[agent_id];
+                        const auto& another_agent = pre_->agents_[agent_id];
                         // pass previous agent's target need to merge
-                        const auto& another_state = this->instances_[agent_id].second;
+                        const auto& another_state = pre_->instances_[agent_id].second;
                         if(isStateCollideWithSolutions(another_agent, another_state, local_agents, local_paths)) {
                             start_of_merge = i;
                         }
@@ -136,9 +130,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 int end_of_merge = local_failed_subproblem_id;
                 for(int i=local_levels.size()-1; i>local_failed_subproblem_id; i--) {
                     for(const auto& agent_id : local_levels[i]) {
-                        const auto& another_agent = this->agents_[agent_id];
+                        const auto& another_agent = pre_->agents_[agent_id];
                         // pass subsequent agent's start need to merge
-                        const auto& another_state = this->instances_[agent_id].first;
+                        const auto& another_state = pre_->instances_[agent_id].first;
                         if(isStateCollideWithSolutions(another_agent, another_state, local_agents, local_paths)) {
                             end_of_merge = i;
                         }
@@ -176,39 +170,39 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 count_of_ag = 0;
                 for(const auto& failed_agent_id : local_levels[local_failed_subproblem_id]) {
 
-                    target_node_ids.push_back(this->instance_node_ids_[failed_agent_id].second);
+                    target_node_ids.push_back(pre_->instance_node_ids_[failed_agent_id].second);
 
-                    AgentPtr<N> local_copy = this->agents_[failed_agent_id]->copy();
+                    AgentPtr<N> local_copy = pre_->agents_[failed_agent_id]->copy();
                     local_copy->id_ = count_of_ag;
                     count_of_ag ++;
                     local_agents.push_back(local_copy);
 
-                    local_agents_with_global_id.push_back(this->agents_[failed_agent_id]);
+                    local_agents_with_global_id.push_back(pre_->agents_[failed_agent_id]);
 
-                    local_instance.push_back(this->instances_[failed_agent_id]);
-                    local_agent_sub_graphs.push_back(this->agent_sub_graphs_[failed_agent_id]);
-                    local_agents_heuristic_tables.push_back(this->agents_heuristic_tables_[failed_agent_id]);
+                    local_instance.push_back(pre_->instances_[failed_agent_id]);
+                    local_agent_sub_graphs.push_back(pre_->agent_sub_graphs_[failed_agent_id]);
+                    local_agents_heuristic_tables.push_back(pre_->agents_heuristic_tables_[failed_agent_id]);
                     local_agents_heuristic_tables_ignore_rotate.push_back(
-                            this->agents_heuristic_tables_ignore_rotate_[failed_agent_id]);
+                            pre_->agents_heuristic_tables_ignore_rotate_[failed_agent_id]);
                 }
                 time_cost_yet = mst.elapsed()/1e3;
                 remaining_time = time_limit - time_cost_yet;
 
                 if(remaining_time < 0) { return {}; }
                 // 4, try solve it with avoid previous subproblem's target and subsequent subproblem's start
-                float max_excircle_radius = getMaximumRadius<N>(this->agents_);
+                float max_excircle_radius = getMaximumRadius<N>(pre_->agents_);
                 //std::cout << "this->isoc_ 2 " << this->isoc_(Pointi<N>()) << std::endl;
-                LargeAgentStaticConstraintTablePtr<N>
-                        new_constraint_table_ptr = std::make_shared<LargeAgentStaticConstraintTable<N> > (
-                        max_excircle_radius, this->dim_, ex_isoc, this->agents_, local_agents_with_global_id,
-                        this->all_poses_); // this->isoc_ may fail
+                LargeAgentStaticConstraintTablePtr<N, State>
+                        new_constraint_table_ptr = std::make_shared<LargeAgentStaticConstraintTable<N, State> > (
+                        max_excircle_radius, pre_->dim_, ex_isoc, pre_->agents_, local_agents_with_global_id,
+                        pre_->all_poses_); // this->isoc_ may fail
 
                 // insert previous agents' target as static constraint
                 for(int i=0; i<local_failed_subproblem_id; i++)
                 {
                     const auto& current_level = local_levels[i];
                     for(const int& agent_id : current_level) {
-                        new_constraint_table_ptr->insertPose(agent_id, this->instance_node_ids_[agent_id].second);
+                        new_constraint_table_ptr->insertPose(agent_id, pre_->instance_node_ids_[agent_id].second);
                     }
                 }
 
@@ -217,7 +211,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 {
                     const auto& current_level = local_levels[j];
                     for(const int& agent_id : current_level) {
-                        new_constraint_table_ptr->insertPose(agent_id, this->instance_node_ids_[agent_id].first);
+                        new_constraint_table_ptr->insertPose(agent_id, pre_->instance_node_ids_[agent_id].first);
                     }
                 }
 
@@ -226,11 +220,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
                 local_paths = mapf_func(local_instance,
                                         local_agents,
-                                        this->dim_, this->isoc_,
+                                        pre_->dim_, pre_->isoc_,
                                         new_constraint_table_ptr,
                                         grid_visit_count_table_local, remaining_time,
-                                        this->all_poses_,
-                                        this->distance_map_updater_,
+                                        pre_->all_poses_,
+                                        pre_->distance_map_updater_,
                                         local_agent_sub_graphs,
                                         local_agents_heuristic_tables,
                                         local_agents_heuristic_tables_ignore_rotate,
@@ -255,6 +249,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         LAMAPF_Paths new_level_paths_;
 
         int start_of_merge_, end_of_merge_;
+
+        PrecomputationOfMAPFBasePtr<N, State> pre_;
+
     };
 
 }

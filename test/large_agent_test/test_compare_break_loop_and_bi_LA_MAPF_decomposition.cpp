@@ -37,7 +37,7 @@ void compareLNSAndBiDecompose_LA_MAPF(const SingleMapTestConfig<2>& map_file, in
 
     auto agent_and_instances = deserializer.getTestInstance(required_counts, 1);
 
-    PrecomputationOfLAMAPF<2, HyperGraphNodeDataRaw<2> > pre(agent_and_instances.front().second,
+    PrecomputationOfLAMAPFDecomposition<2, HyperGraphNodeDataRaw<2> > pre(agent_and_instances.front().second,
                                   agent_and_instances.front().first,
                                   dim_local,
                                   is_occupied_local);
@@ -51,7 +51,7 @@ void compareLNSAndBiDecompose_LA_MAPF(const SingleMapTestConfig<2>& map_file, in
 //                                                                                  4,
 //                                                                                  true);
 
-    auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBipartition<2, HyperGraphNodeDataRaw<2> > >(dim_local,
+    auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBipartition<2, HyperGraphNodeDataRaw<2>, Pose<int, 2> > >(dim_local,
                                                                                    pre.connect_graphs_,
                                                                                    pre.agent_sub_graphs_,
                                                                                    pre.heuristic_tables_sat_,
@@ -60,7 +60,7 @@ void compareLNSAndBiDecompose_LA_MAPF(const SingleMapTestConfig<2>& map_file, in
 
     double total_time_cost = mst.elapsed()/1e3;
 
-    bool is_bi_valid = LA_MAPF_DecompositionValidCheckGridMap<2>(bi_decompose->all_clusters_,
+    bool is_bi_valid = LA_MAPF_DecompositionValidCheckGridMap<2, Pose<int, 2> >(bi_decompose->all_clusters_,
                                                                  dim_local,
                                                                  is_occupied_local,
                                                                  agent_and_instances.front().first,
@@ -78,7 +78,7 @@ void compareLNSAndBiDecompose_LA_MAPF(const SingleMapTestConfig<2>& map_file, in
 
 
     mst.reset();
-    auto ns_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<2, HyperGraphNodeDataRaw<2>> >(dim_local,
+    auto ns_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<2, HyperGraphNodeDataRaw<2>, Pose<int, 2>> >(dim_local,
                                                                                  pre.connect_graphs_,
                                                                                  pre.agent_sub_graphs_,
                                                                                  pre.heuristic_tables_sat_,
@@ -88,7 +88,7 @@ void compareLNSAndBiDecompose_LA_MAPF(const SingleMapTestConfig<2>& map_file, in
                                                                                  1);
 
 
-    bool is_ns_valid = LA_MAPF_DecompositionValidCheckGridMap<2>(ns_decompose->all_levels_,
+    bool is_ns_valid = LA_MAPF_DecompositionValidCheckGridMap<2, Pose<int, 2> >(ns_decompose->all_levels_,
                                                                  dim_local,
                                                                  is_occupied_local,
                                                                  agent_and_instances.front().first,

@@ -83,6 +83,26 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return std::make_shared<BlockAgent_2D >(BlockAgent_2D(this->min_pt_, this->max_pt_, this->id_, this->dim_));
         }
 
+
+        virtual bool isCollide(const Pointi<2>& pose,
+                               DimensionLength* dim,
+                               const IS_OCCUPIED_FUNC<2>& isoc,
+                               const DistanceMapUpdater<2>& distance_table) const {
+            if(isoc(pose)) { return true; }
+            return false;
+        }
+
+
+        virtual bool isCollide(const Pointi<2>& edge_from,
+                               const Pointi<2>& edge_to,
+                               DimensionLength* dim,
+                               const IS_OCCUPIED_FUNC<2>& isoc,
+                               const DistanceMapUpdater<2>& distance_table) const {
+            const Pointi<2> pt1 = edge_from, pt2 = edge_to;
+            if(isoc(pt1) || isoc(pt2)) { return true; }
+            return false;
+        }
+
         // pre-calculation coverage in all direction
         std::vector<std::pair<Pointis<2>, Pointis<2> > > static getAllOrientCoverage_2D(const std::pair<Pointis<2>, Pointis<2> >& pts_pair) {
             std::vector<std::pair<Pointis<2>, Pointis<2> > > retv = {pts_pair};

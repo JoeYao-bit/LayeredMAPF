@@ -11,9 +11,9 @@
 namespace freeNav::LayeredMAPF {
 
 
-    template<Dimension N>
+    template<Dimension N, typename State>
     struct PrecomputationOfMAPFBase {
-        PrecomputationOfMAPFBase(const InstanceOrients<N> & instances,
+        PrecomputationOfMAPFBase(const std::vector<std::pair<State, State>> & instances,
                                  const std::vector<LA_MAPF::AgentPtr<N> >& agents,
                                  DimensionLength* dim,
                                  const IS_OCCUPIED_FUNC<N> & isoc) :
@@ -22,7 +22,7 @@ namespace freeNav::LayeredMAPF {
                 dim_(dim),
                 isoc_(isoc) {}
 
-        InstanceOrients<N> instances_;
+        std::vector<std::pair<State, State>> instances_;
         std::vector<LA_MAPF::AgentPtr<N> > agents_;
         DimensionLength* dim_;
         const IS_OCCUPIED_FUNC<N>& isoc_;
@@ -30,10 +30,10 @@ namespace freeNav::LayeredMAPF {
         std::vector<std::pair<size_t, size_t> > instance_node_ids_;
 
         // intermediate variables
-        std::vector<PosePtr<int, N> > all_poses_;
+        std::vector<std::shared_ptr<State> > all_poses_;
         DistanceMapUpdaterPtr<N> distance_map_updater_;
 
-        std::vector<LA_MAPF::SubGraphOfAgent<N> > agent_sub_graphs_;
+        std::vector<LA_MAPF::SubGraphOfAgent<N, State>> agent_sub_graphs_;
         std::vector<std::vector<int> > agents_heuristic_tables_;
         std::vector<std::vector<int> > agents_heuristic_tables_ignore_rotate_;
 
@@ -48,21 +48,21 @@ namespace freeNav::LayeredMAPF {
     };
 
 
-    template<Dimension N>
-    using PrecomputationOfMAPFBasePtr = std::shared_ptr<PrecomputationOfMAPFBase<N> >;
+    template<Dimension N, typename State>
+    using PrecomputationOfMAPFBasePtr = std::shared_ptr<PrecomputationOfMAPFBase<N, State> >;
 
-    template<Dimension N, typename HyperNodeType>
-    class PrecomputationOfLAMAPF : public PrecomputationOfMAPFBase<N> {
+    template<Dimension N>
+    class PrecomputationOfLAMAPF : public PrecomputationOfMAPFBase<N, Pose<int, N>> {
     public:
 
-        PrecomputationOfLAMAPF(const InstanceOrients<N> & instances,
+        PrecomputationOfLAMAPF(const std::vector<std::pair<Pose<int, N>, Pose<int, N>>>& instances,
                                const std::vector<LA_MAPF::AgentPtr<N> >& agents,
                                DimensionLength* dim,
                                const IS_OCCUPIED_FUNC<N> & isoc,
                                bool with_sat_heu = true,
                                bool directed_graph = true,
                                int num_of_CPU = 6) :
-                PrecomputationOfMAPFBase<N>(instances, agents, dim, isoc),
+                PrecomputationOfMAPFBase<N, Pose<int, N>>(instances, agents, dim, isoc),
                 directed_graph_(directed_graph),
                 num_of_CPU_(num_of_CPU) {
 
@@ -93,7 +93,7 @@ namespace freeNav::LayeredMAPF {
             Pointi <N> pt;
             for (Id id = 0; id < total_index; id++) {
                 pt = IdToPointi<N>(id, this->dim_);
-                if (!isoc_(pt)) {
+                if (!this->isoc_(pt)) {
                     for (int orient = 0; orient < 2 * N; orient++) {
                         PosePtr<int, N> pose_ptr = std::make_shared<Pose<int, N> >(pt, orient);
                         this->all_poses_[id * 2 * N + orient] = pose_ptr;
@@ -129,7 +129,7 @@ namespace freeNav::LayeredMAPF {
         }
 
 
-        LA_MAPF::SubGraphOfAgent<N> constructSubGraphOfAgent(int agent_id) {
+        LA_MAPF::SubGraphOfAgent<N, Pose<int, N>> constructSubGraphOfAgent(int agent_id) {
             const LA_MAPF::AgentPtr<N> & agent = this->agents_[agent_id];
             Id total_index = getTotalIndexOfSpace<N>(this->dim_);
 
@@ -144,8 +144,8 @@ namespace freeNav::LayeredMAPF {
                                  this->instances_[agent_id].second.orient_;
 
 
-            LA_MAPF::SubGraphOfAgent<N> sub_graph(agent);
-            sub_graph.data_ptr_ = std::make_shared<LA_MAPF::SubGraphOfAgentData<N> >();
+            LA_MAPF::SubGraphOfAgent<N, Pose<int, N>> sub_graph(agent);
+            sub_graph.data_ptr_ = std::make_shared<LA_MAPF::SubGraphOfAgentData<N, Pose<int, N>> >();
 
             sub_graph.data_ptr_->all_nodes_.resize(total_index * 2 * N, nullptr);
             sub_graph.start_node_id_ = start_node_id;
@@ -222,10 +222,10 @@ namespace freeNav::LayeredMAPF {
         void constructSubgraph() {
 
             // initialize in parallel thread to reduce time cost
-            std::map<int, LA_MAPF::SubGraphOfAgent<N>> sub_graphs_map;
+            std::map<int, LA_MAPF::SubGraphOfAgent<N, Pose<int, N>>> sub_graphs_map;
             std::map<int, std::vector<int> > heuristic_tables_;
             std::map<int, std::vector<int> > heuristic_tables_ig_rotate;
-            int interval = this->agents.size()/num_of_CPU_;// set to larger value to reduce maximal memory usage and num of threads
+            int interval = this->agents_.size()/num_of_CPU_;// set to larger value to reduce maximal memory usage and num of threads
             std::mutex lock_1, lock_2, lock_3, lock_4;
             std::vector<bool> finished(this->agents_.size(), false);
             int count_of_instance = 0;
@@ -261,9 +261,9 @@ namespace freeNav::LayeredMAPF {
                         }
                         if(this->agents_heuristic_tables_ignore_rotate_.empty()) {
                             const auto & table = constructHeuristicTableIgnoreRotate(sub_graphs_map.at(map_id),
-                                                                                     this->instance_node_ids_[map_id].second);
-                            assert(table[this->instance_node_ids_[sub_graphs_map.at(map_id).agent_->id_].first]  != MAX<int>);
-                            assert(table[this->instance_node_ids_[sub_graphs_map.at(map_id).agent_->id_].second] != MAX<int>);
+                                                                                     this->instance_node_ids_[map_id].second, this->dim_);
+                            assert(table[this->instance_node_ids_[sub_graphs_map.at(map_id).agent_->id_].first / (2*N)]  != MAX<int>);
+                            assert(table[this->instance_node_ids_[sub_graphs_map.at(map_id).agent_->id_].second / (2*N)] != MAX<int>);
                             lock_3.lock();
                             heuristic_tables_ig_rotate.insert({map_id, table});
                             lock_3.unlock();
@@ -284,7 +284,7 @@ namespace freeNav::LayeredMAPF {
             while(finished != std::vector<bool>(this->agents_.size(), true)) {
                 usleep(5e4);
             }
-            this->agent_sub_graphs_.resize(this->agents_.size(), LA_MAPF::SubGraphOfAgent<N>(nullptr));
+            this->agent_sub_graphs_.resize(this->agents_.size(), LA_MAPF::SubGraphOfAgent<N, Pose<int, N>>(nullptr));
             for (const auto &subgraph_pair : sub_graphs_map) {
                 this->agent_sub_graphs_[subgraph_pair.first] = subgraph_pair.second;
             }
@@ -301,7 +301,8 @@ namespace freeNav::LayeredMAPF {
         }
 
 
-        std::vector<int> constructHeuristicTable(const LA_MAPF::SubGraphOfAgent<N>& sub_graph, const size_t& goal_id) const {
+        std::vector<int> constructHeuristicTable(const LA_MAPF::SubGraphOfAgent<N, Pose<int, N>>& sub_graph,
+                                                 const size_t& goal_id) const {
             struct Node {
                 int node_id;
                 int value;
@@ -354,7 +355,7 @@ namespace freeNav::LayeredMAPF {
             return agent_heuristic;
         }
 
-        std::vector<int> constructHeuristicTableIgnoreRotate(const LA_MAPF::SubGraphOfAgent<N>& sub_graph,
+        std::vector<int> constructHeuristicTableIgnoreRotate(const LA_MAPF::SubGraphOfAgent<N, Pose<int, N>>& sub_graph,
                                                              const size_t& goal_id, DimensionLength* dim) const {
             struct Node {
                 Pointi<N> node_pt;
@@ -397,7 +398,7 @@ namespace freeNav::LayeredMAPF {
                 heap.pop();
                 for (const Pointi<N>& offset : offsets) {
                     Pointi<N> next_location = curr.node_pt + offset;
-                    if(isoc_(next_location)) { continue; }
+                    if(this->isoc_(next_location)) { continue; }
                     Id id = PointiToId<N>(next_location, dim);
                     if(!c_graph[id]) { continue; }
                     int new_heuristic_value = curr.value + 1;
@@ -414,36 +415,34 @@ namespace freeNav::LayeredMAPF {
 
         bool directed_graph_ = true;
 
-        float initialize_time_cost_ = 0;
-
         int num_of_CPU_ = 1;
 
     };
 
-    template<Dimension N, typename HyperNodeType>
-    class PrecomputationOfMAPF : public PrecomputationOfMAPFBase<N> {
+    template<Dimension N>
+    class PrecomputationOfMAPF : public PrecomputationOfMAPFBase<N, Pointi<N>> {
     public:
 
         PrecomputationOfMAPF(const Instances<N>& instance,
                              DimensionLength* dim,
                              const IS_OCCUPIED_FUNC<N>& isoc) :
-                             PrecomputationOfMAPFBase<N>(instance, {}, dim, isoc) {
+                             PrecomputationOfMAPFBase<N, Pointi<N>>(instance, {}, dim, isoc) {
 
             MSTimer mst;
 
             std::cout << "  construct all possible poses" << std::endl;
             Id total_index = getTotalIndexOfSpace<N>(this->dim_);
-            this->all_poses_.resize(total_index, nullptr); // a position with 2*N orientation
+            this->all_poses_.resize(total_index, nullptr);
             Pointi<N> pt;
             for (Id id = 0; id < total_index; id++) {
                 pt = IdToPointi<N>(id, this->dim_);
-                if (!isoc_(pt)) {
-                    PosePtr<int, N> pose_ptr = std::make_shared<Pose<int, N> >(pt, 0);
+                if (!this->isoc_(pt)) {
+                    auto pose_ptr = std::make_shared<Pointi<N> >(pt);
                     this->all_poses_[id] = pose_ptr;
                 }
             }
 
-            LA_MAPF::SubGraphOfAgentDataPtr<N> subgraph_data_ptr = constructSubGraphOfAgent();
+            LA_MAPF::SubGraphOfAgentDataPtr<N, Pointi<N>> subgraph_data_ptr = constructSubGraphOfAgent();
 
             for (int agent_id = 0; agent_id < this->instances_.size(); agent_id++) {
                 // check start
@@ -456,7 +455,7 @@ namespace freeNav::LayeredMAPF {
 
                 LA_MAPF::AgentPtr<N> agent = std::make_shared<LA_MAPF::CircleAgent<N> >(0.1, agent_id, this->dim_);
 
-                LA_MAPF::SubGraphOfAgent<N> sub_graph(agent);
+                LA_MAPF::SubGraphOfAgent<N, Pointi<N>> sub_graph(agent);
 
                 sub_graph.data_ptr_ = subgraph_data_ptr;
 
@@ -479,19 +478,17 @@ namespace freeNav::LayeredMAPF {
 
             }
 
-            this->distance_map_updater_ = std::make_shared<DistanceMapUpdater<N> >(this->isoc_, this->dim_);
+            this->subgraph_and_heuristic_time_cost_ =  mst.elapsed();
 
-            initialize_time_cost_ =  mst.elapsed();
-
-            std::cout << "-- MAPF initialize_time_cost_ (ms) = " << initialize_time_cost_ << std::endl;
+            std::cout << "-- MAPF initialize_time_cost_ (ms) = " << this->subgraph_and_heuristic_time_cost_ << std::endl;
         }
 
-        LA_MAPF::SubGraphOfAgentDataPtr<N> constructSubGraphOfAgent() {
+        LA_MAPF::SubGraphOfAgentDataPtr<N, Pointi<N>> constructSubGraphOfAgent() {
             Id total_index = getTotalIndexOfSpace<N>(this->dim_);
 
             assert(this->all_poses_.size() == total_index);
 
-            auto data_ptr = std::make_shared<LA_MAPF::SubGraphOfAgentData<N> >();
+            auto data_ptr = std::make_shared<LA_MAPF::SubGraphOfAgentData<N, Pointi<N>> >();
 
             data_ptr->all_nodes_.resize(total_index, nullptr);
 
@@ -514,7 +511,7 @@ namespace freeNav::LayeredMAPF {
                 const auto& node_ptr = data_ptr->all_nodes_[pose_id];
                 if(node_ptr != nullptr) {
                     // add edges about position changing
-                    Pointi<N> origin_pt = node_ptr->pt_;
+                    Pointi<N> origin_pt = *node_ptr;
                     Pointi<N> new_pt;
                     for(const auto& offset : neighbors) {
                         new_pt = origin_pt + offset;
@@ -523,7 +520,7 @@ namespace freeNav::LayeredMAPF {
                         Id another_node_id = PointiToId<N>(new_pt, this->dim_);
                         if(pose_id == another_node_id) { continue; }
 
-                        PosePtr<int, N> another_node_ptr = data_ptr->all_nodes_[another_node_id];
+                        std::shared_ptr<Pointi<N>> another_node_ptr = data_ptr->all_nodes_[another_node_id];
                         if(another_node_ptr == nullptr) { continue; }
 
                         data_ptr->all_edges_[pose_id].push_back(another_node_id);
@@ -534,8 +531,6 @@ namespace freeNav::LayeredMAPF {
             }
             return data_ptr;
         }
-
-        float initialize_time_cost_ = 0;
 
     };
 
