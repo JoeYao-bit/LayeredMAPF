@@ -406,11 +406,11 @@ std::vector<std::string> LayeredLAMAPFCompare(const std::vector<std::pair<State,
                                nullptr,
                                grid_visit_count_table_raw,
                                time_limit - pre_time_cost,
-                               {},
-                               nullptr,
-                               {},
-                               {},
-                               {},
+                               pre->all_poses_,
+                               pre->distance_map_updater_,
+                               pre->agent_sub_graphs_,
+                               pre->agents_heuristic_tables_,
+                               pre->agents_heuristic_tables_ignore_rotate_,
                                nullptr); // default null config for layered MAPF
     total_time_cost = mst.elapsed()/1e3 + pre_time_cost;
     sleep(1);

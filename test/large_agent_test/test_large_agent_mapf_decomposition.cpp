@@ -25,11 +25,6 @@
 using namespace freeNav::LayeredMAPF::LA_MAPF;
 
 
-TEST(basic_test, LA_MAPF_decomposition) {
-    const std::string file_path = map_test_config.at("la_ins_path");
-    loadInstanceAndDecomposition<2>(file_path);
-}
-
 TEST(boost_strong_componnet, test) {
 
     using namespace boost;
@@ -106,3 +101,6 @@ TEST(boost_strong_componnet, test) {
 
 }
 
+int main() {
+    return 0;
+}

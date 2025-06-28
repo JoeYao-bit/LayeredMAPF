@@ -25,7 +25,7 @@ namespace freeNav::LayeredMAPF {
         std::vector<std::pair<State, State>> instances_;
         std::vector<LA_MAPF::AgentPtr<N> > agents_;
         DimensionLength* dim_;
-        const IS_OCCUPIED_FUNC<N>& isoc_;
+        IS_OCCUPIED_FUNC<N> isoc_;
 
         std::vector<std::pair<size_t, size_t> > instance_node_ids_;
 
@@ -225,7 +225,7 @@ namespace freeNav::LayeredMAPF {
             std::map<int, LA_MAPF::SubGraphOfAgent<N, Pose<int, N>>> sub_graphs_map;
             std::map<int, std::vector<int> > heuristic_tables_;
             std::map<int, std::vector<int> > heuristic_tables_ig_rotate;
-            int interval = this->agents_.size()/num_of_CPU_;// set to larger value to reduce maximal memory usage and num of threads
+            int interval = (int)std::ceil((double)this->agents_.size()/num_of_CPU_);// set to larger value to reduce maximal memory usage and num of threads
             std::mutex lock_1, lock_2, lock_3, lock_4;
             std::vector<bool> finished(this->agents_.size(), false);
             int count_of_instance = 0;

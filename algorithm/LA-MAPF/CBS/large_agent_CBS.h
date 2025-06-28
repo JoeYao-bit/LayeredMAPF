@@ -21,17 +21,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                       const std::vector<AgentPtr<N> >& agents,
                       DimensionLength* dim,
                       const IS_OCCUPIED_FUNC<N> & isoc,
-                      const LargeAgentStaticConstraintTablePtr<N, State>& path_constraint = nullptr,
-
-                      const std::vector<std::shared_ptr<State> > all_poses = {},
-                      const DistanceMapUpdaterPtr<N> distance_map_updater = nullptr,
-                      const std::vector<SubGraphOfAgent<N, State> > agent_sub_graphs = {},
-                      const std::vector<std::vector<int> >& agents_heuristic_tables = {},
-                      const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate_ = {},
+                      const LargeAgentStaticConstraintTablePtr<N, State>& path_constraint,
+                      const std::vector<std::pair<size_t, size_t> >& instance_node_ids,
+                      const std::vector<std::shared_ptr<State> > all_poses ,
+                      const DistanceMapUpdaterPtr<N> distance_map_updater,
+                      const std::vector<SubGraphOfAgent<N, State> > agent_sub_graphs,
+                      const std::vector<std::vector<int> >& agents_heuristic_tables,
+                      const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate_,
                       ConnectivityGraph* connect_graph = nullptr,
                       double time_limit = 60
                       )
                       : LargeAgentMAPF<N, State>(instances, agents, dim, isoc,
+                                                 instance_node_ids,
                                                  all_poses,
                                                  distance_map_updater,
                                                  agent_sub_graphs,
@@ -64,6 +65,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 auto sum_s =  this->mst_.elapsed()/1e3;
                 auto remain_s = time_limit - sum_s;
                 if(remain_s < 0) {
+                    std::cout << "LA CBS run out of time" << std::endl;
                     this->solvable = false;
                     continue;
                 }
@@ -130,7 +132,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //                std::cout << " curr->g_val = " << curr->g_val << std::endl;
                 // yz: check whether reach terminate condition
                 if (terminate(curr)) {
-//                    std::cout << "-- Layered CBS finish after " << count << " iteration" << std::endl;
+                    std::cout << "-- Layered CBS finish after " << count << " iteration" << std::endl;
                     return solution_found;
                 }
                 if (!curr->h_computed)  // heuristics has not been computed yet
@@ -296,7 +298,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 goal_node = curr;
                 solution_cost = goal_node->getFHatVal() - goal_node->cost_to_go;
                 auto conflicts = findConflicts(*curr);
-//                std::cout << "-- finish with node depth = " << curr->depth << std::endl;
+                std::cout << "-- finish with node depth = " << curr->depth << std::endl;
+                std::cout << "solution_found = " << solution_found << std::endl;
                 if(!conflicts.empty()) {
                     std::cout << "Solution have conflict !!!" << std::endl;
                     exit(-1);

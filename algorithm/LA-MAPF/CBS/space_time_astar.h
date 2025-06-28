@@ -256,7 +256,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //                    std::cout << " this->sub_graph_.agent_id_ = " << this->sub_graph_.agent_id_
 //                              << ", this->path_constraint_ = " << this->path_constraint_ << std::endl;
                     // avoid conflict     with external paths
-//                    std::cout << " reach target = " << (next_node_id == this->target_node_id_) << std::endl;
+                    //std::cout << " reach target = " << (next_node_id == this->target_node_id_) << std::endl;
                     if(this->path_constraint_ != nullptr &&
                         this->path_constraint_->hasCollide(this->sub_graph_.agent_->id_, curr->timestep,
                                                            curr->node_id, next_node_id, next_node_id == this->target_node_id_)) {

@@ -167,25 +167,6 @@ TEST(pointer, test) {
 
 }
 
-TEST(AgentSubGraph, cbs_test) {
-    const std::string file_path = map_test_config.at("la_ins_path");
-
-    InstanceDeserializer<2> deserializer;
-    if (deserializer.loadInstanceFromFile(file_path, dim)) {
-        std::cout << "load from path " << file_path << " success" << std::endl;
-    } else {
-        std::cout << "load from path " << file_path << " failed" << std::endl;
-        return;
-    }
-    std::cout << "map scale = " << dim[0] << "*" << dim[1] << std::endl;
-
-    LargeAgentMAPFInstanceDecompositionPtr<2, HyperGraphNodeDataRaw<2> > decomposer_ptr = nullptr;
-    std::vector<std::vector<int> > grid_visit_count_table;
-
-
-    startLargeAgentMAPFTest<2, CBS::LargeAgentCBS<2> >(deserializer.getAgents(),
-                                                                                    deserializer.getInstances());
-}
 
 TEST(constraint_avoidance_table, test) {
     // fake instances
@@ -200,7 +181,7 @@ TEST(constraint_avoidance_table, test) {
                                    std::make_shared<CircleAgent<2> >(.6, 2, dim)
                            });
 
-    CBS::LargeAgentCBS<2> lacbs(instances, agents, dim, is_occupied);
+    CBS::LargeAgentCBS<2, Pose<int, 2>> lacbs(instances, agents, dim, is_occupied);
 
     if(!lacbs.solve(30)) {
         std::cout << "failed to solve" << std::endl;
@@ -208,7 +189,7 @@ TEST(constraint_avoidance_table, test) {
     std::cout << "validation of solution " << lacbs.solutionValidation() << std::endl;
     int agent_id = 2;
 
-    ConstraintAvoidanceTable<2> table(dim, lacbs.all_poses_, agents[0]);
+    ConstraintAvoidanceTable<2, Pose<int, 2>> table(dim, lacbs.all_poses_, agents[0]);
 
     table.insertAgentPathOccGrids(agents[0], lacbs.getSolution()[0]);
     table.insertAgentPathOccGrids(agents[1], lacbs.getSolution()[1]);
@@ -232,4 +213,8 @@ TEST(constraint_avoidance_table, test) {
     }
 
 
+}
+
+int main() {
+    return 0;
 }

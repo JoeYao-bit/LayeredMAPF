@@ -378,7 +378,7 @@ int main() {
 //                           {MAPFTestConfig_den520d, 140, 100, 5e7}, // load failed
 //                           {MAPFTestConfig_ost003d, 100, 100, 5e7} // target overlap
 
-                            {MAPFTestConfig_Boston_2_256, 140, 100, 1e7}, // ok
+                            {MAPFTestConfig_Boston_2_256, 40, 100, 1e7}, // ok
                             //{MAPFTestConfig_Sydney_2_256, 140,  100, 1e7}, // ok
                             //{MAPFTestConfig_AR0044SR, 50, 100, 5e7}, // ok
                             //{MAPFTestConfig_AR0203SR, 40, 100, 5e7}, // ok

@@ -159,7 +159,7 @@ namespace freeNav::LayeredMAPF {
             std::map<int, LA_MAPF::SubGraphOfAgent<N, Pose<int, N>>> sub_graphs_map;
             std::map<int, std::vector<int> > heuristic_tables_;
             std::map<int, std::vector<int> > heuristic_tables_ig_rotate;
-            int interval = this->agents.size()/num_of_CPU_;// set to larger value to reduce maximal memory usage and num of threads
+            int interval = (int)std::ceil((double)this->agents.size()/num_of_CPU_);// set to larger value to reduce maximal memory usage and num of threads
             std::mutex lock_1, lock_2, lock_3, lock_4;
             std::vector<bool> finished(this->agents_.size(), false);
             int count_of_instance = 0;
@@ -254,7 +254,7 @@ namespace freeNav::LayeredMAPF {
             std::map<int, std::vector<int> > heuristic_tables_ig_sat;
 
             // how many agents in a thread
-            int interval = this->agents_.size()/num_of_CPU_;// set to larger value to reduce maximal memory usage and num of threads
+            int interval = (int)std::ceil((double)this->agents_.size()/num_of_CPU_);// set to larger value to reduce maximal memory usage and num of threads
             // num of thread should close to the num of CPU
 //            int num_threads = agents.size()/interval;
             //std::cout << " num of threads = " << num_threads << std::endl;

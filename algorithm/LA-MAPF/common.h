@@ -963,6 +963,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                                 const LargeAgentStaticConstraintTablePtr<N, State> &,
                                                                 std::vector<std::vector<int> > &,
                                                                 double,
+                                                                const std::vector<std::pair<size_t, size_t> >&,
                                                                 const std::vector<std::shared_ptr<State> > &,
                                                                 const DistanceMapUpdaterPtr<N>,
                                                                 const std::vector<SubGraphOfAgent<N, State> >,

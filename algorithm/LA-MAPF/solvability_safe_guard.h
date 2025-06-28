@@ -7,6 +7,8 @@
 
 #include "large_agent_instance_decomposition.h"
 #include "../basic.h"
+#include "../precomputation_for_mapf.h"
+
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
     // when MAPF failed to solve a subproblem within time limit,
@@ -17,9 +19,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     template<Dimension N, typename State>
     class SolvabilitySafeguard {
     public:
-        SolvabilitySafeguard(const PrecomputationOfMAPFBasePtr<N, State>& pre,
-                             double time_limit = 60
-        ):pre_(pre) {
+        SolvabilitySafeguard(PrecomputationOfMAPFBasePtr<N, State> pre) : pre_(pre) {
             //std::cout << "this->isoc_ 1 " << this->isoc_(Pointi<N>()) << std::endl;
         }
 
@@ -98,16 +98,17 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 //std::cout << "this->isoc_ 1.2 " << this->isoc_(Pointi<N>()) << std::endl;
                 std::vector<std::vector<int> > grid_visit_count_table_local;
                 std::vector<LAMAPF_Path> local_paths = mapf_func(local_instance,
-                                                                local_agents,
+                                                                 local_agents,
                                                                  pre_->dim_, ex_isoc,
-                                                                nullptr,
-                                                                grid_visit_count_table_local, remaining_time,
+                                                                 nullptr,
+                                                                 grid_visit_count_table_local, remaining_time,
+                                                                 pre_->instance_node_ids_,
                                                                  pre_->all_poses_,
                                                                  pre_->distance_map_updater_,
-                                                                local_agent_sub_graphs,
-                                                                local_agents_heuristic_tables,
-                                                                local_agents_heuristic_tables_ignore_rotate,
-                                                                nullptr
+                                                                 local_agent_sub_graphs,
+                                                                 local_agents_heuristic_tables,
+                                                                 local_agents_heuristic_tables_ignore_rotate,
+                                                                 nullptr
                 );
                 //std::cout << "this->isoc_ 1.3 " << this->isoc_(Pointi<N>()) << std::endl;
 
@@ -223,6 +224,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                         pre_->dim_, pre_->isoc_,
                                         new_constraint_table_ptr,
                                         grid_visit_count_table_local, remaining_time,
+                                        pre_->instance_node_ids_,
                                         pre_->all_poses_,
                                         pre_->distance_map_updater_,
                                         local_agent_sub_graphs,

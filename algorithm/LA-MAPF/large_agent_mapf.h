@@ -25,8 +25,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //    };
 //
 
-    template<Dimension N>
-    std::string printPath(const LAMAPF_Path& path, const std::vector<PosePtr<int, N> >& all_poses) {
+    template<Dimension N, typename State>
+    std::string printPath(const LAMAPF_Path& path, const std::vector<std::shared_ptr<State> >& all_poses) {
         std::stringstream ss;
         for(int t=0; t<path.size(); t++) {
             ss << *(all_poses[path[t]]) << "->";
@@ -42,8 +42,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                        const std::vector<AgentPtr<N> >& agents,
                        DimensionLength* dim,
                        const IS_OCCUPIED_FUNC<N> & isoc,
-
-                       const std::vector<PosePtr<int, N> >& all_poses,
+                       const std::vector<std::pair<size_t, size_t> >& instance_node_ids,
+                       const std::vector<std::shared_ptr<State> >& all_poses,
                        const DistanceMapUpdaterPtr<N>& distance_map_updater,
                        const std::vector<SubGraphOfAgent<N, State> >& agent_sub_graphs,
                        const std::vector<std::vector<int> >& agents_heuristic_tables,
@@ -52,7 +52,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                        double time_limit = 60,
                        int num_of_CPU = 4
                        ) : instances_(instances), agents_(agents), dim_(dim), isoc_(isoc),
-                           all_poses_(all_poses), distance_map_updater_(distance_map_updater),
+                           all_poses_(all_poses), instance_node_ids_(instance_node_ids),
+                           distance_map_updater_(distance_map_updater),
                            agent_sub_graphs_(agent_sub_graphs),
                            agents_heuristic_tables_(agents_heuristic_tables),
                            agents_heuristic_tables_ignore_rotate_(agents_heuristic_tables_ignore_rotate),
@@ -61,7 +62,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                        {
 
             assert(instances.size() == agents.size());
-
         }
 
         virtual bool solve(int cost_lowerbound = 0, int cost_upperbound = MAX_COST) = 0;
@@ -141,7 +141,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return soc;
         }
 
-        std::vector<PosePtr<int, N> > getAllPoses() const {
+        std::vector<std::shared_ptr<State> > getAllPoses() const {
             return all_poses_;
         }
 
@@ -188,7 +188,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<std::pair<size_t, size_t> > instance_node_ids_;
 
         // intermediate variables
-        std::vector<PosePtr<int, N> > all_poses_;
+        std::vector<std::shared_ptr<State> > all_poses_;
         DistanceMapUpdaterPtr<N> distance_map_updater_;
 
         std::vector<SubGraphOfAgent<N, State> > agent_sub_graphs_;

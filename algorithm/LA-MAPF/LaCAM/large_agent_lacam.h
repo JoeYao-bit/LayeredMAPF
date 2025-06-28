@@ -20,35 +20,36 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
                         const std::vector<AgentPtr<N> >& agents,
                         DimensionLength* dim,
                         const IS_OCCUPIED_FUNC<N> & isoc,
-                        LargeAgentStaticConstraintTablePtr<N, State> path_constraint = nullptr,
-
-                        const std::vector<std::shared_ptr<State> >& all_poses = {},
-                        const DistanceMapUpdaterPtr<N>& distance_map_updater = nullptr,
-                        const std::vector<SubGraphOfAgent<N, State> >& agent_sub_graphs = {},
-                        const std::vector<std::vector<int> >& agents_heuristic_tables = {},
-                        const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate = {},
+                        LargeAgentStaticConstraintTablePtr<N, State> path_constraint,
+                        const std::vector<std::pair<size_t, size_t> >& instance_node_ids,
+                        const std::vector<std::shared_ptr<State> >& all_poses,
+                        const DistanceMapUpdaterPtr<N>& distance_map_updater,
+                        const std::vector<SubGraphOfAgent<N, State> >& agent_sub_graphs,
+                        const std::vector<std::vector<int> >& agents_heuristic_tables,
+                        const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate,
 
                         double time_limit = 60
                         )
                         : LargeAgentMAPF<N, State>(instances, agents, dim, isoc,
+                                                   instance_node_ids,
                                                        all_poses,
                                                        distance_map_updater,
                                                        agent_sub_graphs,
                                                        agents_heuristic_tables,
                                                        agents_heuristic_tables_ignore_rotate,
                                                        time_limit),
-                          V_size(LargeAgentLaCAM<N, ConstraintTable, State>::all_poses_.size()),
-                          C_next(Candidates<N>(agents.size(), std::array<size_t , 2*N*2*N + 1>())), // yz: possible rotation multiple possible transition plus wait
-                          tie_breakers(std::vector<float>(V_size, 0)),
-                          A(AgentLaCAMs(agents.size(), nullptr)),
-                          occupied_now(AgentLaCAMs(V_size, nullptr)),
-                          occupied_next(AgentLaCAMs(V_size, nullptr)),
-                          path_constraint(path_constraint) {
-            starts.resize(agents.size());
-            targets.resize(agents.size());
+                          V_size_(LargeAgentLaCAM<N, ConstraintTable, State>::all_poses_.size()),
+                          C_next_(Candidates<N>(agents.size(), std::array<size_t , 2*N*2*N + 1>())), // yz: possible rotation multiple possible transition plus wait
+                          tie_breakers(std::vector<float>(V_size_, 0)),
+                          A_(AgentLaCAMs(agents.size(), nullptr)),
+                          occupied_now_(AgentLaCAMs(V_size_, nullptr)),
+                          occupied_next_(AgentLaCAMs(V_size_, nullptr)),
+                          path_constraint_(path_constraint) {
+            starts_.resize(agents.size());
+            targets_.resize(agents.size());
             for(size_t agent=0; agent<agents.size(); agent++) {
-                starts[agent]  = this->instance_node_ids_[agent].first;
-                targets[agent] = this->instance_node_ids_[agent].second;
+                starts_[agent]  = this->instance_node_ids_[agent].first;
+                targets_[agent] = this->instance_node_ids_[agent].second;
             }
             std::random_device rd;
             const auto seed = rd();
@@ -77,7 +78,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
             auto start_time = clock();
 
             // setup agents
-            for (auto i = 0; i < this->instance_node_ids_.size(); ++i) A[i] = new AgentLaCAM(i);
+            for (auto i = 0; i < this->instance_node_ids_.size(); ++i) A_[i] = new AgentLaCAM(i);
 
             // setup search queues
             std::stack<Node *> OPEN; // yz: std::stack 先进后出（FILO）
@@ -86,7 +87,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
 
             // insert initial node
             // yz: take all start position as start state
-            auto S = new Node(starts, this->agents_heuristic_tables_);
+            auto S = new Node(starts_, this->agents_heuristic_tables_);
             OPEN.push(S);
             CLOSED[S->C] = S;
 
@@ -102,7 +103,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
                     if(((double)((current_time - start_time))/CLOCKS_PER_SEC) >= this->remaining_time_) {
                         // run out of time
                         std::cout << "NOTICE: LA-LaCAM run out of time " << std::endl;
-                        for (auto a : A) delete a;
+                        for (auto a : A_) delete a;
                         for (auto M : GC) delete M;
                         for (auto p : CLOSED) delete p.second;
                         return false;
@@ -111,7 +112,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
                 // do not pop here!
                 S = OPEN.top();
                 // check goal condition
-                if (is_same_config(S->C, targets)) {
+                if (is_same_config(S->C, targets_)) {
 
                     //std::cout << "-- final S->t = " << S->t << std::endl;
                     // backtrack
@@ -217,10 +218,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
                 // avoid external path constraint
                 bool pass_check = true;
                 for(int agent_id=0; agent_id<this->agents_.size(); agent_id++) {
-                    if(path_constraint != nullptr) {
-                        if(path_constraint->hasCollideWithSAT(this->agent_sub_graphs_[agent_id].agent_->id_,
-                                                              A[agent_id]->v_now,
-                                                              A[agent_id]->v_next)) {
+                    if(path_constraint_ != nullptr) {
+                        if(path_constraint_->hasCollideWithSAT(this->agent_sub_graphs_[agent_id].agent_->id_,
+                                                              A_[agent_id]->v_now,
+                                                              A_[agent_id]->v_next)) {
 //                            std::cout << "LaCAM hasCollideWithSAT_0: "
 //                                      << this->agent_sub_graphs_[agent_id].agent_ << ", "
 //                                      << *this->agent_sub_graphs_[agent_id].all_nodes_[A[agent_id]->v_now] << "->"
@@ -235,7 +236,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
 
                 // create new configuration
                 auto C = Config(this->instance_node_ids_.size(), -1);
-                for (auto a : A) {
+                for (auto a : A_) {
                     C[a->id] = a->v_next;
                 }
 
@@ -262,7 +263,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
 
             std::cout << "-- after " << loop_cnt << " LaCAM finish " << std::endl;
             // memory management
-            for (auto a : A) delete a;
+            for (auto a : A_) delete a;
             for (auto M : GC) delete M;
             for (auto p : CLOSED) delete p.second;
             if(solution.empty()) { return false; }
@@ -276,7 +277,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
         bool get_new_config(Node *S, Constraint *M) {
             // setup cache
             // replace occupied_now and occupied_next with large agent constraint table
-            for (auto a : A) {
+            for (auto a : A_) {
                 // clear previous cache
 //                if (a->v_now != -1 && occupied_now[a->v_now] == a) {
 //                    occupied_now[a->v_now] = nullptr;
@@ -302,7 +303,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
                 const auto i = M->who[k];        // agent
                 const auto l = M->where[k];  // loc
                 // yz: check whether current constraint collide with other agent, if is, abandon current agent
-                if(constraint_table.hasCollide(i, A[i]->v_now, l)) {
+                if(constraint_table.hasCollide(i, A_[i]->v_now, l)) {
                     return false;
                 }
 
@@ -327,8 +328,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
 //                    return false;
 
                 // set occupied_next
-                A[i]->v_next = l;
-                constraint_table.setOccupiedNext(i, A[i]->v_next);
+                A_[i]->v_next = l;
+                constraint_table.setOccupiedNext(i, A_[i]->v_next);
 //                occupied_next[l] = A[i];
             }
 
@@ -338,7 +339,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
             // yz: perform PIBT for each agent in predefined order
             // yz: but as PIBT is recursive, the REAL of search path is not deterministic
             for (auto k : S->order) {
-                auto a = A[k];
+                auto a = A_[k];
                 if (a->v_next == -1 && !funcPIBT(a, S->t + 1, constraint_table)) {
                     return false;  // planning failure
                 }
@@ -354,11 +355,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
             // get candidates for next locations
             for (size_t k = 0; k < K; ++k) {
                 auto u = neighbor[k];
-                C_next[i][k] = u;
+                C_next_[i][k] = u;
                 if (MT != nullptr)
                     tie_breakers[u] = get_random_float(MT);  // set tie-breaker
             }
-            C_next[i][K] = ai->v_now;
+            C_next_[i][K] = ai->v_now;
 
             // sort, note: K + 1 is sufficient
             // yz: randomize future locations candidates
@@ -370,7 +371,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
 //                      });
 
 
-            std::sort(C_next[i].begin(), C_next[i].begin() + K + 1,
+            std::sort(C_next_[i].begin(), C_next_[i].begin() + K + 1,
                       [&](const size_t& v, const size_t& u) {
                           if(this->agents_heuristic_tables_[i][v] == this->agents_heuristic_tables_[i][u]) {
 //                              return distance_to_target[i][v/(2*N)] < distance_to_target[i][u/(2*N)];
@@ -397,7 +398,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
             // yz: for all current agent's neighbor and wait
 //            std::vector<std::pair<size_t, int> > candidates;
             for (size_t k = 0; k < K + 1; ++k) {
-                auto u = C_next[i][k];
+                auto u = C_next_[i][k];
 
                 // avoid vertex conflicts
 //                if (occupied_next[u] != nullptr) continue;
@@ -434,13 +435,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
 //                if (ak->v_next == -1 && !funcPIBT(ak, next_t)) continue;
                 int not_move_yet = -1;
                 for(const auto& agent_id : collide_agents) {
-                    if (A[agent_id]->v_next == -1) {
+                    if (A_[agent_id]->v_next == -1) {
                         not_move_yet = agent_id;
                         break;
                     }
                 }
                 if(not_move_yet == -1) { return true; }
-                if(!funcPIBT(A[not_move_yet], next_t, constraint_table)) {
+                if(!funcPIBT(A_[not_move_yet], next_t, constraint_table)) {
                     continue;
                 }
                 // success to plan next one step
@@ -461,13 +462,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
             if (solution.empty()) return true;
 
             // check start locations
-            if (!is_same_config(solution.front(), starts)) {
+            if (!is_same_config(solution.front(), starts_)) {
                 std::cerr << "invalid starts" << std::endl;
                 return false;
             }
 
             // check goal locations
-            if (!is_same_config(solution.back(), targets)) {
+            if (!is_same_config(solution.back(), targets_)) {
                 std::cerr << "invalid targets" << std::endl;
                 return false;
             }
@@ -503,9 +504,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
                         }
                     }
 
-                    if(path_constraint != nullptr) {
+                    if(path_constraint_ != nullptr) {
 //                        std::cout << "path_constraint != nullptr" << std::endl;
-                        if(path_constraint->hasCollideWithSAT(this->agent_sub_graphs_[i].agent_->id_, v_i_from, v_i_to)) {
+                        if(path_constraint_->hasCollideWithSAT(this->agent_sub_graphs_[i].agent_->id_, v_i_from, v_i_to)) {
                             std::cout << "LaCAM hasCollideWithSAT_2: "
                                       << this->agent_sub_graphs_[i].agent_ << ", "
                                       << *this->agent_sub_graphs_[i].data_ptr_->all_nodes_[v_i_from] << "->"
@@ -525,17 +526,17 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
         std::mt19937 *MT;
 
         // solver utils
-        const int V_size;
+        const int V_size_;
 //        DistTable D;
-        Candidates<N> C_next;                // next location candidates
+        Candidates<N> C_next_;                // next location candidates
         std::vector<float> tie_breakers;  // random values, used in PIBT
-        AgentLaCAMs A;
-        AgentLaCAMs occupied_now;   // for quick collision checking
-        AgentLaCAMs occupied_next;  // for quick collision checking
+        AgentLaCAMs A_;
+        AgentLaCAMs occupied_now_;   // for quick collision checking
+        AgentLaCAMs occupied_next_;  // for quick collision checking
 
-        Config starts, targets;
+        Config starts_, targets_;
 
-        LargeAgentStaticConstraintTablePtr<N, State> path_constraint = nullptr;
+        LargeAgentStaticConstraintTablePtr<N, State> path_constraint_ = nullptr;
 
         // store each grid's distance to target, as a secondary heuristic value
 //        std::vector<std::vector<int> > distance_to_target;

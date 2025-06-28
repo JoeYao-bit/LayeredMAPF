@@ -27,13 +27,12 @@ auto loader_local = TextMapLoader(map_test_config_local.at("map_path"), is_char_
 auto is_occupied_local = [](const Pointi<2> & pt) -> bool { return loader_local.isOccupied(pt); };
 
 
-template<Dimension N, typename HyperNodeType>
-void testSolvabilitySafeguard(const LA_MAPF_FUNC<2> & mapf_func) {
+void testSolvabilitySafeguard(const LA_MAPF_FUNC<2, Pose<int, 2>> & mapf_func, double time_cost_limit = 30) {
     auto file_path_local = map_test_config_local.at("la_ins_path");
 
     auto dim_local = loader_local.getDimensionInfo();
 
-    InstanceDeserializer<N> deserializer;
+    InstanceDeserializer<2> deserializer;
     if (deserializer.loadInstanceFromFile(file_path_local, dim_local)) {
         std::cout << "load from path " << file_path_local << " success" << std::endl;
     } else {
@@ -45,9 +44,6 @@ void testSolvabilitySafeguard(const LA_MAPF_FUNC<2> & mapf_func) {
     std::cout << "map scale = " << dim_local[0] << "*" << dim_local[1] << std::endl;
 
 
-    LargeAgentMAPFInstanceDecompositionPtr<N, HyperNodeType> decomposer_ptr = nullptr;
-    std::vector<std::vector<int> > grid_visit_count_table;
-
     auto instances = deserializer.getTestInstance({15}, 1);
 
     std::cout << "instance.size() = " << instances.size() << std::endl;
@@ -57,17 +53,18 @@ void testSolvabilitySafeguard(const LA_MAPF_FUNC<2> & mapf_func) {
 
     agent_ptrs = instances.front().first;
     poses      = instances.front().second;
-    gettimeofday(&tv_pre, &tz);
+
+    std::vector<std::vector<int> > grid_visit_count_table;
+    MSTimer mst;
     std::vector<LAMAPF_Path> solution = mapf_func(poses, agent_ptrs, dim_local, is_occupied_local,
                                                   nullptr,
                                                   grid_visit_count_table,
-                                                  30, {}, nullptr, {}, {}, {}, nullptr
+                                                  time_cost_limit, {}, nullptr, {}, {}, {}, nullptr
                                                   );
 //    std::vector<LAMAPF_Path> solution = LaCAM::LargeAgentLaCAM_func<2>(poses, agent_ptrs, dim_local, is_occupied_local,
 //                                                                       nullptr,
 //                                                                       grid_visit_count_table);
-    gettimeofday(&tv_after, &tz);
-    double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
+    double time_cost = mst.elapsed() / 1e3;
 
     std::cout << "find raw problem solution " << !solution.empty() << " in " << time_cost << "ms" << std::endl;
 
@@ -79,13 +76,15 @@ void testSolvabilitySafeguard(const LA_MAPF_FUNC<2> & mapf_func) {
 
     int failed_subproblem_id = rand() % levels.size();
 
-    SolvabilitySafeguard<N> safeguard(poses, agent_ptrs, dim_local, is_occupied_local);
-    std::cout << "this->isoc_ ex " << is_occupied_local(Pointi<N>()) << std::endl;
+    auto pre = std::make_shared<PrecomputationOfLAMAPF<2>>(poses, agent_ptrs, dim_local, is_occupied_local);
+
+    SolvabilitySafeguard<2, Pose<int, 2>> safeguard(pre);
+    std::cout << "this->isoc_ ex " << is_occupied_local(Pointi<2>()) << std::endl;
 
     bool success = safeguard.mergeSubproblemTillSolvable(levels, failed_subproblem_id,
             //LaCAM::LargeAgentLaCAM_func<2>,
                                                          mapf_func,
-                                                         is_occupied_local, 30);
+                                                         is_occupied_local, time_cost_limit);
     std::cout << "is merge success " << success << std::endl;
 
 }
@@ -93,7 +92,7 @@ void testSolvabilitySafeguard(const LA_MAPF_FUNC<2> & mapf_func) {
 int main() {
 
     //testSolvabilitySafeguard<2>(LaCAM::LargeAgentLaCAM_func<2>);
-    testSolvabilitySafeguard<2, HyperGraphNodeDataRaw<2>>(CBS::LargeAgentCBS_func<2>);
+    testSolvabilitySafeguard(CBS::LargeAgentCBS_func<2, Pose<int, 2>>, 30);
 
     return 0;
 

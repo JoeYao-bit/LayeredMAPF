@@ -31,8 +31,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     // return the path have been modified to avoid conflict with lasted_occupied_time_table
     // synchronous is easy but too long, current way
     // asynchronous is not easy to implement, but too
-    template <Dimension N>
-    LAMAPF_Paths SingleLayerCompressLargeAgent(const std::vector<PosePtr<int, N> >& all_poses,
+    template <Dimension N, typename State>
+    LAMAPF_Paths SingleLayerCompressLargeAgent(const std::vector<std::shared_ptr<State> >& all_poses,
                                                const LAMAPF_Paths& pre_paths,
                                                const std::vector<AgentPtr<N> >& pre_agents,
                                                const LAMAPF_Paths& paths,
@@ -104,7 +104,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                         std::cout << "cur agent = " << cur_agent << " : "
                                                   << *all_poses[cur_path[0]] << std::endl;
 
-                                        std::cout << "cur path = " << printPath(cur_path, all_poses) << std::endl;
+                                        std::cout << "cur path = " << printPath<N, State>(cur_path, all_poses) << std::endl;
 
                                         exit(0);
                                     }
@@ -194,8 +194,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return pre_paths_copy;
     }
 
-    template <Dimension N>
-    LAMAPF_Paths multiLayerCompressLargeAgent(const std::vector<PosePtr<int, N> >& all_poses,
+    template <Dimension N, typename State>
+    LAMAPF_Paths multiLayerCompressLargeAgent(const std::vector<std::shared_ptr<State> >& all_poses,
                                               const std::vector<LAMAPF_Paths>& pathss,
                                               const std::vector<std::vector<AgentPtr<N>> >& agents) {
         assert(pathss.size() == agents.size());
@@ -253,7 +253,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<SubGraphOfAgent<N, State> >     local_agent_sub_graphs;
         std::vector<std::vector<int> >       local_agents_heuristic_tables;
         std::vector<std::vector<int> >       local_agents_heuristic_tables_ignore_rotate;
-
+        std::vector<std::pair<size_t, size_t> > local_instance_node_ids;
 
         for(const auto& current_id : current_id_set) {
             current_id_vec.push_back(current_id);
@@ -271,6 +271,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             local_agents_heuristic_tables_ignore_rotate.push_back(
                     pre->agents_heuristic_tables_ignore_rotate_[current_id]);
 
+            local_instance_node_ids.push_back(pre->instance_node_ids_[current_id]);
         }
         MSTimer mst;
         LargeAgentStaticConstraintTablePtr<N, State>
@@ -328,6 +329,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                         pre->dim_, pre->isoc_,
                                                         new_constraint_table_ptr_,
                                                         grid_visit_count_table_local, remaining_time,
+                                                        local_instance_node_ids,
                                                         local_all_poses,
                                                         local_distance_map_updater,
                                                         local_agent_sub_graphs,
@@ -407,7 +409,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     std::cout << "unsolvable subproblem detected, solvability safeguard start...  " << std::endl;
                     detect_loss_of_solvability = true;
                 }
-                SolvabilitySafeguard<N, State> safeguard(pre, remaining_time);
+                SolvabilitySafeguard<N, State> safeguard(pre);
 
                 bool success = safeguard.mergeSubproblemTillSolvable(levels,
                                                                      level_id,
