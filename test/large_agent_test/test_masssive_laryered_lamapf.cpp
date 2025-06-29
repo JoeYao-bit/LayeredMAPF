@@ -24,18 +24,19 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                               int minimum_agents,
                               int agent_interval,
                               double time_limit = 60) {
-    map_test_config = map_file;
-    loader = TextMapLoader(map_test_config.at("map_path"), is_char_occupied1);
 
-    //clearFile(map_test_config.at("la_comp_path"));
-    auto dim_local = loader.getDimensionInfo();
-    auto is_occupied_local = [&](const Pointi<2> & pt) -> bool { return loader.isOccupied(pt); };
+    TextMapLoader loader = TextMapLoader(map_file.at("map_path"), is_char_occupied1);
+
+    auto dim = loader.getDimensionInfo();
+    auto is_occupied = [&loader](const freeNav::Pointi<2> &pt) -> bool { return loader.isOccupied(pt); };
+    IS_OCCUPIED_FUNC<2> is_occupied_func = is_occupied;
+
 
     InstanceDeserializer<2> deserializer;
-    if(deserializer.loadInstanceFromFile(map_test_config.at("la_ins_path"), dim)) {
-        std::cout << "load from path " << map_test_config.at("la_ins_path") << " success" << std::endl;
+    if(deserializer.loadInstanceFromFile(map_file.at("la_ins_path"), dim)) {
+        std::cout << "load from path " << map_file.at("la_ins_path") << " success" << std::endl;
     } else {
-        std::cout << "load from path " << map_test_config.at("la_ins_path") << " failed" << std::endl;
+        std::cout << "load from path " << map_file.at("la_ins_path") << " failed" << std::endl;
         return;
     }
     assert(!deserializer.getAgents().empty());
@@ -54,49 +55,49 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
 
         std::vector<std::string> strs;
 
-        auto str1 = LayeredLAMAPF<2, MAPFInstanceDecompositionBipartition<2, HyperGraphNodeDataRaw<2>, Pose<int, 2>>>(
+        auto str1 = BIPARTITION_LAMAPF<2>(
                    instances_local,
                    agents_local,
-                   dim_local,
-                   is_occupied_local,
+                   dim,
+                   is_occupied,
                    LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
-                   "LAYERED_LaCAM",
+                   "LaCAM",
                    time_limit);
 
         strs.push_back(str1);
 
-        auto str2 = LayeredLAMAPF<2, MAPFInstanceDecompositionBreakLoop<2, HyperGraphNodeDataRaw<2>, Pose<int, 2>>>(
+        auto str2 = BREAKLOOP_LAMAPF<2>(
                 instances_local,
                 agents_local,
-                dim_local,
-                is_occupied_local,
+                dim,
+                is_occupied,
                 //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
                 CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
-                "BREAKLOOP_CBS",
+                "CBS",
                 time_limit);
 
         strs.push_back(str2);
 
-        auto str3 = RAWLAMAPF<2>(
+        auto str3 = RAW_LAMAPF<2>(
                 instances_local,
                         agents_local,
-                        dim_local,
-                        is_occupied_local,
+                        dim,
+                        is_occupied,
                         //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
                         CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
-                "RAW_CBS",
+                "CBS",
                         time_limit);
 
         strs.push_back(str3);
 
-        auto str4 = IDLAMAPF<2>(
+        auto str4 = ID_LAMAPF<2>(
                 instances_local,
                 agents_local,
-                dim_local,
-                is_occupied_local,
+                dim,
+                is_occupied,
                 //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
                 CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
-                "RAW_CBS",
+                "CBS",
                 time_limit);
 
         strs.push_back(str4);

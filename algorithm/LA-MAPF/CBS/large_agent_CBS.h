@@ -23,7 +23,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                       const IS_OCCUPIED_FUNC<N> & isoc,
                       const LargeAgentStaticConstraintTablePtr<N, State>& path_constraint,
                       const std::vector<std::pair<size_t, size_t> >& instance_node_ids,
-                      const std::vector<std::shared_ptr<State> > all_poses ,
+                      const std::vector<std::shared_ptr<State> > all_poses,
                       const DistanceMapUpdaterPtr<N> distance_map_updater,
                       const std::vector<SubGraphOfAgent<N, State> >& agent_sub_graphs,
                       const std::vector<std::vector<int> >& agents_heuristic_tables,

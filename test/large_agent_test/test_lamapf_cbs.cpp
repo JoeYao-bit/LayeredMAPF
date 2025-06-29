@@ -20,15 +20,9 @@
 
 #include "../../algorithm/precomputation_for_decomposition.h"
 
-CircleAgent<2> c1(2.5, 0, dim);
-CircleAgent<2> c2(3.5, 1, dim);
 
 int canvas_size_x = 1000, canvas_size_y = 700;
 
-TEST(circleAgentIsCollide, cbs_test) {
-    Pose<int, 2> p1({1,1},0), p2({1,2}, 0), p3({1,3}, 0), p4({4,1}, 0);
-    std::cout << "is collide" << isCollide(c1, p1, p2, c2, p3, p4) << std::endl;
-}
 
 TEST(test, pointRotate_2D) {
     canvas_size_x = 10, canvas_size_y = 10;
@@ -66,6 +60,14 @@ TEST(test, pointRotate_2D) {
 }
 
 TEST(test, BlockRotateCoverage) {
+    auto file_path = MAPFTestConfig_empty_48_48;
+
+    TextMapLoader tl(file_path.at("map_path"), is_char_occupied1);
+    std::cout << "start SingleMapTest from map " << file_path.at("map_path") << std::endl;
+    auto dim = tl.getDimensionInfo();
+    auto is_occupied = [&tl](const freeNav::Pointi<2> &pt) -> bool { return tl.isOccupied(pt); };
+    IS_OCCUPIED_FUNC<2> is_occupied_func = is_occupied;
+
     BlockAgent_2D block({-15, -10}, {20, 10}, 0, dim);
     int orient_start = 1, orient_end = 3;
     const auto& rotate_f_b = block.getRotateCoverage(orient_start, orient_end);
@@ -169,6 +171,15 @@ TEST(pointer, test) {
 
 
 TEST(constraint_avoidance_table, test) {
+    auto file_path = MAPFTestConfig_empty_48_48;
+
+    TextMapLoader tl(file_path.at("map_path"), is_char_occupied1);
+    std::cout << "start SingleMapTest from map " << file_path.at("map_path") << std::endl;
+    auto dim = tl.getDimensionInfo();
+    auto is_occupied = [&tl](const freeNav::Pointi<2> &pt) -> bool { return tl.isOccupied(pt); };
+    IS_OCCUPIED_FUNC<2> is_occupied_func = is_occupied;
+
+
     // fake instances
     InstanceOrients<2> instances = {
             {{{5, 3}, 0}, {{23, 22},0} },
@@ -181,7 +192,31 @@ TEST(constraint_avoidance_table, test) {
                                    std::make_shared<CircleAgent<2> >(.6, 2, dim)
                            });
 
-    CBS::LargeAgentCBS<2, Pose<int, 2>> lacbs(instances, agents, dim, is_occupied);
+    InstanceDeserializer<2> deserializer_local;
+    const std::string file_path_local = file_path.at("la_ins_path");
+    if(deserializer_local.loadInstanceFromFile(file_path_local, dim)) {
+        std::cout << "load from path " << file_path_local << " success" << std::endl;
+    } else {
+        std::cout << "load from path " << file_path_local << " failed" << std::endl;
+        return;
+    }
+
+    PrecomputationOfLAMAPFDecomposition<2, HyperGraphNodeDataRaw<2>> pre(instances,
+                                                                         agents,
+                                                                         dim, is_occupied, true);
+    std::vector<std::vector<int> > grid_visit_count_table;
+
+    CBS::LargeAgentCBS<2, Pose<int, 2>> lacbs(instances,
+                                              agents,
+                                              dim, is_occupied,
+                                              nullptr,
+                                              pre.instance_node_ids_,
+                                              pre.all_poses_,
+                                              pre.distance_map_updater_,
+                                              pre.agent_sub_graphs_,
+                                              pre.agents_heuristic_tables_,
+                                              pre.agents_heuristic_tables_ignore_rotate_,
+                                              nullptr);
 
     if(!lacbs.solve(30)) {
         std::cout << "failed to solve" << std::endl;

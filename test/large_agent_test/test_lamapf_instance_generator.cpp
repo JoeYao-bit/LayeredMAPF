@@ -67,14 +67,21 @@ TEST(resize, test)
 }
 
 void Generator_test() {
+    auto file_path = MAPFTestConfig_empty_48_48;
+
+    TextMapLoader tl(file_path.at("map_path"), is_char_occupied1);
+    auto dim = tl.getDimensionInfo();
+    auto is_occupied = [&tl](const freeNav::Pointi<2> &pt) -> bool { return tl.isOccupied(pt); };
+    IS_OCCUPIED_FUNC<2> is_occupied_func = is_occupied;
+
     InstanceDeserializer<2> deserializer;
 
-    const std::string file_path = map_test_config.at("la_ins_path");
+    const std::string map_path = map_test_config.at("la_ins_path");
 
-    if(deserializer.loadInstanceFromFile(file_path, dim)) {
-        std::cout << "load from path " << file_path << " success" << std::endl;
+    if(deserializer.loadInstanceFromFile(map_path, dim)) {
+        std::cout << "load from path " << map_path << " success" << std::endl;
     } else {
-        std::cout << "load from path " << file_path << " failed" << std::endl;
+        std::cout << "load from path " << map_path << " failed" << std::endl;
         return;
     }
     std::cout << " map scale " << dim[0] << "*" << dim[1] << std::endl;
@@ -102,7 +109,6 @@ void Generator_test() {
 
 //        assert(solver.agent_sub_graphs_[i].all_nodes_[start_id] != nullptr);
 //        assert(solver.agent_sub_graphs_[i].all_nodes_[target_id] != nullptr);
-    }
 
 }
 
@@ -111,16 +117,15 @@ TEST(Generator, test) {
 }
 
 void Decomposition_test(const SingleMapTestConfig<2>& map_file_local) {
-    InstanceDeserializer<2> deserializer_local;
 
     TextMapLoader tl_local(map_file_local.at("map_path"), is_char_occupied1);
-    std::cout << "start SingleMapTest from map " << map_test_config.at("map_path") << std::endl;
     auto dim_local = tl_local.getDimensionInfo();
     auto is_occupied_local = [&tl_local](const freeNav::Pointi<2> &pt) -> bool { return tl_local.isOccupied(pt); };
     IS_OCCUPIED_FUNC<2> is_occupied_func_local = is_occupied_local;
 
-    const std::string file_path_local = map_file_local.at("la_ins_path");
 
+    InstanceDeserializer<2> deserializer_local;
+    const std::string file_path_local = map_file_local.at("la_ins_path");
     if(deserializer_local.loadInstanceFromFile(file_path_local, dim_local)) {
         std::cout << "load from path " << file_path_local << " success" << std::endl;
     } else {
@@ -165,10 +170,14 @@ void multiLoadLargeAgentAndDecomposition(const SingleMapTestConfig<2>& map_file,
                                     int maximum_agents,
                                     int minimum_agents,
                                     int agent_interval) {
+
+
     map_test_config = map_file;
-    loader = TextMapLoader(map_test_config.at("map_path"), is_char_occupied1);
+    TextMapLoader loader = TextMapLoader(map_test_config.at("map_path"), is_char_occupied1);
 
-
+    auto dim = loader.getDimensionInfo();
+    auto is_occupied = [&loader](const freeNav::Pointi<2> &pt) -> bool { return loader.isOccupied(pt); };
+    IS_OCCUPIED_FUNC<2> is_occupied_func = is_occupied;
     //clearFile(map_test_config.at("la_comp_path"));
 
     InstanceDeserializer<2> deserializer;
@@ -248,7 +257,11 @@ void generateLargeAgentInstanceForMap(const SingleMapTestConfig<2>& map_file,
                                       int times_of_try,
                                       int maximum_sample_count = 1e7) {
     map_test_config = map_file;
-    loader = TextMapLoader(map_test_config.at("map_path"), is_char_occupied1);
+    TextMapLoader loader = TextMapLoader(map_test_config.at("map_path"), is_char_occupied1);
+
+    auto dim = loader.getDimensionInfo();
+    auto is_occupied = [&loader](const freeNav::Pointi<2> &pt) -> bool { return loader.isOccupied(pt); };
+    IS_OCCUPIED_FUNC<2> is_occupied_func = is_occupied;
 
     for(int i=0; i<times_of_try; i++) {
         AgentPtrs<2> agents = RandomMixedAgentsGenerator(required_agents/2,

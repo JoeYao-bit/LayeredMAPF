@@ -17,15 +17,23 @@
 
 using namespace freeNav::LayeredMAPF::LA_MAPF;
 
-void layeredLargeAgentMAPFTest(int num_of_agents,
+void layeredLargeAgentMAPFTest(const SingleMapTestConfig<2>& file_path,
+                               int num_of_agents,
                                const LA_MAPF_FUNC<2, Pose<int, 2>>& mapf_func,
                                double time_limit = 60) {
-    auto file_path = map_test_config.at("la_ins_path");
+
+    auto map_path = file_path.at("la_ins_path");
+
+    TextMapLoader tl(file_path.at("map_path"), is_char_occupied1);
+    auto dim = tl.getDimensionInfo();
+    auto is_occupied = [&tl](const freeNav::Pointi<2> &pt) -> bool { return tl.isOccupied(pt); };
+    IS_OCCUPIED_FUNC<2> is_occupied_func = is_occupied;
+
     InstanceDeserializer<2> deserializer;
-    if (deserializer.loadInstanceFromFile(file_path, dim)) {
-        std::cout << "load from path " << file_path << " success" << std::endl;
+    if (deserializer.loadInstanceFromFile(file_path.at("map_path"), dim)) {
+        std::cout << "load from path " << file_path.at("map_path") << " success" << std::endl;
     } else {
-        std::cout << "load from path " << file_path << " failed" << std::endl;
+        std::cout << "load from path " << file_path.at("map_path") << " failed" << std::endl;
         return;
     }
     std::cout << "map scale = " << dim[0] << "*" << dim[1] << std::endl;
@@ -133,7 +141,7 @@ void layeredLargeAgentMAPFTest(int num_of_agents,
 //TEST(test, layered_large_agent_CBS) {
 int main() {
     //layeredLargeAgentMAPFTest(7, CBS::LargeAgentCBS_func<2, Pose<int, 2> >, 20);
-    layeredLargeAgentMAPFTest(7, LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >, 20);
+    layeredLargeAgentMAPFTest(MAPFTestConfig_empty_48_48, 7, LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >, 20);
     return 0;
 }
 

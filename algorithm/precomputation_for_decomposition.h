@@ -18,7 +18,7 @@ namespace freeNav::LayeredMAPF {
     public:
 
         PrecomputationOfMAPFDecompositionBase(bool with_sat_heu = true):
-                                              with_sat_heu_(with_sat_heu)
+                with_ignore_sat_heu_(with_sat_heu)
         {}
 
         std::vector<LA_MAPF::ConnectivityGraph> connect_graphs_;
@@ -27,7 +27,7 @@ namespace freeNav::LayeredMAPF {
 
         std::vector<std::vector<int> > heuristic_tables_; // distinguish_sat = false
 
-        bool with_sat_heu_ = true; // whether calculate heuristic_tables_
+        bool with_ignore_sat_heu_ = true; // whether calculate heuristic_tables_
 
         float initialize_time_cost_ = 0;
 
@@ -282,7 +282,7 @@ namespace freeNav::LayeredMAPF {
                         lock_2.lock();
                         heuristic_tables_sat.insert({map_id, heu_sat_table});
                         lock_2.unlock();
-                        if(this->with_sat_heu_) {
+                        if(this->with_ignore_sat_heu_) {
                             const auto& heu_ig_sat_table =
                                     LA_MAPF::calculateLargeAgentHyperGraphStaticHeuristic
                                             <N, HyperNodeType>
@@ -729,7 +729,7 @@ namespace freeNav::LayeredMAPF {
                                                                                                 this->connect_graphs_[agent_id],
                                                                                                 true));
 
-                if(this->with_sat_heu_) {
+                if(this->with_ignore_sat_heu_) {
                     this->heuristic_tables_.push_back(calculateAgentHyperGraphStaticHeuristic<N, HyperNodeType>(agent_id,
                                                                                                 this->dim_,
                                                                                                 this->connect_graphs_[agent_id],

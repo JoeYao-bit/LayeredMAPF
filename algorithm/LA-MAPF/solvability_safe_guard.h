@@ -28,7 +28,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return false;
         }
 
-        bool isStateCollideWithSolution(const AgentPtr<N>& a1, const Pose<int, N>& st,
+        bool isStateCollideWithSolution(const AgentPtr<N>& a1, const State& st,
                                         const AgentPtr<N>& a2, const LAMAPF_Path& path) {
             for(int t=0; t<path.size()-1; t++) {
                 if(isCollide(a1, st, a2, *pre_->all_poses_[path[t]], *pre_->all_poses_[path[t+1]])) {
@@ -38,7 +38,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return false;
         }
 
-        bool isStateCollideWithSolutions(const AgentPtr<N>& a1, const Pose<int, N>& st,
+        bool isStateCollideWithSolutions(const AgentPtr<N>& a1, const State& st,
                                          const AgentPtrs<N>& agents, const std::vector<LAMAPF_Path>& paths) {
             assert(agents.size() == paths.size());
             for(int i=0; i<agents.size(); i++) {

@@ -220,6 +220,7 @@ bool decompositionOfSingleInstanceBreakLoop(const freeNav::Instances<N>& ists, D
             pre->connect_graphs_,
             pre->agent_sub_graphs_,
             pre->heuristic_tables_sat_,
+            pre->heuristic_tables_,
             time_limit_s - pre->initialize_time_cost_/1e3,
             1e4,
             100,
