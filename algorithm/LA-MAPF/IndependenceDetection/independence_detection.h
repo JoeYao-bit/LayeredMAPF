@@ -360,7 +360,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
 
             std::vector<int> current_id_set = groups[g1];
 
-            InstanceOrients<N> cluster_instances;
+            std::vector<std::pair<State, State>> cluster_instances;
             std::vector<AgentPtr<N> > cluster_agents;
 
             std::vector<int> current_id_vec;

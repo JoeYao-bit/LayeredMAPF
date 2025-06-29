@@ -7,7 +7,6 @@
 
 #include "common.h"
 
-#include "large_agent_instance_decomposition.h"
 #include "../../algorithm/LA-MAPF/CBS/constraint.h"
 #include "solvability_safe_guard.h"
 #include "../basic.h"
@@ -240,7 +239,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                              const LA_MAPF_FUNC<N, State> & mapf_func,
                                              bool use_path_constraint = false) {
 
-        InstanceOrients<N> cluster_instances;
+        std::vector<std::pair<Pointi<N>, Pointi<N>>> cluster_instances;
         std::vector<AgentPtr<N> > cluster_agents;
 
         std::set<int> current_id_set = levels[subproblem_id];

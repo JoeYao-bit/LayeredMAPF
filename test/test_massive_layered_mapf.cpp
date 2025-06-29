@@ -1,3 +1,6 @@
+//
+// Created by yaozhuo on 6/30/25.
+//
 
 #include "../freeNav-base/dependencies/2d_grid/text_map_loader.h"
 #include "../freeNav-base/dependencies/memory_analysis.h"
@@ -5,7 +8,6 @@
 #include "../test/test_data.h"
 
 #include "common_interfaces.h"
-
 
 
 using namespace freeNav;
@@ -76,33 +78,33 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
 
     for (int i = 0; i < istss.size(); i++) {
 
-        const auto& instances = istss[i];
+        const auto& instances_local = istss[i];
 
         std::vector<std::string> strs;
 
-//        auto str1 = BIPARTITION_MAPF<2>(
-//                instances,
-//                dim,
-//                is_occupied,
-//                LaCAM::LargeAgentLaCAM_func<2, Pointi<2> >,
-//                "LaCAM",
-//                time_limit);
-//
-//        strs.push_back(str1);
+        auto str1 = BIPARTITION_MAPF<2>(
+                instances_local,
+                dim,
+                is_occupied,
+                LaCAM::LargeAgentLaCAM_func<2, Pointi<2> >,
+                "LaCAM",
+                time_limit);
 
-//        auto str2 = BREAKLOOP_MAPF<2>(
-//                instances,
-//                dim,
-//                is_occupied,
-//                //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
-//                CBS::LargeAgentCBS_func<2, Pointi<2> >,
-//                "CBS",
-//                time_limit);
-//
-//        strs.push_back(str2);
-//
+        strs.push_back(str1);
+
+        auto str2 = BREAKLOOP_MAPF<2>(
+                instances_local,
+                dim,
+                is_occupied,
+                //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
+                CBS::LargeAgentCBS_func<2, Pointi<2> >,
+                "CBS",
+                time_limit);
+
+        strs.push_back(str2);
+
         auto str3 = RAW_MAPF<2>(
-                instances,
+                instances_local,
                 dim,
                 is_occupied,
                 //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
@@ -111,17 +113,17 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                 time_limit);
 
         strs.push_back(str3);
-//
-//        auto str4 = ID_MAPF<2>(
-//                instances,
-//                dim,
-//                is_occupied,
-//                //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
-//                CBS::LargeAgentCBS_func<2, Pointi<2> >,
-//                "CBS",
-//                time_limit);
-//
-//        strs.push_back(str4);
+
+        auto str4 = ID_MAPF<2>(
+                instances_local,
+                dim,
+                is_occupied,
+                //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
+                CBS::LargeAgentCBS_func<2, Pointi<2> >,
+                "CBS",
+                time_limit);
+
+        strs.push_back(str4);
 
         for(const auto& str : strs) {
             std::cout << str << std::endl;

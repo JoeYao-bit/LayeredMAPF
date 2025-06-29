@@ -137,7 +137,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
 
 
-        int getNumOfConflictsForStep(const Pose<int, N>& curr_node, const Pose<int, N>& next_node, int current_timestep) const {
+        int getNumOfConflictsForStep(const State& curr_node, const State& next_node, int current_timestep) const {
             Pointis<N> occ_grids = agent_->getTransferOccupiedGrid(curr_node, next_node);
             return getNumOfConflictsForStep(occ_grids, agent_->id_, current_timestep);
         }

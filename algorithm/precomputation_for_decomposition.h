@@ -11,6 +11,7 @@
 //#include "LA-MAPF/CBS/space_time_astar.h"
 //#include "LA-MAPF/large_agent_dependency_path_search.h"
 #include "precomputation_for_mapf.h"
+#include "LA-MAPF/large_agent_dependency_path_search.h"
 
 namespace freeNav::LayeredMAPF {
 

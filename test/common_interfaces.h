@@ -16,8 +16,9 @@
 
 #include "../algorithm/LA-MAPF/large_agent_instance_generator.h"
 #include "../algorithm/LA-MAPF/instance_serialize_and_deserialize.h"
-#include "../algorithm/LA-MAPF/large_agent_instance_decomposition.h"
 #include "../algorithm/precomputation_for_decomposition.h"
+
+#include "../algorithm/LA-MAPF/laryered_large_agent_mapf.h"
 
 //#include "../../freeNav-base/visualization/canvas/canvas.h"
 #include "../freeNav-base/dependencies/2d_grid/text_map_loader.h"
@@ -223,7 +224,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         double basic_usage = memory_recorder.getCurrentMemoryUsage();
         MSTimer mst;
         auto pre =
-                std::make_shared<PrecomputationOfMAPF<2>>(instances,
+                std::make_shared<PrecomputationOfMAPF<N>>(instances,
                                                           dim, isoc);
         std::vector<std::vector<int> > grid_visit_count_table;
 

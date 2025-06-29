@@ -165,6 +165,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         virtual Pointis<N> getTransferOccupiedGrid(const Pose<int, N> &edge_from,
                                                    const Pose<int, N> &edge_to) const = 0;
 
+        virtual Pointis<N> getTransferOccupiedGrid(const Pointi<N> &edge_from,
+                                                   const Pointi<N> &edge_to) const {
+            return {edge_from, edge_to};
+        };
+
         virtual std::pair<Pointis<N>, Pointis<N>> getPoseOccupiedGrid(const Pose<int, N> &pose) const = 0;
 
         virtual std::string serialize() const = 0;
@@ -268,6 +273,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return isPointSetOverlap(pts1, pts2, a1->dim_);
     }
 
+    template<Dimension N>
+    bool isCollide(const AgentPtr<N> &a1, const Pointi<N> &s1, const Pointi<N> &e1,
+                   const AgentPtr<N> &a2, const Pointi<N> &s2, const Pointi<N> &e2) {
+        if(s1 == s2 || e1 == e2) { return true; }
+        if(s1 == e2 || s2 == e1) { return true; }
+        return false;
+    }
+
     // check whether one moving circle are collide with one waiting circle
     template<Dimension N>
     bool isCollide(const AgentPtr<N> &a1, const Pose<int, N> &s1, const Pose<int, N> &e1,
@@ -292,6 +305,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     }
 
     template<Dimension N>
+    bool isCollide(const AgentPtr<N> &a1, const Pointi<N> &s1,
+                   const AgentPtr<N> &a2, const Pointi<N> &s2, const Pointi<N> &e2) {
+        return s1 == s2 || s1 == e2;
+    }
+
+    template<Dimension N>
+    bool isCollide(const AgentPtr<N> &a1, const Pointi<N> &s1, const Pointi<N> &e1,
+                   const AgentPtr<N> &a2, const Pointi<N> &s2) {
+        return s1 == s2 || e1 == s2;
+    }
+
+    template<Dimension N>
     bool isCollide(const AgentPtr<N> &a1, const Pose<int, N> &s1,
                    const AgentPtr<N> &a2, const Pose<int, N> &s2) {
 
@@ -305,6 +330,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         Pointis<N> pts1 = a1->getPoseOccupiedGrid(s1).first;
         Pointis<N> pts2 = a2->getPoseOccupiedGrid(s2).first;
         return isPointSetOverlap(pts1, pts2, a1->dim_);
+    }
+
+    template<Dimension N>
+    bool isCollide(const AgentPtr<N> &a1, const Pointi<N> &s1,
+                   const AgentPtr<N> &a2, const Pointi<N> &s2) {
+
+        return s1 == s2;
     }
 
     class HighLvNode;
@@ -676,6 +708,16 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return retv;
     }
 
+    template<Dimension N>
+    Pointi<N> toPointi(const Pointi<N>& pt) {
+        return pt;
+    }
+
+    template<Dimension N>
+    Pointi<N> toPointi(const Pose<int, N>& pose) {
+        return pose.pt_;
+    }
+
     // use as external static constraint
     // avoid each time traversal all path to check conflict
     template<Dimension N, typename State>
@@ -712,7 +754,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             auto iter = points_in_agent_circles_.find(agent_global_id);
             assert(iter != points_in_agent_circles_.end());
             const auto &cur_pts = iter->second;
-            const auto &center_pt = all_poses_[next_node]->pt_;
+            const auto &center_pt = toPointi<N>(*all_poses_[next_node]);//->pt_;
             Pointi<N> temp_pt;
             Id temp_id;
             for (const auto &pt : cur_pts) {

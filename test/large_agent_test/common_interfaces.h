@@ -16,7 +16,6 @@
 
 #include "../../algorithm/LA-MAPF/large_agent_instance_generator.h"
 #include "../../algorithm/LA-MAPF/instance_serialize_and_deserialize.h"
-#include "../../algorithm/LA-MAPF/large_agent_instance_decomposition.h"
 #include "../../algorithm/precomputation_for_decomposition.h"
 
 //#include "../../freeNav-base/visualization/canvas/canvas.h"
@@ -107,9 +106,8 @@ auto is_char_occupied1 = [](const char& value) -> bool {
 
 
 // maximum_sample_count: max times of sample start and target for an agent
-template<Dimension N>
-bool generateLargeAgentMAPFInstance(const std::vector<AgentPtr<N> >& agents,
-                                    const SingleMapTestConfig<N>& file_path,
+bool generateLargeAgentMAPFInstance(const std::vector<AgentPtr<2> >& agents,
+                                    const SingleMapTestConfig<2>& file_path,
                                     int maximum_sample_count = 1e7) {
     gettimeofday(&tv_pre, &tz);
 
@@ -120,33 +118,33 @@ bool generateLargeAgentMAPFInstance(const std::vector<AgentPtr<N> >& agents,
     IS_OCCUPIED_FUNC<2> is_occupied_func_local = is_occupied;
 
     // get previous texts as backup
-    InstanceDeserializer<N> deserializer;
-    deserializer.loadInstanceFromFile(file_path, dim);
+    InstanceDeserializer<2> deserializer;
+    deserializer.loadInstanceFromFile(file_path.at("la_ins_path"), dim);
     std::vector<std::string> backup_strs = deserializer.getTextString();
 
 
     // test whether serialize and deserialize will change agent's behavior
     // even we didn't change their behavior explicitly
-    InstanceOrients<N> fake_instances;
+    InstanceOrients<2> fake_instances;
     for(int i=0; i<agents.size(); i++) {
-        fake_instances.push_back({Pose<int, N>{{0,0},0}, Pose<int, N>{{0,0},0}});
+        fake_instances.push_back({Pose<int, 2>{{0,0},0}, Pose<int, 2>{{0,0},0}});
     }
-    InstanceSerializer<N> fake_serializer(agents, fake_instances);
-    if(!fake_serializer.saveToFile(file_path)) {
+    InstanceSerializer<2> fake_serializer(agents, fake_instances);
+    if(!fake_serializer.saveToFile(file_path.at("la_ins_path"))) {
         std::cout << "fake_serializer save to path " << file_path.at("la_ins_path") << " failed" << std::endl;
         return false;
     }
-    InstanceDeserializer<N> fake_deserializer;
-    if(!fake_deserializer.loadInstanceFromFile(file_path, dim)) {
+    InstanceDeserializer<2> fake_deserializer;
+    if(!fake_deserializer.loadInstanceFromFile(file_path.at("la_ins_path"), dim)) {
         std::cout << "load from path " << file_path.at("la_ins_path") << " failed" << std::endl;
         return false;
     }
     auto new_agents = fake_deserializer.getAgents();
 
     // restore backup texts
-    fake_serializer.saveStrsToFile(backup_strs, file_path);
+    fake_serializer.saveStrsToFile(backup_strs, file_path.at("la_ins_path"));
 
-    LargeAgentMAPF_InstanceGenerator<N> generator(new_agents, is_occupied, dim, maximum_sample_count);
+    LargeAgentMAPF_InstanceGenerator<2> generator(new_agents, is_occupied, dim, maximum_sample_count);
 
     // debug: print all agents
     for(int i=0; i<agents.size(); i++) {
@@ -173,8 +171,8 @@ bool generateLargeAgentMAPFInstance(const std::vector<AgentPtr<N> >& agents,
     for(int i=0; i<instances_and_path.size(); i++) {
         solution.push_back(instances_and_path[i].second);
     }
-    InstanceSerializer<N> serializer(new_agents, instances);
-    if(serializer.saveToFile(file_path)) {
+    InstanceSerializer<2> serializer(new_agents, instances);
+    if(serializer.saveToFile(file_path.at("la_ins_path"))) {
         std::cout << "save to path " << file_path.at("la_ins_path") << " success" << std::endl;
         return true;
     } else {
@@ -183,126 +181,7 @@ bool generateLargeAgentMAPFInstance(const std::vector<AgentPtr<N> >& agents,
     }
 }
 
-template<Dimension N>
-void loadLargeAgentInstanceAndDecomposition(const SingleMapTestConfig<N>& file_path) {
 
-    TextMapLoader tl(file_path.at("map_path"), is_char_occupied1);
-    std::cout << "start SingleMapTest from map " << file_path.at("map_path") << std::endl;
-    auto dim = tl.getDimensionInfo();
-    auto is_occupied = [&tl](const freeNav::Pointi<2> &pt) -> bool { return tl.isOccupied(pt); };
-    IS_OCCUPIED_FUNC<2> is_occupied_func = is_occupied;
-
-    InstanceDeserializer<N> deserializer;
-    if (deserializer.loadInstanceFromFile(file_path, dim)) {
-        std::cout << "load from path " << file_path.at("la_ins_path") << " success" << std::endl;
-    } else {
-        std::cout << "load from path " << file_path.at("la_ins_path") << " failed" << std::endl;
-        return;
-    }
-    std::cout << " map scale ";
-    for(int i=0; i<N-1; i++) {
-        std::cout << dim[i] << "*";
-    }
-    std::cout << dim[N-1] << std::endl;
-
-    gettimeofday(&tv_pre, &tz);
-    LargeAgentMAPFInstanceDecomposition<N, HyperGraphNodeDataRaw<N>, Pose<int, N>> decomposer(deserializer.getInstances(),
-                                                                                       deserializer.getAgents(),
-                                                                                       dim, is_occupied);
-    gettimeofday(&tv_after, &tz);
-
-    double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
-    std::cout << "finish decomposition in " << time_cost << "ms " << std::endl;
-//    std::cout << "solution validation ? " << lacbs.solutionValidation() << std::endl;
-
-    // InstanceDecompositionVisualization(decomposer);
-}
-
-
-template<Dimension N>
-void generateLargeAgentInstanceAndDecomposition(const std::vector<AgentPtr<N> >& agents,
-                                      const std::string& file_path,
-                                      const LA_MAPF_FUNC<N, Pose<int, N>>& mapf_func,
-                                      int maximum_sample_count = 1e7,
-                                      bool debug_mode = true,
-                                      bool visualize = false) {
-    if(generateLargeAgentMAPFInstance(agents, file_path, maximum_sample_count)) {
-        loadLargeAgentInstanceAndDecomposition<N, Pose<int, N>>(file_path);
-    }
-}
-
-
-
-//LaCAM::LargeAgentConstraints<2, BlockAgent_2D>
-template<Dimension N>
-std::vector<std::string> loadLargeAgentInstanceAndCompareLayeredLAMAPF(const LA_MAPF_FUNC<N, Pose<int, N>>& mapf_func,
-                                                                       const std::string& func_identifer,
-                                                                       const SingleMapTestConfig<N>& file_path,
-                                                                       double time_limit = 30,
-                                                                       bool path_constraint = false,
-                                                                       int level_of_decomposition = 4,
-                                                                       bool debug_mode = true) {
-
-
-    TextMapLoader tl(file_path.at("map_path"), is_char_occupied1);
-    std::cout << "start SingleMapTest from map " << map_test_config.at("map_path") << std::endl;
-    auto dim = tl.getDimensionInfo();
-    auto is_occupied = [&tl](const freeNav::Pointi<2> &pt) -> bool { return tl.isOccupied(pt); };
-    IS_OCCUPIED_FUNC<2> is_occupied_func = is_occupied;
-
-    InstanceDeserializer<2> deserializer;
-
-    if(deserializer.loadInstanceFromFile(file_path.at("la_ins_path"), dim)) {
-        std::cout << "load from path " << file_path.at("la_ins_path") << " success" << std::endl;
-    } else {
-        std::cout << "load from path " << file_path.at("la_ins_path") << " failed" << std::endl;
-        return {};
-    }
-    std::cout << " map scale ";
-    for(size_t i=0; i<N-1; i++) {
-        std::cout << dim[i] << "*";
-    }
-    std::cout << dim[N-1] << std::endl;
-
-    // debug: print all agents and instance
-    std::cout << "Instance: " << std::endl;
-    std::vector<std::string> strs = deserializer.getTextString();
-    for(const auto& str : strs) {
-        std::cout << str << std::endl;
-    }
-    std::cout << std::endl;
-    return LayeredLAMAPFCompare(deserializer.getInstances(),
-                                deserializer.getAgents(),
-                                mapf_func,
-                                func_identifer,
-                                time_limit,
-                                path_constraint,
-                                level_of_decomposition,
-                                debug_mode);
-}
-
-// maximum_sample_count: max times of sample start and target for an agent
-template<Dimension N>
-std::vector<std::string> generateLargeAgentInstanceAndCompare(const std::vector<AgentPtr<N> >& agents,
-                                                              const std::string& file_path,
-                                                              const LA_MAPF_FUNC<N, Pose<int, N>>& mapf_func,
-                                                              const std::string& func_identifer,
-                                                              double time_limit = 30,
-                                                              bool path_constraint = false,
-                                                              int maximum_sample_count = 1e7,
-                                                              bool debug_mode = false) {
-    if(generateLargeAgentMAPFInstance(agents, file_path, maximum_sample_count)) {
-        auto retv = loadLargeAgentInstanceAndCompareLayeredLAMAPF<N>(mapf_func,
-                                                                     func_identifer,
-                                                                     file_path,
-                                                                     time_limit,
-                                                                     path_constraint,
-                                                                     debug_mode);
-        return retv;
-    } else {
-        return {};
-    }
-}
 
 void clearFile(const std::string& file_path) {
     std::ofstream os(file_path, std::ios::trunc);
@@ -481,7 +360,7 @@ std::string ID_LAMAPF(const std::vector<std::pair<Pose<int, N>, Pose<int, N>>>& 
     double basic_usage = memory_recorder.getCurrentMemoryUsage();
     MSTimer mst;
     auto pre =
-            std::make_shared<PrecomputationOfLAMAPF<2>>(instances,
+            std::make_shared<PrecomputationOfLAMAPF<N>>(instances,
                                                         agents,
                                                         dim, isoc);
 

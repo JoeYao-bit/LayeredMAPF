@@ -2,7 +2,6 @@
 // Created by yaozhuo on 2024/8/10.
 //
 
-#include "../../algorithm/LA-MAPF/large_agent_instance_decomposition.h"
 
 #include <gtest/gtest.h>
 

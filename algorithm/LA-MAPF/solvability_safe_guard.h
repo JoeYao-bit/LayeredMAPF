@@ -5,7 +5,6 @@
 #ifndef LAYEREDMAPF_SOLVABILITY_SAFE_GUARD_H
 #define LAYEREDMAPF_SOLVABILITY_SAFE_GUARD_H
 
-#include "large_agent_instance_decomposition.h"
 #include "../basic.h"
 #include "../precomputation_for_mapf.h"
 
@@ -59,7 +58,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             std::vector<std::set<int> > local_levels = levels;
             int local_failed_subproblem_id = failed_subproblem_id;
 
-            InstanceOrients<N> local_instance;
+            std::vector<std::pair<State, State>> local_instance;
             AgentPtrs<N> local_agents;
             std::vector<SubGraphOfAgent<N, State> > local_agent_sub_graphs;
             std::vector<std::vector<int> >          local_agents_heuristic_tables;

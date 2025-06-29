@@ -17,7 +17,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
     template <Dimension N, typename State>
     class LargeAgentCBS : public LargeAgentMAPF<N, State> {
     public:
-        LargeAgentCBS(const InstanceOrients<N> & instances,
+        LargeAgentCBS(const std::vector<std::pair<Pointi<N>, Pointi<N>>> & instances,
                       const std::vector<AgentPtr<N> >& agents,
                       DimensionLength* dim,
                       const IS_OCCUPIED_FUNC<N> & isoc,

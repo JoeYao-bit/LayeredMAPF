@@ -16,7 +16,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
     template<Dimension N, typename ConstraintTable, typename State>
     struct LargeAgentLaCAM : public LargeAgentMAPF<N, State> {
 
-        LargeAgentLaCAM(const InstanceOrients<N> & instances,
+        LargeAgentLaCAM(const std::vector<std::pair<Pointi<N>, Pointi<N>>> & instances,
                         const std::vector<AgentPtr<N> >& agents,
                         DimensionLength* dim,
                         const IS_OCCUPIED_FUNC<N> & isoc,

@@ -10,7 +10,7 @@
 namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
 
     template<Dimension N, typename State>
-    std::vector<LAMAPF_Path> LargeAgentLaCAM_func(const InstanceOrients<N> & instances,
+    std::vector<LAMAPF_Path> LargeAgentLaCAM_func(const std::vector<std::pair<Pointi<N>, Pointi<N>>> & instances,
                                                   const std::vector<AgentPtr<N> >& agents,
                                                   DimensionLength* dim,
                                                   const IS_OCCUPIED_FUNC<N> & isoc,
