@@ -371,6 +371,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
             std::vector<SubGraphOfAgent<N, State> >     local_agent_sub_graphs;
             std::vector<std::vector<int> >       local_agents_heuristic_tables;
             std::vector<std::vector<int> >       local_agents_heuristic_tables_ignore_rotate;
+            std::vector<std::pair<size_t, size_t> > local_instance_node_ids;
 
 
             for(const auto& current_id : current_id_set) {
@@ -388,6 +389,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
 
                 local_agents_heuristic_tables_ignore_rotate.push_back(
                         pre_->agents_heuristic_tables_ignore_rotate_[current_id]);
+
+                local_instance_node_ids.push_back(pre_->instance_node_ids_[current_id]);
+
 
             }
 //            std::cout << "flag 9.2" << std::endl;
@@ -438,6 +442,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
                                                                pre_->dim_, pre_->isoc_,
                                                                new_constraint_table_ptr_,
                                                                grid_visit_count_table_local, remain_s,
+                                                               local_instance_node_ids,
                                                                local_all_poses,
                                                                local_distance_map_updater,
                                                                local_agent_sub_graphs,

@@ -290,10 +290,10 @@ bool decompositionOfSingleInstanceBipartition(const freeNav::Instances<N>& ists,
     sleep(1);
     float peak_usage = memory_recorder.getMaximalMemoryUsage();
     float memory_usage = peak_usage - basic_usage;
-    bool is_legal = LA_MAPF::MAPF_DecompositionValidCheckGridMap<2>(ists, bi_decompose->all_clusters_, dim, isoc);
+    bool is_legal = LA_MAPF::MAPF_DecompositionValidCheckGridMap<2>(ists, bi_decompose->all_levels_, dim, isoc);
 
-    int max_subproblem = LA_MAPF::getMaxLevelSize(bi_decompose->all_clusters_);
-    int num_of_subproblem = bi_decompose->all_clusters_.size();
+    int max_subproblem = LA_MAPF::getMaxLevelSize(bi_decompose->all_levels_);
+    int num_of_subproblem = bi_decompose->all_levels_.size();
 
     if(max_subproblem == 0) {
         max_subproblem = ists.size();

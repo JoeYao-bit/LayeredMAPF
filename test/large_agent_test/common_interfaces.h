@@ -336,6 +336,8 @@ std::vector<std::string> loadLargeAgentInstanceAndCompareLayeredLAMAPF(const LA_
                                 debug_mode);
 }
 
+
+
 template<Dimension N, typename State>
 std::vector<std::string> LayeredLAMAPFCompare(const std::vector<std::pair<State, State>>& instances,
                                               const AgentPtrs<N>& agents,
@@ -361,10 +363,12 @@ std::vector<std::string> LayeredLAMAPFCompare(const std::vector<std::pair<State,
                         pre_dec->heuristic_tables_,
                         time_limit);
 
+    std::cout << "bi_decompose->all_clusters_ size = " << bi_decompose->all_levels_.size() << std::endl;
+
     memory_recorder.clear();
     float base_usage = memory_recorder.getCurrentMemoryUsage();
     bool is_loss_of_solvability = false;
-    auto layered_paths = layeredLargeAgentMAPF<N, State>(bi_decompose->all_clusters_,
+    auto layered_paths = layeredLargeAgentMAPF<N, State>(bi_decompose->all_levels_,
                                                          mapf_func, //CBS::LargeAgentCBS_func<2, AgentType >,
                                                          grid_visit_count_table_layered,
                                                          is_loss_of_solvability,
@@ -379,20 +383,19 @@ std::vector<std::string> LayeredLAMAPFCompare(const std::vector<std::pair<State,
     std::cout << "instance has " << agents.size() << " agents, layered " << func_identifer << " find solution ? " << !layered_paths.empty()
               << " in " << total_time_cost << "s " << std::endl;
 
-    std::cout << "Layered: max subproblem / total = " << getMaxLevelSize(bi_decompose->all_clusters_) << " / " << instances.size() << std::endl;
-    std::cout << "Layered: num of subproblem = " << bi_decompose->all_clusters_.size() << std::endl;
+    std::cout << "Layered: max subproblem / total = " << getMaxLevelSize(bi_decompose->all_levels_) << " / " << instances.size() << std::endl;
+    std::cout << "Layered: num of subproblem = " << bi_decompose->all_levels_.size() << std::endl;
 
     // agents size / time cost / success / SOC / makespan / success / memory usage / init time cost / decom time cost / max subproblem / num of subproblems
     std::stringstream ss_layered;
-    ss_layered << "LAYERED_"  << func_identifer << " " << agents.size() << " "
+    ss_layered << "LAYERED_" << func_identifer << " " << agents.size() << " "
                << total_time_cost << " "
                << getSOC(layered_paths) << " " << getMakeSpan(layered_paths) << " "
                << !layered_paths.empty() << " " << memory_usage << " "
                << 0 << " "
-
                << 0 << " "
-               << getMaxLevelSize(bi_decompose->all_clusters_) << " "
-               << bi_decompose->all_clusters_.size() << " "
+               << getMaxLevelSize(bi_decompose->all_levels_) << " "
+               << bi_decompose->all_levels_.size() << " "
                << is_loss_of_solvability;
 
     memory_recorder.clear();
@@ -406,6 +409,7 @@ std::vector<std::string> LayeredLAMAPFCompare(const std::vector<std::pair<State,
                                nullptr,
                                grid_visit_count_table_raw,
                                time_limit - pre_time_cost,
+                               pre->instance_node_ids_,
                                pre->all_poses_,
                                pre->distance_map_updater_,
                                pre->agent_sub_graphs_,
@@ -532,5 +536,166 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
     return retv;
 }
 
+
+template<Dimension N, typename Decomposition>
+std::string LayeredLAMAPF(const std::vector<std::pair<Pose<int, N>, Pose<int, N>>>& instances,
+                                       const AgentPtrs<N>& agents,
+                                       DimensionLength* dim,
+                                       const IS_OCCUPIED_FUNC<N>& isoc,
+                                       const LA_MAPF_FUNC<N, Pose<int, N>>& mapf_func,
+                                       const std::string& func_identifer,
+                                       double time_limit) {
+    memory_recorder.clear();
+    sleep(1);
+    double basic_usage = memory_recorder.getCurrentMemoryUsage();
+    MSTimer mst;
+    auto pre_dec =
+            std::make_shared<PrecomputationOfLAMAPFDecomposition<N, HyperGraphNodeDataRaw<N>>>(
+                    instances,
+                    agents,
+                    dim, is_occupied);
+
+    auto bi_decompose = std::make_shared<Decomposition>(
+            dim,
+            pre_dec->connect_graphs_,
+            pre_dec->agent_sub_graphs_,
+            pre_dec->heuristic_tables_sat_,
+            pre_dec->heuristic_tables_,
+            time_limit);
+
+    LAMAPF_Paths layered_paths;
+    bool detect_loss_solvability;
+    std::vector<std::vector<int> > grid_visit_count_table;
+    layered_paths = layeredLargeAgentMAPF<N, Pose<int, N>>(bi_decompose->all_levels_,
+                                                           mapf_func, //
+                                                           grid_visit_count_table,
+                                                           detect_loss_solvability,
+                                                           pre_dec,
+                                                           time_limit - mst.elapsed()/1e3,
+                                                           false);
+
+    double total_time_cost = mst.elapsed()/1e3;
+
+    std::cout << "instance has " << agents.size() << " agents, layered " << func_identifer << " find solution ? " << !layered_paths.empty()
+              << " in " << total_time_cost << "s " << std::endl;
+
+    std::cout << "Layered: max subproblem / total = " << getMaxLevelSize(bi_decompose->all_levels_) << " / " << instances.size() << std::endl;
+    std::cout << "Layered: num of subproblem = " << bi_decompose->all_levels_.size() << std::endl;
+
+    double max_usage = memory_recorder.getCurrentMemoryUsage();
+
+    // agents size / time cost / success / SOC / makespan / success / memory usage / init time cost / decom time cost / max subproblem / num of subproblems
+    std::stringstream ss_layered;
+    ss_layered << func_identifer << " " << agents.size() << " "
+               << total_time_cost << " "
+               << getSOC(layered_paths) << " " << getMakeSpan(layered_paths) << " "
+               << !layered_paths.empty() << " " << max_usage - basic_usage << " "
+               << 0 << " "
+               << 0 << " "
+               << getMaxLevelSize(bi_decompose->all_levels_) << " "
+               << bi_decompose->all_levels_.size() << " "
+               << detect_loss_solvability;
+
+    return ss_layered.str();
+}
+
+template<Dimension N>
+std::string IDLAMAPF(const std::vector<std::pair<Pose<int, N>, Pose<int, N>>>& instances,
+                                  const AgentPtrs<N>& agents,
+                                  DimensionLength* dim,
+                                  const IS_OCCUPIED_FUNC<N>& isoc,
+                                  const LA_MAPF_FUNC<N, Pose<int, N>>& mapf_func,
+                                  const std::string& func_identifer,
+                                  double time_limit) {
+    memory_recorder.clear();
+    sleep(1);
+    double basic_usage = memory_recorder.getCurrentMemoryUsage();
+    MSTimer mst;
+    auto pre =
+            std::make_shared<PrecomputationOfLAMAPF<2>>(instances,
+                                                        agents,
+                                                        dim, isoc);
+
+    auto id_solver = ID::ID<N, Pose<int, N>>(mapf_func, pre, (time_limit - mst.elapsed()/1e3));
+    LAMAPF_Paths id_paths;
+    if (id_solver.solve()) {
+        id_paths = id_solver.getSolution();
+    }
+    double total_time_cost = mst.elapsed()/1e3;
+
+    if (!id_paths.empty()) {
+        std::cout << "ID: max subproblem / total = " << id_solver.getMaximalSubProblem() << " / "
+                  << instances.size() << std::endl;
+        std::cout << "ID: num of subproblem = " << id_solver.getNumberOfSubProblem() << std::endl;
+        std::cout << "ID: is solution valid ? " << isSolutionValid<2>(id_paths, agents, id_solver.pre_->all_poses_)
+                  << std::endl;
+    }
+
+    double max_usage = memory_recorder.getCurrentMemoryUsage();
+
+    // agents size / time cost / success / SOC / makespan / success / memory usage / init time cost / decom time cost / max subproblem / num of subproblems
+    std::stringstream ss_id;
+    // agents size / time cost / success / SOC / makespan / success / memory usage / max subproblem / num of subproblems
+    ss_id << func_identifer << " " << agents.size() << " "
+          << total_time_cost << " "
+          << getSOC(id_paths) << " " << getMakeSpan(id_paths) << " "
+          << !id_paths.empty() << " " << max_usage - basic_usage << " "
+
+          << id_solver.getMaximalSubProblem() << " "
+          << id_solver.getNumberOfSubProblem();
+
+    return ss_id.str();
+}
+
+template<Dimension N>
+std::string RAWLAMAPF(const std::vector<std::pair<Pose<int, N>, Pose<int, N>>>& instances,
+                      const AgentPtrs<N>& agents,
+                      DimensionLength* dim,
+                      const IS_OCCUPIED_FUNC<N>& isoc,
+                      const LA_MAPF_FUNC<N, Pose<int, N>>& mapf_func,
+                      const std::string& func_identifer,
+                      double time_limit) {
+
+    memory_recorder.clear();
+    sleep(1);
+    double basic_usage = memory_recorder.getCurrentMemoryUsage();
+    MSTimer mst;
+    auto pre =
+            std::make_shared<PrecomputationOfLAMAPF<2>>(instances,
+                                                        agents,
+                                                        dim, isoc);
+    std::vector<std::vector<int> > grid_visit_count_table;
+
+    auto raw_paths = mapf_func(instances,
+                               agents,
+                               dim, is_occupied,
+                               nullptr,
+                               grid_visit_count_table,
+                               time_limit,
+                               pre->instance_node_ids_,
+                               pre->all_poses_,
+                               pre->distance_map_updater_,
+                               pre->agent_sub_graphs_,
+                               pre->agents_heuristic_tables_,
+                               pre->agents_heuristic_tables_ignore_rotate_,
+                               nullptr); // default null config for layered MAPF
+
+    double total_time_cost = mst.elapsed()/1e3;
+
+    double max_usage = memory_recorder.getCurrentMemoryUsage();
+
+    // agents size / time cost / success / SOC / makespan / success / memory usage / init time cost / decom time cost / max subproblem / num of subproblems
+    std::cout << "instance has " << agents.size() << " agents, raw " << func_identifer << " find solution ? " << !raw_paths.empty()
+              << " in " << total_time_cost << "s " << std::endl;
+
+    // agents size / time cost / success / SOC / makespan / success / memory usage
+    std::stringstream ss_raw;
+    ss_raw << func_identifer << " " << agents.size() << " "
+           << total_time_cost << " "
+           << getSOC(raw_paths) << " " << getMakeSpan(raw_paths) << " "
+           << !raw_paths.empty() << " " << max_usage - basic_usage;
+
+    return ss_raw.str();
+}
 
 #endif //LAYEREDMAPF_COMMON_INTERFACES_H

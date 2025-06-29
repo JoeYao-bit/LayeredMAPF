@@ -51,7 +51,7 @@ bool decompositionOfSingleInstanceBipartitionLAMAPF(const InstanceOrients<N> & i
     sleep(1);
     float peak_usage = memory_recorder.getMaximalMemoryUsage();
     float memory_usage = peak_usage - basic_usage;
-    bool is_bi_valid = LA_MAPF_DecompositionValidCheckGridMap<2>(bi_decompose->all_clusters_,
+    bool is_bi_valid = LA_MAPF_DecompositionValidCheckGridMap<2>(bi_decompose->all_levels_,
                                                                  dim,
                                                                  isoc,
                                                                  agents,
@@ -62,8 +62,8 @@ bool decompositionOfSingleInstanceBipartitionLAMAPF(const InstanceOrients<N> & i
                                                                  pre->agents_heuristic_tables_ignore_rotate_
     );
 
-    int max_subproblem = LA_MAPF::getMaxLevelSize(bi_decompose->all_clusters_);
-    int num_of_subproblem = bi_decompose->all_clusters_.size();
+    int max_subproblem = LA_MAPF::getMaxLevelSize(bi_decompose->all_levels_);
+    int num_of_subproblem = bi_decompose->all_levels_.size();
 
     if(max_subproblem == 0) {
         max_subproblem = agents.size();
@@ -87,7 +87,7 @@ bool decompositionOfSingleInstanceBipartitionLAMAPF(const InstanceOrients<N> & i
 
     outputStream = ss.str();
 //    std::cout << " memory_usage = " << memory_usage << std::endl;
-    std::cout << "level " << level << "/raw = " << LA_MAPF::getMaxLevelSize(bi_decompose->all_clusters_) << "/" << agents.size() << std::endl;
+    std::cout << "level " << level << "/raw = " << LA_MAPF::getMaxLevelSize(bi_decompose->all_levels_) << "/" << agents.size() << std::endl;
     return is_bi_valid;
 }
 
@@ -114,6 +114,7 @@ bool decompositionOfSingleInstanceBreakLoopLAMAPF(const InstanceOrients<N> & ins
             pre->connect_graphs_,
             pre->agent_sub_graphs_,
             pre->heuristic_tables_sat_,
+            pre->heuristic_tables_,
             time_limit_s,// - pre.initialize_time_cost_/1e3,
             1e4,
             100,

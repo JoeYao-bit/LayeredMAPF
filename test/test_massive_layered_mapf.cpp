@@ -126,7 +126,7 @@ std::vector<std::set<int> > pickCasesFromScene(int test_count,
         gettimeofday(&tv_pre, &tz); \
         MAPFInstanceDecompositionPtr<2> \
                 instance_decompose = std::make_shared<MAPFInstanceDecomposition<2> >(instances, dim, isoc); \
-        assert(instance_decompose->all_clusters_.size() >= 1);                \
+        assert(instance_decompose->all_levels_.size() >= 1);                \
         Paths<2> retv; \
         std::vector<Paths<2> > pathss;                                                             \
         CBS_Li::ConstraintTable* layered_ct = new CBS_Li::ConstraintTable(dim[0], dim[0]*dim[1]);  \

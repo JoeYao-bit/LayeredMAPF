@@ -195,3 +195,7 @@ target_link_libraries(test_compare_break_loop_and_bi_MAPF_decomposition freeNav-
 add_executable(test_massive_decomposition_LAMAPF
         test/large_agent_test/test_massive_decomposition.cpp)
 target_link_libraries(test_massive_decomposition_LAMAPF freeNav-base lamapf_alg)
+
+add_executable(test_masssive_laryered_lamapf
+        test/large_agent_test/test_masssive_laryered_lamapf.cpp)
+target_link_libraries(test_masssive_laryered_lamapf freeNav-base lamapf_alg)

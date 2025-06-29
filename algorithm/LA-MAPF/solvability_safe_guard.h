@@ -20,7 +20,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     class SolvabilitySafeguard {
     public:
         SolvabilitySafeguard(PrecomputationOfMAPFBasePtr<N, State> pre) : pre_(pre) {
-            //std::cout << "this->isoc_ 1 " << this->isoc_(Pointi<N>()) << std::endl;
+            //std::cout << "SolvabilitySafeguard start " << std::endl;
         }
 
         // do not call this function, we inherit LargeAgentMAPF just want to use precomputation data from outside
@@ -64,9 +64,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             std::vector<SubGraphOfAgent<N, State> > local_agent_sub_graphs;
             std::vector<std::vector<int> >          local_agents_heuristic_tables;
             std::vector<std::vector<int> >          local_agents_heuristic_tables_ignore_rotate;
+            std::vector<std::pair<size_t, size_t> > local_instance_node_ids;
 
-           LAMAPF_Paths final_solutions;
-           //std::cout << "this->isoc_ 1.1 " << this->isoc_(Pointi<N>()) << std::endl;
+            LAMAPF_Paths final_solutions;
+            //std::cout << "flag 1 " << std::endl;
 
             while(true) {
                 // 1, get local instance
@@ -75,6 +76,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 local_agent_sub_graphs.clear();
                 local_agents_heuristic_tables.clear();
                 local_agents_heuristic_tables_ignore_rotate.clear();
+                local_instance_node_ids.clear();
                 int count_of_ag = 0;
                 //std::cout << "this->isoc_ 1.11 " << this->isoc_(Pointi<N>()) << std::endl;
                 for(const auto& failed_agent_id : levels[local_failed_subproblem_id]) {
@@ -90,19 +92,21 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     local_agents_heuristic_tables.push_back(pre_->agents_heuristic_tables_[failed_agent_id]);
                     local_agents_heuristic_tables_ignore_rotate.push_back(
                             pre_->agents_heuristic_tables_ignore_rotate_[failed_agent_id]);
+                    local_instance_node_ids.push_back(pre_->instance_node_ids_[failed_agent_id]);
+
                 }
                 double time_cost_yet = mst.elapsed()/1e3;
                 double remaining_time = time_limit - time_cost_yet;
                 if(remaining_time < 0) { return false; }
                 // 2, solve it with ignoring other agent
-                //std::cout << "this->isoc_ 1.2 " << this->isoc_(Pointi<N>()) << std::endl;
+                //std::cout << "flag 2 " << std::endl;
                 std::vector<std::vector<int> > grid_visit_count_table_local;
                 std::vector<LAMAPF_Path> local_paths = mapf_func(local_instance,
                                                                  local_agents,
                                                                  pre_->dim_, ex_isoc,
                                                                  nullptr,
                                                                  grid_visit_count_table_local, remaining_time,
-                                                                 pre_->instance_node_ids_,
+                                                                 local_instance_node_ids,
                                                                  pre_->all_poses_,
                                                                  pre_->distance_map_updater_,
                                                                  local_agent_sub_graphs,
@@ -110,7 +114,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                                  local_agents_heuristic_tables_ignore_rotate,
                                                                  nullptr
                 );
-                //std::cout << "this->isoc_ 1.3 " << this->isoc_(Pointi<N>()) << std::endl;
+                //std::cout << "flag 3 " << std::endl;
 
                 if(local_paths.empty()) { return false; } // part of the raw MAPF problems shouldn't failed, except run out of time
                 //std::cout << " find solution if ignore other agent " << std::endl;
@@ -165,6 +169,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 local_agent_sub_graphs.clear();
                 local_agents_heuristic_tables.clear();
                 local_agents_heuristic_tables_ignore_rotate.clear();
+                local_instance_node_ids.clear();
 
                 AgentPtrs<N> local_agents_with_global_id;
                 std::vector<size_t> target_node_ids;
@@ -185,6 +190,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                     local_agents_heuristic_tables.push_back(pre_->agents_heuristic_tables_[failed_agent_id]);
                     local_agents_heuristic_tables_ignore_rotate.push_back(
                             pre_->agents_heuristic_tables_ignore_rotate_[failed_agent_id]);
+                    local_instance_node_ids.push_back(pre_->instance_node_ids_[failed_agent_id]);
+
                 }
                 time_cost_yet = mst.elapsed()/1e3;
                 remaining_time = time_limit - time_cost_yet;
@@ -224,7 +231,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                         pre_->dim_, pre_->isoc_,
                                         new_constraint_table_ptr,
                                         grid_visit_count_table_local, remaining_time,
-                                        pre_->instance_node_ids_,
+                                        local_instance_node_ids,
                                         pre_->all_poses_,
                                         pre_->distance_map_updater_,
                                         local_agent_sub_graphs,

@@ -54,7 +54,15 @@ void layeredLargeAgentMAPFTest(int num_of_agents,
     //std::cout << " flag 1 = " << pre_dec->isoc_(Pointi<2>{0,0}) << std::endl; // ok
 
 
-    auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBipartition<2, HyperGraphNodeDataRaw<2>, Pose<int, 2>> >(
+//    auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBipartition<2, HyperGraphNodeDataRaw<2>, Pose<int, 2>> >(
+//            dim,
+//            pre_dec->connect_graphs_,
+//            pre_dec->agent_sub_graphs_,
+//            pre_dec->heuristic_tables_sat_,
+//            pre_dec->heuristic_tables_,
+//            time_limit);
+
+    auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<2, HyperGraphNodeDataRaw<2>, Pose<int, 2>> >(
             dim,
             pre_dec->connect_graphs_,
             pre_dec->agent_sub_graphs_,
@@ -67,7 +75,7 @@ void layeredLargeAgentMAPFTest(int num_of_agents,
     LAMAPF_Paths layered_paths;
     bool detect_loss_solvability;
     std::vector<std::vector<int> > grid_visit_count_table;
-    layered_paths = layeredLargeAgentMAPF<2, Pose<int, 2>>(bi_decompose->all_clusters_,
+    layered_paths = layeredLargeAgentMAPF<2, Pose<int, 2>>(bi_decompose->all_levels_,
                                                            mapf_func, //
                                                            grid_visit_count_table,
                                                            detect_loss_solvability,
@@ -82,7 +90,7 @@ void layeredLargeAgentMAPFTest(int num_of_agents,
 //        layered_paths = id_solver.getSolution();
 //        std::cout << "max subproblem / total = " << id_solver.getMaximalSubProblem() << " / " << instances.front().first.size() << std::endl;
 //        std::cout << "num of subproblem = " << id_solver.getNumberOfSubProblem() << std::endl;
-//        std::cout << "is solution valid ? " << isSolutionValid<2>(layered_paths, instances.front().first, id_solver.all_poses_) << std::endl;
+//        std::cout << "is solution valid ? " << isSolutionValid<2>(layered_paths, instances.front().firs t,id_solver.all_poses_) << std::endl;
 //    }
 
     std::cout << (layered_paths.size() == instances.front().first.size() ? "success" : "failed")

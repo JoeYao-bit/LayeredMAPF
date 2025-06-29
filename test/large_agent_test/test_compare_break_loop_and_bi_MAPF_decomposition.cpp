@@ -63,11 +63,11 @@ void compareLNSAndBiDecompose_MAPF(const SingleMapTestConfig<2>& map_file, int n
 
     double total_time_cost = mst.elapsed()/1e3;
 
-    bool is_bi_valid = MAPF_DecompositionValidCheckGridMap<2>(istss.front(), bi_decompose->all_clusters_,
+    bool is_bi_valid = MAPF_DecompositionValidCheckGridMap<2>(istss.front(), bi_decompose->all_levels_,
                                                               dim_local, is_occupied_local);
 
     std::cout << "biparition finish in " << total_time_cost <<  "s, valid = " << is_bi_valid << std::endl;
-    std::cout << "biparition max subproblem = " << getMaxLevelSize(bi_decompose->all_clusters_) << std::endl;
+    std::cout << "biparition max subproblem = " << getMaxLevelSize(bi_decompose->all_levels_) << std::endl;
 
 
     mst.reset();
@@ -89,12 +89,12 @@ void compareLNSAndBiDecompose_MAPF(const SingleMapTestConfig<2>& map_file, int n
     std::cout << "ns finish in " << total_time_cost <<  "s, valid = " << is_ns_valid << std::endl;
 
     std::cout << "ns / bi max subproblem size(decomposition rate) = "
-              << getMaxLevelSize(ns_decompose->all_levels_)   << "(" << (double)getMaxLevelSize(ns_decompose->all_levels_)/istss.front().size() << ") / "
-              << getMaxLevelSize(bi_decompose->all_clusters_) << "(" << (double)getMaxLevelSize(bi_decompose->all_clusters_) / istss.front().size() << ")"
+              << getMaxLevelSize(ns_decompose->all_levels_) << "(" << (double)getMaxLevelSize(ns_decompose->all_levels_)/istss.front().size() << ") / "
+              << getMaxLevelSize(bi_decompose->all_levels_) << "(" << (double)getMaxLevelSize(bi_decompose->all_levels_) / istss.front().size() << ")"
               << std::endl;
 
     std::cout << "ns / bi number of subproblem = " << ns_decompose->all_levels_.size() << " / "
-              << bi_decompose->all_clusters_.size() << std::endl;
+              << bi_decompose->all_levels_.size() << std::endl;
 
 }
 

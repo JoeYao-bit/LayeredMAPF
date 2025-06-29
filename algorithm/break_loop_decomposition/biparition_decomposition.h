@@ -37,7 +37,9 @@ namespace freeNav::LayeredMAPF {
             for(int i=0; i<connect_graphs_.size(); i++) {
                 instance_id_set_.insert(i);
             }
-            all_clusters_ = {instance_id_set_};
+            //std::cout << "connect_graphs_.size() = " << connect_graphs_.size() << std::endl;
+            //std::cout << "instance_id_set_.size() = " << instance_id_set_.size() << std::endl;
+            all_levels_ = {instance_id_set_};
             bipartition();
 
 
@@ -46,7 +48,7 @@ namespace freeNav::LayeredMAPF {
         void debugCheck() const {
             // debug: check whether every agent occur once and only once in all subproblems
             std::vector<bool> occured_flag(connect_graphs_.size(), false);
-            for(const auto& cluster : all_clusters_) {
+            for(const auto& cluster : all_levels_) {
                 for(const auto& agent_id : cluster) {
                     assert(!occured_flag[agent_id]);
                     occured_flag[agent_id] = true;
@@ -66,7 +68,7 @@ namespace freeNav::LayeredMAPF {
 //            assert(decompositionValidCheck(all_clusters_));
             if(decompose_level_ <= 1) {
                 debugCheck();
-                assert(decompositionValidCheck(all_clusters_));
+                assert(decompositionValidCheck(all_levels_));
                 return;
             }
             mst.reset();
@@ -75,7 +77,7 @@ namespace freeNav::LayeredMAPF {
             std::cout << "-- cluster_bipartition_time_cost_    (ms) = " << cluster_bipartition_time_cost_ << std::endl;
             if(decompose_level_ <= 2) {
                 debugCheck();
-                assert(decompositionValidCheck(all_clusters_));
+                assert(decompositionValidCheck(all_levels_));
                 return;
             }
 
@@ -88,7 +90,7 @@ namespace freeNav::LayeredMAPF {
             std::cout << "-- level_sorting_time_cost_          (ms) = " << level_sorting_time_cost_ << std::endl;
             if(decompose_level_ <= 3) {
                 debugCheck();
-                assert(decompositionValidCheck(all_clusters_));
+                assert(decompositionValidCheck(all_levels_));
                 return;
             }
 
@@ -101,7 +103,7 @@ namespace freeNav::LayeredMAPF {
             std::cout << "-- level_bipartition_time_cost_      (ms) = " << level_bipartition_time_cost_ << std::endl;
 
             debugCheck();
-            assert(decompositionValidCheck(all_clusters_));
+            assert(decompositionValidCheck(all_levels_));
 
         }
 
@@ -373,7 +375,7 @@ namespace freeNav::LayeredMAPF {
         void levelDecomposition() {
             if(run_ot_of_time) { return; }
             std::vector<std::set<int> > all_clusters;
-            auto cluster_of_agents = all_clusters_;
+            auto cluster_of_agents = all_levels_;
             auto remain_cluster_of_agents = cluster_of_agents;
             std::reverse(remain_cluster_of_agents.begin(), remain_cluster_of_agents.end());
             int count_top_cluster = 0;
@@ -382,7 +384,7 @@ namespace freeNav::LayeredMAPF {
                 if(run_ot_of_time) {
                     std::reverse(remain_cluster_of_agents.begin(), remain_cluster_of_agents.end());
                     all_clusters.insert(all_clusters.end(), remain_cluster_of_agents.begin(), remain_cluster_of_agents.end());
-                    all_clusters_ = all_clusters;
+                    all_levels_ = all_clusters;
                     return;
                 }
                 const auto& top_cluster = cluster_of_agents[i];
@@ -396,7 +398,7 @@ namespace freeNav::LayeredMAPF {
                     buffer_agents = top_cluster;
                     std::set<int> external_pre = {}, external_next = {};
                     if(!all_level_pre_and_next_.empty()) {
-                        assert(all_level_pre_and_next_.size() == all_clusters_.size());
+                        assert(all_level_pre_and_next_.size() == all_levels_.size());
                         external_pre.insert(all_level_pre_and_next_[i].first.begin(), all_level_pre_and_next_[i].first.end());
                         external_next.insert(all_level_pre_and_next_[i].second.begin(), all_level_pre_and_next_[i].second.end());
                     }
@@ -408,7 +410,7 @@ namespace freeNav::LayeredMAPF {
                             if(run_ot_of_time) {
                                 std::reverse(remain_cluster_of_agents.begin(), remain_cluster_of_agents.end());
                                 all_clusters.insert(all_clusters.end(), remain_cluster_of_agents.begin(), remain_cluster_of_agents.end());
-                                all_clusters_ = all_clusters;
+                                all_levels_ = all_clusters;
                                 return;
                             }
 //                            std::cout << "start biPartition of level: " << buffer_agents << std::endl;
@@ -429,13 +431,13 @@ namespace freeNav::LayeredMAPF {
                 remain_cluster_of_agents.pop_back();
             }
             // no sorting in increase size, as order of agent matters
-            all_clusters_ = all_clusters;
+            all_levels_ = all_clusters;
         }
 
         void clusterDecomposition() {
             if(run_ot_of_time) { return; }
             std::vector<std::set<int> > all_clusters;
-            auto cluster_of_agents = all_clusters_;
+            auto cluster_of_agents = all_levels_;
             int count_top_cluster = 0;
             std::set<int> buffer_agents;
             auto remain_cluster_of_agents = cluster_of_agents;
@@ -446,7 +448,7 @@ namespace freeNav::LayeredMAPF {
                     std::reverse(remain_cluster_of_agents.begin(), remain_cluster_of_agents.end());
                     all_clusters.insert(all_clusters.end(), remain_cluster_of_agents.begin(), remain_cluster_of_agents.end());
                     std::sort(all_clusters.begin(), all_clusters.end(), [](std::set<int> x,std::set<int> y){return x.size()>y.size();});
-                    all_clusters_ = all_clusters;
+                    all_levels_ = all_clusters;
                     return;
                 }
                 if(top_cluster.size() < 2) {
@@ -466,7 +468,7 @@ namespace freeNav::LayeredMAPF {
                                 std::reverse(remain_cluster_of_agents.begin(), remain_cluster_of_agents.end());
                                 all_clusters.insert(all_clusters.end(), remain_cluster_of_agents.begin(), remain_cluster_of_agents.end());
                                 std::sort(all_clusters.begin(), all_clusters.end(), [](std::set<int> x,std::set<int> y){return x.size()>y.size();});
-                                all_clusters_ = all_clusters;
+                                all_levels_ = all_clusters;
                                 return;
                             }
                             auto agents_pair = biPartitionCluster(buffer_agents);
@@ -486,7 +488,7 @@ namespace freeNav::LayeredMAPF {
             }
             // sorting in increase size, to enable large cluster have fewer external path constraint
             std::sort(all_clusters.begin(), all_clusters.end(), [](std::set<int> x,std::set<int> y){return x.size()>y.size();});
-            all_clusters_ = all_clusters;
+            all_levels_ = all_clusters;
         }
 
 
@@ -906,13 +908,13 @@ namespace freeNav::LayeredMAPF {
             all_level_pre_and_next_.clear();
             all_level_pre_and_next_.reserve(connect_graphs_.size()); // maximum number of levels
             std::vector<std::set<int> > all_levels;
-            auto remain_clusters = all_clusters_;
+            auto remain_clusters = all_levels_;
             std::reverse(remain_clusters.begin(), remain_clusters.end());
-            for(const auto& cluster : all_clusters_) {
+            for(const auto& cluster : all_levels_) {
                 if(run_ot_of_time) {
                     std::reverse(remain_clusters.begin(), remain_clusters.end());
                     all_levels.insert(all_levels.end(), remain_clusters.begin(), remain_clusters.end());
-                    all_clusters_ = all_levels;
+                    all_levels_ = all_levels;
                     return;
                 }
                 if(cluster.size() > 1) {
@@ -940,7 +942,7 @@ namespace freeNav::LayeredMAPF {
                     all_level_pre_and_next_.push_back(pre_and_next);
                 }
             }
-            all_clusters_ = all_levels;
+            all_levels_ = all_levels;
         }
 
 
@@ -1004,11 +1006,11 @@ namespace freeNav::LayeredMAPF {
             // get each agent's dependence agents
             std::map<int, std::set<int> > all_related_agent = updateRelatedGraphFromPassingGraph(all_agents_path);
             std::map<int, std::set<int> > cluster_of_agents = clusterAgents(all_related_agent);
-            all_clusters_.clear();
+            all_levels_.clear();
             for(const auto& iter : cluster_of_agents) {
-                all_clusters_.push_back(iter.second);
+                all_levels_.push_back(iter.second);
             }
-            std::sort(all_clusters_.begin(), all_clusters_.end(),[](std::set<int> x,std::set<int> y){return x.size()>y.size();});
+            std::sort(all_levels_.begin(), all_levels_.end(), [](std::set<int> x, std::set<int> y){return x.size() > y.size();});
         }
 
 
@@ -1189,7 +1191,7 @@ namespace freeNav::LayeredMAPF {
         // NOTICE: the goal of the method is to partition this matrix into lots of small block, thus MAPF is more efficient
         std::map<int, std::set<int> > all_passing_agent_;
 
-        std::vector<std::set<int> > all_clusters_;
+        std::vector<std::set<int> > all_levels_;
 
         std::set<int> instance_id_set_; // set of all agent's id
 

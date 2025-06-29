@@ -43,24 +43,35 @@ void testSolvabilitySafeguard(const LA_MAPF_FUNC<2, Pose<int, 2>> & mapf_func, d
 
     std::cout << "map scale = " << dim_local[0] << "*" << dim_local[1] << std::endl;
 
+    auto is_occupied_local = [&](const Pointi<2> & pt) -> bool { return loader_local.isOccupied(pt); };
 
-    auto instances = deserializer.getTestInstance({15}, 1);
+    auto instances_local = deserializer.getTestInstance({5}, 1);
 
-    std::cout << "instance.size() = " << instances.size() << std::endl;
+    std::cout << "instance.size() = " << instances_local.front().second.size() << std::endl;
 
     AgentPtrs<2> agent_ptrs;
     InstanceOrients<2> poses;
 
-    agent_ptrs = instances.front().first;
-    poses      = instances.front().second;
+    auto pre =
+            std::make_shared<PrecomputationOfLAMAPF<2>>(instances_local.front().second,
+                                                        instances_local.front().first,
+                                                        dim_local, is_occupied_local);
 
     std::vector<std::vector<int> > grid_visit_count_table;
     MSTimer mst;
-    std::vector<LAMAPF_Path> solution = mapf_func(poses, agent_ptrs, dim_local, is_occupied_local,
+    std::vector<LAMAPF_Path> solution = mapf_func(instances_local.front().second,
+                                                  instances_local.front().first,
+                                                  dim_local, is_occupied_local,
                                                   nullptr,
                                                   grid_visit_count_table,
-                                                  time_cost_limit, {}, nullptr, {}, {}, {}, nullptr
-                                                  );
+                                                  time_cost_limit,
+                                                  pre->instance_node_ids_,
+                                                  pre->all_poses_,
+                                                  pre->distance_map_updater_,
+                                                  pre->agent_sub_graphs_,
+                                                  pre->agents_heuristic_tables_,
+                                                  pre->agents_heuristic_tables_ignore_rotate_,
+                                                  nullptr);
 //    std::vector<LAMAPF_Path> solution = LaCAM::LargeAgentLaCAM_func<2>(poses, agent_ptrs, dim_local, is_occupied_local,
 //                                                                       nullptr,
 //                                                                       grid_visit_count_table);
@@ -70,21 +81,19 @@ void testSolvabilitySafeguard(const LA_MAPF_FUNC<2, Pose<int, 2>> & mapf_func, d
 
     std::vector<std::set<int> > levels;// = {{0}, {1}, {2}};
 
-    for(int i=0; i<agent_ptrs.size(); i++) {
+    for(int i=0; i<instances_local.front().first.size(); i++) {
         levels.push_back({i});
     }
 
     int failed_subproblem_id = rand() % levels.size();
 
-    auto pre = std::make_shared<PrecomputationOfLAMAPF<2>>(poses, agent_ptrs, dim_local, is_occupied_local);
-
     SolvabilitySafeguard<2, Pose<int, 2>> safeguard(pre);
     std::cout << "this->isoc_ ex " << is_occupied_local(Pointi<2>()) << std::endl;
 
     bool success = safeguard.mergeSubproblemTillSolvable(levels, failed_subproblem_id,
-            //LaCAM::LargeAgentLaCAM_func<2>,
                                                          mapf_func,
                                                          is_occupied_local, time_cost_limit);
+
     std::cout << "is merge success " << success << std::endl;
 
 }

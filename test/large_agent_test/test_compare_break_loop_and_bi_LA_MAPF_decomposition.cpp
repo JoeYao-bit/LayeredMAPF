@@ -60,7 +60,7 @@ void compareLNSAndBiDecompose_LA_MAPF(const SingleMapTestConfig<2>& map_file, in
 
     double total_time_cost = mst.elapsed()/1e3;
 
-    bool is_bi_valid = LA_MAPF_DecompositionValidCheckGridMap<2, Pose<int, 2> >(bi_decompose->all_clusters_,
+    bool is_bi_valid = LA_MAPF_DecompositionValidCheckGridMap<2, Pose<int, 2> >(bi_decompose->all_levels_,
                                                                  dim_local,
                                                                  is_occupied_local,
                                                                  agent_and_instances.front().first,
@@ -74,7 +74,7 @@ void compareLNSAndBiDecompose_LA_MAPF(const SingleMapTestConfig<2>& map_file, in
 //    bool is_bi_valid = bi_decompose->decompositionValidCheckGridMap(bi_decompose->all_clusters_);
 
     std::cout << "biparition finish in " << total_time_cost <<  "s, valid = " << is_bi_valid << std::endl;
-    std::cout << "biparition max subproblem = " << getMaxLevelSize(bi_decompose->all_clusters_) << std::endl;
+    std::cout << "biparition max subproblem = " << getMaxLevelSize(bi_decompose->all_levels_) << std::endl;
 
 
     mst.reset();
@@ -104,12 +104,12 @@ void compareLNSAndBiDecompose_LA_MAPF(const SingleMapTestConfig<2>& map_file, in
     std::cout << "ns finish in " << total_time_cost <<  "s, valid = " << is_ns_valid << std::endl;
 
     std::cout << "ns / bi max subproblem size(decomposition rate) = "
-              << getMaxLevelSize(ns_decompose->all_levels_)   << "(" << (double)getMaxLevelSize(ns_decompose->all_levels_)/agent_and_instances.front().second.size() << ") / "
-              << getMaxLevelSize(bi_decompose->all_clusters_) << "(" << (double)getMaxLevelSize(bi_decompose->all_clusters_) / agent_and_instances.front().second.size() << ")"
+              << getMaxLevelSize(ns_decompose->all_levels_) << "(" << (double)getMaxLevelSize(ns_decompose->all_levels_)/agent_and_instances.front().second.size() << ") / "
+              << getMaxLevelSize(bi_decompose->all_levels_) << "(" << (double)getMaxLevelSize(bi_decompose->all_levels_) / agent_and_instances.front().second.size() << ")"
               << std::endl;
 
     std::cout << "ns / bi number of subproblem = " << ns_decompose->all_levels_.size() << " / "
-              << bi_decompose->all_clusters_.size() << std::endl;
+              << bi_decompose->all_levels_.size() << std::endl;
 
 }
 // pass

@@ -25,7 +25,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                       const std::vector<std::pair<size_t, size_t> >& instance_node_ids,
                       const std::vector<std::shared_ptr<State> > all_poses ,
                       const DistanceMapUpdaterPtr<N> distance_map_updater,
-                      const std::vector<SubGraphOfAgent<N, State> > agent_sub_graphs,
+                      const std::vector<SubGraphOfAgent<N, State> >& agent_sub_graphs,
                       const std::vector<std::vector<int> >& agents_heuristic_tables,
                       const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate_,
                       ConnectivityGraph* connect_graph = nullptr,
