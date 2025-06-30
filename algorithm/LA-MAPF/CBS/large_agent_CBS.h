@@ -14,36 +14,37 @@
 
 namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
-    template <Dimension N>
-    class LargeAgentCBS : public LargeAgentMAPF<N> {
+    template <Dimension N, typename State>
+    class LargeAgentCBS : public LargeAgentMAPF<N, State> {
     public:
-        LargeAgentCBS(const InstanceOrients<N> & instances,
+        LargeAgentCBS(const std::vector<std::pair<State, State>> & instances,
                       const std::vector<AgentPtr<N> >& agents,
                       DimensionLength* dim,
                       const IS_OCCUPIED_FUNC<N> & isoc,
-                      const LargeAgentStaticConstraintTablePtr<N>& path_constraint = nullptr,
-
-                      const std::vector<PosePtr<int, N> > all_poses = {},
-                      const DistanceMapUpdaterPtr<N> distance_map_updater = nullptr,
-                      const std::vector<SubGraphOfAgent<N> > agent_sub_graphs = {},
-                      const std::vector<std::vector<int> >& agents_heuristic_tables = {},
-                      const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate_ = {},
+                      const LargeAgentStaticConstraintTablePtr<N, State>& path_constraint,
+                      const std::vector<std::pair<size_t, size_t> >& instance_node_ids,
+                      const std::vector<std::shared_ptr<State> > all_poses,
+                      const DistanceMapUpdaterPtr<N> distance_map_updater,
+                      const std::vector<SubGraphOfAgent<N, State> >& agent_sub_graphs,
+                      const std::vector<std::vector<int> >& agents_heuristic_tables,
+                      const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate_,
                       ConnectivityGraph* connect_graph = nullptr,
                       double time_limit = 60
                       )
-                      : LargeAgentMAPF<N>(instances, agents, dim, isoc,
-                                                     all_poses,
-                                                     distance_map_updater,
-                                                     agent_sub_graphs,
-                                                     agents_heuristic_tables,
-                                                     agents_heuristic_tables_ignore_rotate_,
-                                                     time_limit),
+                      : LargeAgentMAPF<N, State>(instances, agents, dim, isoc,
+                                                 instance_node_ids,
+                                                 all_poses,
+                                                 distance_map_updater,
+                                                 agent_sub_graphs,
+                                                 agents_heuristic_tables,
+                                                 agents_heuristic_tables_ignore_rotate_,
+                                                 time_limit),
                         constraint_avoidance_table_(nullptr), //ConstraintAvoidanceTable<N, AgentType>(dim, this->all_poses_, agents.front())),
                         path_constraint_(path_constraint),
                         connect_graph_(connect_graph) {
             // 1, initial paths
             for(int agent=0; agent<this->instance_node_ids_.size(); agent++) {
-                ConstraintTable<N> constraint_table(agent, this->agents_, this->all_poses_, this->dim_, this->isoc_);
+                ConstraintTable<N, State> constraint_table(agent, this->agents_, this->all_poses_, this->dim_, this->isoc_);
 
 //                for(int another_agent=0; another_agent<this->instance_node_ids_.size(); another_agent++) {
 //                    if(agent == another_agent) { continue; }
@@ -53,17 +54,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 const size_t& start_node_id = this->instance_node_ids_[agent].first,
                               target_node_id = this->instance_node_ids_[agent].second;
 
-                SpaceTimeAstar<N> astar(start_node_id, target_node_id,
-                                                   this->agents_heuristic_tables_[agent],
-                                                   this->agents_heuristic_tables_ignore_rotate_[agent],
-                                                   this->agent_sub_graphs_[agent],
-                                                   constraint_table,
-                                                   constraint_avoidance_table_,
-                                                   path_constraint_,
-                                                   connect_graph_);
+                SpaceTimeAstar<N, State> astar(start_node_id, target_node_id,
+                                               this->agents_heuristic_tables_[agent],
+                                               this->agents_heuristic_tables_ignore_rotate_[agent],
+                                               this->agent_sub_graphs_[agent],
+                                               constraint_table,
+                                               constraint_avoidance_table_,
+                                               path_constraint_,
+                                               connect_graph_);
                 auto sum_s =  this->mst_.elapsed()/1e3;
                 auto remain_s = time_limit - sum_s;
                 if(remain_s < 0) {
+                    std::cout << "LA CBS run out of time" << std::endl;
                     this->solvable = false;
                     continue;
                 }
@@ -130,7 +132,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //                std::cout << " curr->g_val = " << curr->g_val << std::endl;
                 // yz: check whether reach terminate condition
                 if (terminate(curr)) {
-//                    std::cout << "-- Layered CBS finish after " << count << " iteration" << std::endl;
+                    std::cout << "-- Layered CBS finish after " << count << " iteration" << std::endl;
                     return solution_found;
                 }
                 if (!curr->h_computed)  // heuristics has not been computed yet
@@ -218,14 +220,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         boost::heap::pairing_heap<CBSNode *, boost::heap::compare<CBSNode::compare_node_by_inadmissible_f> > open_list; // this is used for EES
         boost::heap::pairing_heap<CBSNode *, boost::heap::compare<CBSNode::compare_node_by_d> > focal_list; // this is ued for both ECBS and EES
 
-        ConstraintAvoidanceTablePtr<N> constraint_avoidance_table_;
+        ConstraintAvoidanceTablePtr<N, State> constraint_avoidance_table_;
 
-        const LargeAgentStaticConstraintTablePtr<N>& path_constraint_; // take external path as obstacles
+        const LargeAgentStaticConstraintTablePtr<N, State>& path_constraint_; // take external path as obstacles
 
         // store each agent's occupied grid at each time , update with this->solutions_
 //        std::vector< typename ConstraintAvoidanceTable<N, AgentType>::OccGridLevels > agent_occ_grids;
 
-        std::vector< typename ConstraintAvoidanceTable<N>::OccGridLevels > init_agent_occ_grids;
+        std::vector< typename ConstraintAvoidanceTable<N, State>::OccGridLevels > init_agent_occ_grids;
 
 
         // yz: child node inherit constraint from parent node
@@ -296,7 +298,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 goal_node = curr;
                 solution_cost = goal_node->getFHatVal() - goal_node->cost_to_go;
                 auto conflicts = findConflicts(*curr);
-//                std::cout << "-- finish with node depth = " << curr->depth << std::endl;
+                std::cout << "-- finish with node depth = " << curr->depth << std::endl;
+                std::cout << "solution_found = " << solution_found << std::endl;
                 if(!conflicts.empty()) {
                     std::cout << "Solution have conflict !!!" << std::endl;
                     exit(-1);
@@ -476,7 +479,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         // return whether exist a path satisfied all this constraint
         // if there is, update to solution paths
         bool findPathForSingleAgent(CBSNode *node, int agent, int lowerbound) {
-            ConstraintTable<N> constraint_table(agent, this->agents_, this->all_poses_, this->dim_, this->isoc_);
+            ConstraintTable<N, State> constraint_table(agent, this->agents_, this->all_poses_, this->dim_, this->isoc_);
             auto buffer_node = node;
             while(true) {
                 if(buffer_node == nullptr) { break; }
@@ -502,14 +505,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             auto sum_s = this->mst_.elapsed()/1e3;
             auto remain_s = this->time_limit_ - sum_s;
             if(remain_s < 0 ) { return false; }
-            SpaceTimeAstar<N> astar(start_node_id, target_node_id,
-                                               this->agents_heuristic_tables_[agent],
-                                               this->agents_heuristic_tables_ignore_rotate_[agent],
-                                               this->agent_sub_graphs_[agent],
-                                               constraint_table,
-                                               nullptr,
-                                               path_constraint_,
-                                               connect_graph_);
+            SpaceTimeAstar<N, State> astar(start_node_id, target_node_id,
+                                           this->agents_heuristic_tables_[agent],
+                                           this->agents_heuristic_tables_ignore_rotate_[agent],
+                                           this->agent_sub_graphs_[agent],
+                                           constraint_table,
+                                           nullptr,
+                                           path_constraint_,
+                                           connect_graph_);
             astar.lower_bound_ = lowerbound;
             astar.time_limit_ = remain_s*1e3;
             LAMAPF_Path new_path = astar.solve();
@@ -568,9 +571,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             std::tie(a2, from2, to2, start_t2, end_t2) = *(cf.cs2.front());
 
             std::cout << "cf agent: " << a1 << ", " << a2 << " | "
-                      << *this->all_poses_[from1] << "->" << (to1 == MAX_NODES ? Pose<int, N>(Pointi<N>(), -1) : *this->all_poses_[to1])
+                      << *this->all_poses_[from1] << "->" << (to1 == MAX_NODES ? State() : *this->all_poses_[to1])
                       << "t:{" << start_t1 << "," << end_t1 << "}" << ", "
-                      << *this->all_poses_[from2] << "->" << (to2 == MAX_NODES ? Pose<int, N>(Pointi<N>(), -1) : *this->all_poses_[to2])
+                      << *this->all_poses_[from2] << "->" << (to2 == MAX_NODES ? State() : *this->all_poses_[to2])
                       << "t:{" << start_t2 << "," << end_t2 << "}" << std::endl;
 
         }

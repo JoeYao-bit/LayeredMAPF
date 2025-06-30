@@ -122,10 +122,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
 
     using AgentLaCAMs = std::vector<AgentLaCAM *>;
 
-// next location candidates, for saving memory allocation
-    template <Dimension N>
-    using Candidates = std::vector<std::array<size_t, 2*N*2*N + 1> >;
-
 }
 
 

@@ -10,7 +10,7 @@
 #include <boost/heap/pairing_heap.hpp>
 #include <boost/unordered_set.hpp>
 #include <limits>
-#include "../freeNav-base/basic_elements/point.h"
+#include "freeNav-base/basic_elements/point.h"
 #include <chrono>
 
 namespace freeNav::LayeredMAPF {

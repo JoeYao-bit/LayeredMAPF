@@ -5,7 +5,7 @@
 #ifndef LAYEREDMAPF_SINGLE_AGENT_PATH_SEARCH_H
 #define LAYEREDMAPF_SINGLE_AGENT_PATH_SEARCH_H
 
-#include "../../../freeNav-base/basic_elements/point.h"
+#include "freeNav-base/basic_elements/point.h"
 #include "constraint.h"
 #include "../large_agent_mapf.h"
 #include <boost/heap/pairing_heap.hpp>
@@ -95,7 +95,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
     };
 
 // yz: find optimal path under constraints
-    template <Dimension N>
+    template <Dimension N, typename State>
     class SingleAgentSolver {
     public:
 
@@ -103,10 +103,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                           const size_t& target_node_id,
                           const std::vector<int>& heuristic,
                           const std::vector<int>& heuristic_ignore_rotate,
-                          const SubGraphOfAgent<N>& sub_graph,
-                          const ConstraintTable<N>& constraint_table = nullptr,
-                          const ConstraintAvoidanceTablePtr<N>& constraint_avoidance_table = nullptr,
-                          const LargeAgentStaticConstraintTablePtr<N> & path_constraint = nullptr
+                          const SubGraphOfAgent<N, State>& sub_graph,
+                          const ConstraintTable<N, State>& constraint_table = nullptr,
+                          const ConstraintAvoidanceTablePtr<N, State>& constraint_avoidance_table = nullptr,
+                          const LargeAgentStaticConstraintTablePtr<N, State> & path_constraint = nullptr
                           ) : start_node_id_(start_node_id), target_node_id_(target_node_id),
                           heuristic_(heuristic),
                           heuristic_ignore_rotate_(heuristic_ignore_rotate),
@@ -124,7 +124,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         const size_t& target_node_id_;
         const std::vector<int>& heuristic_;  // this is the precomputed heuristic for this agent
         const std::vector<int>& heuristic_ignore_rotate_;  // this is the precomputed heuristic for this agent
-        const SubGraphOfAgent<N>& sub_graph_;
+        const SubGraphOfAgent<N, State>& sub_graph_;
 
     //protected:
 
@@ -136,11 +136,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
         LAMAPF_Path solution_;
 
-        ConstraintTable<N> constraint_table_; // vertex and edge constraint, hard constraint
+        ConstraintTable<N, State> constraint_table_; // vertex and edge constraint, hard constraint
 
-        ConstraintAvoidanceTablePtr<N> constraint_avoidance_table_ = nullptr; // try to avoid, take as soft constraint
+        ConstraintAvoidanceTablePtr<N, State> constraint_avoidance_table_ = nullptr; // try to avoid, take as soft constraint
 
-        LargeAgentStaticConstraintTablePtr<N> path_constraint_ = nullptr; // take external path as obstacles, hard constraints
+        LargeAgentStaticConstraintTablePtr<N, State> path_constraint_ = nullptr; // take external path as obstacles, hard constraints
 
     };
 

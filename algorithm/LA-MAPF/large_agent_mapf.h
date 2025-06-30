@@ -25,8 +25,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //    };
 //
 
-    template<Dimension N>
-    std::string printPath(const LAMAPF_Path& path, const std::vector<PosePtr<int, N> >& all_poses) {
+    template<Dimension N, typename State>
+    std::string printPath(const LAMAPF_Path& path, const std::vector<std::shared_ptr<State> >& all_poses) {
         std::stringstream ss;
         for(int t=0; t<path.size(); t++) {
             ss << *(all_poses[path[t]]) << "->";
@@ -34,24 +34,26 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return ss.str();
     }
 
-    template<Dimension N>
+    // state means agent's state
+    template<Dimension N, typename State>
     class LargeAgentMAPF {
     public:
-        LargeAgentMAPF(const InstanceOrients<N> & instances,
+        LargeAgentMAPF(const std::vector<std::pair<State, State> > & instances,
                        const std::vector<AgentPtr<N> >& agents,
                        DimensionLength* dim,
                        const IS_OCCUPIED_FUNC<N> & isoc,
-
-                       const std::vector<PosePtr<int, N> >& all_poses = {},
-                       const DistanceMapUpdaterPtr<N>& distance_map_updater = nullptr,
-                       const std::vector<SubGraphOfAgent<N> >& agent_sub_graphs = {},
-                       const std::vector<std::vector<int> >& agents_heuristic_tables = {},
-                       const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate = {},
+                       const std::vector<std::pair<size_t, size_t> >& instance_node_ids,
+                       const std::vector<std::shared_ptr<State> >& all_poses,
+                       const DistanceMapUpdaterPtr<N>& distance_map_updater,
+                       const std::vector<SubGraphOfAgent<N, State> >& agent_sub_graphs,
+                       const std::vector<std::vector<int> >& agents_heuristic_tables,
+                       const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate,
 
                        double time_limit = 60,
                        int num_of_CPU = 4
                        ) : instances_(instances), agents_(agents), dim_(dim), isoc_(isoc),
-                           all_poses_(all_poses), distance_map_updater_(distance_map_updater),
+                           all_poses_(all_poses), instance_node_ids_(instance_node_ids),
+                           distance_map_updater_(distance_map_updater),
                            agent_sub_graphs_(agent_sub_graphs),
                            agents_heuristic_tables_(agents_heuristic_tables),
                            agents_heuristic_tables_ignore_rotate_(agents_heuristic_tables_ignore_rotate),
@@ -60,169 +62,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                        {
 
             assert(instances.size() == agents.size());
-
-            MSTimer mst;
-            // 0, init and final state overlap check
-            for(int i=0; i<instances_.size(); i++) {
-                for(int j=i+1; j<instances_.size(); j++) {
-                    if(isCollide(agents_[i], instances_[i].first, agents_[j], instances_[j].first)) {
-                        std::cout << " agent " << *agents_[i] << ", " << *agents_[j] << "'s start overlap" << std::endl;
-                        solvable = false;
-                        break;
-                    }
-                    if(isCollide(agents_[i], instances_[i].second, agents_[j], instances_[j].second)) {
-                        std::cout << " agent " << *agents_[i] << ", " << *agents_[j] << "'s target overlap" << std::endl;
-                        solvable = false;
-                        break;
-                    }
-                }
-            }
-
-            // 1, construct all possible poses
-            if(all_poses_.empty()) {
-                std::cout << "  construct all possible poses" << std::endl;
-                Id total_index = getTotalIndexOfSpace<N>(dim_);
-                all_poses_.resize(total_index * 2 * N, nullptr); // a position with 2*N orientation
-                Pointi <N> pt;
-                for (Id id = 0; id < total_index; id++) {
-                    pt = IdToPointi<N>(id, dim_);
-                    if (!isoc_(pt)) {
-                        for (int orient = 0; orient < 2 * N; orient++) {
-                            PosePtr<int, N> pose_ptr = std::make_shared<Pose<int, N> >(pt, orient);
-                            all_poses_[id * 2 * N + orient] = pose_ptr;
-                        }
-                    }
-                }
-            }
-            // 2, construct each agents subgraph (vertex: where it can stay, edges: whether can it move from one vertex to another)
-            if(distance_map_updater_ == nullptr) {
-                std::cout << "  construct distance_map_update" << std::endl;
-                distance_map_updater_ = std::make_shared<DistanceMapUpdater<N> >(this->isoc_, this->dim_);
-            }
-
-           if(instance_node_ids_.empty()) {
-               instance_node_ids_.reserve(instances_.size());
-
-               for (int agent_id=0; agent_id<agents_.size(); agent_id++) {
-                   // check start
-                   int start_node_id = PointiToId<N>(instances_[agent_id].first.pt_, dim_) * 2 * N +
-                                       instances_[agent_id].first.orient_;
-
-                   // check target
-                   int target_node_id = PointiToId<N>(instances_[agent_id].second.pt_, dim_) * 2 * N +
-                                        instances_[agent_id].second.orient_;
-
-                   instance_node_ids_.push_back({start_node_id, target_node_id});
-               }
-           }
-
-//            if(agent_sub_graphs_.empty()) {
-//                std::cout << "  construct agent_sub_graphs" << std::endl;
-//                agent_sub_graphs_.reserve(instances_.size());
-//                for (int id = 0; id < agents.size(); id++) {
-//                    agent_sub_graphs_.push_back(constructSubGraphOfAgent(id));
-//                }
-//            }
-//            // 3, construct each agent's heuristic table, i.e., distance from each node to target
-//            if(agents_heuristic_tables_.empty()) {
-//                std::cout << "  construct agents_heuristic_tables" << std::endl;
-//                agents_heuristic_tables_.reserve(instances_.size());
-//                for (int agent = 0; agent < instances_.size(); agent++) {
-//                    agents_heuristic_tables_.push_back(
-//                            constructHeuristicTable(agent_sub_graphs_[agent], instance_node_ids_[agent].second));
-//                }
-//            }
-//           if(agents_heuristic_tables_ignore_rotate_.empty()) {
-//               std::cout << "  construct agents_heuristic_tables_ignore_rotate" << std::endl;
-//               agents_heuristic_tables_ignore_rotate_.reserve(instances_.size());
-//               for (int agent = 0; agent < instances_.size(); agent++) {
-//                   agents_heuristic_tables_ignore_rotate_.push_back(
-//                           constructHeuristicTableIgnoreRotate(agent_sub_graphs_[agent], instance_node_ids_[agent].second));
-//               }
-//           }
-
-            // initialize in parallel thread to reduce time cost
-            std::map<int, SubGraphOfAgent<N>> sub_graphs_map;
-            std::map<int, std::vector<int> > heuristic_tables_;
-            std::map<int, std::vector<int> > heuristic_tables_ig_rotate;
-            int interval = agents.size()/num_of_CPU;// set to larger value to reduce maximal memory usage and num of threads
-            std::mutex lock_1, lock_2, lock_3, lock_4;
-            std::vector<bool> finished(agents.size(), false);
-            int count_of_instance = 0;
-            while(count_of_instance < instances.size()) {
-                auto lambda_func = [&]() {
-                    auto start_t_3 = std::chrono::steady_clock::now();
-                    //auto start_t_4 = std::chrono::steady_clock::now();
-                    for (int k = 0; k < interval; k++) {
-                        //std::cout << "thread_id = " << thread_id << std::endl;
-                        lock_4.lock();
-                        int map_id = count_of_instance;
-                        count_of_instance ++;
-                        lock_4.unlock();
-                        //std::cout << "map_id = " << map_id << std::endl;
-
-                        if (map_id >= agents.size()) { break; }
-                        if(agent_sub_graphs_.empty()) {
-                            const auto &sub_graph = constructSubGraphOfAgent(map_id);
-                            lock_1.lock();
-                            sub_graphs_map.insert({map_id, sub_graph});
-                            lock_1.unlock();
-                        } else {
-                            sub_graphs_map.insert({map_id, agent_sub_graphs_[map_id]});
-                        }
-                        if(agents_heuristic_tables_.empty()) {
-                            const auto & table = constructHeuristicTable(sub_graphs_map.at(map_id),
-                                                                         instance_node_ids_[map_id].second);
-                            lock_2.lock();
-                            heuristic_tables_.insert({map_id, table});
-                            lock_2.unlock();
-                        }
-                        if(agents_heuristic_tables_ignore_rotate_.empty()) {
-                            const auto & table = constructHeuristicTableIgnoreRotate(sub_graphs_map.at(map_id),
-                                                                                     instance_node_ids_[map_id].second);
-                            lock_3.lock();
-                            heuristic_tables_ig_rotate.insert({map_id, table});
-                            lock_3.unlock();
-                        }
-                        lock_4.lock();
-                        finished[map_id] = true;
-                        lock_4.unlock();
-                    }
-                    //auto end_t_4 = std::chrono::steady_clock::now();
-                    //std::cout << "thread calculation take " << std::chrono::duration_cast<std::chrono::milliseconds>(end_t_4 - start_t_4).count() << "ms" << std::endl;
-                    //auto end_t_3 = std::chrono::steady_clock::now();
-                    //std::cout << "thread all take " << std::chrono::duration_cast<std::chrono::milliseconds>(end_t_3 - start_t_3).count() << "ms" << std::endl;
-                    //std::cout << "thread " << thread_id_copy << " finished 1" << std::endl;
-                };
-                std::thread t(lambda_func);
-                t.detach();
-            }
-            while(finished != std::vector<bool>(agents.size(), true)) {
-                usleep(5e4);
-            }
-            if(agent_sub_graphs_.empty()) {
-                agent_sub_graphs_.resize(agents.size(), SubGraphOfAgent<N>(nullptr));
-                for (const auto &subgraph_pair : sub_graphs_map) {
-                    agent_sub_graphs_[subgraph_pair.first] = subgraph_pair.second;
-                }
-            }
-            if(agents_heuristic_tables_.empty()) {
-                agents_heuristic_tables_.resize(agents.size());
-                for (const auto &table_pair : heuristic_tables_) {
-                    agents_heuristic_tables_[table_pair.first] = table_pair.second;
-                }
-            }
-            if(agents_heuristic_tables_ignore_rotate_.empty()) {
-                agents_heuristic_tables_ignore_rotate_.resize(agents.size());
-                for (const auto &table_pair : heuristic_tables_ig_rotate) {
-                    agents_heuristic_tables_ignore_rotate_[table_pair.first] = table_pair.second;
-                }
-            }
-
-            subgraph_and_heuristic_time_cost_ = mst.elapsed();
-
-            std::cout << "-- construct subgraph and heuristic table in " << subgraph_and_heuristic_time_cost_ << "ms" << std::endl;
-            remaining_time_ = remaining_time_ - subgraph_and_heuristic_time_cost_;
         }
 
         virtual bool solve(int cost_lowerbound = 0, int cost_upperbound = MAX_COST) = 0;
@@ -251,250 +90,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             assert(all_poses_[node_id] != nullptr);
             return *all_poses_[node_id];
         }
-
-
-        SubGraphOfAgent<N> constructSubGraphOfAgent(int agent_id) {
-            const AgentPtr<N> & agent = agents_[agent_id];
-            Id total_index = getTotalIndexOfSpace<N>(dim_);
-
-            assert(all_poses_.size() == total_index*2*N);
-
-            // check start
-            int start_node_id = PointiToId<N>(instances_[agent_id].first.pt_, dim_) * 2 * N +
-                                instances_[agent_id].first.orient_;
-
-            // check target
-            int target_node_id = PointiToId<N>(instances_[agent_id].second.pt_, dim_) * 2 * N +
-                                 instances_[agent_id].second.orient_;
-
-
-            SubGraphOfAgent<N> sub_graph(agent);
-            sub_graph.data_ptr_ = std::make_shared<SubGraphOfAgentData<N> >();
-
-            sub_graph.data_ptr_->all_nodes_.resize(total_index * 2 * N, nullptr);
-            sub_graph.start_node_id_ = start_node_id;
-            sub_graph.target_node_id_ = target_node_id;
-
-            // initial nodes in subgraph
-            for(size_t id=0; id<all_poses_.size(); id++) {
-                if(all_poses_[id] != nullptr) {
-                    const auto& current_pose = all_poses_[id];
-                    if(!agent->isCollide(*current_pose, dim_, isoc_, *distance_map_updater_)) {
-                        sub_graph.data_ptr_->all_nodes_[id] = current_pose;
-                    }
-                }
-            }
-
-            if (sub_graph.data_ptr_->all_nodes_[start_node_id] == nullptr) {
-                std::cout << "FATAL: agent " << agent << "'s start " << instances_[agent_id].first.pt_ << "^"
-                          << instances_[agent_id].first.orient_ << " is unavailable " << std::endl;
-                solvable = false;
-            }
-
-            if (sub_graph.data_ptr_->all_nodes_[target_node_id] == nullptr) {
-                std::cout << "FATAL: agent " << agent << "'s target " << instances_[agent_id].second.pt_ << "^"
-                          << instances_[agent_id].second.orient_ << " is unavailable " << std::endl;
-                solvable = false;
-            }
-
-            // when add edges, assume agent can only change position or orientation, cannot change both of them
-            // and orientation can only change 90 degree at one timestep, that means the two orient must be orthogonal
-            sub_graph.data_ptr_->all_edges_.resize(total_index*2*N, {});
-            sub_graph.data_ptr_->all_backward_edges_.resize(total_index*2*N, {});
-
-            // debug
-//            std::vector<std::set<size_t> > all_edges_set(total_index*2*N);
-//            std::vector<std::set<size_t> > all_backward_edges_set(total_index*2*N);
-
-            Pointis<N> neighbors = GetNearestOffsetGrids<N>();
-            for(size_t pose_id=0; pose_id < sub_graph.data_ptr_->all_nodes_.size(); pose_id++) {
-                const auto& node_ptr = sub_graph.data_ptr_->all_nodes_[pose_id];
-                if(node_ptr != nullptr) {
-                    // add edges about position changing
-                    size_t origin_orient = pose_id%(2*N);
-                    Pointi<N> origin_pt = node_ptr->pt_;
-                    Pointi<N> new_pt;
-                    for(const auto& offset : neighbors) {
-                        new_pt = origin_pt + offset;
-                        if(isOutOfBoundary(new_pt, dim_)) { continue; }
-                        Id another_node_id = PointiToId<N>(new_pt, dim_)*2*N + origin_orient;
-                        if(pose_id == another_node_id) { continue; }
-                        PosePtr<int, N> another_node_ptr = sub_graph.data_ptr_->all_nodes_[another_node_id];
-                        if(another_node_ptr == nullptr) { continue; }
-
-                        // debug
-                        // considering direction, some edge is not reversible
-//                        bool direct_legal  = agent.isCollide(*another_node_ptr, *node_ptr, dim_, isoc_, *distance_map_updater_);
-//                        bool reverse_legal = agent.isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, *distance_map_updater_);
-//                        assert(direct_legal == reverse_legal);
-
-                        if(!agent->isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, *distance_map_updater_)) {
-                            sub_graph.data_ptr_->all_edges_[pose_id].push_back(another_node_id);
-                            sub_graph.data_ptr_->all_backward_edges_[another_node_id].push_back(pose_id);
-
-                            // debug
-//                            all_edges_set[pose_id].insert(another_node_id);
-//                            all_backward_edges_set[another_node_id].insert(pose_id);
-                        }
-                    }
-                    // add edges about orientation changing
-                    size_t base_id = pose_id / (2*N) * (2*N);
-                    for(size_t orient=0; orient<2*N; orient++) {
-                        // avoid repeat itself
-                        if(node_ptr->orient_ == orient) { continue; }
-                        // if another node in subgraph
-                        size_t another_node_id = base_id + orient;
-                        PosePtr<int, N> another_node_ptr = sub_graph.data_ptr_->all_nodes_[another_node_id];
-                        if(another_node_ptr == nullptr) { continue; }
-                        // check whether can transfer to another node
-                        if(!agent->isCollide(*node_ptr, *another_node_ptr, dim_, isoc_, *distance_map_updater_)) {
-                            sub_graph.data_ptr_->all_edges_[pose_id].push_back(another_node_id);
-                            sub_graph.data_ptr_->all_backward_edges_[another_node_id].push_back(pose_id);
-
-                            // debug
-//                            all_edges_set[pose_id].insert(another_node_id);
-//                            all_backward_edges_set[another_node_id].insert(pose_id);
-                        }
-                    }
-                }
-            }
-            // debug
-//            for(size_t i=0; i<all_edges_set.size(); i++) {
-//                for(const size_t& j : all_edges_set[i]) {
-//                    if(all_backward_edges_set[j].find(i) == all_backward_edges_set[j].end()) {
-//                        std::cout << "FATAL: edges have more than backward_edges" << std::endl;
-//                    }
-//                }
-//            }
-//            for(size_t i=0; i<all_backward_edges_set.size(); i++) {
-//                for(const size_t& j : all_backward_edges_set[i]) {
-//                    if(all_edges_set[j].find(i) == all_edges_set[j].end()) {
-//                        std::cout << "FATAL: backward_edges have more than edges" << std::endl;
-//                    }
-//                }
-//            }
-            return sub_graph;
-        }
-
-
-
-        std::vector<int> constructHeuristicTable(const SubGraphOfAgent<N>& sub_graph, const size_t& goal_id) const {
-            struct Node {
-                int node_id;
-                int value;
-
-                Node() = default;
-
-                Node(int node_id, int value) : node_id(node_id), value(value) {}
-
-                // the following is used to compare nodes in the OPEN list
-                struct compare_node {
-                    // returns true if n1 > n2 (note -- this gives us *min*-heap).
-                    bool operator()(const Node &n1, const Node &n2) const {
-                        return n1.value >= n2.value;
-                    }
-                };  // used by OPEN (heap) to compare nodes (top of the heap has min f-val, and then highest g-val)
-            };
-            std::vector<int> agent_heuristic(sub_graph.data_ptr_->all_nodes_.size(), MAX<int>);
-
-            // generate a heap that can save nodes (and an open_handle)
-            boost::heap::pairing_heap<Node, boost::heap::compare<typename Node::compare_node> > heap;
-
-            Node root(goal_id, 0);
-            agent_heuristic[goal_id] = 0;
-            heap.push(root);  // add root to heap
-            // yz: compute heuristic from goal to visible grid via Breadth First Search
-            //     search the static shortest path
-            while (!heap.empty()) {
-                Node curr = heap.top();
-                heap.pop();
-                for (const size_t& next_location : sub_graph.data_ptr_->all_backward_edges_[curr.node_id]) {
-                    int new_heuristic_value = curr.value + 1;
-                    if (agent_heuristic[next_location] > new_heuristic_value) {
-                        agent_heuristic[next_location] = new_heuristic_value;
-                        Node next(next_location, new_heuristic_value);
-                        heap.push(next);
-                    }
-                }
-            }
-
-            assert(agent_heuristic[instance_node_ids_[sub_graph.agent_->id_].first]  != MAX<int>);
-            assert(agent_heuristic[instance_node_ids_[sub_graph.agent_->id_].second] != MAX<int>);
-
-            // debug
-//            for(int i=0; i<sub_graph.all_nodes_.size(); i++) {
-//                if(sub_graph.all_nodes_[i] != nullptr) {
-//                    assert(agent_heuristic[i] != MAX<int>);
-//                }
-//            }
-            // shrink table
-//            for(int k=0; k<sub_graph.all_nodes_.size()/(2*N); k++) {
-//                //
-//            }
-            return agent_heuristic;
-        }
-
-        std::vector<int> constructHeuristicTableIgnoreRotate(const SubGraphOfAgent<N>& sub_graph,
-                                                             const size_t& goal_id) const {
-            struct Node {
-                Pointi<N> node_pt;
-                int value;
-
-                Node() = default;
-
-                Node(const Pointi<N>& node_pt, int value) : node_pt(node_pt), value(value) {}
-
-                // the following is used to compare nodes in the OPEN list
-                struct compare_node {
-                    // returns true if n1 > n2 (note -- this gives us *min*-heap).
-                    bool operator()(const Node &n1, const Node &n2) const {
-                        return n1.value >= n2.value;
-                    }
-                };  // used by OPEN (heap) to compare nodes (top of the heap has min f-val, and then highest g-val)
-            };
-
-            std::vector<int> retv(sub_graph.data_ptr_->all_nodes_.size()/(2*N), MAX<int>);
-            // 1, get grid connectivity graph
-            std::vector<bool> c_graph(sub_graph.data_ptr_->all_nodes_.size()/(2*N), false);
-            for(int i=0; i<sub_graph.data_ptr_->all_nodes_.size(); i++) {
-                if(sub_graph.data_ptr_->all_nodes_[i] != nullptr) {
-//                    std::cout << "flag 4" << std::endl;
-                    c_graph[i/(2*N)] = true;
-                }
-            }
-            // 2, wave front to get heuristic table
-            // generate a heap that can save nodes (and an open_handle)
-            boost::heap::pairing_heap<Node, boost::heap::compare<typename Node::compare_node> > heap;
-            Pointi<N> target_pt = IdToPointi<N>(goal_id/(2*N), dim_);
-            Node root(target_pt, 0);
-            retv[goal_id/(2*N)] = 0;
-            heap.push(root);  // add root to heap
-            // yz: compute heuristic from goal to visible grid via Breadth First Search
-            //     search the static shortest path
-            Pointis<N> offsets = GetNearestOffsetGrids<N>();
-            while (!heap.empty()) {
-                Node curr = heap.top();
-                heap.pop();
-                for (const Pointi<N>& offset : offsets) {
-                    Pointi<N> next_location = curr.node_pt + offset;
-                    if(isoc_(next_location)) { continue; }
-                    Id id = PointiToId<N>(next_location, dim_);
-                    if(!c_graph[id]) { continue; }
-                    int new_heuristic_value = curr.value + 1;
-                    if (retv[id] > new_heuristic_value) {
-                        retv[id] = new_heuristic_value;
-                        Node next(next_location, new_heuristic_value);
-                        heap.push(next);
-                    }
-
-                }
-            }
-            assert(retv[instance_node_ids_[sub_graph.agent_->id_].first/(2*N)]  != MAX<int>);
-            assert(retv[instance_node_ids_[sub_graph.agent_->id_].second/(2*N)] != MAX<int>);
-            return retv;
-        }
-
-
 
         bool solutionValidation() const {
             for(int a1=0; a1<this->agents_.size(); a1++) {
@@ -528,7 +123,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
 
 
-
         size_t getMakeSpan() const {
             if(!this->solvable) { return 0; }
             size_t mk = 0;
@@ -547,7 +141,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return soc;
         }
 
-        std::vector<PosePtr<int, N> > getAllPoses() const {
+        std::vector<std::shared_ptr<State> > getAllPoses() const {
             return all_poses_;
         }
 
@@ -586,7 +180,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     //protected:
         // initial constant values
-        InstanceOrients<N> instances_;
+        std::vector<std::pair<State, State> > instances_;
         std::vector<AgentPtr<N> > agents_;
         DimensionLength* dim_;
         const IS_OCCUPIED_FUNC<N>& isoc_;
@@ -594,10 +188,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         std::vector<std::pair<size_t, size_t> > instance_node_ids_;
 
         // intermediate variables
-        std::vector<PosePtr<int, N> > all_poses_;
+        std::vector<std::shared_ptr<State> > all_poses_;
         DistanceMapUpdaterPtr<N> distance_map_updater_;
 
-        std::vector<SubGraphOfAgent<N> > agent_sub_graphs_;
+        std::vector<SubGraphOfAgent<N, State> > agent_sub_graphs_;
         std::vector<std::vector<int> > agents_heuristic_tables_;
         std::vector<std::vector<int> > agents_heuristic_tables_ignore_rotate_;
 

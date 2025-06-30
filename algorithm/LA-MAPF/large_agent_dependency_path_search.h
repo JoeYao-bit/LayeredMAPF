@@ -295,7 +295,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 // check if the popped node is a goal
                 if(curr_node->current_node_ == target_hyper_node_id) // if current node is belong to an agent
                 {
-                    auto passed_agents = getPassingAgents(curr_node, con_graph, distinguish_sat);//curr_node->passed_agents_;
+                    auto passed_agents = getPassingAgents<N>(curr_node, con_graph, distinguish_sat);//curr_node->passed_agents_;
                     // debug
 //                    if(agent_id == 4) {
 //                        std::cout << " agent 4 visited hyper node = ";

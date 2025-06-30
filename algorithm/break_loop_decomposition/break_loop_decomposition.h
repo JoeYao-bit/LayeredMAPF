@@ -22,7 +22,7 @@
 namespace freeNav::LayeredMAPF {
 
     // a general interfaces for both LA-MAPF and MAPF
-    template<Dimension N, typename HyperNodeType>
+    template<Dimension N, typename HyperNodeType, typename State>
     class MAPFInstanceDecompositionBreakLoop {
 
     public:
@@ -34,8 +34,9 @@ namespace freeNav::LayeredMAPF {
 
         MAPFInstanceDecompositionBreakLoop(DimensionLength* dim,
                                            const std::vector<LA_MAPF::ConnectivityGraph>& connectivity_graphs,
-                                           const std::vector<LA_MAPF::SubGraphOfAgent<N> >& agent_sub_graphs,
+                                           std::vector<LA_MAPF::SubGraphOfAgent<N, State>> agent_sub_graphs,
                                            const std::vector<std::vector<int> >& heuristic_tables_sat, // distinguish_sat = true
+                                           const std::vector<std::vector<int> >& heuristic_tables,
                                            double time_limit = 10,
                                            int max_break_count = 1e3,
                                            int max_continue_failure = 50,
@@ -780,7 +781,7 @@ namespace freeNav::LayeredMAPF {
 
         std::vector<LA_MAPF::ConnectivityGraph> connect_graphs_;
 
-        std::vector<LA_MAPF::SubGraphOfAgent<N> > agent_sub_graphs_;
+        std::vector<LA_MAPF::SubGraphOfAgent<N, State> > agent_sub_graphs_;
 
         std::vector<std::vector<int> > heuristic_tables_sat_; // distinguish_sat = true
 
