@@ -13,10 +13,20 @@
 #include <random>
 namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
 
+    template<Dimension N>
+    constexpr int numOfOrient(const Pointi<N>& pt) {
+        return 1;
+    }
+
+    template<Dimension N>
+    constexpr int numOfOrient(const Pose<int, N>& pose) {
+        return 2*N;
+    }
+
     template<Dimension N, typename ConstraintTable, typename State>
     struct LargeAgentLaCAM : public LargeAgentMAPF<N, State> {
 
-        LargeAgentLaCAM(const std::vector<std::pair<Pointi<N>, Pointi<N>>> & instances,
+        LargeAgentLaCAM(const std::vector<std::pair<State, State>> & instances,
                         const std::vector<AgentPtr<N> >& agents,
                         DimensionLength* dim,
                         const IS_OCCUPIED_FUNC<N> & isoc,
@@ -38,13 +48,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
                                                        agents_heuristic_tables,
                                                        agents_heuristic_tables_ignore_rotate,
                                                        time_limit),
-                          V_size_(LargeAgentLaCAM<N, ConstraintTable, State>::all_poses_.size()),
-                          C_next_(Candidates<N>(agents.size(), std::array<size_t , 2*N*2*N + 1>())), // yz: possible rotation multiple possible transition plus wait
+                          V_size_(LargeAgentLaCAM<N, ConstraintTable, State>::all_poses_.size()), // yz: possible rotation multiple possible transition plus wait
                           tie_breakers(std::vector<float>(V_size_, 0)),
                           A_(AgentLaCAMs(agents.size(), nullptr)),
                           occupied_now_(AgentLaCAMs(V_size_, nullptr)),
                           occupied_next_(AgentLaCAMs(V_size_, nullptr)),
                           path_constraint_(path_constraint) {
+
             starts_.resize(agents.size());
             targets_.resize(agents.size());
             for(size_t agent=0; agent<agents.size(); agent++) {
@@ -55,6 +65,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
             const auto seed = rd();
             MT = new std::mt19937(seed);
         }
+
+        virtual bool funcPIBT(AgentLaCAM *ai, int next_t, ConstraintTable& constraint_table) = 0;
 
         ~LargeAgentLaCAM() {
             delete MT;
@@ -163,15 +175,26 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
                     auto C = this->agent_sub_graphs_[i].data_ptr_->all_edges_[S->C[i]];
                     C.push_back(S->C[i]);
                     if (MT != nullptr) std::shuffle(C.begin(), C.end(), *MT);  // randomize
-
+//                    std::cout << "numOfOrient<N>(State()) = " << numOfOrient<N>(State()) << std::endl;
                     // yz: me try to limit very agent move in its fastest way to target
                     std::sort(C.begin(), C.end(),
                               [&](const size_t& v, const size_t& u) {
-                                  if(this->agents_heuristic_tables_[i][v] == this->agents_heuristic_tables_[i][u]) {
+//                                  std::cout << "this->agents_heuristic_tables_.size = " <<
+//                                    this->agents_heuristic_tables_[i].size() << std::endl;
+//                                  std::cout << "this->agents_heuristic_tables_ignore_rotate_.size = " <<
+//                                    this->agents_heuristic_tables_ignore_rotate_[i].size() << std::endl;
+//                                  std::cout << "v/u = " << v << "/" << u << std::endl;
+//                                  std::cout << "v/u / numOfOrient<N>(State()) = " << v / numOfOrient<N>(State())
+//                                          << "/" << u / numOfOrient<N>(State()) << std::endl;
+//                                  std::cout << "i = " << i << std::endl;
+                                  if(this->agents_heuristic_tables_[i][v] == this->agents_heuristic_tables_[i][u] &&
+                                     !this->agents_heuristic_tables_ignore_rotate_[i].empty() ) {
+                                      //std::cout << "flag 1" <<  std::endl;
 //                                      return distance_to_target[i][v/(2*N)] < distance_to_target[i][u/(2*N)];
-                                      return this->agents_heuristic_tables_ignore_rotate_[i][v/(2*N)] <
-                                             this->agents_heuristic_tables_ignore_rotate_[i][u/(2*N)];
+                                          return this->agents_heuristic_tables_ignore_rotate_[i][v / numOfOrient<N>(State())] <
+                                                 this->agents_heuristic_tables_ignore_rotate_[i][u / numOfOrient<N>(State())];
                                   } else {
+                                      //std::cout << "flag 2" <<  std::endl;
                                       return this->agents_heuristic_tables_[i][v] < this->agents_heuristic_tables_[i][u];
                                   }
 //                                  if(distance_to_target[i][v/(2*N)] == distance_to_target[i][u/(2*N)]) {
@@ -347,116 +370,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
             return true;
         }
 
-        bool funcPIBT(AgentLaCAM *ai, int next_t, ConstraintTable& constraint_table) {
-            const auto i = ai->id;
-            const auto& neighbor = this->agent_sub_graphs_[ai->id].data_ptr_->all_edges_[ai->v_now];
-            const auto K = neighbor.size();
-
-            // get candidates for next locations
-            for (size_t k = 0; k < K; ++k) {
-                auto u = neighbor[k];
-                C_next_[i][k] = u;
-                if (MT != nullptr)
-                    tie_breakers[u] = get_random_float(MT);  // set tie-breaker
-            }
-            C_next_[i][K] = ai->v_now;
-
-            // sort, note: K + 1 is sufficient
-            // yz: randomize future locations candidates
-
-//            std::sort(C_next[i].begin(), C_next[i].begin() + K + 1,
-//                      [&](const size_t& v, const size_t& u) {
-//                          return this->agents_heuristic_tables_[i][v] + tie_breakers[v] <
-//                                 this->agents_heuristic_tables_[i][u] + tie_breakers[u];
-//                      });
-
-
-            std::sort(C_next_[i].begin(), C_next_[i].begin() + K + 1,
-                      [&](const size_t& v, const size_t& u) {
-                          if(this->agents_heuristic_tables_[i][v] == this->agents_heuristic_tables_[i][u]) {
-//                              return distance_to_target[i][v/(2*N)] < distance_to_target[i][u/(2*N)];
-                              return this->agents_heuristic_tables_ignore_rotate_[i][v/(2*N)] <
-                                     this->agents_heuristic_tables_ignore_rotate_[i][u/(2*N)];
-                          } else {
-                              return this->agents_heuristic_tables_[i][v] < this->agents_heuristic_tables_[i][u];
-                          }
-//                          if(distance_to_target[i][v/(2*N)] == distance_to_target[i][u/(2*N)]) {
-//                              return this->agents_heuristic_tables_[i][v] < this->agents_heuristic_tables_[i][u];
-//                          } else {
-//                              return distance_to_target[i][v/(2*N)] < distance_to_target[i][u/(2*N)];
-//                          }
-                      });
-
-//            std::cout << "after sort 2: ";
-//            for(size_t k = 0; k < K + 1; ++k) {
-//                std::cout << this->agents_heuristic_tables_[i][C_next[i][k]] << "|"
-//                          << this->distance_to_target[i][C_next[i][k]/(2*N)] << "|"
-//                          << *this->all_poses_[C_next[i][k]] << ", ";
-//            }
-//            std::cout << std::endl;
-
-            // yz: for all current agent's neighbor and wait
-//            std::vector<std::pair<size_t, int> > candidates;
-            for (size_t k = 0; k < K + 1; ++k) {
-                auto u = C_next_[i][k];
-
-                // avoid vertex conflicts
-//                if (occupied_next[u] != nullptr) continue;
-                if(constraint_table.hasCollide(ai->id, ai->v_now, u)) {
-//                    std::cout << " flag 3 false" << std::endl;
-                    return false;
-                }
-
-                // TODO: get neighbor agent in constraint table, which is only one step from collide with current agent
-                //auto &ak = occupied_now[u]; // yz: who occupied this neighbor
-                std::vector<int> collide_agents = constraint_table.collideWith(ai->id, u);
-                // avoid swap conflicts with constraints
-                // yz: avoid swap conflicts with neighbor agents
-//                if (ak != nullptr && ak->v_next == ai->v_now) continue;
-
-                // reserve next location
-                // yz: assume current agent can move to next location
-//                occupied_next[u] = ai;
-                constraint_table.setOccupiedNext(ai->id, u);
-                ai->v_next = u;
-//                std::cout << " current " << *this->all_poses_[ai->v_now];
-//                std::cout << " select " << this->agents_heuristic_tables_[i][u] << "|"
-//                                        << this->distance_to_target[i][u/(2*N)] << ", "
-//                                        << *this->all_poses_[u]
-//                                        << std::endl;
-                // empty or stay
-                // yz: if not all neighbor are occupied or current agent just stay
-//                if (ak == nullptr || u == ai->v_now) return true;
-                if (collide_agents.empty() || u == ai->v_now) { return true; }
-//                std::cout << " flag 1" << std::endl;
-                // priority inheritance
-                // yz: if neighboring agent is not move yet
-                // yz: then try to move it
-//                if (ak->v_next == -1 && !funcPIBT(ak, next_t)) continue;
-                int not_move_yet = -1;
-                for(const auto& agent_id : collide_agents) {
-                    if (A_[agent_id]->v_next == -1) {
-                        not_move_yet = agent_id;
-                        break;
-                    }
-                }
-                if(not_move_yet == -1) { return true; }
-                if(!funcPIBT(A_[not_move_yet], next_t, constraint_table)) {
-                    continue;
-                }
-                // success to plan next one step
-                return true;
-            }
-
-            // failed to secure node
-            // yz: when search new config failed,
-//            occupied_next[ai->v_now] = ai;
-//            std::cout << " flag 2 false" << std::endl;
-            constraint_table.setOccupiedNext(ai->id, ai->v_now);
-            ai->v_next = ai->v_now;
-            return false;
-        }
-
 
         bool is_feasible_solution(const Solution &solution) const {
             if (solution.empty()) return true;
@@ -528,7 +441,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
         // solver utils
         const int V_size_;
 //        DistTable D;
-        Candidates<N> C_next_;                // next location candidates
         std::vector<float> tie_breakers;  // random values, used in PIBT
         AgentLaCAMs A_;
         AgentLaCAMs occupied_now_;   // for quick collision checking
@@ -540,6 +452,310 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
 
         // store each grid's distance to target, as a secondary heuristic value
 //        std::vector<std::vector<int> > distance_to_target;
+
+    };
+
+
+    template<Dimension N, typename ConstraintTable>
+    struct LargeAgentLaCAMPose : public LargeAgentLaCAM<N, ConstraintTable, Pose<int, N>> {
+
+        LargeAgentLaCAMPose(const std::vector<std::pair<Pose<int, N>, Pose<int, N>>> & instances,
+                            const std::vector<AgentPtr<N> >& agents,
+                            DimensionLength* dim,
+                            const IS_OCCUPIED_FUNC<N> & isoc,
+                            LargeAgentStaticConstraintTablePtr<N, Pose<int, N>> path_constraint,
+                            const std::vector<std::pair<size_t, size_t> >& instance_node_ids,
+                            const std::vector<std::shared_ptr<Pose<int, N>> >& all_poses,
+                            const DistanceMapUpdaterPtr<N>& distance_map_updater,
+                            const std::vector<SubGraphOfAgent<N, Pose<int, N>> >& agent_sub_graphs,
+                            const std::vector<std::vector<int> >& agents_heuristic_tables,
+                            const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate,
+
+                            double time_limit = 60) :
+                            LargeAgentLaCAM<N, ConstraintTable, Pose<int, N>> (instances,
+                                                                               agents,
+                                                                               dim,
+                                                                               isoc,
+                                                                               path_constraint,
+                                                                               instance_node_ids,
+                                                                               all_poses,
+                                                                               distance_map_updater,
+                                                                               agent_sub_graphs,
+                                                                               agents_heuristic_tables,
+                                                                               agents_heuristic_tables_ignore_rotate)
+                            {
+
+                                C_next_ = Candidates(agents.size(), std::array<size_t, 2*N*2*N + 1>());
+                            }
+
+        bool funcPIBT(AgentLaCAM *ai, int next_t, ConstraintTable& constraint_table) {
+            const auto i = ai->id;
+            const auto& neighbor = this->agent_sub_graphs_[ai->id].data_ptr_->all_edges_[ai->v_now];
+            const auto K = neighbor.size();
+
+            // get candidates for next locations
+            for (size_t k = 0; k < K; ++k) {
+                auto u = neighbor[k];
+                C_next_[i][k] = u;
+                if (this->MT != nullptr)
+                    this->tie_breakers[u] = get_random_float(this->MT);  // set tie-breaker
+            }
+            C_next_[i][K] = ai->v_now;
+
+            // sort, note: K + 1 is sufficient
+            // yz: randomize future locations candidates
+
+//            std::sort(C_next[i].begin(), C_next[i].begin() + K + 1,
+//                      [&](const size_t& v, const size_t& u) {
+//                          return this->agents_heuristic_tables_[i][v] + tie_breakers[v] <
+//                                 this->agents_heuristic_tables_[i][u] + tie_breakers[u];
+//                      });
+
+
+            std::sort(C_next_[i].begin(), C_next_[i].begin() + K + 1,
+                      [&](const size_t& v, const size_t& u) {
+                          if(this->agents_heuristic_tables_[i][v] == this->agents_heuristic_tables_[i][u] &&
+                             !this->agents_heuristic_tables_ignore_rotate_[i].empty() ) {
+//                              return distance_to_target[i][v/(2*N)] < distance_to_target[i][u/(2*N)];
+                              return this->agents_heuristic_tables_ignore_rotate_[i][v/(2*N)] <
+                                     this->agents_heuristic_tables_ignore_rotate_[i][u/(2*N)];
+                          } else {
+                              return this->agents_heuristic_tables_[i][v] < this->agents_heuristic_tables_[i][u];
+                          }
+//                          if(distance_to_target[i][v/(2*N)] == distance_to_target[i][u/(2*N)]) {
+//                              return this->agents_heuristic_tables_[i][v] < this->agents_heuristic_tables_[i][u];
+//                          } else {
+//                              return distance_to_target[i][v/(2*N)] < distance_to_target[i][u/(2*N)];
+//                          }
+                      });
+
+//            std::cout << "after sort 2: ";
+//            for(size_t k = 0; k < K + 1; ++k) {
+//                std::cout << this->agents_heuristic_tables_[i][C_next[i][k]] << "|"
+//                          << this->distance_to_target[i][C_next[i][k]/(2*N)] << "|"
+//                          << *this->all_poses_[C_next[i][k]] << ", ";
+//            }
+//            std::cout << std::endl;
+
+            // yz: for all current agent's neighbor and wait
+//            std::vector<std::pair<size_t, int> > candidates;
+            for (size_t k = 0; k < K + 1; ++k) {
+                auto u = C_next_[i][k];
+
+                // avoid vertex conflicts
+//                if (occupied_next[u] != nullptr) continue;
+                if(constraint_table.hasCollide(ai->id, ai->v_now, u)) {
+//                    std::cout << " flag 3 false" << std::endl;
+                    return false;
+                }
+
+                // TODO: get neighbor agent in constraint table, which is only one step from collide with current agent
+                //auto &ak = occupied_now[u]; // yz: who occupied this neighbor
+                std::vector<int> collide_agents = constraint_table.collideWith(ai->id, u);
+                // avoid swap conflicts with constraints
+                // yz: avoid swap conflicts with neighbor agents
+//                if (ak != nullptr && ak->v_next == ai->v_now) continue;
+
+                // reserve next location
+                // yz: assume current agent can move to next location
+//                occupied_next[u] = ai;
+                constraint_table.setOccupiedNext(ai->id, u);
+                ai->v_next = u;
+//                std::cout << " current " << *this->all_poses_[ai->v_now];
+//                std::cout << " select " << this->agents_heuristic_tables_[i][u] << "|"
+//                                        << this->distance_to_target[i][u/(2*N)] << ", "
+//                                        << *this->all_poses_[u]
+//                                        << std::endl;
+                // empty or stay
+                // yz: if not all neighbor are occupied or current agent just stay
+//                if (ak == nullptr || u == ai->v_now) return true;
+                if (collide_agents.empty() || u == ai->v_now) { return true; }
+//                std::cout << " flag 1" << std::endl;
+                // priority inheritance
+                // yz: if neighboring agent is not move yet
+                // yz: then try to move it
+//                if (ak->v_next == -1 && !funcPIBT(ak, next_t)) continue;
+                int not_move_yet = -1;
+                for(const auto& agent_id : collide_agents) {
+                    if (this->A_[agent_id]->v_next == -1) {
+                        not_move_yet = agent_id;
+                        break;
+                    }
+                }
+                if(not_move_yet == -1) { return true; }
+                if(!funcPIBT(this->A_[not_move_yet], next_t, constraint_table)) {
+                    continue;
+                }
+                // success to plan next one step
+                return true;
+            }
+
+            // failed to secure node
+            // yz: when search new config failed,
+//            occupied_next[ai->v_now] = ai;
+//            std::cout << " flag 2 false" << std::endl;
+            constraint_table.setOccupiedNext(ai->id, ai->v_now);
+            ai->v_next = ai->v_now;
+            return false;
+        }
+
+
+        // next location candidates, for saving memory allocation
+        using Candidates = std::vector<std::array<size_t, 2*N*2*N + 1> >;
+
+        Candidates C_next_;                // next location candidates
+
+    };
+
+
+    template<Dimension N, typename ConstraintTable>
+    struct LargeAgentLaCAMPointi : public LargeAgentLaCAM<N, ConstraintTable, Pointi<N>> {
+
+        LargeAgentLaCAMPointi(const std::vector<std::pair<Pointi<N>, Pointi<N>>> & instances,
+                            const std::vector<AgentPtr<N> >& agents,
+                            DimensionLength* dim,
+                            const IS_OCCUPIED_FUNC<N> & isoc,
+                            LargeAgentStaticConstraintTablePtr<N, Pointi<N>> path_constraint,
+                            const std::vector<std::pair<size_t, size_t> >& instance_node_ids,
+                            const std::vector<std::shared_ptr<Pointi<N>> >& all_poses,
+                            const DistanceMapUpdaterPtr<N>& distance_map_updater,
+                            const std::vector<SubGraphOfAgent<N, Pointi<N>> >& agent_sub_graphs,
+                            const std::vector<std::vector<int> >& agents_heuristic_tables,
+                            const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate,
+
+                            double time_limit = 60) :
+                LargeAgentLaCAM<N, ConstraintTable, Pointi<N>> (instances,
+                                                                agents,
+                                                                dim,
+                                                                isoc,
+                                                                path_constraint,
+                                                                instance_node_ids,
+                                                                all_poses,
+                                                                distance_map_updater,
+                                                                agent_sub_graphs,
+                                                                agents_heuristic_tables,
+                                                                agents_heuristic_tables_ignore_rotate)
+        {
+
+            C_next_ = Candidates(agents.size(), std::array<size_t, 2*N + 1>());
+        }
+
+        bool funcPIBT(AgentLaCAM *ai, int next_t, ConstraintTable& constraint_table) {
+            const auto i = ai->id;
+            const auto& neighbor = this->agent_sub_graphs_[ai->id].data_ptr_->all_edges_[ai->v_now];
+            const auto K = neighbor.size();
+
+            // get candidates for next locations
+            for (size_t k = 0; k < K; ++k) {
+                auto u = neighbor[k];
+                C_next_[i][k] = u;
+                if (this->MT != nullptr)
+                    this->tie_breakers[u] = get_random_float(this->MT);  // set tie-breaker
+            }
+            C_next_[i][K] = ai->v_now;
+
+            // sort, note: K + 1 is sufficient
+            // yz: randomize future locations candidates
+
+//            std::sort(C_next[i].begin(), C_next[i].begin() + K + 1,
+//                      [&](const size_t& v, const size_t& u) {
+//                          return this->agents_heuristic_tables_[i][v] + tie_breakers[v] <
+//                                 this->agents_heuristic_tables_[i][u] + tie_breakers[u];
+//                      });
+
+
+            std::sort(C_next_[i].begin(), C_next_[i].begin() + K + 1,
+                      [&](const size_t& v, const size_t& u) {
+                          if(this->agents_heuristic_tables_[i][v] == this->agents_heuristic_tables_[i][u] &&
+                                  !this->agents_heuristic_tables_ignore_rotate_[i].empty() ) {
+//                              return distance_to_target[i][v/(2*N)] < distance_to_target[i][u/(2*N)];
+                              return this->agents_heuristic_tables_ignore_rotate_[i][v] <
+                                     this->agents_heuristic_tables_ignore_rotate_[i][u];
+                          } else {
+                              return this->agents_heuristic_tables_[i][v] < this->agents_heuristic_tables_[i][u];
+                          }
+//                          if(distance_to_target[i][v/(2*N)] == distance_to_target[i][u/(2*N)]) {
+//                              return this->agents_heuristic_tables_[i][v] < this->agents_heuristic_tables_[i][u];
+//                          } else {
+//                              return distance_to_target[i][v/(2*N)] < distance_to_target[i][u/(2*N)];
+//                          }
+                      });
+
+//            std::cout << "after sort 2: ";
+//            for(size_t k = 0; k < K + 1; ++k) {
+//                std::cout << this->agents_heuristic_tables_[i][C_next[i][k]] << "|"
+//                          << this->distance_to_target[i][C_next[i][k]/(2*N)] << "|"
+//                          << *this->all_poses_[C_next[i][k]] << ", ";
+//            }
+//            std::cout << std::endl;
+
+            // yz: for all current agent's neighbor and wait
+//            std::vector<std::pair<size_t, int> > candidates;
+            for (size_t k = 0; k < K + 1; ++k) {
+                auto u = C_next_[i][k];
+
+                // avoid vertex conflicts
+//                if (occupied_next[u] != nullptr) continue;
+                if(constraint_table.hasCollide(ai->id, ai->v_now, u)) {
+//                    std::cout << " flag 3 false" << std::endl;
+                    return false;
+                }
+
+                // TODO: get neighbor agent in constraint table, which is only one step from collide with current agent
+                //auto &ak = occupied_now[u]; // yz: who occupied this neighbor
+                std::vector<int> collide_agents = constraint_table.collideWith(ai->id, u);
+                // avoid swap conflicts with constraints
+                // yz: avoid swap conflicts with neighbor agents
+//                if (ak != nullptr && ak->v_next == ai->v_now) continue;
+
+                // reserve next location
+                // yz: assume current agent can move to next location
+//                occupied_next[u] = ai;
+                constraint_table.setOccupiedNext(ai->id, u);
+                ai->v_next = u;
+//                std::cout << " current " << *this->all_poses_[ai->v_now];
+//                std::cout << " select " << this->agents_heuristic_tables_[i][u] << "|"
+//                                        << this->distance_to_target[i][u/(2*N)] << ", "
+//                                        << *this->all_poses_[u]
+//                                        << std::endl;
+                // empty or stay
+                // yz: if not all neighbor are occupied or current agent just stay
+//                if (ak == nullptr || u == ai->v_now) return true;
+                if (collide_agents.empty() || u == ai->v_now) { return true; }
+//                std::cout << " flag 1" << std::endl;
+                // priority inheritance
+                // yz: if neighboring agent is not move yet
+                // yz: then try to move it
+//                if (ak->v_next == -1 && !funcPIBT(ak, next_t)) continue;
+                int not_move_yet = -1;
+                for(const auto& agent_id : collide_agents) {
+                    if (this->A_[agent_id]->v_next == -1) {
+                        not_move_yet = agent_id;
+                        break;
+                    }
+                }
+                if(not_move_yet == -1) { return true; }
+                if(!funcPIBT(this->A_[not_move_yet], next_t, constraint_table)) {
+                    continue;
+                }
+                // success to plan next one step
+                return true;
+            }
+
+            // failed to secure node
+            // yz: when search new config failed,
+//            occupied_next[ai->v_now] = ai;
+//            std::cout << " flag 2 false" << std::endl;
+            constraint_table.setOccupiedNext(ai->id, ai->v_now);
+            ai->v_next = ai->v_now;
+            return false;
+        }
+
+
+        // next location candidates, for saving memory allocation
+        using Candidates = std::vector<std::array<size_t, 2*N + 1> >;
+
+        Candidates C_next_;                // next location candidates
 
     };
 

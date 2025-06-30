@@ -226,10 +226,10 @@ namespace freeNav::LayeredMAPF {
             std::map<int, std::vector<int> > heuristic_tables_;
             std::map<int, std::vector<int> > heuristic_tables_ig_rotate;
             int interval = (int)std::ceil((double)this->agents_.size()/num_of_CPU_);// set to larger value to reduce maximal memory usage and num of threads
-            std::mutex lock_1, lock_2, lock_3, lock_4;
             std::vector<bool> finished(this->agents_.size(), false);
             int count_of_instance = 0;
             while(count_of_instance < this->instances_.size()) {
+                std::mutex lock_1, lock_2, lock_3, lock_4;
                 auto lambda_func = [&]() {
                     auto start_t_3 = std::chrono::steady_clock::now();
                     //auto start_t_4 = std::chrono::steady_clock::now();
@@ -242,32 +242,27 @@ namespace freeNav::LayeredMAPF {
                         //std::cout << "map_id = " << map_id << std::endl;
 
                         if (map_id >= this->agents_.size()) { break; }
-                        if(this->agent_sub_graphs_.empty()) {
-                            const auto &sub_graph = constructSubGraphOfAgent(map_id);
-                            lock_1.lock();
-                            sub_graphs_map.insert({map_id, sub_graph});
-                            lock_1.unlock();
-                        } else {
-                            sub_graphs_map.insert({map_id, this->agent_sub_graphs_[map_id]});
-                        }
-                        if(this->agents_heuristic_tables_.empty()) {
-                            const auto & table = constructHeuristicTable(sub_graphs_map.at(map_id),
-                                                                         this->instance_node_ids_[map_id].second);
-                            assert(table[this->instance_node_ids_[sub_graphs_map.at(map_id).agent_->id_].first]  != MAX<int>);
-                            assert(table[this->instance_node_ids_[sub_graphs_map.at(map_id).agent_->id_].second] != MAX<int>);
-                            lock_2.lock();
-                            heuristic_tables_.insert({map_id, table});
-                            lock_2.unlock();
-                        }
-                        if(this->agents_heuristic_tables_ignore_rotate_.empty()) {
-                            const auto & table = constructHeuristicTableIgnoreRotate(sub_graphs_map.at(map_id),
-                                                                                     this->instance_node_ids_[map_id].second, this->dim_);
-                            assert(table[this->instance_node_ids_[sub_graphs_map.at(map_id).agent_->id_].first / (2*N)]  != MAX<int>);
-                            assert(table[this->instance_node_ids_[sub_graphs_map.at(map_id).agent_->id_].second / (2*N)] != MAX<int>);
-                            lock_3.lock();
-                            heuristic_tables_ig_rotate.insert({map_id, table});
-                            lock_3.unlock();
-                        }
+                        const auto &sub_graph = constructSubGraphOfAgent(map_id);
+
+                        lock_1.lock();
+                        sub_graphs_map.insert({map_id, sub_graph});
+                        lock_1.unlock();
+                        const auto & table1 = constructHeuristicTable(sub_graphs_map.at(map_id),
+                                                                     this->instance_node_ids_[map_id].second);
+                        assert(table1[this->instance_node_ids_[map_id].first]  != MAX<int>);
+                        assert(table1[this->instance_node_ids_[map_id].second] != MAX<int>);
+                        lock_2.lock();
+                        heuristic_tables_.insert({map_id, table1});
+                        lock_2.unlock();
+
+                        const auto & table2 = constructHeuristicTableIgnoreRotate(sub_graphs_map.at(map_id),
+                                                                                 this->instance_node_ids_[map_id].second, this->dim_, this->isoc_);
+                        assert(table2[this->instance_node_ids_[map_id].first / (2*N)]  != MAX<int>);
+                        assert(table2[this->instance_node_ids_[map_id].second / (2*N)] != MAX<int>);
+                        lock_3.lock();
+                        heuristic_tables_ig_rotate.insert({map_id, table2});
+                        lock_3.unlock();
+
                         lock_4.lock();
                         finished[map_id] = true;
                         lock_4.unlock();
@@ -301,118 +296,6 @@ namespace freeNav::LayeredMAPF {
         }
 
 
-        std::vector<int> constructHeuristicTable(const LA_MAPF::SubGraphOfAgent<N, Pose<int, N>>& sub_graph,
-                                                 const size_t& goal_id) const {
-            struct Node {
-                int node_id;
-                int value;
-
-                Node() = default;
-
-                Node(int node_id, int value) : node_id(node_id), value(value) {}
-
-                // the following is used to compare nodes in the OPEN list
-                struct compare_node {
-                    // returns true if n1 > n2 (note -- this gives us *min*-heap).
-                    bool operator()(const Node &n1, const Node &n2) const {
-                        return n1.value >= n2.value;
-                    }
-                };  // used by OPEN (heap) to compare nodes (top of the heap has min f-val, and then highest g-val)
-            };
-            std::vector<int> agent_heuristic(sub_graph.data_ptr_->all_nodes_.size(), MAX<int>);
-
-            // generate a heap that can save nodes (and an open_handle)
-            boost::heap::pairing_heap<Node, boost::heap::compare<typename Node::compare_node> > heap;
-
-            Node root(goal_id, 0);
-            agent_heuristic[goal_id] = 0;
-            heap.push(root);  // add root to heap
-            // yz: compute heuristic from goal to visible grid via Breadth First Search
-            //     search the static shortest path
-            while (!heap.empty()) {
-                Node curr = heap.top();
-                heap.pop();
-                for (const size_t& next_location : sub_graph.data_ptr_->all_backward_edges_[curr.node_id]) {
-                    int new_heuristic_value = curr.value + 1;
-                    if (agent_heuristic[next_location] > new_heuristic_value) {
-                        agent_heuristic[next_location] = new_heuristic_value;
-                        Node next(next_location, new_heuristic_value);
-                        heap.push(next);
-                    }
-                }
-            }
-
-            // debug
-//            for(int i=0; i<sub_graph.all_nodes_.size(); i++) {
-//                if(sub_graph.all_nodes_[i] != nullptr) {
-//                    assert(agent_heuristic[i] != MAX<int>);
-//                }
-//            }
-            // shrink table
-//            for(int k=0; k<sub_graph.all_nodes_.size()/(2*N); k++) {
-//                //
-//            }
-            return agent_heuristic;
-        }
-
-        std::vector<int> constructHeuristicTableIgnoreRotate(const LA_MAPF::SubGraphOfAgent<N, Pose<int, N>>& sub_graph,
-                                                             const size_t& goal_id, DimensionLength* dim) const {
-            struct Node {
-                Pointi<N> node_pt;
-                int value;
-
-                Node() = default;
-
-                Node(const Pointi<N>& node_pt, int value) : node_pt(node_pt), value(value) {}
-
-                // the following is used to compare nodes in the OPEN list
-                struct compare_node {
-                    // returns true if n1 > n2 (note -- this gives us *min*-heap).
-                    bool operator()(const Node &n1, const Node &n2) const {
-                        return n1.value >= n2.value;
-                    }
-                };  // used by OPEN (heap) to compare nodes (top of the heap has min f-val, and then highest g-val)
-            };
-
-            std::vector<int> retv(sub_graph.data_ptr_->all_nodes_.size()/(2*N), MAX<int>);
-            // 1, get grid connectivity graph
-            std::vector<bool> c_graph(sub_graph.data_ptr_->all_nodes_.size()/(2*N), false);
-            for(int i=0; i<sub_graph.data_ptr_->all_nodes_.size(); i++) {
-                if(sub_graph.data_ptr_->all_nodes_[i] != nullptr) {
-//                    std::cout << "flag 4" << std::endl;
-                    c_graph[i/(2*N)] = true;
-                }
-            }
-            // 2, wave front to get heuristic table
-            // generate a heap that can save nodes (and an open_handle)
-            boost::heap::pairing_heap<Node, boost::heap::compare<typename Node::compare_node> > heap;
-            Pointi<N> target_pt = IdToPointi<N>(goal_id/(2*N), dim);
-            Node root(target_pt, 0);
-            retv[goal_id/(2*N)] = 0;
-            heap.push(root);  // add root to heap
-            // yz: compute heuristic from goal to visible grid via Breadth First Search
-            //     search the static shortest path
-            Pointis<N> offsets = GetNearestOffsetGrids<N>();
-            while (!heap.empty()) {
-                Node curr = heap.top();
-                heap.pop();
-                for (const Pointi<N>& offset : offsets) {
-                    Pointi<N> next_location = curr.node_pt + offset;
-                    if(this->isoc_(next_location)) { continue; }
-                    Id id = PointiToId<N>(next_location, dim);
-                    if(!c_graph[id]) { continue; }
-                    int new_heuristic_value = curr.value + 1;
-                    if (retv[id] > new_heuristic_value) {
-                        retv[id] = new_heuristic_value;
-                        Node next(next_location, new_heuristic_value);
-                        heap.push(next);
-                    }
-
-                }
-            }
-            return retv;
-        }
-
         bool directed_graph_ = true;
 
         int num_of_CPU_ = 1;
@@ -425,7 +308,8 @@ namespace freeNav::LayeredMAPF {
 
         PrecomputationOfMAPF(const Instances<N>& instance,
                              DimensionLength* dim,
-                             const IS_OCCUPIED_FUNC<N>& isoc) :
+                             const IS_OCCUPIED_FUNC<N>& isoc,
+                             int num_of_CPU = 6) :
                              PrecomputationOfMAPFBase<N, Pointi<N>>(instance, {}, dim, isoc) {
 
             MSTimer mst;
@@ -454,6 +338,7 @@ namespace freeNav::LayeredMAPF {
                 this->instance_node_ids_.push_back(std::make_pair(start_node_id, target_node_id));
 
                 LA_MAPF::AgentPtr<N> agent = std::make_shared<LA_MAPF::CircleAgent<N> >(0.1, agent_id, this->dim_);
+                this->agents_.push_back(agent);
 
                 LA_MAPF::SubGraphOfAgent<N, Pointi<N>> sub_graph(agent);
 
@@ -478,7 +363,58 @@ namespace freeNav::LayeredMAPF {
 
             }
 
+            // initialize in parallel thread to reduce time cost
+            std::map<int, std::vector<int> > heuristic_tables_;
+            int interval = (int)std::ceil((double)this->agents_.size()/this->num_of_CPU_);// set to larger value to reduce maximal memory usage and num of threads
+            std::vector<bool> finished(this->agents_.size(), false);
+            int count_of_instance = 0;
+            while(count_of_instance < this->instances_.size()) {
+                std::mutex lock_1, lock_2, lock_3;
+                auto lambda_func = [&]() {
+                auto start_t_3 = std::chrono::steady_clock::now();
+                //auto start_t_4 = std::chrono::steady_clock::now();
+                for (int k = 0; k < interval; k++) {
+                    //std::cout << "thread_id = " << thread_id << std::endl;
+                    lock_1.lock();
+                    int map_id = count_of_instance;
+                    count_of_instance ++;
+                    lock_1.unlock();
+                    //std::cout << "map_id = " << map_id << std::endl;
+
+                    if (map_id >= this->agents_.size()) { break; }
+                    const auto & table = constructHeuristicTable(this->agent_sub_graphs_[map_id],
+                                                                 this->instance_node_ids_[map_id].second);
+                    assert(table[this->instance_node_ids_[map_id].first]  != MAX<int>);
+                    assert(table[this->instance_node_ids_[map_id].second] != MAX<int>);
+
+                    lock_2.lock();
+                    heuristic_tables_.insert({map_id, table});
+                    lock_2.unlock();
+
+                    lock_3.lock();
+                    finished[map_id] = true;
+                    lock_3.unlock();
+                }
+                //auto end_t_4 = std::chrono::steady_clock::now();
+                //std::cout << "thread calculation take " << std::chrono::duration_cast<std::chrono::milliseconds>(end_t_4 - start_t_4).count() << "ms" << std::endl;
+                //auto end_t_3 = std::chrono::steady_clock::now();
+                //std::cout << "thread all take " << std::chrono::duration_cast<std::chrono::milliseconds>(end_t_3 - start_t_3).count() << "ms" << std::endl;
+                //std::cout << "thread " << thread_id_copy << " finished 1" << std::endl;
+                };
+                std::thread t(lambda_func);
+                t.detach();
+            }
+            while(finished != std::vector<bool>(this->instance_node_ids_.size(), true)) {
+                usleep(5e4);
+            }
+            this->agents_heuristic_tables_.resize(this->instance_node_ids_.size());
+            for (const auto &table_pair : heuristic_tables_) {
+                this->agents_heuristic_tables_[table_pair.first] = table_pair.second;
+            }
+
             this->subgraph_and_heuristic_time_cost_ =  mst.elapsed();
+
+            this->agents_heuristic_tables_ignore_rotate_.resize(this->instance_node_ids_.size(), {});
 
             std::cout << "-- MAPF initialize_time_cost_ (ms) = " << this->subgraph_and_heuristic_time_cost_ << std::endl;
         }
@@ -532,6 +468,7 @@ namespace freeNav::LayeredMAPF {
             return data_ptr;
         }
 
+        int num_of_CPU_ = 1;
     };
 
 }

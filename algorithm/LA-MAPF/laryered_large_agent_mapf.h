@@ -239,7 +239,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                              const LA_MAPF_FUNC<N, State> & mapf_func,
                                              bool use_path_constraint = false) {
 
-        std::vector<std::pair<Pointi<N>, Pointi<N>>> cluster_instances;
+        std::vector<std::pair<State, State>> cluster_instances;
         std::vector<AgentPtr<N> > cluster_agents;
 
         std::set<int> current_id_set = levels[subproblem_id];
@@ -267,9 +267,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             local_agents_heuristic_tables.push_back(
                     pre->agents_heuristic_tables_[current_id]);
 
-            local_agents_heuristic_tables_ignore_rotate.push_back(
-                    pre->agents_heuristic_tables_ignore_rotate_[current_id]);
-
+            if(!pre->agents_heuristic_tables_ignore_rotate_.empty()) {
+                local_agents_heuristic_tables_ignore_rotate.push_back(
+                        pre->agents_heuristic_tables_ignore_rotate_[current_id]);
+            }
             local_instance_node_ids.push_back(pre->instance_node_ids_[current_id]);
         }
         MSTimer mst;

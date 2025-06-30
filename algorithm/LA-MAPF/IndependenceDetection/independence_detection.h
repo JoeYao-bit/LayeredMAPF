@@ -350,7 +350,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
         int PlanForGroups(int g1, int g2, int Cost) {
             std::vector<int> agents_to_plan;
             std::vector<std::vector<int> > agents_to_avoid;
-            double time_cost = pre_->mst_.elapsed()/CLOCKS_PER_SEC;
+            double time_cost = pre_->mst_.elapsed()/1e3;
 
             auto remain_s = time_limit/1e3 - time_cost;
             std::cout << "remain_s = " << remain_s << std::endl;

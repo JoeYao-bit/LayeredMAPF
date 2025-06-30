@@ -17,7 +17,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
     template <Dimension N, typename State>
     class LargeAgentCBS : public LargeAgentMAPF<N, State> {
     public:
-        LargeAgentCBS(const std::vector<std::pair<Pointi<N>, Pointi<N>>> & instances,
+        LargeAgentCBS(const std::vector<std::pair<State, State>> & instances,
                       const std::vector<AgentPtr<N> >& agents,
                       DimensionLength* dim,
                       const IS_OCCUPIED_FUNC<N> & isoc,
@@ -571,9 +571,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             std::tie(a2, from2, to2, start_t2, end_t2) = *(cf.cs2.front());
 
             std::cout << "cf agent: " << a1 << ", " << a2 << " | "
-                      << *this->all_poses_[from1] << "->" << (to1 == MAX_NODES ? Pose<int, N>(Pointi<N>(), -1) : *this->all_poses_[to1])
+                      << *this->all_poses_[from1] << "->" << (to1 == MAX_NODES ? State() : *this->all_poses_[to1])
                       << "t:{" << start_t1 << "," << end_t1 << "}" << ", "
-                      << *this->all_poses_[from2] << "->" << (to2 == MAX_NODES ? Pose<int, N>(Pointi<N>(), -1) : *this->all_poses_[to2])
+                      << *this->all_poses_[from2] << "->" << (to2 == MAX_NODES ? State() : *this->all_poses_[to2])
                       << "t:{" << start_t2 << "," << end_t2 << "}" << std::endl;
 
         }

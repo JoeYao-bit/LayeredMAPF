@@ -54,7 +54,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         auto pre_dec =
                 std::make_shared<PrecomputationOfMAPFDecomposition<N, HyperGraphNodeDataRaw<N>>>(
                         instances,
-                        dim, isoc, false);
+                        dim, isoc);
 
         auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBipartition<N, HyperGraphNodeDataRaw<N>, Pointi<N>>>(
                 dim,
@@ -116,7 +116,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         auto pre_dec =
                 std::make_shared<PrecomputationOfMAPFDecomposition<N, HyperGraphNodeDataRaw<N>>>(
                         instances,
-                        dim, isoc, false);
+                        dim, isoc);
 
         auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBipartition<N, HyperGraphNodeDataRaw<N>, Pointi<N>>>(
                 dim,

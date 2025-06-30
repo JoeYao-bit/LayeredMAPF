@@ -239,7 +239,7 @@ std::string BIPARTITION_LAMAPF(const std::vector<std::pair<Pose<int, N>, Pose<in
             std::make_shared<PrecomputationOfLAMAPFDecomposition<N, HyperGraphNodeDataRaw<N>>>(
                     instances,
                     agents,
-                    dim, isoc, true);
+                    dim, isoc);
 
     auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBipartition<N, HyperGraphNodeDataRaw<N>, Pose<int, N>>>(
             dim,
@@ -301,7 +301,7 @@ std::string BREAKLOOP_LAMAPF(const std::vector<std::pair<Pose<int, N>, Pose<int,
             std::make_shared<PrecomputationOfLAMAPFDecomposition<N, HyperGraphNodeDataRaw<N>>>(
                     instances,
                     agents,
-                    dim, isoc, false);
+                    dim, isoc);
 
     auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<N, HyperGraphNodeDataRaw<N>, Pose<int, N>>>(
             dim,

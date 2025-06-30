@@ -141,7 +141,7 @@ void layeredLargeAgentMAPFTest(const SingleMapTestConfig<2>& file_path,
 //TEST(test, layered_large_agent_CBS) {
 int main() {
     //layeredLargeAgentMAPFTest(7, CBS::LargeAgentCBS_func<2, Pose<int, 2> >, 20);
-    layeredLargeAgentMAPFTest(MAPFTestConfig_empty_48_48, 7, LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >, 20);
+    layeredLargeAgentMAPFTest(MAPFTestConfig_empty_48_48, 7, LaCAM::LargeAgentLaCAMPose_func<2, Pose<int, 2> >, 20);
     return 0;
 }
 

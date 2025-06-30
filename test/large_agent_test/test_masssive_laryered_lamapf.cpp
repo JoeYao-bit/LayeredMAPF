@@ -55,18 +55,37 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
 
         std::vector<std::string> strs;
 
-        auto str1 = BIPARTITION_LAMAPF<2>(
+        auto str = BIPARTITION_LAMAPF<2>(
                    instances_local,
                    agents_local,
                    dim,
                    is_occupied,
-                   LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
+                   LaCAM::LargeAgentLaCAMPose_func<2>,
                    "LaCAM",
                    time_limit);
+        strs.push_back(str);
 
-        strs.push_back(str1);
+        str = BIPARTITION_LAMAPF<2>(
+                instances_local,
+                agents_local,
+                dim,
+                is_occupied,
+                CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
+                "CBS",
+                time_limit);
+        strs.push_back(str);
 
-        auto str2 = BREAKLOOP_LAMAPF<2>(
+        str = BREAKLOOP_LAMAPF<2>(
+                instances_local,
+                agents_local,
+                dim,
+                is_occupied,
+                LaCAM::LargeAgentLaCAMPose_func<2>,
+                "LaCAM",
+                time_limit);
+        strs.push_back(str);
+
+        str = BREAKLOOP_LAMAPF<2>(
                 instances_local,
                 agents_local,
                 dim,
@@ -75,22 +94,21 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                 CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
                 "CBS",
                 time_limit);
+        strs.push_back(str);
 
-        strs.push_back(str2);
-
-        auto str3 = RAW_LAMAPF<2>(
+        str = RAW_LAMAPF<2>(
                 instances_local,
                         agents_local,
                         dim,
                         is_occupied,
                         //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
-                        CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
-                "CBS",
+                LaCAM::LargeAgentLaCAMPose_func<2>,
+                "LaCAM",
                         time_limit);
+        strs.push_back(str);
 
-        strs.push_back(str3);
 
-        auto str4 = ID_LAMAPF<2>(
+        str = RAW_LAMAPF<2>(
                 instances_local,
                 agents_local,
                 dim,
@@ -99,8 +117,18 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                 CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
                 "CBS",
                 time_limit);
+        strs.push_back(str);
 
-        strs.push_back(str4);
+        str = ID_LAMAPF<2>(
+                instances_local,
+                agents_local,
+                dim,
+                is_occupied,
+                //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
+                CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
+                "CBS",
+                time_limit);
+        strs.push_back(str);
 
         for(const auto& str : strs) {
             std::cout << str << std::endl;
