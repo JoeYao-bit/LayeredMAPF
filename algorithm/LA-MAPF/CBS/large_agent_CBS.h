@@ -132,7 +132,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //                std::cout << " curr->g_val = " << curr->g_val << std::endl;
                 // yz: check whether reach terminate condition
                 if (terminate(curr)) {
-                    std::cout << "-- Layered CBS finish after " << count << " iteration" << std::endl;
+                    //std::cout << "-- LA-CBS finish after " << count << " iteration" << std::endl;
                     return solution_found;
                 }
                 if (!curr->h_computed)  // heuristics has not been computed yet
@@ -298,8 +298,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 goal_node = curr;
                 solution_cost = goal_node->getFHatVal() - goal_node->cost_to_go;
                 auto conflicts = findConflicts(*curr);
-                std::cout << "-- finish with node depth = " << curr->depth << std::endl;
-                std::cout << "solution_found = " << solution_found << std::endl;
+                //std::cout << "-- finish with node depth = " << curr->depth << std::endl;
+                //std::cout << "solution_found = " << solution_found << std::endl;
                 if(!conflicts.empty()) {
                     std::cout << "Solution have conflict !!!" << std::endl;
                     exit(-1);

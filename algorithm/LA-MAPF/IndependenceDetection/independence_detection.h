@@ -32,7 +32,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
     public:
         ID(const LA_MAPF_FUNC<N, State> & mapf_func,
            const PrecomputationOfMAPFBasePtr<N, State>& pre,
-           int runtime = 3e4,
+           double runtime = 60,
            int cf = 1, int fID = 1): pre_(pre), la_mapf_func_(mapf_func) {
             cost_function = cf;
             full_ID = fID;
@@ -105,7 +105,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
             int g1, g2;
             int count = 0;
             while (CheckForConflicts(g1, g2)) {
-            std::cout << "step = " << count << std::endl;
+            //std::cout << "step = " << count << std::endl;
                 count ++;
 //            if(count >=1000) { break; }
                 if (full_ID == 1) // if we use simple ID, just merge the groups
@@ -209,7 +209,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
 
         LAMAPF_Paths paths_fr; // yz: freeNav style paths
 
-        long long time_limit; // yz: in ms
+        double time_limit = 60; // yz: in s
 
         PrecomputationOfMAPFBasePtr<N, State> pre_;
 
@@ -352,8 +352,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
             std::vector<std::vector<int> > agents_to_avoid;
             double time_cost = pre_->mst_.elapsed()/1e3;
 
-            auto remain_s = time_limit/1e3 - time_cost;
-            std::cout << "remain_s = " << remain_s << std::endl;
+            auto remain_s = time_limit - time_cost;
+            //std::cout << "remain_s = " << remain_s << std::endl;
             if(remain_s < 0 ) { return -100; }
             // is in g1 -> to plan
             agents_to_plan = groups[g1];
