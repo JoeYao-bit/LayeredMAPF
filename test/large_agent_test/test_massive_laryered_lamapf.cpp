@@ -173,7 +173,7 @@ int main() {
                  {MAPFTestConfig_Denver_2_256, 1, 20, 2, 2} // ok
 
     };
-    for(int i=0; i<1;i++)
+    for(int i=0; i<100;i++)
     {
         std::cout << "global layered" << i << std::endl;
         for(const auto& file_config : map_configs) {
