@@ -166,8 +166,8 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
 int main() {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int>> > map_configs = {
-//            {MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120}}, // 10, 20, 40, 60, 80, 100, 120
-            {MAPFTestConfig_empty_32_32, {5, 10}}, // 10,40, 80, 120, 160, 200, 240, 280, 320, 360, 400
+            {MAPFTestConfig_empty_16_16, {5, 10, 20}},//, 40, 60, 80, 100, 120}}, // 10, 20, 40, 60, 80, 100, 120
+//            {MAPFTestConfig_empty_32_32, {5, 10}}, // 10,40, 80, 120, 160, 200, 240, 280, 320, 360, 400
 //            {MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120}},
 //            {MAPFTestConfig_maze_32_32_4, {20, 40, 80, 120, 160, 200, 240}},
 //            {MAPFTestConfig_maze_128_128_2, {100, 200, 300, 400, 500, 600, 700}},
