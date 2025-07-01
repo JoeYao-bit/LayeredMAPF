@@ -137,7 +137,7 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
 //        IDLAMAPF<2>();
 //        RAWLAMAPF<2>();
 
-        writeStrsToEndOfFile(strs, map_test_config.at("la_comp_path"));
+        writeStrsToEndOfFile(strs, map_file.at("la_comp_path"));
     }
 
 }

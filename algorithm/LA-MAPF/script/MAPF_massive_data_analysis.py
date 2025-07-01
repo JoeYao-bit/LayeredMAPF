@@ -435,8 +435,9 @@ name_of_decomposition = "DECOMPOSITION"
 
 method_marker_map2 = {
     "RAW":'o-',
-    "LAYERED":'*-',
+    "BP":'*-',
     "ID":'v-',
+    "BL":"x-",
     name_of_get_subgraph:"o-.",
     name_of_decomposition:"*-."
 }
