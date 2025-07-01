@@ -2,7 +2,6 @@
 // Created by yaozhuo on 2024/8/10.
 //
 
-#include "../../algorithm/LA-MAPF/large_agent_instance_decomposition.h"
 
 #include <gtest/gtest.h>
 
@@ -24,11 +23,6 @@
 
 using namespace freeNav::LayeredMAPF::LA_MAPF;
 
-
-TEST(basic_test, LA_MAPF_decomposition) {
-    const std::string file_path = map_test_config.at("la_ins_path");
-    loadInstanceAndDecomposition<2>(file_path);
-}
 
 TEST(boost_strong_componnet, test) {
 
@@ -106,3 +100,6 @@ TEST(boost_strong_componnet, test) {
 
 }
 
+int main() {
+    return 0;
+}

@@ -1,22 +1,20 @@
 //
-// Created by yaozhuo on 6/25/25.
+// Created by yaozhuo on 6/29/25.
 //
 
-#include <gtest/gtest.h>
-#include <random>
-#include "../../algorithm/LA-MAPF/large_agent_instance_generator.h"
-#include "../../freeNav-base/dependencies/2d_grid/text_map_loader.h"
-#include "../../algorithm/LA-MAPF/CBS/large_agent_CBS.h"
-#include "../../algorithm/LA-MAPF/LaCAM/large_agent_lacam.h"
-#include "../../algorithm/LA-MAPF/CBS/constraint_avoidance_table.h"
+
 
 #include "../../algorithm/LA-MAPF/LaCAM/layered_large_agent_LaCAM.h"
 #include "../../algorithm/LA-MAPF/CBS/layered_large_agent_CBS.h"
-//
+
 #include "common_interfaces.h"
-//
+
 #include "../test_data.h"
 #include "../../algorithm/break_loop_decomposition/biparition_decomposition.h"
+#include "../../algorithm/break_loop_decomposition/break_loop_decomposition.h"
+
+using namespace freeNav::LayeredMAPF::LA_MAPF;
+
 
 
 
@@ -26,16 +24,19 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                               int minimum_agents,
                               int agent_interval,
                               double time_limit = 60) {
-    map_test_config = map_file;
-    loader = TextMapLoader(map_test_config.at("map_path"), is_char_occupied1);
 
-    //clearFile(map_test_config.at("la_comp_path"));
+    TextMapLoader loader = TextMapLoader(map_file.at("map_path"), is_char_occupied1);
+
+    auto dim = loader.getDimensionInfo();
+    auto is_occupied = [&loader](const freeNav::Pointi<2> &pt) -> bool { return loader.isOccupied(pt); };
+    IS_OCCUPIED_FUNC<2> is_occupied_func = is_occupied;
+
 
     InstanceDeserializer<2> deserializer;
-    if(deserializer.loadInstanceFromFile(map_test_config.at("la_ins_path"), dim)) {
-        std::cout << "load from path " << map_test_config.at("la_ins_path") << " success" << std::endl;
+    if(deserializer.loadInstanceFromFile(map_file.at("la_ins_path"), dim)) {
+        std::cout << "load from path " << map_file.at("la_ins_path") << " success" << std::endl;
     } else {
-        std::cout << "load from path " << map_test_config.at("la_ins_path") << " failed" << std::endl;
+        std::cout << "load from path " << map_file.at("la_ins_path") << " failed" << std::endl;
         return;
     }
     assert(!deserializer.getAgents().empty());
@@ -45,45 +46,109 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
     }
     auto agent_and_instances = deserializer.getTestInstance(required_counts, count_of_test);
 
+    std::cout << " agent_and_instances size " << agent_and_instances.size() << std::endl;
+
     for (int i = 0; i < agent_and_instances.size(); i++) {
 
-        // auto strs1 = LayeredLAMAPFCompare<2>(agent_and_instances[i].second,
-        //                                     agent_and_instances[i].first,
-        //                                     CBS::LargeAgentCBS_func<2>, //LaCAM::LargeAgentLaCAM_func<2>,
-        //                                     std::string("CBS"),
-        //                                     time_limit,
-        //                                     false,
-        //                                     4,
-        //                                     true);
+        const auto& instances_local = agent_and_instances[i].second;
+        const auto& agents_local = agent_and_instances[i].first;
 
-        // for (const auto &str : strs1) {
-        //     std::cout << str << std::endl;
-        // }
-        // writeStrsToEndOfFile(strs1, map_test_config.at("la_comp_path"));
+        std::vector<std::string> strs;
 
-        auto strs2 = LayeredLAMAPFCompare<2>(agent_and_instances[i].second,
-                                             agent_and_instances[i].first,
-                                             LaCAM::LargeAgentLaCAM_func<2>,
-                                             std::string("LaCAM"),
-                                             time_limit,
-                                             false,
-                                             4,
-                                             true);
+        auto str = BIPARTITION_LAMAPF<2>(
+                instances_local,
+                agents_local,
+                dim,
+                is_occupied,
+                LaCAM::LargeAgentLaCAMPose_func<2>,
+                "LaCAM",
+                time_limit);
+        strs.push_back(str);
 
-        for (const auto &str : strs2) {
+        str = BIPARTITION_LAMAPF<2>(
+                instances_local,
+                agents_local,
+                dim,
+                is_occupied,
+                CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
+                "CBS",
+                time_limit);
+        strs.push_back(str);
+
+        str = BREAKLOOP_LAMAPF<2>(
+                instances_local,
+                agents_local,
+                dim,
+                is_occupied,
+                LaCAM::LargeAgentLaCAMPose_func<2>,
+                "LaCAM",
+                time_limit);
+        strs.push_back(str);
+
+        str = BREAKLOOP_LAMAPF<2>(
+                instances_local,
+                agents_local,
+                dim,
+                is_occupied,
+                //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
+                CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
+                "CBS",
+                time_limit);
+        strs.push_back(str);
+
+        str = RAW_LAMAPF<2>(
+                instances_local,
+                agents_local,
+                dim,
+                is_occupied,
+                //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
+                LaCAM::LargeAgentLaCAMPose_func<2>,
+                "LaCAM",
+                time_limit);
+        strs.push_back(str);
+
+
+        str = RAW_LAMAPF<2>(
+                instances_local,
+                agents_local,
+                dim,
+                is_occupied,
+                //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
+                CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
+                "CBS",
+                time_limit);
+        strs.push_back(str);
+
+        str = ID_LAMAPF<2>(
+                instances_local,
+                agents_local,
+                dim,
+                is_occupied,
+                //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
+                CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
+                "CBS",
+                time_limit);
+        strs.push_back(str);
+
+        for(const auto& str : strs) {
             std::cout << str << std::endl;
         }
 
-        writeStrsToEndOfFile(strs2, map_test_config.at("la_comp_path"));
+//        IDLAMAPF<2>();
+//        RAWLAMAPF<2>();
+
+        //writeStrsToEndOfFile(strs, map_test_config.at("la_comp_path"));
     }
 
 }
 
 
+
+//TEST(Multi_Generate_Agent_And_Compare, test) {
 int main() {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
-                                                                  map_configs = {
+            map_configs = {
             //      {MAPFTestConfig_Paris_1_256,     1, 80, 10, 10}, // 80, 10, 10 / 20, 2, 2s
             //     {MAPFTestConfig_empty_48_48,     1, 50, 10, 10}, // 50, 10, 10
             //     {MAPFTestConfig_Berlin_1_256,    1, 80, 10, 10}, // 80, 10, 10
@@ -94,10 +159,10 @@ int main() {
             //  {MAPFTestConfig_Boston_2_256, 1, 70, 10, 10}, //  70, 10, 10
             //   {MAPFTestConfig_Sydney_2_256, 1, 70, 10, 10}, // 70, 10, 10
 
-            {MAPFTestConfig_AR0044SR, 1, 20, 5, 5}, // 50, 5, 5
-            {MAPFTestConfig_AR0203SR, 1, 40, 5, 5}, // 40, 5, 5
-            {MAPFTestConfig_AR0072SR, 1, 30, 5, 5}, // 30, 5, 5
-            {MAPFTestConfig_Denver_2_256, 1, 80, 10, 10}, // 80, 10, 10
+            {MAPFTestConfig_AR0044SR, 1, 6, 2, 2}, // 50, 5, 5
+            //{MAPFTestConfig_AR0203SR, 1, 6, 2, 2}, // 40, 5, 5
+//            {MAPFTestConfig_AR0072SR, 1, 30, 5, 5}, // 30, 5, 5
+//            {MAPFTestConfig_Denver_2_256, 1, 80, 10, 10}, // 80, 10, 10
 
             // not in test
             //        {MAPFTestConfig_Boston_2_256, 1, 20, 2, 2}, // ok
@@ -108,7 +173,7 @@ int main() {
             //     {MAPFTestConfig_Denver_2_256, 1, 20, 2, 2} // ok
 
     };
-    for(int i=0; i<100;i++)
+    for(int i=0; i<1;i++)
     {
         std::cout << "global layered" << i << std::endl;
         for(const auto& file_config : map_configs) {
@@ -122,4 +187,3 @@ int main() {
     }
     return 0;
 }
-

@@ -101,4 +101,4 @@ add_executable(test_massive_decomposition test/test_massive_decomposition.cpp)
 target_link_libraries(test_massive_decomposition lamapf_alg)
 
 add_executable(test_massive_laryered_mapf test/test_massive_layered_mapf.cpp)
-target_link_libraries(test_massive_laryered_lamapf lamapf_alg)
+target_link_libraries(test_massive_laryered_mapf lamapf_alg)

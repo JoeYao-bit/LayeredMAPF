@@ -737,6 +737,10 @@ namespace freeNav::LayeredMAPF {
                                                                                                 false));
                 }
             }
+//            std::cout << "this->heuristic_tables_sat_.size()" << this->heuristic_tables_sat_.size() << std::endl;
+//            std::cout << "this->heuristic_tables_.size()" << this->heuristic_tables_.size() << std::endl;
+//            std::cout << "this->with_ignore_sat_heu_ = " << this->with_ignore_sat_heu_  << std::endl;
+//            std::cout << "with_sat_heu = " << with_sat_heu  << std::endl;
 
             this->initialize_time_cost_ =  mst.elapsed();
 

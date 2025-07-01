@@ -2,16 +2,16 @@
 // Created by yaozhuo on 6/20/25.
 //
 
-#include "../../algorithm/break_loop_decomposition/break_loop_decomposition.h"
-#include "../../algorithm/break_loop_decomposition/biparition_decomposition.h"
-#include "../../algorithm/connectivity_graph_and_subprgraph.h"
+#include "../algorithm/break_loop_decomposition/break_loop_decomposition.h"
+#include "../algorithm/break_loop_decomposition/biparition_decomposition.h"
+#include "../algorithm/precomputation_for_decomposition.h"
 
-#include "../../freeNav-base/dependencies/2d_grid/text_map_loader.h"
-#include "../../freeNav-base/dependencies/memory_analysis.h"
+#include "../freeNav-base/dependencies/2d_grid/text_map_loader.h"
+#include "../freeNav-base/dependencies/memory_analysis.h"
 
 #include <sys/resource.h>
 
-#include "../../test/test_data.h"
+#include "../test/test_data.h"
 
 #include "common_interfaces.h"
 
@@ -34,14 +34,15 @@ bool decompositionOfSingleInstanceBipartitionLAMAPF(const InstanceOrients<N> & i
     sleep(1);
     float basic_usage = memory_recorder.getMaximalMemoryUsage();
 
-    PrecomputationOfLAMAPF<2, HyperGraphNodeDataRaw<2>> pre(instances, agents, dim, isoc, true);
+    auto pre =
+            std::make_shared<PrecomputationOfLAMAPFDecomposition<N, LA_MAPF::HyperGraphNodeDataRaw<N>> >(instances, agents, dim, isoc);
 
     MSTimer mst;
-    auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBipartition<2, HyperGraphNodeDataRaw<2> > >(dim,
-            pre.connect_graphs_,
-            pre.agent_sub_graphs_,
-            pre.heuristic_tables_sat_,
-            pre.heuristic_tables_,
+    auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBipartition<N, HyperGraphNodeDataRaw<N>, Pose<int, N>> >(dim,
+            pre->connect_graphs_,
+            pre->agent_sub_graphs_,
+            pre->heuristic_tables_sat_,
+            pre->heuristic_tables_,
             time_limit_s,// - pre.initialize_time_cost_/1e3,
             level);
 
@@ -50,19 +51,19 @@ bool decompositionOfSingleInstanceBipartitionLAMAPF(const InstanceOrients<N> & i
     sleep(1);
     float peak_usage = memory_recorder.getMaximalMemoryUsage();
     float memory_usage = peak_usage - basic_usage;
-    bool is_bi_valid = LA_MAPF_DecompositionValidCheckGridMap<2>(bi_decompose->all_clusters_,
+    bool is_bi_valid = LA_MAPF_DecompositionValidCheckGridMap<2>(bi_decompose->all_levels_,
                                                                  dim,
                                                                  isoc,
                                                                  agents,
-                                                                 pre.instance_node_ids_,
-                                                                 pre.all_poses_,
-                                                                 pre.agent_sub_graphs_,
-                                                                 pre.agents_heuristic_tables_,
-                                                                 pre.agents_heuristic_tables_ignore_rotate_
+                                                                 pre->instance_node_ids_,
+                                                                 pre->all_poses_,
+                                                                 pre->agent_sub_graphs_,
+                                                                 pre->agents_heuristic_tables_,
+                                                                 pre->agents_heuristic_tables_ignore_rotate_
     );
 
-    int max_subproblem = LA_MAPF::getMaxLevelSize(bi_decompose->all_clusters_);
-    int num_of_subproblem = bi_decompose->all_clusters_.size();
+    int max_subproblem = LA_MAPF::getMaxLevelSize(bi_decompose->all_levels_);
+    int num_of_subproblem = bi_decompose->all_levels_.size();
 
     if(max_subproblem == 0) {
         max_subproblem = agents.size();
@@ -86,7 +87,7 @@ bool decompositionOfSingleInstanceBipartitionLAMAPF(const InstanceOrients<N> & i
 
     outputStream = ss.str();
 //    std::cout << " memory_usage = " << memory_usage << std::endl;
-    std::cout << "level " << level << "/raw = " << LA_MAPF::getMaxLevelSize(bi_decompose->all_clusters_) << "/" << agents.size() << std::endl;
+    std::cout << "level " << level << "/raw = " << LA_MAPF::getMaxLevelSize(bi_decompose->all_levels_) << "/" << agents.size() << std::endl;
     return is_bi_valid;
 }
 
@@ -105,18 +106,20 @@ bool decompositionOfSingleInstanceBreakLoopLAMAPF(const InstanceOrients<N> & ins
     sleep(1);
     float basic_usage = memory_recorder.getMaximalMemoryUsage();
 
-    PrecomputationOfLAMAPF<2, HyperGraphNodeDataRaw<2>> pre(instances, agents, dim, isoc, false);
+    auto pre =
+            std::make_shared<PrecomputationOfLAMAPFDecomposition<N, LA_MAPF::HyperGraphNodeDataRaw<N>> >(instances, agents, dim, isoc);
 
     MSTimer mst;
-    auto ns_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<2, HyperGraphNodeDataRaw<2>> >(dim,
-            pre.connect_graphs_,
-            pre.agent_sub_graphs_,
-            pre.heuristic_tables_sat_,
+    auto ns_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<N, HyperGraphNodeDataRaw<N>, Pose<int, N>> >(dim,
+            pre->connect_graphs_,
+            pre->agent_sub_graphs_,
+            pre->heuristic_tables_sat_,
+            pre->heuristic_tables_,
             time_limit_s,// - pre.initialize_time_cost_/1e3,
             1e4,
-            2*instances.size(),
+            100,
             1);
-    ns_decompose->breakMaxLoopIteratively();
+
     double time_cost =  mst.elapsed();// + pre.initialize_time_cost_;
 
     sleep(1);
@@ -126,11 +129,11 @@ bool decompositionOfSingleInstanceBreakLoopLAMAPF(const InstanceOrients<N> & ins
                                                                  dim,
                                                                  isoc,
                                                                  agents,
-                                                                 pre.instance_node_ids_,
-                                                                 pre.all_poses_,
-                                                                 pre.agent_sub_graphs_,
-                                                                 pre.agents_heuristic_tables_,
-                                                                 pre.agents_heuristic_tables_ignore_rotate_
+                                                                 pre->instance_node_ids_,
+                                                                 pre->all_poses_,
+                                                                 pre->agent_sub_graphs_,
+                                                                 pre->agents_heuristic_tables_,
+                                                                 pre->agents_heuristic_tables_ignore_rotate_
     );
 
     int max_subproblem = LA_MAPF::getMaxLevelSize(ns_decompose->all_levels_);
@@ -259,19 +262,18 @@ bool SingleMapDecompositionTestLAMAPF(const SingleMapTestConfig <2> &map_test_co
  * */
 
 std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int> > > test_configs = {
-        //  {MAPFTestConfig_Paris_1_256,     {20, 40, 60, 80, 100, 120, 140}}, // 1,
-        //  {MAPFTestConfig_empty_48_48,     {10, 20, 30, 40, 50, 60}}, // 2,
-        //  {MAPFTestConfig_Berlin_1_256,    {20, 40, 60, 80, 100, 120, 140}}, // 3,
-        //  {MAPFTestConfig_maze_128_128_10, {20, 40, 60, 80, 100}}, // 4,
-        //  {MAPFTestConfig_den520d,         {20, 40, 60, 80, 100, 120, 140}}, // 5,
-        //  {MAPFTestConfig_ost003d,         {20, 40, 60, 80, 100}}, // 6,
-        // {MAPFTestConfig_Boston_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 7,
-          {MAPFTestConfig_Sydney_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 8,
-        //  {MAPFTestConfig_AR0044SR,        {  30,   50,  70,  90, 100, 120, 140}}, // 9
-        // {MAPFTestConfig_AR0203SR,        {10, 20, 30, 40, 50}}, // 10,
-          {MAPFTestConfig_AR0072SR,        {5, 10, 15, 20, 25, 30}}, // 11,
-          {MAPFTestConfig_Denver_2_256,    {20, 30, 40, 50, 60, 70, 80}}, // 12,
-          {MAPFTestConfig_empty_32_32,    {5, 10, 15, 20, 25, 30, 35}}, // 13,
+        {MAPFTestConfig_Paris_1_256,     {20, 40, 60, 80, 100, 120, 140}}, // 1,
+        {MAPFTestConfig_empty_48_48,     {10, 20, 30, 40, 50, 60}}, // 2,
+        {MAPFTestConfig_Berlin_1_256,    {20, 40, 60, 80, 100, 120, 140}}, // 3,
+        {MAPFTestConfig_maze_128_128_10, {20, 40, 60, 80, 100}}, // 4,
+        {MAPFTestConfig_den520d,         {20, 40, 60, 80, 100, 120, 140}}, // 5,
+        {MAPFTestConfig_ost003d,         {20, 40, 60, 80, 100}}, // 6,
+        {MAPFTestConfig_Boston_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 7,
+        {MAPFTestConfig_Sydney_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 8,
+        {MAPFTestConfig_AR0044SR,        {10, 20, 30, 40, 50}}, // 9
+        {MAPFTestConfig_AR0203SR,        {10, 20, 30, 40, 50}}, // 10,
+        {MAPFTestConfig_AR0072SR,        {20, 30, 40, 50, 60, 70}}, // 11,
+        {MAPFTestConfig_Denver_2_256,    {20, 40, 60, 80, 100, 120, 140}}, // 12,
 };
 
 std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int> > > test_configs_demo = {
@@ -292,12 +294,11 @@ std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int> > > test_configs
 // do decomposition test
 int main() {
 
-    auto test_configs_copy = test_configs; // test_configs, test_configs_demo
+    auto test_configs_copy = test_configs_demo; // test_configs, test_configs_demo
 
-    double interval = 6;//6; // test_configs_copy.size()
-    int repeat_times = 100;
-    int num_threads = (int)ceil(test_configs_copy.size()/interval);
-    std::cout << "num_threads = " << num_threads << std::endl;
+    int interval = test_configs_copy.size();//6; // test_configs_copy.size()
+    int repeat_times = 1;
+    int num_threads = test_configs_copy.size()/interval;
     std::vector<bool> finished(num_threads, false);
     for(int j=0; j<num_threads; j++) {
         auto lambda_func = [&]() {

@@ -20,7 +20,9 @@
 #include "../algorithm/layered_mapf.h"
 #include "../algorithm/break_loop_decomposition/break_loop_decomposition.h"
 #include "../algorithm/break_loop_decomposition/biparition_decomposition.h"
-#include "../algorithm/connectivity_graph_and_subprgraph.h"
+#include "../algorithm/precomputation_for_decomposition.h"
+
+#include "../algorithm/LA-MAPF/common.h"
 
 #include <sys/resource.h>
 
@@ -211,18 +213,18 @@ bool decompositionOfSingleInstanceBreakLoop(const freeNav::Instances<N>& ists, D
     float basic_usage = memory_recorder.getMaximalMemoryUsage();
     auto start_t = clock();
 
-    PrecomputationOfMAPF<2, HyperGraphNodeDataRaw<2>> pre(ists, dim, isoc, false);
+    auto pre =
+            std::make_shared<PrecomputationOfMAPFDecomposition<N, LA_MAPF::HyperGraphNodeDataRaw<2>> >(ists, dim, isoc);
 
-    auto ns_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<2, HyperGraphNodeDataRaw<2> > >(dim,
-            pre.connect_graphs_,
-            pre.agent_sub_graphs_,
-            pre.heuristic_tables_sat_,
-            time_limit_s - pre.initialize_time_cost_/1e3,
+    auto ns_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<2, LA_MAPF::HyperGraphNodeDataRaw<2>, Pointi<2> > >(dim,
+            pre->connect_graphs_,
+            pre->agent_sub_graphs_,
+            pre->heuristic_tables_sat_,
+            pre->heuristic_tables_,
+            time_limit_s - pre->initialize_time_cost_/1e3,
             1e4,
             100,
             1);
-
-    ns_decompose->breakMaxLoopIteratively();
 
     auto now_t = clock();
     double time_cost =  1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
@@ -230,7 +232,7 @@ bool decompositionOfSingleInstanceBreakLoop(const freeNav::Instances<N>& ists, D
     sleep(1);
     float peak_usage = memory_recorder.getMaximalMemoryUsage();
     float memory_usage = peak_usage - basic_usage;
-    bool is_legal = MAPF_DecompositionValidCheckGridMap<2>(ists, ns_decompose->all_levels_, dim, isoc);
+    bool is_legal = LA_MAPF::MAPF_DecompositionValidCheckGridMap<2>(ists, ns_decompose->all_levels_, dim, isoc);
 
     int max_subproblem = LA_MAPF::getMaxLevelSize(ns_decompose->all_levels_);
     int num_of_subproblem = ns_decompose->all_levels_.size();
@@ -272,14 +274,15 @@ bool decompositionOfSingleInstanceBipartition(const freeNav::Instances<N>& ists,
     float basic_usage = memory_recorder.getMaximalMemoryUsage();
     auto start_t = clock();
 
-    PrecomputationOfMAPF<2, HyperGraphNodeDataRaw<2>> pre(ists, dim, isoc, true);
+    auto pre =
+            std::make_shared<PrecomputationOfMAPFDecomposition<N, LA_MAPF::HyperGraphNodeDataRaw<2>> >(ists, dim, isoc);
 
-    auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBipartition<2, HyperGraphNodeDataRaw<2> > >(dim,
-                        pre.connect_graphs_,
-                        pre.agent_sub_graphs_,
-                        pre.heuristic_tables_sat_,
-                        pre.heuristic_tables_,
-                        time_limit_s - pre.initialize_time_cost_/1e3,
+    auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBipartition<2, LA_MAPF::HyperGraphNodeDataRaw<2>, Pointi<2>> >(dim,
+                        pre->connect_graphs_,
+                        pre->agent_sub_graphs_,
+                        pre->heuristic_tables_sat_,
+                        pre->heuristic_tables_,
+                        time_limit_s - pre->initialize_time_cost_/1e3,
                         level);
 
     auto now_t = clock();
@@ -288,10 +291,10 @@ bool decompositionOfSingleInstanceBipartition(const freeNav::Instances<N>& ists,
     sleep(1);
     float peak_usage = memory_recorder.getMaximalMemoryUsage();
     float memory_usage = peak_usage - basic_usage;
-    bool is_legal = MAPF_DecompositionValidCheckGridMap<2>(ists, bi_decompose->all_clusters_, dim, isoc);
+    bool is_legal = LA_MAPF::MAPF_DecompositionValidCheckGridMap<2>(ists, bi_decompose->all_levels_, dim, isoc);
 
-    int max_subproblem = LA_MAPF::getMaxLevelSize(bi_decompose->all_clusters_);
-    int num_of_subproblem = bi_decompose->all_clusters_.size();
+    int max_subproblem = LA_MAPF::getMaxLevelSize(bi_decompose->all_levels_);
+    int num_of_subproblem = bi_decompose->all_levels_.size();
 
     if(max_subproblem == 0) {
         max_subproblem = ists.size();
