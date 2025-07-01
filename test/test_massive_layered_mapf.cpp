@@ -8,41 +8,12 @@
 #include "../test/test_data.h"
 
 #include "common_interfaces.h"
-
+#include "large_agent_test/common_interfaces.h"
 
 using namespace freeNav;
 using namespace freeNav::LayeredMAPF;
 using namespace freeNav::LayeredMAPF::LA_MAPF;
 
-// test_count: the total count of start and target pair in the scenario file
-// required_count: required
-std::vector<std::set<int> > pickCasesFromScene(int test_count,
-                                               const std::vector<int>& required_counts,
-                                               int instance_count) {
-    std::vector<std::set<int> > retv;
-    for(int i=0; i<instance_count; i++) {
-        for(const int& required_count : required_counts) {
-            std::set<int> instance;
-            while(1) {
-                int current_pick = rand() % test_count;
-                if(instance.find(current_pick) == instance.end()) {
-                    instance.insert(current_pick);
-                    if(instance.size() == required_count) {
-                        retv.push_back(instance);
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    return retv;
-}
-
-
-auto is_char_occupied1 = [](const char& value) -> bool {
-    if (value == '.') return false;
-    return true;
-};
 
 void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                               const std::vector<int>& agent_in_instances,
@@ -153,7 +124,7 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
 //        IDLAMAPF<2>();
 //        RAWLAMAPF<2>();
 
-        //writeStrsToEndOfFile(strs, map_test_config.at("la_comp_path"));
+        writeStrsToEndOfFile(strs, map_file.at("output_path"));
 
         //break;
     }
@@ -166,8 +137,8 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
 int main() {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int>> > map_configs = {
-//            {MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120}}, // 10, 20, 40, 60, 80, 100, 120
-            {MAPFTestConfig_empty_32_32, {5, 10}}, // 10,40, 80, 120, 160, 200, 240, 280, 320, 360, 400
+            {MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120}}, // 10, 20, 40, 60, 80, 100, 120
+            {MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400}}, // 10,40, 80, 120, 160, 200, 240, 280, 320, 360, 400
 //            {MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120}},
 //            {MAPFTestConfig_maze_32_32_4, {20, 40, 80, 120, 160, 200, 240}},
 //            {MAPFTestConfig_maze_128_128_2, {100, 200, 300, 400, 500, 600, 700}},
@@ -178,10 +149,10 @@ int main() {
 //            {MAPFTestConfig_Paris_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
 //            {MAPFTestConfig_ht_chantry, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
 //            {MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-//            {MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240}},
-//            {MAPFTestConfig_random_64_64_20, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-//            {MAPFTestConfig_room_64_64_16, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-//            {MAPFTestConfig_room_64_64_8, {100, 200, 300, 400, 500, 600, 700}},
+            {MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240}},
+            {MAPFTestConfig_random_64_64_20, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+            {MAPFTestConfig_room_64_64_16, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+            {MAPFTestConfig_room_64_64_8, {100, 200, 300, 400, 500, 600, 700}},
 //            {MAPFTestConfig_room_32_32_4, {10, 20, 40, 60, 80, 120, 160, 200}},
 //            {MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800}},
 //            {MAPFTestConfig_warehouse_10_20_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},

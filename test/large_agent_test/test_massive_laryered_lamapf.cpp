@@ -137,7 +137,7 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
 //        IDLAMAPF<2>();
 //        RAWLAMAPF<2>();
 
-        //writeStrsToEndOfFile(strs, map_test_config.at("la_comp_path"));
+        writeStrsToEndOfFile(strs, map_test_config.at("la_comp_path"));
     }
 
 }
@@ -150,17 +150,17 @@ int main() {
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
             map_configs = {
             //      {MAPFTestConfig_Paris_1_256,     1, 80, 10, 10}, // 80, 10, 10 / 20, 2, 2s
-            //     {MAPFTestConfig_empty_48_48,     1, 50, 10, 10}, // 50, 10, 10
-            //     {MAPFTestConfig_Berlin_1_256,    1, 80, 10, 10}, // 80, 10, 10
+                 {MAPFTestConfig_empty_48_48,     1, 50, 10, 10}, // 50, 10, 10
+                 {MAPFTestConfig_Berlin_1_256,    1, 80, 10, 10}, // 80, 10, 10
             //    {MAPFTestConfig_maze_128_128_10, 1, 60, 10, 10}, // 60, 10, 10
 
             // {MAPFTestConfig_den520d,         1, 100, 10, 10},// 100, 10, 10
             // {MAPFTestConfig_ost003d,         1, 100, 10, 10},// 100, 10, 10
-            //  {MAPFTestConfig_Boston_2_256, 1, 70, 10, 10}, //  70, 10, 10
+              {MAPFTestConfig_Boston_2_256, 1, 70, 10, 10}, //  70, 10, 10
             //   {MAPFTestConfig_Sydney_2_256, 1, 70, 10, 10}, // 70, 10, 10
 
-            {MAPFTestConfig_AR0044SR, 1, 6, 2, 2}, // 50, 5, 5
-            //{MAPFTestConfig_AR0203SR, 1, 6, 2, 2}, // 40, 5, 5
+            {MAPFTestConfig_AR0044SR, 1, 50, 5, 5}, // 50, 5, 5
+            {MAPFTestConfig_AR0203SR, 1, 40, 5, 5}, // 40, 5, 5
 //            {MAPFTestConfig_AR0072SR, 1, 30, 5, 5}, // 30, 5, 5
 //            {MAPFTestConfig_Denver_2_256, 1, 80, 10, 10}, // 80, 10, 10
 
@@ -170,7 +170,7 @@ int main() {
             //        {MAPFTestConfig_AR0044SR, 1, 20, 2, 2}, // ok
             //        {MAPFTestConfig_AR0203SR, 1, 20, 2, 2}, // ok
             //    {MAPFTestConfig_AR0072SR, 1, 20, 2, 2}, // ok
-            //     {MAPFTestConfig_Denver_2_256, 1, 20, 2, 2} // ok
+                 {MAPFTestConfig_Denver_2_256, 1, 20, 2, 2} // ok
 
     };
     for(int i=0; i<1;i++)
