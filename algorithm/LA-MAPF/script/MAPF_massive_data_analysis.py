@@ -681,20 +681,20 @@ for method_key, method_value in all_method_time_cost_map.items():
     drawMethodMaps(all_method_num_of_subproblem_map[method_key], "Number of agents", "num_of_subproblem", "num_of_subproblem/"+method_key)        
 
     # # draw summary of maps
-    drawSummaryOfMap(all_method_time_cost_map[method_key], "Map index", "Time cost(s)", "time_cost/"+method_key)    
-    drawSummaryOfMap(all_method_memory_usage_map[method_key], "Map index", "Memory usage(MB)", "memory_usage/"+method_key)           
-    drawSummaryOfMap(all_method_total_cost_map[method_key], "Map index", "Sum of cost", "sum_of_cost/"+method_key)           
-    drawSummaryOfMap(all_method_makespan_map[method_key], "Map index", "Makespan", "makespan/"+method_key)           
-    drawSummaryOfMap(all_method_success_rate_map[method_key], "Map index", "Success rate", "success_rate/"+method_key)      
+    # drawSummaryOfMap(all_method_time_cost_map[method_key], "Map index", "Time cost(s)", "time_cost/"+method_key)    
+    # drawSummaryOfMap(all_method_memory_usage_map[method_key], "Map index", "Memory usage(MB)", "memory_usage/"+method_key)           
+    # drawSummaryOfMap(all_method_total_cost_map[method_key], "Map index", "Sum of cost", "sum_of_cost/"+method_key)           
+    # drawSummaryOfMap(all_method_makespan_map[method_key], "Map index", "Makespan", "makespan/"+method_key)           
+    # drawSummaryOfMap(all_method_success_rate_map[method_key], "Map index", "Success rate", "success_rate/"+method_key)      
     
-    drawSummaryOfMap(all_method_max_subproblem_map[method_key], "Map index", "max_subproblem_size", "max_subproblem_size/"+method_key)           
-    drawSummaryOfMap(all_method_num_of_subproblem_map[method_key], "Map index", "num_of_subproblem", "num_of_subproblem/"+method_key)
+    # drawSummaryOfMap(all_method_max_subproblem_map[method_key], "Map index", "max_subproblem_size", "max_subproblem_size/"+method_key)           
+    # drawSummaryOfMap(all_method_num_of_subproblem_map[method_key], "Map index", "num_of_subproblem", "num_of_subproblem/"+method_key)
     
     # compute makespan and soc comparison when both success      
-    compareOnlySuccess(all_method_makespan_map[method_key], "Makespan", "RAW", "BL")
-    compareOnlySuccess(all_method_total_cost_map[method_key], "Sum of cost", "BP", "BL")
-    compareOnlySuccess(all_method_makespan_map[method_key], "Makespan", "ID", "BL")
-    compareOnlySuccess(all_method_total_cost_map[method_key], "Sum of cost", "ID", "LAYERED")
+    # compareOnlySuccess(all_method_makespan_map[method_key], "Makespan", "RAW", "BL")
+    # compareOnlySuccess(all_method_total_cost_map[method_key], "Sum of cost", "BP", "BL")
+    # compareOnlySuccess(all_method_makespan_map[method_key], "Makespan", "ID", "BL")
+    # compareOnlySuccess(all_method_total_cost_map[method_key], "Sum of cost", "ID", "LAYERED")
     
 #draw summary of methods
 # drawSummaryOfMethod(all_method_time_cost_map, "Number of agents", "Time cost(ms)", "time_cost")           
@@ -703,3 +703,32 @@ for method_key, method_value in all_method_time_cost_map.items():
 # drawSummaryOfMethod(all_method_makespan_map, "Number of agents", "Makespan", "makespan")           
 # drawSummaryOfMethod(all_method_success_rate_map, "Number of agents", "Success rate", "success_rate")      
 
+
+def removeMethodDataFromFile(file_path, temp_method_name):
+    filtered_lines = list()
+    try:
+        with open(file_path, "r") as f:
+            lines = f.readlines()
+            for line in lines:
+                splited_line = line.split()
+                if splited_line[0] != temp_method_name:
+                    filtered_lines.append(line)
+        f.close()
+            #print(new_data.method, ' ', new_data.path_count, ' ', new_data.real_path_count, ' ', new_data.time_cost)
+    except Exception as e:            
+        print(e)  
+        
+    try:
+        with open(file_path, 'w') as f:
+            f.writelines(filtered_lines)    
+        f.close()    
+    except Exception as e:            
+        print(e)             
+    
+def removeMethodDataFromFiles(map_format_map_index_local, method_name_local):
+    for map_name_key, map_format_value in map_format_map_index_local.items():
+        data_file_path = data_path_dir + map_name_key + '_la_comp.txt'
+        print('remove data of ', method_name_local, ' from', data_file_path)
+        removeMethodDataFromFile(data_file_path, method_name_local)
+    
+removeMethodDataFromFiles(map_format_map, 'ID_CBS')
