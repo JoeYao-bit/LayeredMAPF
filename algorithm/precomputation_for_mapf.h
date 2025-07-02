@@ -248,7 +248,7 @@ namespace freeNav::LayeredMAPF {
                         lock_1.lock();
                         sub_graphs_map.insert({map_id, sub_graph});
                         lock_1.unlock();
-                        const auto & table1 = constructHeuristicTable(sub_graphs_map.at(map_id),
+                        const auto & table1 = constructHeuristicTable(sub_graph,
                                                                      this->instance_node_ids_[map_id].second);
                         assert(table1[this->instance_node_ids_[map_id].first]  != MAX<int>);
                         assert(table1[this->instance_node_ids_[map_id].second] != MAX<int>);
@@ -256,7 +256,7 @@ namespace freeNav::LayeredMAPF {
                         heuristic_tables_.insert({map_id, table1});
                         lock_2.unlock();
 
-                        const auto & table2 = constructHeuristicTableIgnoreRotate(sub_graphs_map.at(map_id),
+                        const auto & table2 = constructHeuristicTableIgnoreRotate(sub_graph,
                                                                                  this->instance_node_ids_[map_id].second, this->dim_, this->isoc_);
                         assert(table2[this->instance_node_ids_[map_id].first / (2*N)]  != MAX<int>);
                         assert(table2[this->instance_node_ids_[map_id].second / (2*N)] != MAX<int>);
@@ -369,8 +369,8 @@ namespace freeNav::LayeredMAPF {
             int interval = (int)std::ceil((double)this->agents_.size()/this->num_of_CPU_);// set to larger value to reduce maximal memory usage and num of threads
             std::vector<bool> finished(this->agents_.size(), false);
             int count_of_instance = 0;
+            std::mutex lock_1, lock_2, lock_3;
             while(count_of_instance < this->instances_.size()) {
-                std::mutex lock_1, lock_2, lock_3;
                 auto lambda_func = [&]() {
                 auto start_t_3 = std::chrono::steady_clock::now();
                 //auto start_t_4 = std::chrono::steady_clock::now();
