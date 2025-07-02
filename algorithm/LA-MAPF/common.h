@@ -814,7 +814,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                }
 //            }
             if (is_goal) {
-                // if (time_index + 1 < earliest_arrive_time_map_.at(agent_global_id)) {
+                if (time_index + 1 < earliest_arrive_time_map_.at(agent_global_id)) {
 //                    std::cout << "reach target failed 1" << std::endl;
                     return true;
                 }
