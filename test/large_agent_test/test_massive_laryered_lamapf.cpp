@@ -12,7 +12,8 @@
 #include "../test_data.h"
 #include "../../algorithm/break_loop_decomposition/biparition_decomposition.h"
 #include "../../algorithm/break_loop_decomposition/break_loop_decomposition.h"
-
+#include <mutex>
+#include <thread>
 using namespace freeNav::LayeredMAPF::LA_MAPF;
 
 
@@ -149,18 +150,22 @@ int main() {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
             map_configs = {
+        {MAPFTestConfig_empty_48_48,     1, 60, 10, 10}, // 50, 10, 10
+       {MAPFTestConfig_Berlin_1_256,    1, 80, 10, 10}, // 80, 10, 10
+    {MAPFTestConfig_ost003d,         1, 100, 10, 10},// 100, 10, 10
+    {MAPFTestConfig_AR0044SR, 1, 140, 10, 10}, // 50, 5, 5
+    {MAPFTestConfig_AR0203SR, 1, 40, 5, 5}, // 40, 5, 5
+
             //      {MAPFTestConfig_Paris_1_256,     1, 80, 10, 10}, // 80, 10, 10 / 20, 2, 2s
-                 {MAPFTestConfig_empty_48_48,     1, 50, 10, 10}, // 50, 10, 10
-                 {MAPFTestConfig_Berlin_1_256,    1, 80, 10, 10}, // 80, 10, 10
+
             //    {MAPFTestConfig_maze_128_128_10, 1, 60, 10, 10}, // 60, 10, 10
 
             // {MAPFTestConfig_den520d,         1, 100, 10, 10},// 100, 10, 10
-            // {MAPFTestConfig_ost003d,         1, 100, 10, 10},// 100, 10, 10
-              {MAPFTestConfig_Boston_2_256, 1, 70, 10, 10}, //  70, 10, 10
+
+              //{MAPFTestConfig_Boston_2_256, 1, 70, 10, 10}, //  70, 10, 10
             //   {MAPFTestConfig_Sydney_2_256, 1, 70, 10, 10}, // 70, 10, 10
 
-            {MAPFTestConfig_AR0044SR, 1, 50, 5, 5}, // 50, 5, 5
-            {MAPFTestConfig_AR0203SR, 1, 40, 5, 5}, // 40, 5, 5
+
 //            {MAPFTestConfig_AR0072SR, 1, 30, 5, 5}, // 30, 5, 5
 //            {MAPFTestConfig_Denver_2_256, 1, 80, 10, 10}, // 80, 10, 10
 
@@ -170,20 +175,39 @@ int main() {
             //        {MAPFTestConfig_AR0044SR, 1, 20, 2, 2}, // ok
             //        {MAPFTestConfig_AR0203SR, 1, 20, 2, 2}, // ok
             //    {MAPFTestConfig_AR0072SR, 1, 20, 2, 2}, // ok
-                 {MAPFTestConfig_Denver_2_256, 1, 20, 2, 2} // ok
+                // {MAPFTestConfig_Denver_2_256, 1, 20, 2, 2} // ok
 
     };
-    for(int i=0; i<100;i++)
-    {
-        std::cout << "global layered" << i << std::endl;
-        for(const auto& file_config : map_configs) {
-            multiLoadAgentAndCompare(std::get<0>(file_config),
-                                     std::get<1>(file_config),
-                                     std::get<2>(file_config),
-                                     std::get<3>(file_config),
-                                     std::get<4>(file_config),
-                                     60);
-        }
-    }
+    std::vector<bool> finished(map_configs.size(), false);
+    std::mutex lock_1, lock_2;
+    int map_id = 0;
+	for(int i=0; i<map_configs.size(); i++) {
+	auto lambda_func = [&]() {
+		lock_1.lock();
+		const auto& file_config = map_configs[map_id];
+		map_id ++;
+		lock_1.unlock();
+	    for(int i=0; i<100;i++)
+	    {
+		std::cout << "global layered" << i << std::endl;
+
+		    multiLoadAgentAndCompare(std::get<0>(file_config),
+			                     std::get<1>(file_config),
+			                     std::get<2>(file_config),
+			                     std::get<3>(file_config),
+			                     std::get<4>(file_config),
+			                     60);
+	    }
+	    lock_2.lock();
+	    finished[i] = true;
+	    lock_2.unlock();
+		};
+		std::thread t(lambda_func);
+		t.detach();
+		sleep(1);
+	}
+	while(finished != std::vector<bool>(map_configs.size(), true)) {
+        sleep(1);
+    	}
     return 0;
 }
