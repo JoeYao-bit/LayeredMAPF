@@ -189,8 +189,7 @@ int main() {
 		lock_1.unlock();
 	    for(int j=0; j<100; j++)
 	    {
-		std::cout << "global layered" << j << std::endl;
-
+		    std::cout << "global layered" << j << std::endl;
 		    multiLoadAgentAndCompare(std::get<0>(map_configs[file_config_id]),
 			                     std::get<1>(map_configs[file_config_id]),
 			                     std::get<2>(map_configs[file_config_id]),
@@ -198,9 +197,9 @@ int main() {
 			                     std::get<4>(map_configs[file_config_id]),
 			                     60);
 	    }
-	    lock_2.lock();
-	    finished[file_config_id] = true;
-	    lock_2.unlock();
+            lock_2.lock();
+            finished[file_config_id] = true;
+            lock_2.unlock();
 		};
 		std::thread t(lambda_func);
 		t.detach();
