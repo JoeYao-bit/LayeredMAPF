@@ -228,8 +228,8 @@ namespace freeNav::LayeredMAPF {
             int interval = (int)std::ceil((double)this->agents_.size()/num_of_CPU_);// set to larger value to reduce maximal memory usage and num of threads
             std::vector<bool> finished(this->agents_.size(), false);
             int count_of_instance = 0;
+            std::mutex lock_1, lock_2, lock_3, lock_4;
             while(count_of_instance < this->instances_.size()) {
-                std::mutex lock_1, lock_2, lock_3, lock_4;
                 auto lambda_func = [&]() {
                     auto start_t_3 = std::chrono::steady_clock::now();
                     //auto start_t_4 = std::chrono::steady_clock::now();
@@ -368,8 +368,8 @@ namespace freeNav::LayeredMAPF {
             int interval = (int)std::ceil((double)this->agents_.size()/this->num_of_CPU_);// set to larger value to reduce maximal memory usage and num of threads
             std::vector<bool> finished(this->agents_.size(), false);
             int count_of_instance = 0;
+            std::mutex lock_1, lock_2, lock_3;
             while(count_of_instance < this->instances_.size()) {
-                std::mutex lock_1, lock_2, lock_3;
                 auto lambda_func = [&]() {
                 auto start_t_3 = std::chrono::steady_clock::now();
                 //auto start_t_4 = std::chrono::steady_clock::now();
