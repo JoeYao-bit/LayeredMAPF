@@ -165,16 +165,46 @@ int main() {
 //            {MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
 //            {MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}}
     };
-    for(int i=0; i<1;i++)
-    {
-        std::cout << "global layered" << i << std::endl;
-        for(int j=0; j<map_configs.size(); j++) {
-            const auto& file_config = map_configs[j];
-            multiLoadAgentAndCompare(std::get<0>(file_config),
-                                     std::get<1>(file_config),
-                                     1,
-                                     60);
-        }
+    std::vector<bool> finished(map_configs.size(), false);
+    std::mutex lock_1, lock_2;
+    int map_id = 0;
+//    for(int i=0; i<1;i++)
+//    {
+//        std::cout << "global layered" << i << std::endl;
+//        for(int j=0; j<map_configs.size(); j++) {
+//            const auto& file_config = map_configs[j];
+//            multiLoadAgentAndCompare(std::get<0>(file_config),
+//                                     std::get<1>(file_config),
+//                                     1,
+//                                     60);
+//        }
+//    }
+    for(int i=0; i<map_configs.size(); i++) {
+        auto lambda_func = [&]() {
+            lock_1.lock();
+            const auto& file_config_id = map_id;
+            map_id ++;
+            lock_1.unlock();
+            for(int j=0; j<1;j++)
+            {
+                std::cout << "global layered" << j << std::endl;
+
+                const auto& file_config = map_configs[file_config_id];
+                multiLoadAgentAndCompare(std::get<0>(file_config),
+                                         std::get<1>(file_config),
+                                         1,
+                                         60);
+            }
+            lock_2.lock();
+            finished[file_config_id] = true;
+            lock_2.unlock();
+        };
+        std::thread t(lambda_func);
+        t.detach();
+        sleep(1);
+    }
+    while(finished != std::vector<bool>(map_configs.size(), true)) {
+        sleep(1);
     }
     return 0;
 }

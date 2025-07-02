@@ -184,22 +184,22 @@ int main() {
 	for(int i=0; i<map_configs.size(); i++) {
 	auto lambda_func = [&]() {
 		lock_1.lock();
-		const auto& file_config = map_configs[map_id];
+		const auto& file_config_id = map_id;
 		map_id ++;
 		lock_1.unlock();
 	    for(int j=0; j<100; j++)
 	    {
 		std::cout << "global layered" << j << std::endl;
 
-		    multiLoadAgentAndCompare(std::get<0>(file_config),
-			                     std::get<1>(file_config),
-			                     std::get<2>(file_config),
-			                     std::get<3>(file_config),
-			                     std::get<4>(file_config),
+		    multiLoadAgentAndCompare(std::get<0>(map_configs[file_config_id]),
+			                     std::get<1>(map_configs[file_config_id]),
+			                     std::get<2>(map_configs[file_config_id]),
+			                     std::get<3>(map_configs[file_config_id]),
+			                     std::get<4>(map_configs[file_config_id]),
 			                     60);
 	    }
 	    lock_2.lock();
-	    finished[i] = true;
+	    finished[file_config_id] = true;
 	    lock_2.unlock();
 		};
 		std::thread t(lambda_func);
