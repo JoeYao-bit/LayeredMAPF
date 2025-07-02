@@ -187,9 +187,9 @@ int main() {
 		const auto& file_config = map_configs[map_id];
 		map_id ++;
 		lock_1.unlock();
-	    for(int i=0; i<100;i++)
+	    for(int j=0; j<100; j++)
 	    {
-		std::cout << "global layered" << i << std::endl;
+		std::cout << "global layered" << j << std::endl;
 
 		    multiLoadAgentAndCompare(std::get<0>(file_config),
 			                     std::get<1>(file_config),
