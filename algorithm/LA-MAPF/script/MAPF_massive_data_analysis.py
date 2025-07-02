@@ -6,10 +6,13 @@ import os
 
 def loadDataFromfile(file_path, map_name):
     data_list = list()
+    #print("file=",file_path)
     try:
         with open(file_path, "r") as f:
             lines = f.readlines()
+            #print("lines count=", len(lines))
             for line in lines:
+                #print("line=", line)
                 splited_line = line.split()
                 
                 head_split = splited_line[0].split('_')
@@ -24,8 +27,8 @@ def loadDataFromfile(file_path, map_name):
                 new_data.success = int(splited_line[5])
                 new_data.max_memory_usage = float(splited_line[6])
                 
-                if(new_data.agent_count > map_size_limit[map_name]):
-                    continue
+                # if(new_data.agent_count > map_size_limit[map_name]):
+                #     continue
                 
                 if np.isnan(new_data.total_cost):
                     continue
@@ -45,7 +48,7 @@ def loadDataFromfile(file_path, map_name):
                 # if head_split[0] == 'ID':
                 #     continue
 
-                if head_split[0] == 'LAYERED':
+                if head_split[0] == 'BL' or head_split[0] == "BP":
                     new_data.get_subgraph_time_cost = float(splited_line[7])
                     new_data.decomposition_time_cost = float(splited_line[8])
                     if new_data.success:
@@ -64,7 +67,7 @@ def loadDataFromfile(file_path, map_name):
                         new_data.num_of_subproblem = 1
                 
                 data_list.append(new_data)
-            #print(new_data.method, ' ', new_data.path_count, ' ', new_data.real_path_count, ' ', new_data.time_cost)
+                #print("data=", new_data.method, ' ', new_data.agent_count, ' ', new_data.max_subproblem_size, ' ', new_data.num_of_subproblem)
     except Exception as e:            
         print(e)             
     return data_list
@@ -99,11 +102,11 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
             sorted_keys = sorted(all_data_map[map_key][method_key].keys())
             
             splited_method_name = method_key.split('_')
-            if ylable == "max_subproblem_size" or ylable == "num_of_subproblem":
-                if splited_method_name[1] == "LaCAM":
-                    continue
-                if splited_method_name[0] == "RAW":
-                    continue
+            # if ylable == "max_subproblem_size" or ylable == "num_of_subproblem":
+            #     if splited_method_name[1] == "LaCAM":
+            #         continue
+            #     if splited_method_name[0] == "RAW":
+            #         continue
             for agent_size_key in sorted_keys:
                 x.append(agent_size_key)
                 if len(all_data_map[map_key][method_key][agent_size_key]) > 0:
@@ -654,16 +657,16 @@ for single_data in all_single_data:
 
             
         all_method_time_cost_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.time_cost)
-        all_method_time_cost_map[method_name][single_data.map_name][name_of_get_subgraph][line_data.agent_count].append(line_data.get_subgraph_time_cost)
-        all_method_time_cost_map[method_name][single_data.map_name][name_of_decomposition][line_data.agent_count].append(line_data.decomposition_time_cost/1e3)
+        # all_method_time_cost_map[method_name][single_data.map_name][name_of_get_subgraph][line_data.agent_count].append(line_data.get_subgraph_time_cost)
+        # all_method_time_cost_map[method_name][single_data.map_name][name_of_decomposition][line_data.agent_count].append(line_data.decomposition_time_cost/1e3)
         all_method_success_rate_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.success)    
         all_method_memory_usage_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.max_memory_usage)
 
         splited_method_name = line_data.method.split('_')
 
-        if (splited_method_name[0] == "ID" or splited_method_name[0] == "BP" or splited_method_name[0] == "BL") and splited_method_name[1] != "LaCAM":
-            all_method_max_subproblem_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.max_subproblem_size)
-            all_method_num_of_subproblem_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.num_of_subproblem) 
+        # if (splited_method_name[0] == "ID" or splited_method_name[0] == "BP" or splited_method_name[0] == "BL") and splited_method_name[1] != "LaCAM":
+        all_method_max_subproblem_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.max_subproblem_size)
+        all_method_num_of_subproblem_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.num_of_subproblem) 
             
         if line_data.success == 1:
             all_method_total_cost_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.total_cost)
@@ -731,4 +734,4 @@ def removeMethodDataFromFiles(map_format_map_index_local, method_name_local):
         print('remove data of ', method_name_local, ' from', data_file_path)
         removeMethodDataFromFile(data_file_path, method_name_local)
     
-removeMethodDataFromFiles(map_format_map, 'ID_CBS')
+#removeMethodDataFromFiles(map_format_map, 'ID_CBS')
