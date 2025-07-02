@@ -146,29 +146,29 @@ int main() {
             {MAPFTestConfig_room_64_64_16, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
             {MAPFTestConfig_room_64_64_8, {100, 200, 300, 400, 500, 600, 700}},
 
-//            {MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120}},
-//            {MAPFTestConfig_maze_32_32_4, {20, 40, 80, 120, 160, 200, 240}},
-//            {MAPFTestConfig_maze_128_128_2, {100, 200, 300, 400, 500, 600, 700}},
-//            {MAPFTestConfig_maze_128_128_10, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-//            {MAPFTestConfig_den312d, {100, 200, 300, 400, 500, 600, 700, 800}},
-//            {MAPFTestConfig_den520d, {100, 200, 300, 400, 500, 600, 700, 800, 900}},
-//            {MAPFTestConfig_Berlin_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900}},
-//            {MAPFTestConfig_Paris_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-//            {MAPFTestConfig_ht_chantry, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-//            {MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-//            {MAPFTestConfig_room_32_32_4, {10, 20, 40, 60, 80, 120, 160, 200}},
-//            {MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800}},
-//            {MAPFTestConfig_warehouse_10_20_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-//            {MAPFTestConfig_warehouse_20_40_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-//            {MAPFTestConfig_warehouse_20_40_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-//            {MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-//            {MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-//            {MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}}
+            {MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120}},
+            {MAPFTestConfig_maze_32_32_4, {20, 40, 80, 120, 160, 200, 240}},
+            {MAPFTestConfig_maze_128_128_2, {100, 200, 300, 400, 500, 600, 700}},
+            {MAPFTestConfig_maze_128_128_10, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+            {MAPFTestConfig_den312d, {100, 200, 300, 400, 500, 600, 700, 800}},
+            {MAPFTestConfig_den520d, {100, 200, 300, 400, 500, 600, 700, 800, 900}},
+            {MAPFTestConfig_Berlin_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900}},
+            {MAPFTestConfig_Paris_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+            {MAPFTestConfig_ht_chantry, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+            {MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+            {MAPFTestConfig_room_32_32_4, {10, 20, 40, 60, 80, 120, 160, 200}},
+            {MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800}},
+            {MAPFTestConfig_warehouse_10_20_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+            {MAPFTestConfig_warehouse_20_40_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+            {MAPFTestConfig_warehouse_20_40_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+            {MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+            {MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+            {MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}}
     };
     std::vector<bool> finished(map_configs.size(), false);
     std::mutex lock_1, lock_2;
     int map_id = 0;
-    for(int i=0; i<1;i++)
+    for(int i=0; i<100;i++)
     {
         std::cout << "global layered" << i << std::endl;
         for(int j=0; j<map_configs.size(); j++) {
