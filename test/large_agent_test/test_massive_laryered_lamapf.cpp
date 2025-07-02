@@ -184,7 +184,7 @@ int main() {
 	for(int i=0; i<map_configs.size(); i++) {
 	auto lambda_func = [&]() {
 		lock_1.lock();
-		const auto& file_config_id = map_id;
+		int file_config_id = map_id;
 		map_id ++;
 		lock_1.unlock();
 	    for(int j=0; j<100; j++)
