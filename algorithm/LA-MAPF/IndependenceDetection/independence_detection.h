@@ -410,8 +410,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
                     new_constraint_table_ptr_ = std::make_shared<LargeAgentStaticConstraintTable<N, State> > (
                     max_excircle_radius, pre_->dim_, pre_->isoc_, pre_->agents_, cluster_agents, pre_->all_poses_);
 
-            // insert previous agents' target as static constraint
-            new_constraint_table_ptr_->updateEarliestArriveTimeForAgents(cluster_agents, target_node_ids);
+
 
 //            std::cout << "flag 9.4" << std::endl;
 
@@ -432,7 +431,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::ID {
             }
 
 //            std::cout << "flag 9.6" << std::endl;
-
+            // insert previous agents' target as static constraint
+            new_constraint_table_ptr_->updateEarliestArriveTimeForAgents(cluster_agents, target_node_ids);
 
             int min_index = 0;
 
