@@ -54,59 +54,59 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
         std::vector<std::string> strs;
         std::string str;
 
-//        str = BIPARTITION_MAPF<2>(
-//                instances_local,
-//                dim,
-//                is_occupied,
-//                LaCAM::LargeAgentLaCAMPointi_func<2>,
-//                "LaCAM",
-//                time_limit);
-//        strs.push_back(str);
-//
-//        str = BIPARTITION_MAPF<2>(
-//                instances_local,
-//                dim,
-//                is_occupied,
-//                CBS::LargeAgentCBS_func<2, Pointi<2> >,
-//                "CBS",
-//                time_limit);
-//        strs.push_back(str); // ok
-//
-//        str = BREAKLOOP_MAPF<2>(
-//                instances_local,
-//                dim,
-//                is_occupied,
-//                LaCAM::LargeAgentLaCAMPointi_func<2>,
-//                "LaCAM",
-//                time_limit);
-//        strs.push_back(str);
-//
-//        str = BREAKLOOP_MAPF<2>(
-//                instances_local,
-//                dim,
-//                is_occupied,
-//                CBS::LargeAgentCBS_func<2, Pointi<2> >,
-//                "CBS",
-//                time_limit); // ok
-//        strs.push_back(str);
-//
-//        str = RAW_MAPF<2>(
-//                instances_local,
-//                dim,
-//                is_occupied,
-//                CBS::LargeAgentCBS_func<2, Pointi<2> >,
-//                "CBS",
-//                time_limit); // ok
-//        strs.push_back(str);
-//
-//        str = RAW_MAPF<2>(
-//                instances_local,
-//                dim,
-//                is_occupied,
-//                LaCAM::LargeAgentLaCAMPointi_func<2>,
-//                "LaCAM",
-//                time_limit);
-//        strs.push_back(str);
+        str = BIPARTITION_MAPF<2>(
+                instances_local,
+                dim,
+                is_occupied,
+                LaCAM::LargeAgentLaCAMPointi_func<2>,
+                "LaCAM",
+                time_limit);
+        strs.push_back(str);
+
+        str = BIPARTITION_MAPF<2>(
+                instances_local,
+                dim,
+                is_occupied,
+                CBS::LargeAgentCBS_func<2, Pointi<2> >,
+                "CBS",
+                time_limit);
+        strs.push_back(str); // ok
+
+        str = BREAKLOOP_MAPF<2>(
+                instances_local,
+                dim,
+                is_occupied,
+                LaCAM::LargeAgentLaCAMPointi_func<2>,
+                "LaCAM",
+                time_limit);
+        strs.push_back(str);
+
+        str = BREAKLOOP_MAPF<2>(
+                instances_local,
+                dim,
+                is_occupied,
+                CBS::LargeAgentCBS_func<2, Pointi<2> >,
+                "CBS",
+                time_limit); // ok
+        strs.push_back(str);
+
+        str = RAW_MAPF<2>(
+                instances_local,
+                dim,
+                is_occupied,
+                CBS::LargeAgentCBS_func<2, Pointi<2> >,
+                "CBS",
+                time_limit); // ok
+        strs.push_back(str);
+
+        str = RAW_MAPF<2>(
+                instances_local,
+                dim,
+                is_occupied,
+                LaCAM::LargeAgentLaCAMPointi_func<2>,
+                "LaCAM",
+                time_limit);
+        strs.push_back(str);
 
         str = ID_MAPF<2>(
                 instances_local,
@@ -124,7 +124,7 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
 //        IDLAMAPF<2>();
 //        RAWLAMAPF<2>();
 
-        //writeStrsToEndOfFile(strs, map_file.at("output_path"));
+        writeStrsToEndOfFile(strs, map_file.at("output_path"));
 
         //break;
     }
