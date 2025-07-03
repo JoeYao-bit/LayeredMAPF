@@ -223,7 +223,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 }
 
                 // insert previous agents' target as static constraint
-                new_constraint_table_ptr->updateEarliestArriveTimeForAgents(local_agents, target_node_ids);
+                new_constraint_table_ptr->updateEarliestArriveTimeForAgents(local_agents_with_global_id, target_node_ids);
 
                 local_paths = mapf_func(local_instance,
                                         local_agents,
