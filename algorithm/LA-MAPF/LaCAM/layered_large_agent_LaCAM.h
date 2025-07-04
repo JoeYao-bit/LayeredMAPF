@@ -7,7 +7,7 @@
 
 #include "large_agent_lacam.h"
 
-namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
+namespace freeNav::LayeredMAPF::LA_MAPF {
 
     template<Dimension N>
     std::vector<LAMAPF_Path> LargeAgentLaCAMPose_func(const std::vector<std::pair<Pose<int, N>, Pose<int, N>>> & instances,
@@ -26,7 +26,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
                                                   const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate,
                                                   ConnectivityGraph* connect_graph = nullptr) {
 
-        LargeAgentLaCAMPose<N, LaCAM::LargeAgentConstraints<N, Pose<int, N>>> solver(instances, agents,
+        LargeAgentLaCAMPose<N, LargeAgentConstraints<N, Pose<int, N>>> solver(instances, agents,
                                                                                 dim, isoc,
                                                                                 path_constraint,
                                                                                 instance_node_ids,
@@ -62,7 +62,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
                                                   const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate,
                                                   ConnectivityGraph* connect_graph = nullptr) {
 
-        LargeAgentLaCAMPointi<N, LaCAM::LargeAgentConstraints<N, Pointi<N>>> solver(instances, agents,
+        LargeAgentLaCAMPointi<N, LargeAgentConstraints<N, Pointi<N>>> solver(instances, agents,
                                                                                  dim, isoc,
                                                                                  path_constraint,
                                                                                  instance_node_ids,

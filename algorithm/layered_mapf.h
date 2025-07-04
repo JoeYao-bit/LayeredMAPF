@@ -265,7 +265,7 @@ namespace freeNav::LayeredMAPF {
 
         MAPFInstanceDecompositionPtr<N> instance_decompose = std::make_shared<MAPFInstanceDecomposition<N> >(instances, dim, isoc);
 
-        return instance_decompose->all_clusters_;
+        return instance_decompose->all_levels_;
     }
 
     template<Dimension N>
@@ -274,24 +274,13 @@ namespace freeNav::LayeredMAPF {
                          const IS_OCCUPIED_FUNC<N> & isoc,
                          const MAPF_FUNC<N> & mapf_func,
                          const MAPF_FUNC<N> & mapf_func_verified,
+                         const std::vector<std::set<int>>& all_levels,
                          bool use_path_constraint = true,
-                         int cutoff_time = 60,
+                         double cutoff_time = 60,
                          bool completeness_verified = false,
                          bool new_path_legal_check = false) {
-
-        struct timezone tz;
-        struct timeval  tv_pre;
-        struct timeval  tv_after;
-        gettimeofday(&tv_pre, &tz);
-
-        MAPFInstanceDecompositionPtr<N> instance_decompose = std::make_shared<MAPFInstanceDecomposition<N> >(instances, dim, isoc, 3);
-
-        gettimeofday(&tv_after, &tz);
-        double decomposition_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
-        std::cout << "-- decomposition take " << decomposition_cost << " ms to get "
-                  << instance_decompose->all_clusters_.size() << " clusters " << std::endl;
-
-        assert(instance_decompose->all_clusters_.size() >= 1);
+        MSTimer mst;
+        assert(all_levels.size() >= 1);
         CBS_Li::ConstraintTable *layered_ct = new CBS_Li::ConstraintTable(dim[0], dim[0]*dim[1]);
 
         Paths<N> retv;// = paths;
@@ -299,9 +288,9 @@ namespace freeNav::LayeredMAPF {
 
         max_size_of_stack_layered = 0; // yz: add for statistics
         max_size_of_stack = 0;
-        for(int i=0; i<instance_decompose->all_clusters_.size(); i++) {
+        for(int i=0; i<all_levels.size(); i++) {
             // instance_decompose->all_clusters_[i] to instances
-            std::set<int> current_id_set = instance_decompose->all_clusters_[i];
+            std::set<int> current_id_set = all_levels[i];
             Instances<2> ists;
             for(const int& id : current_id_set) {
                 ists.push_back({instances[id].first, instances[id].second});
@@ -320,10 +309,10 @@ namespace freeNav::LayeredMAPF {
             // insert future agents' start as static constraint
             std::vector<std::vector<bool> > avoid_locs(dim[1], std::vector<bool>(dim[0], false));
 
-            for(int j = (use_path_constraint ? i+1 : 0); j<instance_decompose->all_clusters_.size(); j++)
+            for(int j = (use_path_constraint ? i+1 : 0); j<all_levels.size(); j++)
             {
                 if(j == i) continue;
-                const auto& current_cluster = instance_decompose->all_clusters_[j];
+                const auto& current_cluster = all_levels[j];
                 for(const int& agent_id : current_cluster) {
                     if(j < i) {
                         avoid_locs[instances[agent_id].second[1]][instances[agent_id].second[0]] = true;
@@ -332,7 +321,7 @@ namespace freeNav::LayeredMAPF {
                     }
                 }
             }
-            double remaining_time = cutoff_time - (tv_after.tv_sec - tv_pre.tv_sec) + (tv_after.tv_usec - tv_pre.tv_usec)/1e6;
+            double remaining_time = cutoff_time - mst.elapsed()/1e3;
             if(remaining_time < 0) {
                 if(layered_ct != nullptr) {
                     delete layered_ct;
@@ -357,7 +346,6 @@ namespace freeNav::LayeredMAPF {
                     return {};
                 }
             }
-            gettimeofday(&tv_after, &tz);
             Paths<N> next_paths = mapf_func(dim, new_isoc, ists, layered_ct, remaining_time);
             max_size_of_stack_layered = std::max(max_size_of_stack_layered, max_size_of_stack);
             if(next_paths.empty()) {

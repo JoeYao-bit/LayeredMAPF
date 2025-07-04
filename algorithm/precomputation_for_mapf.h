@@ -247,7 +247,7 @@ namespace freeNav::LayeredMAPF {
                         lock_1.lock();
                         sub_graphs_map.insert({map_id, sub_graph});
                         lock_1.unlock();
-                        const auto & table1 = constructHeuristicTable(sub_graphs_map.at(map_id),
+                        const auto & table1 = LA_MAPF::constructHeuristicTable<N, Pose<int, N>>(sub_graphs_map.at(map_id),
                                                                      this->instance_node_ids_[map_id].second);
                         assert(table1[this->instance_node_ids_[map_id].first]  != MAX<int>);
                         assert(table1[this->instance_node_ids_[map_id].second] != MAX<int>);
@@ -255,7 +255,7 @@ namespace freeNav::LayeredMAPF {
                         heuristic_tables_.insert({map_id, table1});
                         lock_2.unlock();
 
-                        const auto & table2 = constructHeuristicTableIgnoreRotate(sub_graphs_map.at(map_id),
+                        const auto & table2 = LA_MAPF::constructHeuristicTableIgnoreRotate<N>(sub_graphs_map.at(map_id),
                                                                                  this->instance_node_ids_[map_id].second, this->dim_, this->isoc_);
                         assert(table2[this->instance_node_ids_[map_id].first / (2*N)]  != MAX<int>);
                         assert(table2[this->instance_node_ids_[map_id].second / (2*N)] != MAX<int>);
@@ -382,7 +382,7 @@ namespace freeNav::LayeredMAPF {
                     //std::cout << "map_id = " << map_id << std::endl;
 
                     if (map_id >= this->agents_.size()) { break; }
-                    const auto & table = constructHeuristicTable(this->agent_sub_graphs_[map_id],
+                    const auto & table = LA_MAPF::constructHeuristicTable<N, Pointi<N>>(this->agent_sub_graphs_[map_id],
                                                                  this->instance_node_ids_[map_id].second);
                     assert(table[this->instance_node_ids_[map_id].first]  != MAX<int>);
                     assert(table[this->instance_node_ids_[map_id].second] != MAX<int>);
@@ -410,6 +410,21 @@ namespace freeNav::LayeredMAPF {
             this->agents_heuristic_tables_.resize(this->instance_node_ids_.size());
             for (const auto &table_pair : heuristic_tables_) {
                 this->agents_heuristic_tables_[table_pair.first] = table_pair.second;
+
+                // heuristic map is ok
+//                    std::cout << "heuristic of map " << table_pair.first << " : " << std::endl;
+//                    // debug
+//                    for(int y=0; y<this->dim_[0]; y++) {
+//                        for(int x=0; x<this->dim_[1]; x++) {
+//                            auto id = PointiToId(Pointi<2>{x, y}, dim);
+//                            if(table_pair.second[id] != MAX<int>) {
+//                                std::cout << "\t" << table_pair.second[id] << " ";
+//                            } else {
+//                                std::cout << "\tINF ";
+//                            }
+//                        }
+//                        std::cout << std::endl;
+//                    }
             }
 
             this->subgraph_and_heuristic_time_cost_ =  mst.elapsed();

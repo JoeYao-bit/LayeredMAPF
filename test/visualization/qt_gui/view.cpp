@@ -689,7 +689,7 @@ void View::drawHeuristicTable() {
 
 void View::drawAllCluster() {
     // 1, pick largest cluster
-    const auto& all_clusters = layered_mapf->all_clusters_;//layered_mapf->selectLargestCluster(layered_mapf->all_related_agent_);
+    const auto& all_clusters = layered_mapf->all_levels_;//layered_mapf->selectLargestCluster(layered_mapf->all_related_agent_);
     // 2, draw largest cluster's instance
     for(int cid=0; cid<all_clusters.size(); cid++) {
         for(const auto& agent_id : all_clusters[cid]) {

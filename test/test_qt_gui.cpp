@@ -8,6 +8,9 @@
 #include "../test/test_data.h"
 
 #include "../algorithm/instance_decomposition.h"
+#include "../algorithm/precomputation_for_decomposition.h"
+#include "../algorithm/break_loop_decomposition/break_loop_decomposition.h"
+#include "../algorithm/break_loop_decomposition/biparition_decomposition.h"
 
 #include "EECBS/inc/driver.h"
 #include "PBS/inc/driver.h"
@@ -96,8 +99,20 @@ int main(int argc, char *argv[])
     gettimeofday(&tv_pre, &tz);
     // comparing to the raw version, the layered vision will add more static constraint
     // so avoid the copy of static constraint table, will increase the performance of layered mapf
+    auto pre =
+    std::make_shared<PrecomputationOfMAPFDecomposition<2, LA_MAPF::HyperGraphNodeDataRaw<2>> >(ists, dim, is_occupied);
 
-    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, PIBT_2::pibt_MAPF, CBS_Li::eecbs_MAPF, true);
+    auto ns_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<2, LA_MAPF::HyperGraphNodeDataRaw<2>, Pointi<2> > >(dim,
+            pre->connect_graphs_,
+            pre->agent_sub_graphs_,
+            pre->heuristic_tables_sat_,
+            pre->heuristic_tables_,
+            60 - pre->initialize_time_cost_/1e3,
+            1e4,
+            100,
+            1);
+
+    multiple_paths = layeredMAPF<2>(ists, dim, is_occupied, PIBT_2::pibt_MAPF, CBS_Li::eecbs_MAPF, ns_decompose->all_levels_, true);
 
     gettimeofday(&tv_after, &tz);
     double layered_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
