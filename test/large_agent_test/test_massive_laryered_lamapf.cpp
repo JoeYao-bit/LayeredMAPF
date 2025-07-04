@@ -151,16 +151,16 @@ int main() {
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
             map_configs = {
         {MAPFTestConfig_empty_48_48,     1, 60, 10, 10}, // 60, 10, 10
-    //    {MAPFTestConfig_Berlin_1_256,    1, 80, 10, 10}, // 80, 10, 10
-    // {MAPFTestConfig_ost003d,         1, 100, 10, 10},// 100, 10, 10
-    // {MAPFTestConfig_AR0044SR, 1, 140, 10, 10}, // 50, 5, 5
-    // {MAPFTestConfig_AR0203SR, 1, 40, 5, 5}, // 40, 5, 5
+       {MAPFTestConfig_Berlin_1_256,    1, 80, 10, 10}, // 80, 10, 10
+    {MAPFTestConfig_ost003d,         1, 100, 10, 10},// 100, 10, 10
+    {MAPFTestConfig_AR0044SR, 1, 140, 10, 10}, // 50, 5, 5
+    {MAPFTestConfig_AR0203SR, 1, 40, 5, 5}, // 40, 5, 5
     //
-    //               {MAPFTestConfig_Paris_1_256,     1, 80, 10, 10}, // 80, 10, 10 / 20, 2, 2s
-    //             {MAPFTestConfig_maze_128_128_10, 1, 60, 10, 10}, // 60, 10, 10
-    //          {MAPFTestConfig_den520d,         1, 100, 10, 10},// 100, 10, 10
-    //           {MAPFTestConfig_Boston_2_256, 1, 70, 10, 10}, //  70, 10, 10
-    //            {MAPFTestConfig_Sydney_2_256, 1, 70, 10, 10}, // 70, 10, 10
+         {MAPFTestConfig_Paris_1_256,     1, 80, 10, 10}, // 80, 10, 10 / 20, 2, 2s
+       {MAPFTestConfig_maze_128_128_10, 1, 60, 10, 10}, // 60, 10, 10
+    {MAPFTestConfig_den520d,         1, 100, 10, 10},// 100, 10, 10
+     {MAPFTestConfig_Boston_2_256, 1, 70, 10, 10}, //  70, 10, 10
+      {MAPFTestConfig_Sydney_2_256, 1, 70, 10, 10}, // 70, 10, 10
 
 
 //            {MAPFTestConfig_AR0072SR, 1, 30, 5, 5}, // 30, 5, 5
@@ -184,7 +184,7 @@ int main() {
 		int file_config_id = map_id;
 		map_id ++;
 		lock_1.unlock();
-	    for(int j=0; j<10; j++)
+	    for(int j=0; j<100; j++)
 	    {
 		    std::cout << "global layered" << j << std::endl;
 		    multiLoadAgentAndCompare(std::get<0>(map_configs[file_config_id]),
