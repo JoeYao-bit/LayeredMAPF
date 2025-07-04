@@ -150,7 +150,7 @@ int main() {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
             map_configs = {
-        {MAPFTestConfig_empty_48_48,     1, 60, 10, 10}, // 50, 10, 10
+        {MAPFTestConfig_empty_48_48,     1, 60, 10, 10}, // 60, 10, 10
        {MAPFTestConfig_Berlin_1_256,    1, 80, 10, 10}, // 80, 10, 10
     {MAPFTestConfig_ost003d,         1, 100, 10, 10},// 100, 10, 10
     {MAPFTestConfig_AR0044SR, 1, 140, 10, 10}, // 50, 5, 5
