@@ -66,15 +66,15 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                 time_limit);
         strs.push_back(str);
 
-        str = BIPARTITION_LAMAPF<2>(
-                instances_local,
-                agents_local,
-                dim,
-                is_occupied,
-                CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
-                "CBS",
-                time_limit);
-        strs.push_back(str);
+        // str = BIPARTITION_LAMAPF<2>(
+        //         instances_local,
+        //         agents_local,
+        //         dim,
+        //         is_occupied,
+        //         CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
+        //         "CBS",
+        //         time_limit);
+        // strs.push_back(str);
 
         str = BREAKLOOP_LAMAPF<2>(
                 instances_local,
@@ -86,16 +86,16 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                 time_limit);
         strs.push_back(str);
 
-        str = BREAKLOOP_LAMAPF<2>(
-                instances_local,
-                agents_local,
-                dim,
-                is_occupied,
-                //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
-                CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
-                "CBS",
-                time_limit);
-        strs.push_back(str);
+        // str = BREAKLOOP_LAMAPF<2>(
+        //         instances_local,
+        //         agents_local,
+        //         dim,
+        //         is_occupied,
+        //         //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
+        //         CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
+        //         "CBS",
+        //         time_limit);
+        // strs.push_back(str);
 
         str = RAW_LAMAPF<2>(
                 instances_local,
@@ -109,27 +109,27 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
         strs.push_back(str);
 
 
-        str = RAW_LAMAPF<2>(
-                instances_local,
-                agents_local,
-                dim,
-                is_occupied,
-                //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
-                CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
-                "CBS",
-                time_limit);
-        strs.push_back(str);
-
-        str = ID_LAMAPF<2>(
-                instances_local,
-                agents_local,
-                dim,
-                is_occupied,
-                //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
-                CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
-                "CBS",
-                time_limit);
-        strs.push_back(str);
+        // str = RAW_LAMAPF<2>(
+        //         instances_local,
+        //         agents_local,
+        //         dim,
+        //         is_occupied,
+        //         //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
+        //         CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
+        //         "CBS",
+        //         time_limit);
+        // strs.push_back(str);
+        //
+        // str = ID_LAMAPF<2>(
+        //         instances_local,
+        //         agents_local,
+        //         dim,
+        //         is_occupied,
+        //         //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
+        //         CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
+        //         "CBS",
+        //         time_limit);
+        // strs.push_back(str);
 
         for(const auto& str : strs) {
             std::cout << str << std::endl;
@@ -150,11 +150,11 @@ int main() {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
             map_configs = {
-    //     {MAPFTestConfig_empty_48_48,     1, 60, 10, 10}, // 50, 10, 10
-    //    {MAPFTestConfig_Berlin_1_256,    1, 80, 10, 10}, // 80, 10, 10
-    // {MAPFTestConfig_ost003d,         1, 100, 10, 10},// 100, 10, 10
-    // {MAPFTestConfig_AR0044SR, 1, 140, 10, 10}, // 50, 5, 5
-    // {MAPFTestConfig_AR0203SR, 1, 40, 5, 5}, // 40, 5, 5
+        {MAPFTestConfig_empty_48_48,     1, 60, 10, 10}, // 50, 10, 10
+       {MAPFTestConfig_Berlin_1_256,    1, 80, 10, 10}, // 80, 10, 10
+    {MAPFTestConfig_ost003d,         1, 100, 10, 10},// 100, 10, 10
+    {MAPFTestConfig_AR0044SR, 1, 140, 10, 10}, // 50, 5, 5
+    {MAPFTestConfig_AR0203SR, 1, 40, 5, 5}, // 40, 5, 5
 
                   {MAPFTestConfig_Paris_1_256,     1, 80, 10, 10}, // 80, 10, 10 / 20, 2, 2s
                 {MAPFTestConfig_maze_128_128_10, 1, 60, 10, 10}, // 60, 10, 10

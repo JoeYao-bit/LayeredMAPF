@@ -215,7 +215,7 @@ int main() {
     std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int>> > map_configs = {
 //            {MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120}}, // 10, 20, 40, 60, 80, 100, 120
 
-            {MAPFTestConfig_empty_32_32, {100}}, // 10,40, 80, 120, 160, 200, 240, 280, 320, 360, 400
+            {MAPFTestConfig_empty_32_32, {10,40, 80, 120, 160, 200, 240, 280, 320, 360, 400}}, // 10,40, 80, 120, 160, 200, 240, 280, 320, 360, 400
 
 //            {MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240}},
 //            {MAPFTestConfig_random_64_64_20, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
