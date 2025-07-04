@@ -9,7 +9,7 @@
 #include "../circle_shaped_agent.h"
 #include "../block_shaped_agent.h"
 
-namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
+namespace freeNav::LayeredMAPF::LA_MAPF {
 
     template<Dimension N, typename State>
     struct LargeAgentConstraints {

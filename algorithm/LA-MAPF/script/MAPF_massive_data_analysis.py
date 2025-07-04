@@ -57,6 +57,7 @@ def loadDataFromfile(file_path, map_name):
                     else:
                         new_data.max_subproblem_size = new_data.agent_count
                         new_data.num_of_subproblem = 1
+                    new_data.loss_of_solvability = float(splited_line[11])
                         
                 if head_split[0] == 'ID' :
                     if new_data.success:
@@ -66,6 +67,9 @@ def loadDataFromfile(file_path, map_name):
                         new_data.max_subproblem_size = new_data.agent_count
                         new_data.num_of_subproblem = 1
                 
+                if head_split[0] == 'RAW' :
+                    new_data.max_subproblem_size = new_data.agent_count
+                    new_data.num_of_subproblem = 1
                 data_list.append(new_data)
                 #print("data=", new_data.method, ' ', new_data.agent_count, ' ', new_data.max_subproblem_size, ' ', new_data.num_of_subproblem)
     except Exception as e:            
@@ -85,7 +89,7 @@ class LineData:
     decomposition_time_cost = 0.
     max_subproblem_size = 0
     num_of_subproblem = 0
-        
+    loss_of_solvability = 0.    
 
 # all data in a txt file
 class SingleTestData:
@@ -102,17 +106,28 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
             sorted_keys = sorted(all_data_map[map_key][method_key].keys())
             
             splited_method_name = method_key.split('_')
-            # if ylable == "max_subproblem_size" or ylable == "num_of_subproblem":
-            #     if splited_method_name[1] == "LaCAM":
-            #         continue
-            #     if splited_method_name[0] == "RAW":
-            #         continue
+            # print("splited_method_name[0]=", splited_method_name[0])
+            # print("splited_method_name[1]=", splited_method_name[1])
+
+            if ylable == "max_subproblem_size" or ylable == "num_of_subproblem":
+                if splited_method_name[0] == "RAW":
+                    continue
+
+
+            if ylable == "loss_of_solvability":
+                if splited_method_name[0] != "BP" and splited_method_name[0] != "BL":
+                    continue
+
+            if splited_method_name[0] == "ID" and splited_method_name[1] == "LaCAM":
+                continue
+
             for agent_size_key in sorted_keys:
                 x.append(agent_size_key)
                 if len(all_data_map[map_key][method_key][agent_size_key]) > 0:
                     y.append(np.mean(all_data_map[map_key][method_key][agent_size_key]))
                 else:
                     break 
+    
             if len(splited_method_name) == 2:    
                 if len(x) != 0 and len(y) != 0:
                     while len(x) > len(y):
@@ -137,7 +152,7 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
             plt.ylim(0, 1)
                 
         plt.tight_layout()
-        save_path = '../../../test/test_data/large_agent_instance/layered_MAPF/'+title
+        save_path = data_path_dir+'layered_MAPF/'+title
         
         if not os.path.exists(save_path):
             os.makedirs(save_path)
@@ -189,8 +204,14 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
 
             if head_split[0] == 'BL':
                 value_lists_bl.append(np.mean(value))
-  
-    if ylable == "max_subproblem_size" or ylable == "num_of_subproblem":
+    if ylable == "loss_of_solvability":
+        width = 0.4                   
+        x1 = np.arange(len(value_lists_bp))
+        x2 = np.arange(len(value_lists_bl))
+
+        ax.bar(x1+1-width/2, value_lists_bp, width, label="BP", hatch="//")    
+        ax.bar(x2+1+width/2, value_lists_bl, width, label="BL", hatch="-")    
+    elif ylable == "max_subproblem_size" or ylable == "num_of_subproblem":
         width = 0.2                   
         x1 = np.arange(len(value_lists_id))
         x2 = np.arange(len(value_lists_bp))
@@ -249,7 +270,7 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
     #plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5)
     ax.legend(loc='best', fontsize=12) # 图例位置设置
     plt.tight_layout()        
-    save_path = '../../../test/test_data/large_agent_instance/layered_MAPF/'+title
+    save_path = data_path_dir+'layered_MAPF/'+title
     
     if not os.path.exists(save_path):
         os.makedirs(save_path)
@@ -375,7 +396,7 @@ def drawSummaryOfMethod(all_data_map, xlable, ylable, title, is_percentage=False
         
     #plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5)
     plt.tight_layout()        
-    save_path = 'layered_MAPF/'+title
+    save_path = data_path_dir+'layered_MAPF/'+title
     
     if not os.path.exists(save_path):
         os.makedirs(save_path)
@@ -571,6 +592,7 @@ all_method_level_sort_map = dict()
 
 all_method_max_subproblem_map = dict()
 all_method_num_of_subproblem_map = dict()    
+all_method_loss_of_solvability_map = dict()    
 
 drawing_method_set = [
                       "CBS", # tested ok, advance in time cost, nothing in memory usage
@@ -621,7 +643,10 @@ for single_data in all_single_data:
             all_method_max_subproblem_map[method_name] = dict()      
             
         if all_method_num_of_subproblem_map.get(method_name) == None:    
-            all_method_num_of_subproblem_map[method_name] = dict()               
+            all_method_num_of_subproblem_map[method_name] = dict()   
+
+        if all_method_loss_of_solvability_map.get(method_name) == None:    
+            all_method_loss_of_solvability_map[method_name] = dict()                  
                    
         if all_method_time_cost_map[method_name].get(single_data.map_name) == None:
             all_method_time_cost_map[method_name][single_data.map_name] = dict()
@@ -631,29 +656,32 @@ for single_data in all_single_data:
             all_method_success_rate_map[method_name][single_data.map_name] = dict()
             all_method_max_subproblem_map[method_name][single_data.map_name] = dict()
             all_method_num_of_subproblem_map[method_name][single_data.map_name] = dict()
+            all_method_loss_of_solvability_map[method_name][single_data.map_name] = dict()
 
         if all_method_time_cost_map[method_name][single_data.map_name].get(line_data.method) == None:
             all_method_time_cost_map[method_name][single_data.map_name][line_data.method] = dict()
-            all_method_time_cost_map[method_name][single_data.map_name][name_of_get_subgraph] = dict()
-            all_method_time_cost_map[method_name][single_data.map_name][name_of_decomposition] = dict()
+            #all_method_time_cost_map[method_name][single_data.map_name][name_of_get_subgraph] = dict()
+            #all_method_time_cost_map[method_name][single_data.map_name][name_of_decomposition] = dict()
             all_method_total_cost_map[method_name][single_data.map_name][line_data.method] = dict()
             all_method_makespan_map[method_name][single_data.map_name][line_data.method] = dict()
             all_method_memory_usage_map[method_name][single_data.map_name][line_data.method] = dict()
             all_method_success_rate_map[method_name][single_data.map_name][line_data.method] = dict()
             all_method_max_subproblem_map[method_name][single_data.map_name][line_data.method] = dict()
             all_method_num_of_subproblem_map[method_name][single_data.map_name][line_data.method] = dict()
+            all_method_loss_of_solvability_map[method_name][single_data.map_name][line_data.method] = dict()
 
             
         if all_method_time_cost_map[method_name][single_data.map_name][line_data.method].get(line_data.agent_count) == None:
             all_method_time_cost_map[method_name][single_data.map_name][line_data.method][line_data.agent_count] = list()
-            all_method_time_cost_map[method_name][single_data.map_name][name_of_get_subgraph][line_data.agent_count] = list()
-            all_method_time_cost_map[method_name][single_data.map_name][name_of_decomposition][line_data.agent_count] = list()
+            #all_method_time_cost_map[method_name][single_data.map_name][name_of_get_subgraph][line_data.agent_count] = list()
+            #all_method_time_cost_map[method_name][single_data.map_name][name_of_decomposition][line_data.agent_count] = list()
             all_method_total_cost_map[method_name][single_data.map_name][line_data.method][line_data.agent_count] = list()
             all_method_makespan_map[method_name][single_data.map_name][line_data.method][line_data.agent_count] = list()    
             all_method_memory_usage_map[method_name][single_data.map_name][line_data.method][line_data.agent_count] = list()    
             all_method_success_rate_map[method_name][single_data.map_name][line_data.method][line_data.agent_count] = list() 
             all_method_max_subproblem_map[method_name][single_data.map_name][line_data.method][line_data.agent_count] = list() 
             all_method_num_of_subproblem_map[method_name][single_data.map_name][line_data.method][line_data.agent_count] = list() 
+            all_method_loss_of_solvability_map[method_name][single_data.map_name][line_data.method][line_data.agent_count] = list() 
 
             
         all_method_time_cost_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.time_cost)
@@ -667,7 +695,8 @@ for single_data in all_single_data:
         # if (splited_method_name[0] == "ID" or splited_method_name[0] == "BP" or splited_method_name[0] == "BL") and splited_method_name[1] != "LaCAM":
         all_method_max_subproblem_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.max_subproblem_size)
         all_method_num_of_subproblem_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.num_of_subproblem) 
-            
+        all_method_loss_of_solvability_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.loss_of_solvability) 
+
         if line_data.success == 1:
             all_method_total_cost_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.total_cost)
             all_method_makespan_map[method_name][single_data.map_name][line_data.method][line_data.agent_count].append(line_data.max_single_cost)
@@ -682,6 +711,7 @@ for method_key, method_value in all_method_time_cost_map.items():
     
     drawMethodMaps(all_method_max_subproblem_map[method_key], "Number of agents", "max_subproblem_size", "max_subproblem_size/"+method_key)        
     drawMethodMaps(all_method_num_of_subproblem_map[method_key], "Number of agents", "num_of_subproblem", "num_of_subproblem/"+method_key)        
+    drawMethodMaps(all_method_loss_of_solvability_map[method_key], "Loss of solvability(%)", "loss_of_solvability", "loss_of_solvability/"+method_key)        
 
     # # draw summary of maps
     # drawSummaryOfMap(all_method_time_cost_map[method_key], "Map index", "Time cost(s)", "time_cost/"+method_key)    
@@ -690,8 +720,8 @@ for method_key, method_value in all_method_time_cost_map.items():
     # drawSummaryOfMap(all_method_makespan_map[method_key], "Map index", "Makespan", "makespan/"+method_key)           
     # drawSummaryOfMap(all_method_success_rate_map[method_key], "Map index", "Success rate", "success_rate/"+method_key)      
     
-    # drawSummaryOfMap(all_method_max_subproblem_map[method_key], "Map index", "max_subproblem_size", "max_subproblem_size/"+method_key)           
-    # drawSummaryOfMap(all_method_num_of_subproblem_map[method_key], "Map index", "num_of_subproblem", "num_of_subproblem/"+method_key)
+    # drawSummaryOfMap(all_method_max_subproblem_map[method_key], "Map index", "Max subproblem", "max_subproblem_size/"+method_key)           
+    # drawSummaryOfMap(all_method_num_of_subproblem_map[method_key], "Map index", "Number of subproblems", "num_of_subproblem/"+method_key)
     
     # compute makespan and soc comparison when both success      
     # compareOnlySuccess(all_method_makespan_map[method_key], "Makespan", "RAW", "BL")
@@ -705,7 +735,8 @@ for method_key, method_value in all_method_time_cost_map.items():
 # drawSummaryOfMethod(all_method_total_cost_map, "Number of agents", "Sum of cost", "sum_of_cost")           
 # drawSummaryOfMethod(all_method_makespan_map, "Number of agents", "Makespan", "makespan")           
 # drawSummaryOfMethod(all_method_success_rate_map, "Number of agents", "Success rate", "success_rate")      
-
+# drawSummaryOfMethod(all_method_max_subproblem_map, "Number of agents", "Max subproblem", "max_subproblem_size")        
+# drawSummaryOfMethod(all_method_num_of_subproblem_map, "Number of agents", "Number of subproblems", "num_of_subproblem")        
 
 def removeMethodDataFromFile(file_path, temp_method_name):
     filtered_lines = list()

@@ -17,7 +17,6 @@
 #include <unordered_map>
 #include <vector>
 
-using Time = std::chrono::steady_clock;
 namespace LaCAM {
 
     template<typename Head, typename... Tail>
@@ -31,6 +30,8 @@ namespace LaCAM {
         std::cout << head;
         info(level, verbose, std::forward<Tail>(tail)...);
     }
+
+    using Time = std::chrono::steady_clock;
 
 // time manager
 // yz: check whether reach time limit

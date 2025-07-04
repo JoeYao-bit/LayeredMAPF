@@ -35,6 +35,23 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                                                                   connect_graph,
                                                                   cutoff_time);
 
+        // debug
+//        for(int i=0; i<agents_heuristic_tables.size(); i++) {
+//            std::cout << "heuristic of map " << i << " : " << std::endl;
+//            // debug
+//            for(int y=0; y<dim[0]; y++) {
+//                for(int x=0; x<dim[1]; x++) {
+//                    auto id = PointiToId(Pointi<2>{x, y}, dim);
+//                    if(agents_heuristic_tables[i][id] != MAX<int>) {
+//                        std::cout << "\t" << agents_heuristic_tables[i][id] << " ";
+//                    } else {
+//                        std::cout << "\tINF ";
+//                    }
+//                }
+//                std::cout << std::endl;
+//            }
+//        }
+
         grid_visit_count_table = solver.grid_visit_count_tables_;
 
         if(solver.solve()) {

@@ -61,7 +61,7 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                 agents_local,
                 dim,
                 is_occupied,
-                LaCAM::LargeAgentLaCAMPose_func<2>,
+                LargeAgentLaCAMPose_func<2>,
                 "LaCAM",
                 time_limit);
         strs.push_back(str);
@@ -81,7 +81,7 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                 agents_local,
                 dim,
                 is_occupied,
-                LaCAM::LargeAgentLaCAMPose_func<2>,
+                LargeAgentLaCAMPose_func<2>,
                 "LaCAM",
                 time_limit);
         strs.push_back(str);
@@ -103,7 +103,7 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                 dim,
                 is_occupied,
                 //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
-                LaCAM::LargeAgentLaCAMPose_func<2>,
+                LargeAgentLaCAMPose_func<2>,
                 "LaCAM",
                 time_limit);
         strs.push_back(str);

@@ -7,7 +7,7 @@
 
 #include "../common.h"
 
-namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
+namespace freeNav::LayeredMAPF::LA_MAPF {
 
     using Config = std::vector<size_t>;  // locations for all agents
 
@@ -24,22 +24,22 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
     // low-level search node
     // yz: the size of constraint tree grow exponentially as number of agent increases, = pow(num_of_neighbor, num_of_agents)
     //     in the worst case
-    struct Constraint {
+    struct LaCAMConstraint {
         std::vector<int> who;
         std::vector<size_t> where;
         const int depth;
 
-        Constraint() : who(std::vector<int>()), where(std::vector<size_t>()), depth(0) {
+        LaCAMConstraint() : who(std::vector<int>()), where(std::vector<size_t>()), depth(0) {
         }
 
         // who and where
-        Constraint(Constraint *parent, const int& i, const size_t& v)
+        LaCAMConstraint(LaCAMConstraint *parent, const int& i, const size_t& v)
                 : who(parent->who), where(parent->where), depth(parent->depth + 1) {
             who.push_back(i);
             where.push_back(v);
         }
 
-        ~Constraint() {};
+        ~LaCAMConstraint() {};
     };
 
     struct ConfigHasher {
@@ -60,7 +60,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
         // for low-level search
         std::vector<float> priorities;
         std::vector<int> order;
-        std::queue<Constraint *> search_tree; // yz: first in, first out
+        std::queue<LaCAMConstraint *> search_tree; // yz: first in, first out
 
         int t = 0; // yz: time index of current node
 
@@ -69,8 +69,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
                   parent(_parent),
                   priorities(C.size(), 0),
                   order(C.size(), 0),
-                  search_tree(std::queue<Constraint *>()) {
-            search_tree.push(new Constraint());
+                  search_tree(std::queue<LaCAMConstraint *>()) {
+            search_tree.push(new LaCAMConstraint());
             const auto N = C.size();
 
             // set priorities

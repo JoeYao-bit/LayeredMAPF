@@ -84,6 +84,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 //                                                                                                                this->all_poses_,
 //                                                                                                                this->dim_));
                     this->solutions_.push_back(solution);
+//                    std::cout << " init path " << agent << " length = " << solution.size() << std::endl;
                 }
             }
             if(this->solvable) {
@@ -106,7 +107,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
         virtual bool solve(int cost_lowerbound = 0, int cost_upperbound = MAX_COST) override {
             if(this->remaining_time_ <= 0) { return false;}
-            if(!this->solvable) {
+            if(!this->solvable)
+            {
                 std::cout << "-- unsolvable instance " << std::endl;
                 return false;
             }
@@ -115,10 +117,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             // yz: generate a init node of CT
             generateRoot();
 //            std::cout << "-- generate root node " << std::endl;
+            return false;
             int count = 0;
             while (!cleanup_list.empty() && !solution_found) {
 //                if(count >= 2000) { break; }
-//                std::cout << "-- " << count << " iteration, open size " << cleanup_list.size() << std::endl;
+                std::cout << "-- " << count << " iteration, open size " << cleanup_list.size() << std::endl;
                 auto remain_s = this->mst_.elapsed()/1e3;
                 if(remain_s >= this->remaining_time_) {
                     // run out of time
@@ -128,11 +131,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 count ++;
                 // yz: select node with minimum heuristic value
                 auto curr = selectNode();
-//                std::cout << " select node with conflicts size = " << curr->conflicts.size() << " + " <<  curr->unknownConf.size() << std::endl;
-//                std::cout << " curr->g_val = " << curr->g_val << std::endl;
+                std::cout << " select node with conflicts size = " << curr->conflicts.size() << " + " <<  curr->unknownConf.size() << std::endl;
+                std::cout << " curr->g_val = " << curr->g_val << std::endl;
                 // yz: check whether reach terminate condition
                 if (terminate(curr)) {
-                    //std::cout << "-- LA-CBS finish after " << count << " iteration" << std::endl;
+                    std::cout << "-- Layered CBS finish after " << count << " iteration" << std::endl;
                     return solution_found;
                 }
                 if (!curr->h_computed)  // heuristics has not been computed yet
@@ -255,7 +258,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             root->h_val = 0;
             root->depth = 0;
             root->h_computed = true;
-            findConflicts(*root);
+            auto cfs = findConflicts(*root);
+
+            std::cout << "init paths have " << cfs.size() << " conflicts " << std::endl;
+            std::cout << "init paths have 2 " << root->unknownConf.size() << " conflicts " << std::endl;
+
             pushNode(root);
 //            std::cout << "root node = " << root->toString(this->all_poses_) << "\n";
         }
@@ -298,8 +305,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 goal_node = curr;
                 solution_cost = goal_node->getFHatVal() - goal_node->cost_to_go;
                 auto conflicts = findConflicts(*curr);
-                //std::cout << "-- finish with node depth = " << curr->depth << std::endl;
-                //std::cout << "solution_found = " << solution_found << std::endl;
+                std::cout << "-- finish with node depth = " << curr->depth << std::endl;
+                std::cout << "solution_found = " << solution_found << std::endl;
                 if(!conflicts.empty()) {
                     std::cout << "Solution have conflict !!!" << std::endl;
                     exit(-1);
