@@ -32,6 +32,9 @@ def loadDataFromfile(file_path):
                 new_data.level_3           = float(splited_line[9])
                 #new_data.level_4           = float(splited_line[10])
 
+                if new_data.level == 4:
+                    continue
+
                 data_list.append(new_data)
     except Exception as e:            
         print(e)       
@@ -143,7 +146,7 @@ def drawMethodMap(single_map_data, value_type):
     
 step_fmt = {3:"x-", 4:"o-.", 5:"^--"}    
 
-level_flag_map = {3:"Raw-Bi", 4:"Bi-level", 5:"Break loop"}
+level_flag_map = {3:"Bipartition", 4:"Bi-level", 5:"Break loops"}
     
 data_path_dir = '../test/test_data/decomposition/'
 all_map_name = [
