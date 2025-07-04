@@ -649,10 +649,10 @@ namespace MAPF_LNS2 {
                          set<int> &conflicting_agents, int neighbor_size, int upperbound) {
         int loc = start_location;
         for (int t = start_timestep; t < upperbound; t++) {
-            auto next_locs = instance.getNeighbors(loc);
+            auto next_locs = instance.getNeighbors(loc); // yz: current instance's four nearest neighbor
             next_locs.push_back(loc);
             while (!next_locs.empty()) {
-                int step = rand() % next_locs.size();
+                int step = rand() % next_locs.size(); // yz: pick a random nearby neighbor
                 auto it = next_locs.begin();
                 advance(it, step);
                 int next_h_val = agents[agent_id].path_planner->my_heuristic[*it];

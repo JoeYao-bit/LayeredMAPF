@@ -12,9 +12,6 @@ namespace PIBT_2 {
     }
 
     void HCA::run() {
-        freeNav::LayeredMAPF::max_size_of_stack = 0;
-        freeNav::LayeredMAPF::max_size_of_stack = this->distance_table.empty() ? 0 : P->getNum()*P->getG()->V.size();
-        freeNav::LayeredMAPF::max_size_of_stack = freeNav::LayeredMAPF::max_size_of_stack + P->getNum()*P->getG()->V.size();
         Paths paths(P->getNum());
 
         // create tables for tie-break

@@ -11,7 +11,7 @@
 #include "../large_agent_mapf.h"
 #include "large_agent_constraint.h"
 #include <random>
-namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
+namespace freeNav::LayeredMAPF::LA_MAPF {
 
     template<Dimension N>
     constexpr int numOfOrient(const Pointi<N>& pt) {
@@ -95,7 +95,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
             // setup search queues
             std::stack<Node *> OPEN; // yz: std::stack 先进后出（FILO）
             std::unordered_map<Config, Node *, ConfigHasher> CLOSED;
-            std::vector<Constraint *> GC;  // garbage collection of constraints
+            std::vector<LaCAMConstraint *> GC;  // garbage collection of constraints
 
             // insert initial node
             // yz: take all start position as start state
@@ -226,7 +226,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
 //                        }
 
                         //yz: add current agent's all possible candidates as constraint
-                        S->search_tree.push(new Constraint(M, i, u));
+                        S->search_tree.push(new LaCAMConstraint(M, i, u));
                     }
                 }
                 // create successors at the high-level search
@@ -297,7 +297,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::LaCAM {
         }
 
         // add large agent constraint
-        bool get_new_config(Node *S, Constraint *M) {
+        bool get_new_config(Node *S, LaCAMConstraint *M) {
             // setup cache
             // replace occupied_now and occupied_next with large agent constraint table
             for (auto a : A_) {

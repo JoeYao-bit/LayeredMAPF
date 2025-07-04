@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "Instance.h"
 #include "../../../algorithm/constraint_table_CBS/ConstraintTable.h"
-#include "../../../algorithm/layered_mapf.h"
+#include "../algorithm/layered_mapf.h"
 namespace CBS_Li {
 
 // yz: low level is for isolated single agent path planning

@@ -108,7 +108,22 @@ int main1() {
     sleep(1);
     base_usage = memory_recorder.getCurrentMemoryUsage();
     gettimeofday(&tv_pre, &tz);
-    multiple_paths = freeNav::LayeredMAPF::layeredMAPF<2>(ists, dim, is_occupied, mapf_func, CBS_Li::eecbs_MAPF, false, 30);
+
+    auto pre =
+            std::make_shared<PrecomputationOfMAPFDecomposition<2, LA_MAPF::HyperGraphNodeDataRaw<2>> >(ists, dim, is_occupied);
+
+    auto ns_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<2, LA_MAPF::HyperGraphNodeDataRaw<2>, Pointi<2> > >(dim,
+                                                                                                                                pre->connect_graphs_,
+                                                                                                                                pre->agent_sub_graphs_,
+                                                                                                                                pre->heuristic_tables_sat_,
+                                                                                                                                pre->heuristic_tables_,
+                                                                                                                                60 - pre->initialize_time_cost_/1e3,
+                                                                                                                                1e4,
+                                                                                                                                100,
+                                                                                                                                1);
+
+    multiple_paths = freeNav::LayeredMAPF::layeredMAPF<2>(ists, dim, is_occupied, mapf_func, CBS_Li::eecbs_MAPF,
+                                                          ns_decompose->all_levels_,  false, 60);
     gettimeofday(&tv_after, &tz);
     double layered_cost = (tv_after.tv_sec - tv_pre.tv_sec)*1e3 + (tv_after.tv_usec - tv_pre.tv_usec)/1e3;
     std::cout << multiple_paths.size() << " paths " << " / agents " << ists.size() << std::endl;
@@ -175,13 +190,13 @@ bool decompositionOfSingleInstance(const freeNav::Instances<N>& ists, DimensionL
     float peak_usage = memory_recorder.getMaximalMemoryUsage();
     float memory_usage = peak_usage - basic_usage;
     double time_cost = (tv_after.tv_sec - tv_pre.tv_sec) * 1e3 + (tv_after.tv_usec - tv_pre.tv_usec) / 1e3;
-    bool is_legal = instance_decompose->decompositionValidCheck(instance_decompose->all_clusters_);
+    bool is_legal = instance_decompose->decompositionValidCheck(instance_decompose->all_levels_);
 
     int max_cluster_size = 0, total_count = 0;
-    for(int i=0; i<instance_decompose->all_clusters_.size(); i++) {
-        total_count += instance_decompose->all_clusters_[i].size();
-        if(instance_decompose->all_clusters_[i].size() > max_cluster_size) {
-            max_cluster_size = instance_decompose->all_clusters_[i].size();
+    for(int i=0; i<instance_decompose->all_levels_.size(); i++) {
+        total_count += instance_decompose->all_levels_[i].size();
+        if(instance_decompose->all_levels_[i].size() > max_cluster_size) {
+            max_cluster_size = instance_decompose->all_levels_[i].size();
         }
         //if(all_clusters_[i].size() == 1) { continue; }
         //std::cout << "-- clusters " << i << " size " << all_clusters_[i].size() << ": " << all_clusters_[i] << std::endl;
@@ -190,7 +205,7 @@ bool decompositionOfSingleInstance(const freeNav::Instances<N>& ists, DimensionL
     outputStream.clear();
     std::stringstream ss;
     ss << " " << time_cost << " " << max_cluster_size << " " << ists.size() << " " << is_legal << " " << level << " " << memory_usage << " "
-    << instance_decompose->all_clusters_.size() << " "
+       << instance_decompose->all_levels_.size() << " "
     << instance_decompose->instance_decomposition_time_cost_ << " "
     << instance_decompose->cluster_decomposition_time_cost_ << " "
     << instance_decompose->sort_level_time_cost_ << " ";

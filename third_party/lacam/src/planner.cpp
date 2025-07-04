@@ -89,7 +89,7 @@ namespace LaCAM {
         // setup search queues
         std::stack<Node *> OPEN; // yz: std::stack 先进后出（FILO）
         std::unordered_map<Config, Node *, ConfigHasher> CLOSED;
-//        std::vector<Constraint *> GC;  // garbage collection of constraints // yz: seems has nothing to do with algorithm, so I commented it
+        std::vector<Constraint *> GC;  // garbage collection of constraints
 
         // insert initial node
         // yz: take all start position as start state
@@ -137,7 +137,7 @@ namespace LaCAM {
             // yz: so current config is part of solution, it can always find next solution,
             // yz: so this algorithm is complete
             auto M = S->search_tree.front();
-//            GC.push_back(M);
+            GC.push_back(M);
             S->search_tree.pop();
             if (M->depth < N) {
                 auto i = S->order[M->depth]; // yz: add constraint in order of priority, which is fixed
@@ -153,7 +153,6 @@ namespace LaCAM {
             // yz: try search next config under current config S and constraint M
             // yz: if failed, try add more constraint and find again
             if (!get_new_config(S, M)) continue;
-
             //yz: considering avoid static constraint
             /*
             if(ins->ct != nullptr) {
@@ -212,7 +211,7 @@ namespace LaCAM {
              "\tloop_itr:", loop_cnt, "\texplored:", CLOSED.size());
         // memory management
         for (auto a : A) delete a;
-//        for (auto M : GC) delete M;
+        for (auto M : GC) delete M;
         for (auto p : CLOSED) delete p.second;
 
 //        std::cout << "LaCAM::max_size_of_stack = " << freeNav::LayeredMAPF::max_size_of_stack << std::endl;

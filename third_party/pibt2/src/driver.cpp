@@ -210,7 +210,7 @@ namespace PIBT_2 {
                         iter ++;
                     }
                 }
-                freeNav::Pointi<2> near_pt; near_pt[0] = node->pos.x, near_pt[1] = node->pos.y;
+//                freeNav::Pointi<2> near_pt; near_pt[0] = node->pos.x, near_pt[1] = node->pos.y;
                 //std::cout << "nearyby isoc/new_isoc = " << raw_isoc(near_pt) << "/" << new_isoc(near_pt) << std::endl;
                 //std::cout << "node->neighbor size " << node->neighbor.size() << ", erase_count = " << erase_count << std::endl;
                 assert(erase_count == 1);

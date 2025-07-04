@@ -9,10 +9,13 @@
 
 #include "common_interfaces.h"
 #include "large_agent_test/common_interfaces.h"
+#include "../third_party/EECBS/inc/driver.h"
+#include "../third_party/lacam/include/lacam.hpp"
+
+#include "common_interfaces_raw.h"
 
 using namespace freeNav;
 using namespace freeNav::LayeredMAPF;
-using namespace freeNav::LayeredMAPF::LA_MAPF;
 
 
 void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
@@ -54,69 +57,142 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
         std::vector<std::string> strs;
         std::string str;
 
-        str = BIPARTITION_MAPF<2>(
-                instances_local,
-                dim,
-                is_occupied,
-                LaCAM::LargeAgentLaCAMPointi_func<2>,
-                "LaCAM",
-                time_limit);
-        strs.push_back(str);
+//        str = BIPARTITION_MAPF<2>(
+//                instances_local,
+//                dim,
+//                is_occupied,
+//                LaCAM::LargeAgentLaCAMPointi_func<2>,
+//                "LaCAM",
+//                time_limit);
+//        strs.push_back(str);
+//
+//        str = BIPARTITION_MAPF<2>(
+//                instances_local,
+//                dim,
+//                is_occupied,
+//                CBS::LargeAgentCBS_func<2, Pointi<2> >,
+//                "CBS",
+//                time_limit);
+//        strs.push_back(str); // ok
+//
+//        str = BREAKLOOP_MAPF<2>(
+//                instances_local,
+//                dim,
+//                is_occupied,
+//                LaCAM::LargeAgentLaCAMPointi_func<2>,
+//                "LaCAM",
+//                time_limit);
+//        strs.push_back(str);
+//
+//        str = BREAKLOOP_MAPF<2>(
+//                instances_local,
+//                dim,
+//                is_occupied,
+//                CBS::LargeAgentCBS_func<2, Pointi<2> >,
+//                "CBS",
+//                time_limit); // ok
+//        strs.push_back(str);
 
-        str = BIPARTITION_MAPF<2>(
-                instances_local,
-                dim,
-                is_occupied,
-                CBS::LargeAgentCBS_func<2, Pointi<2> >,
-                "CBS",
-                time_limit);
-        strs.push_back(str); // ok
 
-        str = BREAKLOOP_MAPF<2>(
-                instances_local,
-                dim,
-                is_occupied,
-                LaCAM::LargeAgentLaCAMPointi_func<2>,
-                "LaCAM",
-                time_limit);
-        strs.push_back(str);
+//        MSTimer mst;
+//        auto retv_path = CBS_Li::cbs_MAPF(dim, is_occupied, instances_local, nullptr, time_limit);
+//        std::cout << "raw CBS with " << instances_local.size() <<  " agents success ? " << !retv_path.empty() << " in " << mst.elapsed()/1e3 << "s" << std::endl;
 
-        str = BREAKLOOP_MAPF<2>(
+
+        /*
+         *     freeNav::Paths<2> cbs_MAPF(freeNav::DimensionLength *dim,
+                               const freeNav::IS_OCCUPIED_FUNC<2> &isoc,
+                               const freeNav::Instances<2> &instance_sat,
+                               CBS_Li::ConstraintTable *ct,
+                               int cutoff_time) {
+         * */
+
+
+//        str = RAW_MAPF<2>(
+//                instances_local,
+//                dim,
+//                is_occupied,
+//                LaCAM::LargeAgentLaCAMPointi_func<2>,
+//                "LaCAM",
+//                time_limit);
+//        strs.push_back(str);
+//
+//        str = ID_MAPF<2>(
+//                instances_local,
+//                dim,
+//                is_occupied,
+//                //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
+//                CBS::LargeAgentCBS_func<2, Pointi<2> >,
+//                "CBS",
+//                time_limit);
+//        strs.push_back(str); // ok
+
+
+        str = BIPARTITION_MAPF_RAW<2>(
                 instances_local,
                 dim,
                 is_occupied,
-                CBS::LargeAgentCBS_func<2, Pointi<2> >,
+                CBS_Li::cbs_MAPF,
                 "CBS",
                 time_limit); // ok
         strs.push_back(str);
 
-        str = RAW_MAPF<2>(
+        str = BIPARTITION_MAPF_RAW<2>(
                 instances_local,
                 dim,
                 is_occupied,
-                CBS::LargeAgentCBS_func<2, Pointi<2> >,
+                LaCAM::lacam_MAPF,
+                "LaCAM",
+                time_limit); // ok
+        strs.push_back(str);
+
+        str = BREAKLOOP_MAPF_RAW<2>(
+                instances_local,
+                dim,
+                is_occupied,
+                CBS_Li::cbs_MAPF,
                 "CBS",
                 time_limit); // ok
         strs.push_back(str);
 
-        str = RAW_MAPF<2>(
+        str = BREAKLOOP_MAPF_RAW<2>(
                 instances_local,
                 dim,
                 is_occupied,
-                LaCAM::LargeAgentLaCAMPointi_func<2>,
+                LaCAM::lacam_MAPF,
                 "LaCAM",
-                time_limit);
+                time_limit); // ok
         strs.push_back(str);
 
-        str = ID_MAPF<2>(
+
+        str = RAW_MAPF_RAW<2>(
                 instances_local,
                 dim,
                 is_occupied,
-                //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
-                CBS::LargeAgentCBS_func<2, Pointi<2> >,
+                CBS_Li::cbs_MAPF,
                 "CBS",
-                time_limit);
-        strs.push_back(str); // ok
+                time_limit); // ok
+        strs.push_back(str);
+
+        str = RAW_MAPF_RAW<2>(
+                instances_local,
+                dim,
+                is_occupied,
+                LaCAM::lacam_MAPF,
+                "LaCAM",
+                time_limit); // ok
+        strs.push_back(str);
+
+        std::cout << " start ID " << std::endl;
+        str = ID_MAPF_RAW<2>(
+                instances_local,
+                dim,
+                is_occupied,
+                CBS_Li::cbs_MAPF,
+                "CBS",
+                time_limit); // ok
+        strs.push_back(str);
+
         for(const auto& str : strs) {
             std::cout << str << std::endl;
         }
@@ -137,38 +213,38 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
 int main() {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int>> > map_configs = {
-            {MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120}}, // 10, 20, 40, 60, 80, 100, 120
+//            {MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120}}, // 10, 20, 40, 60, 80, 100, 120
 
-            {MAPFTestConfig_empty_32_32, {10, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400}}, // 10,40, 80, 120, 160, 200, 240, 280, 320, 360, 400
+            {MAPFTestConfig_empty_32_32, {100}}, // 10,40, 80, 120, 160, 200, 240, 280, 320, 360, 400
 
-            {MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240}},
-            {MAPFTestConfig_random_64_64_20, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-            {MAPFTestConfig_room_64_64_16, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-            {MAPFTestConfig_room_64_64_8, {100, 200, 300, 400, 500, 600, 700}},
-
-            {MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120}},
-            {MAPFTestConfig_maze_32_32_4, {20, 40, 80, 120, 160, 200, 240}},
-            {MAPFTestConfig_maze_128_128_2, {100, 200, 300, 400, 500, 600, 700}},
-            {MAPFTestConfig_maze_128_128_10, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-            {MAPFTestConfig_den312d, {100, 200, 300, 400, 500, 600, 700, 800}},
-            {MAPFTestConfig_den520d, {100, 200, 300, 400, 500, 600, 700, 800, 900}},
-            {MAPFTestConfig_Berlin_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900}},
-            {MAPFTestConfig_Paris_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-            {MAPFTestConfig_ht_chantry, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-            {MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-            {MAPFTestConfig_room_32_32_4, {10, 20, 40, 60, 80, 120, 160, 200}},
-            {MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800}},
-            {MAPFTestConfig_warehouse_10_20_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-            {MAPFTestConfig_warehouse_20_40_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-            {MAPFTestConfig_warehouse_20_40_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-            {MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-            {MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-            {MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}}
+//            {MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240}},
+//            {MAPFTestConfig_random_64_64_20, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+//            {MAPFTestConfig_room_64_64_16, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+//            {MAPFTestConfig_room_64_64_8, {100, 200, 300, 400, 500, 600, 700}},
+//
+//            {MAPFTestConfig_maze_32_32_2, {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120}},
+//            {MAPFTestConfig_maze_32_32_4, {20, 40, 80, 120, 160, 200, 240}},
+//            {MAPFTestConfig_maze_128_128_2, {100, 200, 300, 400, 500, 600, 700}},
+//            {MAPFTestConfig_maze_128_128_10, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+//            {MAPFTestConfig_den312d, {100, 200, 300, 400, 500, 600, 700, 800}},
+//            {MAPFTestConfig_den520d, {100, 200, 300, 400, 500, 600, 700, 800, 900}},
+//            {MAPFTestConfig_Berlin_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900}},
+//            {MAPFTestConfig_Paris_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+//            {MAPFTestConfig_ht_chantry, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+//            {MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+//            {MAPFTestConfig_room_32_32_4, {10, 20, 40, 60, 80, 120, 160, 200}},
+//            {MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800}},
+//            {MAPFTestConfig_warehouse_10_20_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+//            {MAPFTestConfig_warehouse_20_40_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+//            {MAPFTestConfig_warehouse_20_40_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+//            {MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+//            {MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+//            {MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}}
     };
     std::vector<bool> finished(map_configs.size(), false);
     std::mutex lock_1, lock_2;
     int map_id = 0;
-    for(int i=0; i<100;i++)
+    for(int i=0; i<1;i++)
     {
         std::cout << "global layered" << i << std::endl;
         for(int j=0; j<map_configs.size(); j++) {
