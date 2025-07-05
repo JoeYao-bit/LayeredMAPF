@@ -244,7 +244,7 @@ int main() {
     std::vector<bool> finished(map_configs.size(), false);
     std::mutex lock_1, lock_2;
     int map_id = 0;
-    for(int i=0; i<1;i++)
+    for(int i=0; i<100;i++)
     {
         std::cout << "global layered" << i << std::endl;
         for(int j=0; j<map_configs.size(); j++) {
