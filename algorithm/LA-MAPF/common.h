@@ -1151,9 +1151,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             if (isCollide(a1, *all_nodes[p1[t]], *all_nodes[p1[t + 1]],
                           a2, *all_nodes[p2[t]], *all_nodes[p2[t + 1]])) {
 
-                std::cout << "cs type 1 : " << *all_nodes[p1[t]] << "->" << *all_nodes[p1[t + 1]] << ", "
-                          << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t + 1]]
-                          << "/t:{" << t << "," << t + 1 << "}" << std::endl;
+//                std::cout << "cs type 1 : " << *all_nodes[p1[t]] << "->" << *all_nodes[p1[t + 1]] << ", "
+//                          << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t + 1]]
+//                          << "/t:{" << t << "," << t + 1 << "}" << std::endl;
 
                 auto c1 = std::make_shared<Constraint>(a1->id_, p1[t], p1[t + 1], t, t + 2);
                 auto c2 = std::make_shared<Constraint>(a2->id_, p2[t], p2[t + 1], t, t + 2);
@@ -1165,11 +1165,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             if (isCollide(longer_agent, *all_nodes[longer_path[t]], *all_nodes[longer_path[t + 1]],
                           shorter_agent, *all_nodes[shorter_path.back()])) {
 
-                std::cout << "cs type 2 : " << *all_nodes[longer_path[t]] << "->" << *all_nodes[longer_path[t + 1]]
-                          << ", "
-                          << *all_nodes[shorter_path.back()]
-                          << "/t:{" << t << "," << t + 1 << "}"
-                          << std::endl;
+//                std::cout << "cs type 2 : " << *all_nodes[longer_path[t]] << "->" << *all_nodes[longer_path[t + 1]]
+//                          << ", "
+//                          << *all_nodes[shorter_path.back()]
+//                          << "/t:{" << t << "," << t + 1 << "}"
+//                          << std::endl;
 
                 auto c1 = std::make_shared<Constraint>(longer_agent->id_, longer_path[t], longer_path[t + 1], t, t + 2);
                 auto c2 = std::make_shared<Constraint>(shorter_agent->id_, shorter_path.back(), MAX_NODES, t, t + 2);

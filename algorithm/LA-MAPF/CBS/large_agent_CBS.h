@@ -260,8 +260,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             root->h_computed = true;
             auto cfs = findConflicts(*root);
 
-            std::cout << "init paths have " << cfs.size() << " conflicts " << std::endl;
-            std::cout << "init paths have 2 " << root->unknownConf.size() << " conflicts " << std::endl;
+            //std::cout << "init paths have " << cfs.size() << " conflicts " << std::endl;
+            //std::cout << "init paths have 2 " << root->unknownConf.size() << " conflicts " << std::endl;
 
             pushNode(root);
 //            std::cout << "root node = " << root->toString(this->all_poses_) << "\n";
