@@ -56,15 +56,17 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
 
         std::vector<std::string> strs;
 
-        auto str = BIPARTITION_LAMAPF<2>(
-                instances_local,
-                agents_local,
-                dim,
-                is_occupied,
-                LargeAgentLaCAMPose_func<2>,
-                "LaCAM",
-                time_limit);
-        strs.push_back(str);
+        std::string str;
+
+        // str = BIPARTITION_LAMAPF<2>(
+        //         instances_local,
+        //         agents_local,
+        //         dim,
+        //         is_occupied,
+        //         LargeAgentLaCAMPose_func<2>,
+        //         "LaCAM",
+        //         time_limit);
+        // strs.push_back(str);
 
         str = BIPARTITION_LAMAPF<2>(
                 instances_local,
@@ -76,15 +78,15 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                 time_limit);
         strs.push_back(str);
 
-        str = BREAKLOOP_LAMAPF<2>(
-                instances_local,
-                agents_local,
-                dim,
-                is_occupied,
-                LargeAgentLaCAMPose_func<2>,
-                "LaCAM",
-                time_limit);
-        strs.push_back(str);
+        // str = BREAKLOOP_LAMAPF<2>(
+        //         instances_local,
+        //         agents_local,
+        //         dim,
+        //         is_occupied,
+        //         LargeAgentLaCAMPose_func<2>,
+        //         "LaCAM",
+        //         time_limit);
+        // strs.push_back(str);
 
         str = BREAKLOOP_LAMAPF<2>(
                 instances_local,
@@ -97,16 +99,16 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                 time_limit);
         strs.push_back(str);
 
-        str = RAW_LAMAPF<2>(
-                instances_local,
-                agents_local,
-                dim,
-                is_occupied,
-                //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
-                LargeAgentLaCAMPose_func<2>,
-                "LaCAM",
-                time_limit);
-        strs.push_back(str);
+        // str = RAW_LAMAPF<2>(
+        //         instances_local,
+        //         agents_local,
+        //         dim,
+        //         is_occupied,
+        //         //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
+        //         LargeAgentLaCAMPose_func<2>,
+        //         "LaCAM",
+        //         time_limit);
+        // strs.push_back(str);
 
 
         str = RAW_LAMAPF<2>(
@@ -156,12 +158,13 @@ int main() {
      //{MAPFTestConfig_AR0044SR, 1, 140, 10, 10}, // 50, 5, 5
     //{MAPFTestConfig_AR0203SR, 1, 40, 5, 5}, // 40, 5, 5
     // //
-         //{MAPFTestConfig_Paris_1_256,     1, 80, 10, 10}, // 80, 10, 10 / 20, 2, 2s
-     //{MAPFTestConfig_maze_128_128_10, 1, 60, 10, 10}, // 60, 10, 10
-    //{MAPFTestConfig_den520d,         1, 100, 10, 10},// 100, 10, 10
-     //{MAPFTestConfig_Boston_2_256, 1, 70, 10, 10}, //  70, 10, 10
-    //{MAPFTestConfig_Sydney_2_256, 1, 70, 10, 10}, // 70, 10, 10
+        //{MAPFTestConfig_den520d,         1, 100, 10, 10},// 100, 10, 10
       //{MAPFTestConfig_AR0072SR, 1, 30, 5, 5}, // 30, 5, 5
+
+     //    {MAPFTestConfig_Paris_1_256,     1, 80, 10, 10}, // 80, 10, 10 / 20, 2, 2s
+      //{MAPFTestConfig_maze_128_128_10, 1, 60, 10, 10}, // 60, 10, 10
+      //{MAPFTestConfig_Boston_2_256, 1, 70, 10, 10}, //  70, 10, 10
+     //{MAPFTestConfig_Sydney_2_256, 1, 70, 10, 10}, // 70, 10, 10
      {MAPFTestConfig_Denver_2_256, 1, 80, 10, 10}, // 80, 10, 10
 
             // not in test
@@ -173,35 +176,46 @@ int main() {
                 // {MAPFTestConfig_Denver_2_256, 1, 20, 2, 2} // ok
 
     };
+    for(int i=0; i<map_configs.size(); i++) {
+        int file_config_id = i;
+        multiLoadAgentAndCompare(std::get<0>(map_configs[file_config_id]),
+                                std::get<1>(map_configs[file_config_id]),
+                                std::get<2>(map_configs[file_config_id]),
+                                std::get<3>(map_configs[file_config_id]),
+                                std::get<4>(map_configs[file_config_id]),
+                                60);
+    }
+
+
     std::vector<bool> finished(map_configs.size(), false);
     std::mutex lock_1, lock_2;
     int map_id = 0;
-	for(int i=0; i<map_configs.size(); i++) {
-	auto lambda_func = [&]() {
-		lock_1.lock();
-		int file_config_id = map_id;
-		map_id ++;
-		lock_1.unlock();
-	    for(int j=0; j<100; j++)
-	    {
-		    std::cout << "global layered" << j << std::endl;
-		    multiLoadAgentAndCompare(std::get<0>(map_configs[file_config_id]),
-			                     std::get<1>(map_configs[file_config_id]),
-			                     std::get<2>(map_configs[file_config_id]),
-			                     std::get<3>(map_configs[file_config_id]),
-			                     std::get<4>(map_configs[file_config_id]),
-			                     60);
-	    }
-            lock_2.lock();
-            finished[file_config_id] = true;
-            lock_2.unlock();
-		};
-		std::thread t(lambda_func);
-		t.detach();
-		sleep(1);
-	}
-	while(finished != std::vector<bool>(map_configs.size(), true)) {
-        sleep(1);
-    	}
+	// for(int i=0; i<map_configs.size(); i++) {
+	//     auto lambda_func = [&]() {
+    //         lock_1.lock();
+    //         int file_config_id = map_id;
+    //         map_id ++;
+    //         lock_1.unlock();
+    //         for(int j=0; j<100; j++)
+    //         {
+    //             std::cout << "global layered" << j << std::endl;
+    //             multiLoadAgentAndCompare(std::get<0>(map_configs[file_config_id]),
+    //                                 std::get<1>(map_configs[file_config_id]),
+    //                                 std::get<2>(map_configs[file_config_id]),
+    //                                 std::get<3>(map_configs[file_config_id]),
+    //                                 std::get<4>(map_configs[file_config_id]),
+    //                                 60);
+    //         }
+    //         lock_2.lock();
+    //         finished[file_config_id] = true;
+    //         lock_2.unlock();
+	// 	};
+	// 	std::thread t(lambda_func);
+	// 	t.detach();
+	// 	sleep(1);
+	// }
+	// while(finished != std::vector<bool>(map_configs.size(), true)) {
+    //     sleep(1);
+    // }
     return 0;
 }

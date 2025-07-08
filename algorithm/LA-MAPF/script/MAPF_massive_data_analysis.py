@@ -488,17 +488,17 @@ map_format_list = [
 map_format_map = {
                 #  "empty-16-16":'o',
                 #  "empty-32-32":'o',
-                 "empty-48-48":'o',
+                # "empty-48-48":'o',
 
                 #  "maze-32-32-2":'*',
                 #  "maze-32-32-4":'*',
                 #  "maze-128-128-2":'*',
-                  "maze-128-128-10":'*',
+                  "maze-128-128-10":'*', #
                  
                 #  "den312d":'v',
-                  "den520d":'v',
+                  "den520d":'v', #
                  
-                  "Berlin_1_256":'<',
+                  #"Berlin_1_256":'<',
                   "Paris_1_256":'<',
                  
                 #  "ht_chantry":'H',
@@ -518,14 +518,14 @@ map_format_map = {
                  
                 #  "Boston_0_256":'<',
                 #  "lt_gallowstemplar_n":'H',
-                  "ost003d":'H',
+                #  "ost003d":'H',
                   
                   "Boston_2_256":'<',
                   "Sydney_2_256":'<', 
-                  "AR0044SR":'<', 
-                  "AR0203SR":'<', 
-                  "AR0072SR":'<',
-                  "Denver_2_256":'<'
+                #  "AR0044SR":'<', 
+                #  "AR0203SR":'<', 
+                #  "AR0072SR":'<',
+                #  "Denver_2_256":'<'
 
 }
 
@@ -767,6 +767,7 @@ def removeMethodDataFromFiles(map_format_map_index_local, method_name_local):
         print('remove data of ', method_name_local, ' from', data_file_path)
         removeMethodDataFromFile(data_file_path, method_name_local)
     
-# removeMethodDataFromFiles(map_format_map, 'RAW_LaCAM')
-# removeMethodDataFromFiles(map_format_map, 'BP_LaCAM')
-# removeMethodDataFromFiles(map_format_map, 'BL_LaCAM')
+# removeMethodDataFromFiles(map_format_map, 'RAW_CBS')
+# removeMethodDataFromFiles(map_format_map, 'BP_CBS')
+# removeMethodDataFromFiles(map_format_map, 'BL_CBS')
+# removeMethodDataFromFiles(map_format_map, 'ID_CBS')
