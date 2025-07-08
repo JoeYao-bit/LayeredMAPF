@@ -493,13 +493,13 @@ map_format_map = {
                 #  "maze-32-32-2":'*',
                 #  "maze-32-32-4":'*',
                 #  "maze-128-128-2":'*',
-                  "maze-128-128-10":'*', #
+                #   "maze-128-128-10":'*', #
                  
                 #  "den312d":'v',
                   "den520d":'v', #
                  
                   #"Berlin_1_256":'<',
-                  "Paris_1_256":'<',
+                #   "Paris_1_256":'<',
                  
                 #  "ht_chantry":'H',
                 #  "lak303d":'H',
@@ -516,53 +516,53 @@ map_format_map = {
                 #  "warehouse-20-40-10-2-1":'+',
                 #  "warehouse-20-40-10-2-2":'+',
                  
-                #  "Boston_0_256":'<',
+                  "Boston_2_256":'<',
                 #  "lt_gallowstemplar_n":'H',
                 #  "ost003d":'H',
                   
-                  "Boston_2_256":'<',
-                  "Sydney_2_256":'<', 
+                #   "Boston_2_256":'<',
+                #   "Sydney_2_256":'<', 
                 #  "AR0044SR":'<', 
                 #  "AR0203SR":'<', 
                 #  "AR0072SR":'<',
-                #  "Denver_2_256":'<'
+                 "Denver_2_256":'<'
 
 }
 
 
 map_size_limit = {
-                #  "empty-16-16":'o',
-                #  "empty-32-32":'o',
+                 "empty-16-16":'o',
+                 "empty-32-32":'o',
                  "empty-48-48":50,
 
-                #  "maze-32-32-2":'*',
-                #  "maze-32-32-4":'*',
-                #  "maze-128-128-2":'*',
+                 "maze-32-32-2":'*',
+                 "maze-32-32-4":'*',
+                 "maze-128-128-2":'*',
                   "maze-128-128-10":60,
                  
-                #  "den312d":'v',
+                 "den312d":'v',
                   "den520d":100,
                  
                   "Berlin_1_256":80,
                   "Paris_1_256":80,
                  
-                #  "ht_chantry":'H',
-                #  "lak303d":'H',
+                 "ht_chantry":'H',
+                 "lak303d":'H',
 
-                #  "random-32-32-20":'D',
-                #  "random-64-64-10":'D', 
+                 "random-32-32-20":'D',
+                 "random-64-64-10":'D', 
 
-                #  "room-32-32-4":'X',
-                #  "room-64-64-8":'X',
-                #  "room-64-64-16":'X',
+                 "room-32-32-4":'X',
+                 "room-64-64-8":'X',
+                 "room-64-64-16":'X',
 
-                #  "warehouse-10-20-10-2-1":'+',
-                #  "warehouse-10-20-10-2-2":'+',
-                #  "warehouse-20-40-10-2-1":'+',
-                #  "warehouse-20-40-10-2-2":'+',
+                 "warehouse-10-20-10-2-1":'+',
+                 "warehouse-10-20-10-2-2":'+',
+                 "warehouse-20-40-10-2-1":'+',
+                 "warehouse-20-40-10-2-2":'+',
                  
-                #  "Boston_0_256":'<',
-                #  "lt_gallowstemplar_n":'H',
+                 "Boston_0_256":'<',
+                 "lt_gallowstemplar_n":'H',
                   "ost003d":100,
                   
                   "Boston_2_256":70,

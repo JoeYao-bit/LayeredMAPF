@@ -163,7 +163,7 @@ int main() {
 
    //{MAPFTestConfig_Paris_1_256,     10, 80, 10, 10}, // 80, 10, 10 / 20, 2, 2s
       //{MAPFTestConfig_maze_128_128_10, 10, 60, 10, 10}, // 60, 10, 10
-      //{MAPFTestConfig_Boston_2_256, 10, 70, 10, 10}, //  70, 10, 10
+      {MAPFTestConfig_Boston_0_256, 10, 70, 10, 10}, //  70, 10, 10
      //{MAPFTestConfig_Sydney_2_256, 10, 70, 10, 10}, // 70, 10, 10
      {MAPFTestConfig_Denver_2_256, 10, 80, 10, 10}, // 80, 10, 10
 

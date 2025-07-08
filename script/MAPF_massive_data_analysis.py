@@ -672,8 +672,4 @@ def removeMethodDataFromFiles(map_format_map_index_local, method_name_local):
         data_file_path = data_path_dir + map_name_key + '_comp.txt'
         print('remove data of ', method_name_local, ' from', data_file_path)
         removeMethodDataFromFile(data_file_path, method_name_local)
-    
-removeMethodDataFromFiles(map_format_map, 'ID_CBS')
-removeMethodDataFromFiles(map_format_map, 'RAW_CBS')
-removeMethodDataFromFiles(map_format_map, 'BP_CBS')
-removeMethodDataFromFiles(map_format_map, 'BL_CBS')
+
