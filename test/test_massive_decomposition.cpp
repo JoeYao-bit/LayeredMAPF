@@ -226,7 +226,7 @@ bool decompositionOfSingleInstanceBreakLoop(const freeNav::Instances<N>& ists, D
     memory_recorder.clear();
     sleep(1);
     float basic_usage = memory_recorder.getMaximalMemoryUsage();
-    auto start_t = clock();
+    MSTimer mst;
 
     auto pre =
             std::make_shared<PrecomputationOfMAPFDecomposition<N, LA_MAPF::HyperGraphNodeDataRaw<2>> >(ists, dim, isoc);
@@ -238,11 +238,10 @@ bool decompositionOfSingleInstanceBreakLoop(const freeNav::Instances<N>& ists, D
             pre->heuristic_tables_,
             time_limit_s - pre->initialize_time_cost_/1e3,
             1e4,
-            100,
+            10,
             1);
 
-    auto now_t = clock();
-    double time_cost =  1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
+    double time_cost =  mst.elapsed()/1e3;
 
     sleep(1);
     float peak_usage = memory_recorder.getMaximalMemoryUsage();
@@ -287,7 +286,7 @@ bool decompositionOfSingleInstanceBipartition(const freeNav::Instances<N>& ists,
     memory_recorder.clear();
     sleep(1);
     float basic_usage = memory_recorder.getMaximalMemoryUsage();
-    auto start_t = clock();
+    MSTimer mst;
 
     auto pre =
             std::make_shared<PrecomputationOfMAPFDecomposition<N, LA_MAPF::HyperGraphNodeDataRaw<2>> >(ists, dim, isoc);
@@ -300,8 +299,7 @@ bool decompositionOfSingleInstanceBipartition(const freeNav::Instances<N>& ists,
                         time_limit_s - pre->initialize_time_cost_/1e3,
                         level);
 
-    auto now_t = clock();
-    double time_cost =  1e3*((double)now_t - start_t)/CLOCKS_PER_SEC;
+    double time_cost =  mst.elapsed()/1e3;
 
     sleep(1);
     float peak_usage = memory_recorder.getMaximalMemoryUsage();
@@ -416,12 +414,12 @@ bool SingleMapDecompositionTestMAPF(const SingleMapTestConfig <2> &map_test_conf
 //        }
 //        std::cout << "-- finish level 2 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
 
-        if(!decompositionOfSingleInstanceBipartition<2>(ists, dim, is_occupied_func, ostream, timecost_limit_s, 3)) {
-            std::cout << " decomposition failed " << std::endl;
-            return false;
-        }
-        std::cout << "-- finish level 3 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
-        output_streamss.push_back(ostream);
+//        if(!decompositionOfSingleInstanceBipartition<2>(ists, dim, is_occupied_func, ostream, timecost_limit_s, 3)) {
+//            std::cout << " decomposition failed " << std::endl;
+//            return false;
+//        }
+//        std::cout << "-- finish level 3 decomposition(" << i <<"/" << istss.size() << ")" << std::endl;
+//        output_streamss.push_back(ostream);
 
         if(!decompositionOfSingleInstanceBipartition<2>(ists, dim, is_occupied_func, ostream, timecost_limit_s, 4)) {
             std::cout << " decomposition failed " << std::endl;
@@ -504,61 +502,44 @@ std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int> > > test_configs
 int main() {
 
     auto test_configs_copy = test_configs; // test_configs, test_configs_demo
-
-    int interval = 2;
-    int repeat_times = 200;
-    int num_threads = test_configs_copy.size()/interval;
-    std::vector<bool> finished(num_threads, false);
-    for(int j=0; j<num_threads; j++) {
-        auto lambda_func = [&]() {
-            int thread_id = j; // save to avoid change during planning
-            for(int i=0; i<repeat_times; i++) {
-                int count_of_instances = 1;
-                for (int k = 0; k < interval; k++) {
-                    //std::cout << "thread_id = " << thread_id << std::endl;
-                    int map_id = thread_id * interval + k;
-                    std::cout << "map_id = " << map_id << std::endl;
-                    if (thread_id * interval + k >= test_configs_copy.size()) { break; }
-                    SingleMapDecompositionTestMAPF(std::get<0>(test_configs_copy[map_id]),
-                                                   std::get<1>(test_configs_copy[map_id]),
-                                                   count_of_instances);
-                }
-            }
-            finished[thread_id] = true;
-            std::cout << "thread " << thread_id << " finished" << std::endl;
-        };
-        std::thread t(lambda_func);
-        t.detach();
-        sleep(1);
+    for(int i=0; i<10; i++) {
+        int count_of_instances = 1;
+        for (int map_id = 0; map_id < test_configs_copy.size(); map_id++) {
+            SingleMapDecompositionTestMAPF(std::get<0>(test_configs_copy[map_id]),
+                                           std::get<1>(test_configs_copy[map_id]),
+                                           count_of_instances);
+        }
     }
-    while(finished != std::vector<bool>(num_threads, true)) {
-        sleep(1);
-    }
+//    int interval = 2;
+//    int repeat_times = 10;
+//    int num_threads = (int)std::ceil((double)test_configs_copy.size()/interval);
+//    std::vector<bool> finished(num_threads, false);
+//    for(int j=0; j<num_threads; j++) {
+//        auto lambda_func = [&]() {
+//            int thread_id = j; // save to avoid change during planning
+//            for(int i=0; i<repeat_times; i++) {
+//                int count_of_instances = 1;
+//                for (int k = 0; k < interval; k++) {
+//                    //std::cout << "thread_id = " << thread_id << std::endl;
+//                    int map_id = thread_id * interval + k;
+//                    std::cout << "map_id = " << map_id << std::endl;
+//                    if (thread_id * interval + k >= test_configs_copy.size()) { break; }
+//                    SingleMapDecompositionTestMAPF(std::get<0>(test_configs_copy[map_id]),
+//                                                   std::get<1>(test_configs_copy[map_id]),
+//                                                   count_of_instances);
+//                }
+//            }
+//            finished[thread_id] = true;
+//            std::cout << "thread " << thread_id << " finished" << std::endl;
+//        };
+//        std::thread t(lambda_func);
+//        t.detach();
+//        sleep(1);
+//    }
+//    while(finished != std::vector<bool>(num_threads, true)) {
+//        sleep(1);
+//    }
 
     return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

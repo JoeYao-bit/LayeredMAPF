@@ -132,7 +132,7 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
                 if len(x) != 0 and len(y) != 0:
                     while len(x) > len(y):
                         x.pop()
-                    plt.errorbar(x, y, fmt=method_marker_map2[splited_method_name[0]], markersize=14, label=splited_method_name[0], linewidth=2, elinewidth=4, capsize=4) 
+                    plt.errorbar(x, y, fmt=method_marker_map2[splited_method_name[0]], markersize=14, markerfacecolor='none', label=splited_method_name[0], linewidth=2, elinewidth=4, capsize=4) 
 
         plt.tick_params(axis='both', labelsize=18)
         formater = ticker.ScalarFormatter(useMathText=True) 
@@ -445,8 +445,8 @@ map_format_map = {
                  
                  "maze-32-32-2":'*', # 1
                  "maze-32-32-4":'p', # 1 
-                 "maze-128-128-2":'*', # 2
-                 "maze-128-128-10":'o', # 3
+                #  "maze-128-128-2":'*', # 2
+                #  "maze-128-128-10":'o', # 3
                  
                  "den312d":'p', # 2
                  "den520d":'*', # 3
@@ -454,25 +454,25 @@ map_format_map = {
                  "Berlin_1_256":'p', # 3
                  "Paris_1_256":'s', # 3
                  
-                 "ht_chantry":'H', # 3
-                 "lak303d":'X', # 3
+                #  "ht_chantry":'H', # 3
+                #  "lak303d":'X', # 3
 
                  "random-32-32-20":'s', # 1
-                 "random-64-64-20":'o',  # 4
+                #  "random-64-64-20":'o',  # 4
 
                  "room-32-32-4":'H', # 1
-                 "room-64-64-8":'s', # 2
-                 "room-64-64-16":'*', # 4
+                #  "room-64-64-8":'s', # 2
+                #  "room-64-64-16":'*', # 4
 
-                 "warehouse-10-20-10-2-1":'H', # 2
-                 ####
-                 "warehouse-10-20-10-2-2":'p', # 4
-                 "warehouse-20-40-10-2-1":'s', # 4
-                 "warehouse-20-40-10-2-2":'H', # 4
+                #  "warehouse-10-20-10-2-1":'H', # 2
+                #  ####
+                #  "warehouse-10-20-10-2-2":'p', # 4
+                #  "warehouse-20-40-10-2-1":'s', # 4
+                #  "warehouse-20-40-10-2-2":'H', # 4
                  
-                 "Boston_0_256":'X', # 4 
-                 "lt_gallowstemplar_n":'P', # 4
-                 "ost003d":'<' # 4
+                #  "Boston_0_256":'X', # 4 
+                #  "lt_gallowstemplar_n":'P', # 4
+                #  "ost003d":'<' # 4
 
 }
 

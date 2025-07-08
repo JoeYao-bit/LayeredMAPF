@@ -32,7 +32,7 @@ def loadDataFromfile(file_path):
                 new_data.level_3           = float(splited_line[9])
                 #new_data.level_4           = float(splited_line[10])
 
-                if new_data.level == 4:
+                if new_data.level == 3:
                     continue
 
                 data_list.append(new_data)
@@ -110,7 +110,7 @@ def drawMethodMap(single_map_data, value_type):
             std_val.append(np.std(all_raw_data[level_key][sorted_key]))
 
         # yerr=std_val
-        plt.errorbar(x, y, label=level_flag_map[level_key], markersize=14, fmt=step_fmt[level_key], linewidth= 4, elinewidth=4, capsize=4)
+        plt.errorbar(x, y, label=level_flag_map[level_key], markersize=14, markerfacecolor='none', fmt=step_fmt[level_key], linewidth= 4, elinewidth=4, capsize=4)
         #break    
 
     plt.legend(loc='best')    
@@ -146,7 +146,7 @@ def drawMethodMap(single_map_data, value_type):
     
 step_fmt = {3:"x-", 4:"o-.", 5:"^--"}    
 
-level_flag_map = {3:"Bipartition", 4:"Bi-level", 5:"Break loops"}
+level_flag_map = {3:"Bipartition", 4:"Bipartition", 5:"Break loops"}
     
 data_path_dir = '../test/test_data/decomposition/'
 all_map_name = [

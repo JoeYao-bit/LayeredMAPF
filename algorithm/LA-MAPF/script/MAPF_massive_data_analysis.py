@@ -25,6 +25,8 @@ def loadDataFromfile(file_path, map_name):
                 new_data.total_cost = int(splited_line[3])
                 new_data.max_single_cost = int(splited_line[4])
                 new_data.success = int(splited_line[5])
+                if(new_data.success > 1):
+                     new_data.success = 1
                 new_data.max_memory_usage = float(splited_line[6])
                 
                 # if(new_data.agent_count > map_size_limit[map_name]):
@@ -132,7 +134,7 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
                 if len(x) != 0 and len(y) != 0:
                     while len(x) > len(y):
                         x.pop()
-                    plt.errorbar(x, y, fmt=method_marker_map2[splited_method_name[0]], markersize=14, label=splited_method_name[0], linewidth=2, elinewidth=4, capsize=4) 
+                    plt.errorbar(x, y, fmt=method_marker_map2[splited_method_name[0]], markerfacecolor='none', markersize=14,label=splited_method_name[0], linewidth=2, elinewidth=4, capsize=4) 
 
         plt.tick_params(axis='both', labelsize=18)
         formater = ticker.ScalarFormatter(useMathText=True) 
@@ -765,6 +767,6 @@ def removeMethodDataFromFiles(map_format_map_index_local, method_name_local):
         print('remove data of ', method_name_local, ' from', data_file_path)
         removeMethodDataFromFile(data_file_path, method_name_local)
     
-removeMethodDataFromFiles(map_format_map, 'RAW_LaCAM')
-removeMethodDataFromFiles(map_format_map, 'BP_LaCAM')
-removeMethodDataFromFiles(map_format_map, 'BL_LaCAM')
+# removeMethodDataFromFiles(map_format_map, 'RAW_LaCAM')
+# removeMethodDataFromFiles(map_format_map, 'BP_LaCAM')
+# removeMethodDataFromFiles(map_format_map, 'BL_LaCAM')

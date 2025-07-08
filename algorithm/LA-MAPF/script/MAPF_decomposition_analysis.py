@@ -107,7 +107,7 @@ def drawMethodMap(single_map_data, value_type):
 
 
         # yerr=std_val
-        plt.errorbar(x, y, label=level_flag_map[level_key], markersize=14, fmt=step_fmt[level_key], linewidth= 4, elinewidth=4, capsize=4)
+        plt.errorbar(x, y, label=level_flag_map[level_key], markersize=14, markerfacecolor='none', fmt=step_fmt[level_key], linewidth= 4, elinewidth=4, capsize=4)
         #break    
 
     plt.legend(loc='best')    
