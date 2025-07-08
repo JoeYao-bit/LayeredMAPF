@@ -158,14 +158,14 @@ int main() {
      //{MAPFTestConfig_AR0044SR, 1, 140, 10, 10}, // 50, 5, 5
     //{MAPFTestConfig_AR0203SR, 1, 40, 5, 5}, // 40, 5, 5
     // //
-        //{MAPFTestConfig_den520d,         1, 100, 10, 10},// 100, 10, 10
+        {MAPFTestConfig_den520d,         1, 100, 10, 10},// 100, 10, 10
       //{MAPFTestConfig_AR0072SR, 1, 30, 5, 5}, // 30, 5, 5
 
    //{MAPFTestConfig_Paris_1_256,     10, 80, 10, 10}, // 80, 10, 10 / 20, 2, 2s
      //{MAPFTestConfig_maze_128_128_10, 10, 60, 10, 10}, // 60, 10, 10
       //{MAPFTestConfig_Boston_2_256, 10, 70, 10, 10}, //  70, 10, 10
      //{MAPFTestConfig_Sydney_2_256, 10, 70, 10, 10}, // 70, 10, 10
-     {MAPFTestConfig_Denver_2_256, 10, 80, 10, 10}, // 80, 10, 10
+     //{MAPFTestConfig_Denver_2_256, 10, 80, 10, 10}, // 80, 10, 10
 
             // not in test
             //        {MAPFTestConfig_Boston_2_256, 1, 20, 2, 2}, // ok
