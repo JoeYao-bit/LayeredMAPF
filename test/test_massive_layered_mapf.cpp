@@ -212,7 +212,7 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
 int main() {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, std::vector<int>> > map_configs = {
-        //  {MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120}}, // 10, 20, 40, 60, 80, 100, 120
+          {MAPFTestConfig_empty_16_16, {10, 20, 40, 60, 80, 100, 120}}, // 10, 20, 40, 60, 80, 100, 120
         //  {MAPFTestConfig_empty_32_32, {10,40, 80, 120, 160, 200, 240, 280, 320, 360, 400}}, // 10,40, 80, 120, 160, 200, 240, 280, 320, 360, 400
         //  {MAPFTestConfig_random_32_32_20, {20, 40, 80, 120, 160, 200, 240}},
         //  {MAPFTestConfig_random_64_64_20, {100, 200, 300, 00, 500, 600, 700, 800, 900, 1000}},
@@ -226,19 +226,19 @@ int main() {
         // {MAPFTestConfig_den312d, {100, 200, 300, 400, 500, 600, 700, 800}},
         // {MAPFTestConfig_den520d, {100, 200, 300, 400, 500, 600, 700, 800, 900}},
 
-           {MAPFTestConfig_Berlin_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900}},
-           {MAPFTestConfig_Paris_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-           {MAPFTestConfig_ht_chantry, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-           {MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-           {MAPFTestConfig_room_32_32_4, {10, 20, 40, 60, 80, 120, 160, 200}},
-           {MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800}},
-
-           {MAPFTestConfig_warehouse_10_20_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-           {MAPFTestConfig_warehouse_20_40_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-           {MAPFTestConfig_warehouse_20_40_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-           {MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-           {MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
-           {MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}}
+//           {MAPFTestConfig_Berlin_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900}},
+//           {MAPFTestConfig_Paris_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+//           {MAPFTestConfig_ht_chantry, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+//           {MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+//           {MAPFTestConfig_room_32_32_4, {10, 20, 40, 60, 80, 120, 160, 200}},
+//           {MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800}},
+//
+//           {MAPFTestConfig_warehouse_10_20_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+//           {MAPFTestConfig_warehouse_20_40_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+//           {MAPFTestConfig_warehouse_20_40_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+//           {MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+//           {MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},
+//           {MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}}
     };
     std::vector<bool> finished(map_configs.size(), false);
     std::mutex lock_1, lock_2;
