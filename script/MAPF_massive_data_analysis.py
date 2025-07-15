@@ -72,6 +72,10 @@ def loadDataFromfile(file_path, map_name):
                     new_data.num_of_subproblem = 1
                 data_list.append(new_data)
                 #print("data=", new_data.method, ' ', new_data.agent_count, ' ', new_data.max_subproblem_size, ' ', new_data.num_of_subproblem)
+
+                # if head_split[1] == 'LaCAM' :
+                #     print("data=", new_data.method, ' ', new_data.agent_count, ' ', new_data.max_subproblem_size, ' ')
+
     except Exception as e:            
         print(e)             
     return data_list
@@ -248,7 +252,7 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
     print(title + "/" + ylable + " / raw = " + str(np.mean(value_lists_raw)) + " bp = " + str(np.mean(value_lists_bp)) + " id = " + str(np.mean(value_lists_id)) + " bl = " + str(np.mean(value_lists_bl)) )
     
     plt.tick_params(axis='both', labelsize=14)
-    plt.xticks(np.arange(1, len(map_format_list)+1, 1))
+    #plt.xticks(np.arange(1, len(map_format_list)+1, 1))
     formater = ticker.ScalarFormatter(useMathText=True) 
     formater.set_scientific(True)
     formater.set_powerlimits((0,0))
@@ -440,39 +444,39 @@ method_marker_map2 = {
 
 
 map_format_map = {
-                 "empty-16-16":'o', # 1
-                 "empty-32-32":'o', # 2
+                #  "empty-16-16":'o', # 1
+                #  "empty-32-32":'o', # 2
                  
-                 "maze-32-32-2":'*', # 1
-                 "maze-32-32-4":'p', # 1 
+                #  "maze-32-32-2":'*', # 1
+                #  "maze-32-32-4":'p', # 1 
                 #  "maze-128-128-2":'*', # 2
                 #  "maze-128-128-10":'o', # 3
                  
-                 "den312d":'p', # 2
-                 "den520d":'*', # 3
+                #  "den312d":'p', # 2
+                #  "den520d":'*', # 3
                  
-                 "Berlin_1_256":'p', # 3
-                 "Paris_1_256":'s', # 3
+                  "Berlin_1_256":'p', # 3
+                #  "Paris_1_256":'s', # 3
                  
-                #  "ht_chantry":'H', # 3
-                #  "lak303d":'X', # 3
+                  "ht_chantry":'H', # 3
+                  "lak303d":'X', # 3
 
-                 "random-32-32-20":'s', # 1
+                #  "random-32-32-20":'s', # 1
                 #  "random-64-64-20":'o',  # 4
 
-                 "room-32-32-4":'H', # 1
+                #  "room-32-32-4":'H', # 1
                 #  "room-64-64-8":'s', # 2
                 #  "room-64-64-16":'*', # 4
 
-                #  "warehouse-10-20-10-2-1":'H', # 2
+                  "warehouse-10-20-10-2-1":'H', # 2
                 #  ####
-                #  "warehouse-10-20-10-2-2":'p', # 4
-                #  "warehouse-20-40-10-2-1":'s', # 4
-                #  "warehouse-20-40-10-2-2":'H', # 4
+                  "warehouse-10-20-10-2-2":'p', # 4
+                  "warehouse-20-40-10-2-1":'s', # 4
+                  "warehouse-20-40-10-2-2":'H', # 4
                  
-                #  "Boston_0_256":'X', # 4 
-                #  "lt_gallowstemplar_n":'P', # 4
-                #  "ost003d":'<' # 4
+                 "Boston_0_256":'X', # 4 
+                  "lt_gallowstemplar_n":'P', # 4
+                  "ost003d":'<' # 4
 
 }
 
@@ -611,32 +615,41 @@ for single_data in all_single_data:
 
 for method_key, method_value in all_method_time_cost_map.items(): 
     # # draw at each agent size
-    drawMethodMaps(all_method_time_cost_map[method_key], "Number of agents", "Time cost(s)", "time_cost/"+method_key)           
-    drawMethodMaps(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
-    drawMethodMaps(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
-    drawMethodMaps(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
-    drawMethodMaps(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)        
+    # drawMethodMaps(all_method_time_cost_map[method_key], "Number of agents", "Time cost(s)", "time_cost/"+method_key)           
+    # drawMethodMaps(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
+    # drawMethodMaps(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
+    # drawMethodMaps(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
+    # drawMethodMaps(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)        
     
-    drawMethodMaps(all_method_max_subproblem_map[method_key], "Number of agents", "max_subproblem_size", "max_subproblem_size/"+method_key)        
-    drawMethodMaps(all_method_num_of_subproblem_map[method_key], "Number of agents", "num_of_subproblem", "num_of_subproblem/"+method_key)        
-    drawMethodMaps(all_method_loss_of_solvability_map[method_key], "Loss of solvability(%)", "loss_of_solvability", "loss_of_solvability/"+method_key)        
+    # drawMethodMaps(all_method_max_subproblem_map[method_key], "Number of agents", "max_subproblem_size", "max_subproblem_size/"+method_key)        
+    # drawMethodMaps(all_method_num_of_subproblem_map[method_key], "Number of agents", "num_of_subproblem", "num_of_subproblem/"+method_key)        
+    # drawMethodMaps(all_method_loss_of_solvability_map[method_key], "Loss of solvability(%)", "loss_of_solvability", "loss_of_solvability/"+method_key)        
 
     # # draw summary of maps
-    # drawSummaryOfMap(all_method_time_cost_map[method_key], "Map index", "Time cost(s)", "time_cost/"+method_key)    
-    # drawSummaryOfMap(all_method_memory_usage_map[method_key], "Map index", "Memory usage(MB)", "memory_usage/"+method_key)           
+    drawSummaryOfMap(all_method_time_cost_map[method_key], "Map index", "Time cost(s)", "time_cost/"+method_key)    
+    drawSummaryOfMap(all_method_memory_usage_map[method_key], "Map index", "Memory usage(MB)", "memory_usage/"+method_key)           
     # drawSummaryOfMap(all_method_total_cost_map[method_key], "Map index", "Sum of cost", "sum_of_cost/"+method_key)           
     # drawSummaryOfMap(all_method_makespan_map[method_key], "Map index", "Makespan", "makespan/"+method_key)           
-    # drawSummaryOfMap(all_method_success_rate_map[method_key], "Map index", "Success rate", "success_rate/"+method_key)      
+    drawSummaryOfMap(all_method_success_rate_map[method_key], "Map index", "Success rate", "success_rate/"+method_key)      
     
-    # drawSummaryOfMap(all_method_max_subproblem_map[method_key], "Map index", "Max subproblem", "max_subproblem_size/"+method_key)           
-    # drawSummaryOfMap(all_method_num_of_subproblem_map[method_key], "Map index", "Number of subproblems", "num_of_subproblem/"+method_key)
+    drawSummaryOfMap(all_method_max_subproblem_map[method_key], "Map index", "Max subproblem", "max_subproblem_size/"+method_key)           
+    drawSummaryOfMap(all_method_num_of_subproblem_map[method_key], "Map index", "Number of subproblems", "num_of_subproblem/"+method_key)
     
     # compute makespan and soc comparison when both success      
-    # compareOnlySuccess(all_method_makespan_map[method_key], "Makespan", "RAW", "BL")
-    # compareOnlySuccess(all_method_total_cost_map[method_key], "Sum of cost", "BP", "BL")
-    # compareOnlySuccess(all_method_makespan_map[method_key], "Makespan", "ID", "BL")
-    # compareOnlySuccess(all_method_total_cost_map[method_key], "Sum of cost", "ID", "LAYERED")
-    
+    compareOnlySuccess(all_method_makespan_map[method_key], "Makespan", "RAW", "ID")
+    compareOnlySuccess(all_method_makespan_map[method_key], "Makespan", "RAW", "BP")
+    compareOnlySuccess(all_method_makespan_map[method_key], "Makespan", "RAW", "BL")
+    compareOnlySuccess(all_method_makespan_map[method_key], "Makespan", "ID", "BP")
+    compareOnlySuccess(all_method_makespan_map[method_key], "Makespan", "ID", "BL")
+    compareOnlySuccess(all_method_makespan_map[method_key], "Makespan", "BP", "BL")
+
+    compareOnlySuccess(all_method_total_cost_map[method_key], "Sum of cost", "RAW", "ID")
+    compareOnlySuccess(all_method_total_cost_map[method_key], "Sum of cost", "RAW", "BP")
+    compareOnlySuccess(all_method_total_cost_map[method_key], "Sum of cost", "RAW", "BL")
+    compareOnlySuccess(all_method_total_cost_map[method_key], "Sum of cost", "ID", "BP")
+    compareOnlySuccess(all_method_total_cost_map[method_key], "Sum of cost", "ID", "BL")
+    compareOnlySuccess(all_method_total_cost_map[method_key], "Sum of cost", "BP", "BL")
+
 #draw summary of methods
 # drawSummaryOfMethod(all_method_time_cost_map, "Number of agents", "Time cost(ms)", "time_cost")           
 # drawSummaryOfMethod(all_method_memory_usage_map, "Number of agents", "Memory usage(MB)", "memory_usage")           

@@ -488,18 +488,18 @@ map_format_list = [
 map_format_map = {
                 #  "empty-16-16":'o',
                 #  "empty-32-32":'o',
-                # "empty-48-48":'o',
+                 "empty-48-48":'o',
 
                 #  "maze-32-32-2":'*',
                 #  "maze-32-32-4":'*',
                 #  "maze-128-128-2":'*',
-                #  "maze-128-128-10":'*', #
+                  "maze-128-128-10":'*', #
                  
                 #   "den312d":'v',
                   "den520d":'v', #
                  
-                #   "Berlin_1_256":'<',
-                #   "Paris_1_256":'<',
+                   "Berlin_1_256":'<',
+                   "Paris_1_256":'<',
                  
                 #  "ht_chantry":'H',
                 #  "lak303d":'H',
@@ -518,12 +518,12 @@ map_format_map = {
                  
                 #   "Boston_2_256":'<',
                 #   "lt_gallowstemplar_n":'H',
-                #   "ost003d":'H',
+                   "ost003d":'H',
                   
-                #    "Boston_2_256":'<',
-                #  "Sydney_2_256":'<', 
-                #   "AR0044SR":'<', 
-                #   "AR0203SR":'<', 
+                    "Boston_2_256":'<',
+                  "Sydney_2_256":'<', 
+                   "AR0044SR":'<', 
+                   "AR0203SR":'<', 
                 #   "AR0072SR":'<',
                 #  "Denver_2_256":'<'
 
@@ -716,20 +716,33 @@ for method_key, method_value in all_method_time_cost_map.items():
     drawMethodMaps(all_method_loss_of_solvability_map[method_key], "Loss of solvability(%)", "loss_of_solvability", "loss_of_solvability/"+method_key)        
 
     # # draw summary of maps
-    # drawSummaryOfMap(all_method_time_cost_map[method_key], "Map index", "Time cost(s)", "time_cost/"+method_key)    
-    # drawSummaryOfMap(all_method_memory_usage_map[method_key], "Map index", "Memory usage(MB)", "memory_usage/"+method_key)           
+    drawSummaryOfMap(all_method_time_cost_map[method_key], "Map index", "Time cost(s)", "time_cost/"+method_key)    
+    drawSummaryOfMap(all_method_memory_usage_map[method_key], "Map index", "Memory usage(MB)", "memory_usage/"+method_key)           
     # drawSummaryOfMap(all_method_total_cost_map[method_key], "Map index", "Sum of cost", "sum_of_cost/"+method_key)           
     # drawSummaryOfMap(all_method_makespan_map[method_key], "Map index", "Makespan", "makespan/"+method_key)           
-    # drawSummaryOfMap(all_method_success_rate_map[method_key], "Map index", "Success rate", "success_rate/"+method_key)      
+    drawSummaryOfMap(all_method_success_rate_map[method_key], "Map index", "Success rate", "success_rate/"+method_key)      
     
-    # drawSummaryOfMap(all_method_max_subproblem_map[method_key], "Map index", "Max subproblem", "max_subproblem_size/"+method_key)           
-    # drawSummaryOfMap(all_method_num_of_subproblem_map[method_key], "Map index", "Number of subproblems", "num_of_subproblem/"+method_key)
+    drawSummaryOfMap(all_method_max_subproblem_map[method_key], "Map index", "Max subproblem", "max_subproblem_size/"+method_key)           
+    drawSummaryOfMap(all_method_num_of_subproblem_map[method_key], "Map index", "Number of subproblems", "num_of_subproblem/"+method_key)
     
     # compute makespan and soc comparison when both success      
     # compareOnlySuccess(all_method_makespan_map[method_key], "Makespan", "RAW", "BL")
     # compareOnlySuccess(all_method_total_cost_map[method_key], "Sum of cost", "BP", "BL")
     # compareOnlySuccess(all_method_makespan_map[method_key], "Makespan", "ID", "BL")
     # compareOnlySuccess(all_method_total_cost_map[method_key], "Sum of cost", "ID", "LAYERED")
+    compareOnlySuccess(all_method_makespan_map[method_key], "Makespan", "RAW", "ID")
+    compareOnlySuccess(all_method_makespan_map[method_key], "Makespan", "RAW", "BP")
+    compareOnlySuccess(all_method_makespan_map[method_key], "Makespan", "RAW", "BL")
+    compareOnlySuccess(all_method_makespan_map[method_key], "Makespan", "ID", "BP")
+    compareOnlySuccess(all_method_makespan_map[method_key], "Makespan", "ID", "BL")
+    compareOnlySuccess(all_method_makespan_map[method_key], "Makespan", "BP", "BL")
+
+    compareOnlySuccess(all_method_total_cost_map[method_key], "Sum of cost", "RAW", "ID")
+    compareOnlySuccess(all_method_total_cost_map[method_key], "Sum of cost", "RAW", "BP")
+    compareOnlySuccess(all_method_total_cost_map[method_key], "Sum of cost", "RAW", "BL")
+    compareOnlySuccess(all_method_total_cost_map[method_key], "Sum of cost", "ID", "BP")
+    compareOnlySuccess(all_method_total_cost_map[method_key], "Sum of cost", "ID", "BL")
+    compareOnlySuccess(all_method_total_cost_map[method_key], "Sum of cost", "BP", "BL")
     
 #draw summary of methods
 # drawSummaryOfMethod(all_method_time_cost_map, "Number of agents", "Time cost(ms)", "time_cost")           
