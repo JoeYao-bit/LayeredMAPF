@@ -164,93 +164,93 @@ void Decomposition_test(const SingleMapTestConfig<2>& map_file_local) {
 //                                     decomposer.agent_visited_grids_);
 
 }
-
-void multiLoadLargeAgentAndDecomposition(const SingleMapTestConfig<2>& map_file,
-                                    int count_of_test,
-                                    int maximum_agents,
-                                    int minimum_agents,
-                                    int agent_interval) {
-
-
-    map_test_config = map_file;
-    TextMapLoader loader = TextMapLoader(map_test_config.at("map_path"), is_char_occupied1);
-
-    auto dim = loader.getDimensionInfo();
-    auto is_occupied = [&loader](const freeNav::Pointi<2> &pt) -> bool { return loader.isOccupied(pt); };
-    IS_OCCUPIED_FUNC<2> is_occupied_func = is_occupied;
-    //clearFile(map_test_config.at("la_comp_path"));
-
-    InstanceDeserializer<2> deserializer;
-    if(deserializer.loadInstanceFromFile(map_test_config.at("la_ins_path"), dim)) {
-        std::cout << "load from path " << map_test_config.at("la_ins_path") << " success" << std::endl;
-    } else {
-        std::cout << "load from path " << map_test_config.at("la_ins_path") << " failed" << std::endl;
-        return;
-    }
-    assert(!deserializer.getAgents().empty());
-    std::vector<int> required_counts;
-    for(int c=minimum_agents; c<=std::min(maximum_agents, (int)deserializer.getAgents().size()); c+=agent_interval) {
-        required_counts.push_back(c);
-    }
-    std::cout << " required_counts size = " << required_counts.size() << std::endl;
-
-    auto agent_and_instances = deserializer.getTestInstance(required_counts, count_of_test);
-
-    std::cout << " get " << agent_and_instances.size() << " instance" << std::endl;
-
-    //clearFile(map_test_config.at("la_dec_path"));
-    for (int i = 0; i < agent_and_instances.size(); i++) {
-
-        std::vector<OutputStream> strs;
-        OutputStream str;
-
-        auto instance_decompose =
-                std::make_shared<LargeAgentMAPFInstanceDecomposition<2, HyperGraphNodeDataRaw<2>, Pose<int, 2>> >(
-                agent_and_instances[i].second,
-                agent_and_instances[i].first,
-                dim,
-                is_occupied,
-                true,
-                4,
-                true);
-        /*
-
-           ss << time_cost << " "
-           << max_cluster_size << " "
-           << instances.size() << " "
-           << is_legal << " " << level << " "
-           << memory_usage << " "
-           << instance_decompose->all_clusters_.size() << " "
-           << instance_decompose->initialize_time_cost_ << " "
-           << instance_decompose->instance_decomposition_time_cost_ << " "
-           << instance_decompose->cluster_bipartition_time_cost_ << " "
-           << instance_decompose->level_sorting_time_cost_ << " "
-           << instance_decompose->level_bipartition_time_cost_;
-
-         * */
-        for(const auto& a_data : instance_decompose->debug_data_) {
-            assert(a_data.size() == 12);
-            std::stringstream ss;
-            ss << a_data[0] << " "
-               << (int)a_data[1] << " "
-               << (int)a_data[2] << " "
-               << (int)a_data[3] << " " << (int)a_data[4] << " "
-               << a_data[5] << " "
-               << a_data[6] << " "
-               << a_data[7] << " "
-               << a_data[8] << " "
-               << a_data[9] << " "
-               << a_data[10] << " "
-               << a_data[11];
-            strs.push_back(ss.str());
-        }
-
-        for (const auto &str : strs) {
-            std::cout << str << std::endl;
-        }
-        writeStrsToEndOfFile(strs, map_test_config.at("la_dec_path"));
-    }
-}
+//
+//void multiLoadLargeAgentAndDecomposition(const SingleMapTestConfig<2>& map_file,
+//                                    int count_of_test,
+//                                    int maximum_agents,
+//                                    int minimum_agents,
+//                                    int agent_interval) {
+//
+//
+//    map_test_config = map_file;
+//    TextMapLoader loader = TextMapLoader(map_test_config.at("map_path"), is_char_occupied1);
+//
+//    auto dim = loader.getDimensionInfo();
+//    auto is_occupied = [&loader](const freeNav::Pointi<2> &pt) -> bool { return loader.isOccupied(pt); };
+//    IS_OCCUPIED_FUNC<2> is_occupied_func = is_occupied;
+//    //clearFile(map_test_config.at("la_comp_path"));
+//
+//    InstanceDeserializer<2> deserializer;
+//    if(deserializer.loadInstanceFromFile(map_test_config.at("la_ins_path"), dim)) {
+//        std::cout << "load from path " << map_test_config.at("la_ins_path") << " success" << std::endl;
+//    } else {
+//        std::cout << "load from path " << map_test_config.at("la_ins_path") << " failed" << std::endl;
+//        return;
+//    }
+//    assert(!deserializer.getAgents().empty());
+//    std::vector<int> required_counts;
+//    for(int c=minimum_agents; c<=std::min(maximum_agents, (int)deserializer.getAgents().size()); c+=agent_interval) {
+//        required_counts.push_back(c);
+//    }
+//    std::cout << " required_counts size = " << required_counts.size() << std::endl;
+//
+//    auto agent_and_instances = deserializer.getTestInstance(required_counts, count_of_test);
+//
+//    std::cout << " get " << agent_and_instances.size() << " instance" << std::endl;
+//
+//    //clearFile(map_test_config.at("la_dec_path"));
+//    for (int i = 0; i < agent_and_instances.size(); i++) {
+//
+//        std::vector<OutputStream> strs;
+//        OutputStream str;
+//
+//        auto instance_decompose =
+//                std::make_shared<LargeAgentMAPFInstanceDecomposition<2, HyperGraphNodeDataRaw<2>, Pose<int, 2>> >(
+//                agent_and_instances[i].second,
+//                agent_and_instances[i].first,
+//                dim,
+//                is_occupied,
+//                true,
+//                4,
+//                true);
+//        /*
+//
+//           ss << time_cost << " "
+//           << max_cluster_size << " "
+//           << instances.size() << " "
+//           << is_legal << " " << level << " "
+//           << memory_usage << " "
+//           << instance_decompose->all_clusters_.size() << " "
+//           << instance_decompose->initialize_time_cost_ << " "
+//           << instance_decompose->instance_decomposition_time_cost_ << " "
+//           << instance_decompose->cluster_bipartition_time_cost_ << " "
+//           << instance_decompose->level_sorting_time_cost_ << " "
+//           << instance_decompose->level_bipartition_time_cost_;
+//
+//         * */
+//        for(const auto& a_data : instance_decompose->debug_data_) {
+//            assert(a_data.size() == 12);
+//            std::stringstream ss;
+//            ss << a_data[0] << " "
+//               << (int)a_data[1] << " "
+//               << (int)a_data[2] << " "
+//               << (int)a_data[3] << " " << (int)a_data[4] << " "
+//               << a_data[5] << " "
+//               << a_data[6] << " "
+//               << a_data[7] << " "
+//               << a_data[8] << " "
+//               << a_data[9] << " "
+//               << a_data[10] << " "
+//               << a_data[11];
+//            strs.push_back(ss.str());
+//        }
+//
+//        for (const auto &str : strs) {
+//            std::cout << str << std::endl;
+//        }
+//        writeStrsToEndOfFile(strs, map_test_config.at("la_dec_path"));
+//    }
+//}
 
 void generateLargeAgentInstanceForMap(const SingleMapTestConfig<2>& map_file,
                                       int required_agents,
@@ -349,11 +349,11 @@ int main1() {
     for(int i=0; i<200; i++) {
         std::cout << "global decom " << i << std::endl;
         for (const auto &file_config : map_configs) {
-            multiLoadLargeAgentAndDecomposition(std::get<0>(file_config),
-                                               1, //std::get<1>(file_config),
-                                               std::get<2>(file_config),
-                                               std::get<3>(file_config),
-                                               std::get<4>(file_config));
+//            multiLoadLargeAgentAndDecomposition(std::get<0>(file_config),
+//                                               1, //std::get<1>(file_config),
+//                                               std::get<2>(file_config),
+//                                               std::get<3>(file_config),
+//                                               std::get<4>(file_config));
         }
     }
     return 0;

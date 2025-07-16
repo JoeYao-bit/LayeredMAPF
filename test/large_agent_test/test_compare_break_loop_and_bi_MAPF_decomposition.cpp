@@ -76,6 +76,7 @@ void compareLNSAndBiDecompose_MAPF(const SingleMapTestConfig<2>& map_file, int n
                                                                                  pre.connect_graphs_,
                                                                                  pre.agent_sub_graphs_,
                                                                                  pre.heuristic_tables_sat_,
+                                                                                 pre.heuristic_tables_,
                                                                                  time_limit_s,
                                                                                  1e4,
                                                                                  50,

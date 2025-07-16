@@ -12,6 +12,13 @@ using namespace freeNav;
 using namespace freeNav::LayeredMAPF;
 using namespace freeNav::LayeredMAPF::LA_MAPF;
 
+
+TextMapLoader loader(map_test_config.at("map_path"), is_char_occupied1);
+
+auto is_occupied = [](const Pointi<2> & pt) -> bool { return loader.isOccupied(pt); };
+
+auto dim = loader.getDimensionInfo();
+
 TEST(getAllCornerOfGrid, test) {
     const auto& corners_2D = getAllCornerOfGrid<2>();
     for(const auto& pt : corners_2D) {

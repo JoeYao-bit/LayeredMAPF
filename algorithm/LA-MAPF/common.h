@@ -1366,7 +1366,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             };
 
             for (const int &agent_id : all_levels[i]) {
-                if (!isMAPFInstanceSolvable<N>(instances[agent_id].first, instances[agent_id].scond, new_isoc, dim)) {
+                if (!isMAPFInstanceSolvable<N>(instances[agent_id].first, instances[agent_id].second, new_isoc, dim)) {
                     return false;
                 }
             }

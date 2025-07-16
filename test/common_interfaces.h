@@ -54,7 +54,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         auto pre_dec =
                 std::make_shared<PrecomputationOfMAPFDecomposition<N, HyperGraphNodeDataRaw<N>>>(
                         instances,
-                        dim, isoc);
+                        dim, isoc, true);
 
         auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBipartition<N, HyperGraphNodeDataRaw<N>, Pointi<N>>>(
                 dim,
@@ -116,7 +116,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         auto pre_dec =
                 std::make_shared<PrecomputationOfMAPFDecomposition<N, HyperGraphNodeDataRaw<N>>>(
                         instances,
-                        dim, isoc);
+                        dim, isoc, true);
 
         auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBipartition<N, HyperGraphNodeDataRaw<N>, Pointi<N>>>(
                 dim,
@@ -143,9 +143,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                   << !layered_paths.empty()
                   << " in " << total_time_cost << "s " << std::endl;
 
-        std::cout << "Layered: max subproblem / total = " << getMaxLevelSize(bi_decompose->all_levels_) << " / "
+        std::cout << "BreakLoop: max subproblem / total = " << getMaxLevelSize(bi_decompose->all_levels_) << " / "
                   << instances.size() << std::endl;
-        std::cout << "Layered: num of subproblem = " << bi_decompose->all_levels_.size() << std::endl;
+        std::cout << "BreakLoop: num of subproblem = " << bi_decompose->all_levels_.size() << std::endl;
 
         double max_usage = memory_recorder.getCurrentMemoryUsage();
 
@@ -262,9 +262,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         return ss_raw.str();
     }
-
-
-
 
 }
 #endif //LAYEREDMAPF_COMMON_INTERFACES_H

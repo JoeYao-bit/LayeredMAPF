@@ -14,6 +14,12 @@
 
 using namespace freeNav::LayeredMAPF::LA_MAPF;
 
+TextMapLoader loader(map_test_config.at("map_path"), is_char_occupied1);
+
+auto is_occupied = [](const Pointi<2> & pt) -> bool { return loader.isOccupied(pt); };
+
+auto dim = loader.getDimensionInfo();
+
 void compareLNSAndBiDecompose_LA_MAPF(const SingleMapTestConfig<2>& map_file, int number_of_agents,
                                       double time_limit_s = 10) {
 
@@ -82,6 +88,7 @@ void compareLNSAndBiDecompose_LA_MAPF(const SingleMapTestConfig<2>& map_file, in
                                                                                  pre.connect_graphs_,
                                                                                  pre.agent_sub_graphs_,
                                                                                  pre.heuristic_tables_sat_,
+                                                                                 pre.heuristic_tables_,
                                                                                  time_limit_s,
                                                                                  1e4,
                                                                                  300,
