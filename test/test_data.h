@@ -740,6 +740,20 @@ namespace freeNav::LayeredMAPF{
 
             };
 
+    SingleMapTestConfig<2> MAPFTestConfig_LargeOfficeEnv =
+            {
+                    {"map_name",     "LargeOfficeEnv"},
+                    {"map_path",     "/home/yaozhuo/code/ros2_ws/src/lamapf_and_gazebo/world/map/map_large_office_white.png"},
+                    {"la_ins_path", "/home/yaozhuo/code/ros2_ws/src/lamapf_and_gazebo/world/map/map_large_office.txt"},
+            };
+
+    SingleMapTestConfig<2> MAPFTestConfig_LargeOfficeEnvSecond =
+            {
+                    {"map_name",     "LargeOfficeEnvSecond"},
+                    {"map_path",     "/home/yaozhuo/code/ros2_ws/src/lamapf_and_gazebo/world/map/map_large_office_white_second.png"},
+                    {"la_ins_path", "/home/yaozhuo/code/ros2_ws/src/lamapf_and_gazebo/world/map/map_large_office_second.txt"},
+            };
+
     // TODO: add map from Baldurs Gate II (published September, 2000), like AR0011SR.map
 
     struct MethodConfigs {

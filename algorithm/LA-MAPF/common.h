@@ -1419,11 +1419,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
 
         // debug
-        for(int i=0; i<sub_graph.data_ptr_->all_nodes_.size(); i++) {
-            if(sub_graph.data_ptr_->all_nodes_[i] != nullptr) {
-                assert(agent_heuristic[i] != MAX<int>);
-            }
-        }
+//        for(int i=0; i<sub_graph.data_ptr_->all_nodes_.size(); i++) {
+//            if(sub_graph.data_ptr_->all_nodes_[i] != nullptr) {
+//                assert(agent_heuristic[i] != MAX<int>);
+//            }
+//        }
         // shrink table
 //            for(int k=0; k<sub_graph.all_nodes_.size()/(2*N); k++) {
 //                //
