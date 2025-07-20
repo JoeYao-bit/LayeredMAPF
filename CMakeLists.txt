@@ -120,10 +120,10 @@ target_link_libraries(vis_lib ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} ${Pangolin_LIB
 
 add_library(lamapf_alg STATIC ${alg_src} ${lamapf_src})
 
-#add_library(lamapf_alg_ex STATIC algorithm/LA-MAPF/block_shaped_agent.cpp
-#                                 algorithm/LA-MAPF/circle_shaped_agent.cpp
-#                                 algorithm/LA-MAPF/common.cpp)
-#INSTALL (TARGETS lamapf_alg_ex lamapf_alg_ex LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+add_library(lamapf_alg_ex STATIC algorithm/LA-MAPF/block_shaped_agent.cpp
+                                 algorithm/LA-MAPF/circle_shaped_agent.cpp
+                                 algorithm/LA-MAPF/common.cpp)
+INSTALL (TARGETS lamapf_alg_ex lamapf_alg_ex LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
 
 target_link_libraries(lamapf_alg alg_lib vis_lib lib-graph)
 
