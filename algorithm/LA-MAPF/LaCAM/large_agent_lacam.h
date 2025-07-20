@@ -64,6 +64,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             std::random_device rd;
             const auto seed = rd();
             MT = new std::mt19937(seed);
+            std::cout << "time_limit = " << time_limit << std::endl;
         }
 
         virtual bool funcPIBT(AgentLaCAM *ai, int next_t, ConstraintTable& constraint_table) = 0;
@@ -482,7 +483,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                                                distance_map_updater,
                                                                                agent_sub_graphs,
                                                                                agents_heuristic_tables,
-                                                                               agents_heuristic_tables_ignore_rotate)
+                                                                               agents_heuristic_tables_ignore_rotate,
+                                                                               time_limit)
                             {
 
                                 C_next_ = Candidates(agents.size(), std::array<size_t, 2*N*2*N + 1>());
@@ -634,7 +636,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                                 distance_map_updater,
                                                                 agent_sub_graphs,
                                                                 agents_heuristic_tables,
-                                                                agents_heuristic_tables_ignore_rotate)
+                                                                agents_heuristic_tables_ignore_rotate,
+                                                                time_limit)
         {
 
             C_next_ = Candidates(agents.size(), std::array<size_t, 2*N + 1>());

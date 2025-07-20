@@ -689,13 +689,13 @@ void View::drawHeuristicTable() {
 
 void View::drawAllCluster() {
     // 1, pick largest cluster
-    const auto& all_clusters = layered_mapf->all_levels_;//layered_mapf->selectLargestCluster(layered_mapf->all_related_agent_);
+    const auto& all_clusters = layered_mapf->all_clusters_;//layered_mapf->selectLargestCluster(layered_mapf->all_related_agent_);
     // 2, draw largest cluster's instance
     for(int cid=0; cid<all_clusters.size(); cid++) {
         for(const auto& agent_id : all_clusters[cid]) {
             auto fill_color = COLOR_TABLE[cid % 30]; // cv::Vec3b(200, 200, 200);
 
-            freeNav::Id start_id = PointiToId(instance_[agent_id].first, dim_),
+            freeNav::Id start_id = freeNav::PointiToId(instance_[agent_id].first, dim_),
                     target_id = PointiToId(instance_[agent_id].second, dim_);
             all_grid_[start_id]->text_color_ = Qt::white;
             all_grid_[start_id]->setColorRGB(fill_color[0], fill_color[1], fill_color[2]);

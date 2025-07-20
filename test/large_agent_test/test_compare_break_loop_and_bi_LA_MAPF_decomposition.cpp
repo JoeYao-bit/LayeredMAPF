@@ -251,7 +251,7 @@ int main() {
 //TEST(simple_test, LNS_decomposition) {
 
     // ns / bi max subproblem size(decomposition rate) = 1(0.00555556) / 1(0.00555556)
-    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_Paris_1_256,     20);
+//    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_Paris_1_256,     20);
 
     // ns / bi max subproblem size(decomposition rate) = 33(0.55) / 43(0.716667)
 //    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_empty_48_48,     100);
@@ -288,7 +288,7 @@ int main() {
 
     // MAPFTestConfig_LargeOfficeEnvSecond
     // MAPFTestConfig_LargeOfficeEnv
-//    singleDecompose_LA_MAPF(MAPFTestConfig_LargeOfficeEnv, 2);
+    singleDecompose_LA_MAPF(MAPFTestConfig_LargeOfficeEnv, 20);
 
 }
 

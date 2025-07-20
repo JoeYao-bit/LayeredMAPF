@@ -101,7 +101,7 @@ namespace freeNav::LayeredMAPF {
                 instance_id_set_.insert(i);
             }
             isoc_ = is_occupied;
-            all_levels_= {instance_id_set_ }; // initialize of cluster (equal to the raw cluster)
+            all_clusters_= { instance_id_set_ }; // initialize of cluster (equal to the raw cluster)
 
             if(decompose_level >= 1) {
                 // initialize grid map
@@ -139,26 +139,26 @@ namespace freeNav::LayeredMAPF {
             /* print details of decomposition */
             int total_count = 0;
             int max_cluster_size = 0;
-            for(int i=0; i < all_levels_.size(); i++) {
-                total_count += all_levels_[i].size();
-                if(all_levels_[i].size() > max_cluster_size) { max_cluster_size = all_levels_[i].size(); }
+            for(int i=0; i<all_clusters_.size(); i++) {
+                total_count += all_clusters_[i].size();
+                if(all_clusters_[i].size() > max_cluster_size) { max_cluster_size = all_clusters_[i].size(); }
             }
             assert(total_count == instance.size());
-            std::cout << "-- Decomposition completeness ? " << decompositionValidCheck(all_levels_) << std::endl;
+            std::cout << "-- Decomposition completeness ? " << decompositionValidCheck(all_clusters_) << std::endl;
             std::cout << " max/total size " << max_cluster_size << " / " << instance.size() << std::endl;
         }
 
 
         size_t getMaximalSubProblem() const {
             size_t vec_size = 0;
-            for(const auto& vec : all_levels_) {
+            for(const auto& vec : all_clusters_) {
                 vec_size = std::max(vec.size(), vec_size);
             }
             return vec_size;
         }
 
         size_t getNumberOfSubProblem() const {
-            return all_levels_.size();
+            return all_clusters_.size();
         }
 
         bool decompositionValidCheck(const std::vector<std::set<int> >& all_levels) const {
@@ -187,7 +187,7 @@ namespace freeNav::LayeredMAPF {
 
         std::vector<GridMAPFPtr<N> > grid_map_;
 
-        std::vector<std::set<int> > all_levels_;
+        std::vector<std::set<int> > all_clusters_;
 
         // store which agents current agent passing, may change after method
         // NOTICE: the goal of the method is to partition this matrix into lots of small block, thus MAPF is more efficient
@@ -388,15 +388,15 @@ namespace freeNav::LayeredMAPF {
             std::map<int, std::set<int> > all_related_agent = updateRelatedGraphFromPassingGraph(all_agents_path);
             //
             std::map<int, std::set<int> > cluster_of_agents = clusterAgents(all_related_agent);
-            all_levels_.clear();
+            all_clusters_.clear();
             for(const auto& iter : cluster_of_agents) {
-                all_levels_.push_back(iter.second);
+                all_clusters_.push_back(iter.second);
             }
         }
 
         void clusterDecomposition() {
             std::vector<std::set<int> > all_clusters;
-            auto cluster_of_agents = all_levels_;
+            auto cluster_of_agents = all_clusters_;
             int count_top_cluster = 0;
             std::set<int> buffer_agents;
             for(const auto& top_cluster : cluster_of_agents) {
@@ -419,14 +419,14 @@ namespace freeNav::LayeredMAPF {
                     }
                 }
             }
-            all_levels_ = all_clusters;
+            all_clusters_ = all_clusters;
         }
 
         void levelSorting() {
             // decompose each cluster into multiple time indexed sequence
             // cluster decomposition into level
             std::vector<std::set<int> > all_levels_;
-            for(const auto& cluster : all_levels_) {
+            for(const auto& cluster : all_clusters_) {
                 if(cluster.size() > 1) {
                     auto current_levels = clusterDecomposeToLevel(cluster);
                     all_levels_.insert(all_levels_.end(), current_levels.begin(), current_levels.end());
@@ -434,7 +434,7 @@ namespace freeNav::LayeredMAPF {
                     all_levels_.push_back(cluster);
                 }
             }
-            all_levels_ = all_levels_;
+            all_clusters_ = all_levels_;
         }
 
         std::set<int> getCurrentAgentLoopInPaths(const std::map<int, std::set<int> >& all_agents_path, const int& agent_id) const {

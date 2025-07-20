@@ -13,8 +13,6 @@
 #include "precomputation_for_mapf.h"
 #include "LA-MAPF/large_agent_dependency_path_search.h"
 
-#include "LA-MAPF/CBS/space_time_astar.h"
-
 namespace freeNav::LayeredMAPF {
 
     class PrecomputationOfMAPFDecompositionBase {
@@ -739,6 +737,10 @@ namespace freeNav::LayeredMAPF {
                                                                                                 false));
                 }
             }
+//            std::cout << "this->heuristic_tables_sat_.size()" << this->heuristic_tables_sat_.size() << std::endl;
+//            std::cout << "this->heuristic_tables_.size()" << this->heuristic_tables_.size() << std::endl;
+//            std::cout << "this->with_ignore_sat_heu_ = " << this->with_ignore_sat_heu_  << std::endl;
+//            std::cout << "with_sat_heu = " << with_sat_heu  << std::endl;
 
             this->initialize_time_cost_ =  mst.elapsed();
 

@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import ticker
 import os
+import statistics
 
 #import seaborn as sns
 
@@ -32,6 +33,9 @@ def loadDataFromfile(file_path):
                 new_data.level_3           = float(splited_line[9])
                 #new_data.level_4           = float(splited_line[10])
 
+                if new_data.level == 4:
+                    continue
+
                 data_list.append(new_data)
     except Exception as e:            
         print(e)       
@@ -57,7 +61,7 @@ class SingleTestData:
     map_name = ''
     
     
-def drawMethodMap(single_map_data, value_type):
+def drawMethodMap(single_map_data, value_type, xlable):
     fig = plt.figure(figsize=(5,3.5)) #添加绘图框
     map_name = single_map_data.map_name
     
@@ -104,7 +108,7 @@ def drawMethodMap(single_map_data, value_type):
 
 
         # yerr=std_val
-        plt.errorbar(x, y, label=level_flag_map[level_key], markersize=14, fmt=step_fmt[level_key], linewidth= 4, elinewidth=4, capsize=4)
+        plt.errorbar(x, y, label=level_flag_map[level_key], markersize=14, markerfacecolor='none', fmt=step_fmt[level_key], linewidth= 4, elinewidth=4, capsize=4)
         #break    
 
     plt.legend(loc='best')    
@@ -124,6 +128,7 @@ def drawMethodMap(single_map_data, value_type):
         plt.ylim(0, 1)
 
     plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5)
+    plt.xlabel(xlable, fontsize=14) # 横坐标标题
     #plt.grid()
     plt.tight_layout()
     save_path = data_path_dir+'decomposition/'+value_type+'/'
@@ -137,10 +142,43 @@ def drawMethodMap(single_map_data, value_type):
     plt.close()
     print("save picture to "+save_path)
 
+
+
+def drawSummary(all_map_data, value_type):
+    fig = plt.figure(figsize=(5,3.5)) #添加绘图框
     
+    all_raw_data = dict()
+
+    for single_map_data in all_single_data:
+
+        for data in single_map_data.data_list:
+            total_size        = data.total_size
+            time_cost         = data.time_cost
+            success           = data.success
+            max_cluster       = data.max_cluster
+            memory_usage      = data.memory_usage
+            num_of_subproblem = data.num_of_subproblem
+            level             = data.level
+            
+            if all_raw_data.get(level) == None:
+                all_raw_data[level] = list()
+
+            if value_type == "decomposition_rate":
+                all_raw_data[level].append(max_cluster / total_size)    
+            elif value_type == "time_cost":
+                all_raw_data[level].append(time_cost)    
+            elif value_type == "memory_usage":
+                all_raw_data[level].append(memory_usage)        
+            elif value_type == "num_of_subproblem":
+                all_raw_data[level].append(num_of_subproblem)  
+
+    for  data_key, data_val in all_raw_data.items():
+        print(level_flag_map[data_key] +"'s "+value_type, " = ", statistics.mean(data_val))
+
+
 step_fmt = {3:"x-", 4:"o-.", 5:"^--"}    
 
-level_flag_map = {3:"Raw-Bi", 4:"Bi-level", 5:"Break loop"}
+level_flag_map = {3:"Bipartition", 4:"Bi-level", 5:"Break loops"}
     
 data_path_dir = '../../../test/test_data/large_agent_instance/'
 all_map_name = [
@@ -206,15 +244,18 @@ for map_name in all_map_name:
     #break
     
 for single_map_data in all_single_data:
-    drawMethodMap(single_map_data, "time_cost")
+    drawMethodMap(single_map_data, "time_cost", "Number of agents")
     
 for single_map_data in all_single_data:
-    drawMethodMap(single_map_data, "decomposition_rate")
+    drawMethodMap(single_map_data, "decomposition_rate", "Number of agents")
     
 for single_map_data in all_single_data:
-    drawMethodMap(single_map_data, "memory_usage")    
+    drawMethodMap(single_map_data, "memory_usage", "Number of agents")    
     
 for single_map_data in all_single_data:
-    drawMethodMap(single_map_data, "num_of_subproblem")        
+    drawMethodMap(single_map_data, "num_of_subproblem", "Number of agents")        
     
+
+drawSummary(all_single_data, "time_cost")    
+
 #plt.show()    

@@ -25,7 +25,6 @@
 #include "freeNav-base/basic_elements/distance_map_update.h"
 #include "freeNav-base/basic_elements/point.h"
 #include "freeNav-base/basic_elements/point.h"
-#include "freeNav-base/visualization/canvas/canvas.h"
 #include "freeNav-base/dependencies/memory_analysis.h"
 #include <memory>
 
@@ -176,13 +175,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         virtual std::string serialize() const = 0;
 
         virtual std::string serialize(const Pose<int, N> &start_pose, const Pose<int, N> &target_pose) const = 0;
-
-        virtual void drawOnCanvas(const Pose<int, 2> &pose,
-                                  Canvas &canvas, const cv::Vec3b &color, bool fill = true) const = 0;
-
-        // draw on canvas, in global pose (x,y,yaw)
-        virtual void drawOnCanvas(const Pointf<3> &pose,
-                                  Canvas &canvas, const cv::Vec3b &color, bool fill = true) const = 0;
 
 
 //        virtual std::pair<Pointis<N>, Pointis<N>> getCoverageGridWithinPose(const Pose<int, N>& pose) const = 0;
@@ -1016,10 +1008,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                                                 const std::vector<std::vector<int> > &,
                                                                 ConnectivityGraph *)>;
 
-    template<Dimension N>
+    template<Dimension N, typename State>
     Conflicts detectAllConflictBetweenPaths(const LAMAPF_Path &p1, const LAMAPF_Path &p2,
                                             const AgentPtr<N> &a1, const AgentPtr<N> &a2,
-                                            const std::vector<std::shared_ptr<Pose<int, N>>> &all_nodes) {
+                                            const std::vector<std::shared_ptr<State>> &all_nodes) {
         int t1 = p1.size() - 1, t2 = p2.size() - 1;
         const auto &longer_agent = p1.size() > p2.size() ? a1 : a2;
         const auto &shorter_agent = longer_agent->id_ == a1->id_ ? a2 : a1;
@@ -1032,9 +1024,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             if (isCollide(a1, *all_nodes[p1[t]], *all_nodes[p1[t + 1]],
                           a2, *all_nodes[p2[t]], *all_nodes[p2[t + 1]])) {
 
-                std::cout << "cs type 1 : " << *all_nodes[p1[t]] << "->" << *all_nodes[p1[t+1]] << ", "
-                                            << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t+1]]
-                                            << "/t:{" << t << "," << t+1 << "}" << std::endl;
+//                std::cout << "cs type 1 : " << *all_nodes[p1[t]] << "->" << *all_nodes[p1[t+1]] << ", "
+//                                            << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t+1]]
+//                                            << "/t:{" << t << "," << t+1 << "}" << std::endl;
 
                 auto c1 = std::make_shared<Constraint>(a1->id_, p1[t], p1[t + 1], t, t + 2);
                 auto c2 = std::make_shared<Constraint>(a2->id_, p2[t], p2[t + 1], t, t + 2);
@@ -1046,10 +1038,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             if (isCollide(longer_agent, *all_nodes[longer_path[t]], *all_nodes[longer_path[t + 1]],
                           shorter_agent, *all_nodes[shorter_path.back()])) {
 
-                std::cout << "cs type 2 : " << *all_nodes[longer_path[t]] << "->" << *all_nodes[longer_path[t+1]] << ", "
-                                            << *all_nodes[shorter_path.back()]
-                                            << "/t:{" << t << "," << t+1 << "}"
-                                            << std::endl;
+//                std::cout << "cs type 2 : " << *all_nodes[longer_path[t]] << "->" << *all_nodes[longer_path[t+1]] << ", "
+//                                            << *all_nodes[shorter_path.back()]
+//                                            << "/t:{" << t << "," << t+1 << "}"
+//                                            << std::endl;
 
                 auto c1 = std::make_shared<Constraint>(longer_agent->id_, longer_path[t], longer_path[t + 1], t, t + 2);
                 auto c2 = std::make_shared<Constraint>(shorter_agent->id_, shorter_path.back(), MAX_NODES, 0, t + 2);
@@ -1061,88 +1053,88 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return cfs;
     }
 
-
-    template<Dimension N>
-    Conflicts detectAllConflictBetweenPaths(const LAMAPF_Path &p1, const LAMAPF_Path &p2,
-                                            const AgentPtr<N> &a1, const AgentPtr<N> &a2,
-                                            const std::vector<std::shared_ptr<Pointi<N>>> &all_nodes) {
-
-//        std::cout << "flag 1" << std::endl;
-
-        int t1 = p1.size() - 1, t2 = p2.size() - 1;
-        const auto &longer_agent = p1.size() > p2.size() ? a1 : a2;
-        const auto &shorter_agent = longer_agent->id_ == a1->id_ ? a2 : a1;
-        const auto &longer_path = longer_agent->id_ == a1->id_ ? p1 : p2;
-        const auto &shorter_path = longer_agent->id_ == a1->id_ ? p2 : p1;
-
-        int common_part = std::min(t1, t2);
-        std::vector<std::shared_ptr<Conflict> > cfs;
-        for (int t = 0; t < common_part - 1; t++) {
-//            if (isCollide(a1, *all_nodes[p1[t]], *all_nodes[p1[t + 1]],
-//                          a2, *all_nodes[p2[t]], *all_nodes[p2[t + 1]])) {
 //
-//                std::cout << "cs type 1 : " << *all_nodes[p1[t]] << "->" << *all_nodes[p1[t+1]] << ", "
-//                          << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t+1]]
-//                          << "/t:{" << t << "," << t+1 << "}" << std::endl;
+//    template<Dimension N>
+//    Conflicts detectAllConflictBetweenPaths(const LAMAPF_Path &p1, const LAMAPF_Path &p2,
+//                                            const AgentPtr<N> &a1, const AgentPtr<N> &a2,
+//                                            const std::vector<std::shared_ptr<Pointi<N>>> &all_nodes) {
 //
+////        std::cout << "flag 1" << std::endl;
+//
+//        int t1 = p1.size() - 1, t2 = p2.size() - 1;
+//        const auto &longer_agent = p1.size() > p2.size() ? a1 : a2;
+//        const auto &shorter_agent = longer_agent->id_ == a1->id_ ? a2 : a1;
+//        const auto &longer_path = longer_agent->id_ == a1->id_ ? p1 : p2;
+//        const auto &shorter_path = longer_agent->id_ == a1->id_ ? p2 : p1;
+//
+//        int common_part = std::min(t1, t2);
+//        std::vector<std::shared_ptr<Conflict> > cfs;
+//        for (int t = 0; t < common_part - 1; t++) {
+////            if (isCollide(a1, *all_nodes[p1[t]], *all_nodes[p1[t + 1]],
+////                          a2, *all_nodes[p2[t]], *all_nodes[p2[t + 1]])) {
+////
+////                std::cout << "cs type 1 : " << *all_nodes[p1[t]] << "->" << *all_nodes[p1[t+1]] << ", "
+////                          << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t+1]]
+////                          << "/t:{" << t << "," << t+1 << "}" << std::endl;
+////
+////                auto c1 = std::make_shared<Constraint>(a1->id_, p1[t], p1[t + 1], t, t + 2);
+////                auto c2 = std::make_shared<Constraint>(a2->id_, p2[t], p2[t + 1], t, t + 2);
+////                auto cf = std::make_shared<Conflict>(a1->id_, a2->id_, Constraints{c1}, Constraints{c2});
+////                cfs.push_back(cf);
+////            }
+//            if(p1[t] == p2[t]) {
+//                auto c1 = std::make_shared<Constraint>(a1->id_, p1[t], MAX_NODES, t, t + 2);
+//                auto c2 = std::make_shared<Constraint>(a2->id_, p2[t], MAX_NODES, t, t + 2);
+//                auto cf = std::make_shared<Conflict>(a1->id_, a2->id_, Constraints{c1}, Constraints{c2});
+//                cfs.push_back(cf);
+//
+////                std::cout << "a1: " << *a1 << ", a2: " << *a2 << std::endl;
+////                std::cout << "cs vertex 1 : " << *all_nodes[p1[t]] << "->" << *all_nodes[p1[t+1]] << ", "
+////                                              << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t+1]]
+////                                              << "/t:{" << t << "," << t+1 << "}" << std::endl;
+//
+//            } else if(p1[t] == p2[t+1] and p1[t+1] == p2[t]) {
 //                auto c1 = std::make_shared<Constraint>(a1->id_, p1[t], p1[t + 1], t, t + 2);
 //                auto c2 = std::make_shared<Constraint>(a2->id_, p2[t], p2[t + 1], t, t + 2);
 //                auto cf = std::make_shared<Conflict>(a1->id_, a2->id_, Constraints{c1}, Constraints{c2});
 //                cfs.push_back(cf);
+////                std::cout << "a1: " << *a1 << ", a2: " << *a2 << std::endl;
+////                std::cout << "cs edge 1 : " << *all_nodes[p1[t]] << "->" << *all_nodes[p1[t+1]] << ", "
+////                          << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t+1]]
+////                          << "/t:{" << t << "," << t+1 << "}" << std::endl;
+//
 //            }
-            if(p1[t] == p2[t]) {
-                auto c1 = std::make_shared<Constraint>(a1->id_, p1[t], MAX_NODES, t, t + 2);
-                auto c2 = std::make_shared<Constraint>(a2->id_, p2[t], MAX_NODES, t, t + 2);
-                auto cf = std::make_shared<Conflict>(a1->id_, a2->id_, Constraints{c1}, Constraints{c2});
-                cfs.push_back(cf);
-
-//                std::cout << "a1: " << *a1 << ", a2: " << *a2 << std::endl;
-//                std::cout << "cs vertex 1 : " << *all_nodes[p1[t]] << "->" << *all_nodes[p1[t+1]] << ", "
-//                                              << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t+1]]
-//                                              << "/t:{" << t << "," << t+1 << "}" << std::endl;
-
-            } else if(p1[t] == p2[t+1] and p1[t+1] == p2[t]) {
-                auto c1 = std::make_shared<Constraint>(a1->id_, p1[t], p1[t + 1], t, t + 2);
-                auto c2 = std::make_shared<Constraint>(a2->id_, p2[t], p2[t + 1], t, t + 2);
-                auto cf = std::make_shared<Conflict>(a1->id_, a2->id_, Constraints{c1}, Constraints{c2});
-                cfs.push_back(cf);
-//                std::cout << "a1: " << *a1 << ", a2: " << *a2 << std::endl;
-//                std::cout << "cs edge 1 : " << *all_nodes[p1[t]] << "->" << *all_nodes[p1[t+1]] << ", "
-//                          << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t+1]]
-//                          << "/t:{" << t << "," << t+1 << "}" << std::endl;
-
-            }
-        }
-        for (int t = common_part - 1; t < std::max(t1, t2) - 1; t++) {
-//            if (isCollide(longer_agent, *all_nodes[longer_path[t]], *all_nodes[longer_path[t + 1]],
-//                          shorter_agent, *all_nodes[shorter_path.back()])) {
-//
-//                std::cout << "cs type 2 : " << *all_nodes[longer_path[t]] << "->" << *all_nodes[longer_path[t+1]] << ", "
-//                          << *all_nodes[shorter_path.back()]
-//                          << "/t:{" << t << "," << t+1 << "}"
-//                          << std::endl;
-//
-//                auto c1 = std::make_shared<Constraint>(longer_agent->id_, longer_path[t], longer_path[t + 1], t, t + 2);
+//        }
+//        for (int t = common_part - 1; t < std::max(t1, t2) - 1; t++) {
+////            if (isCollide(longer_agent, *all_nodes[longer_path[t]], *all_nodes[longer_path[t + 1]],
+////                          shorter_agent, *all_nodes[shorter_path.back()])) {
+////
+////                std::cout << "cs type 2 : " << *all_nodes[longer_path[t]] << "->" << *all_nodes[longer_path[t+1]] << ", "
+////                          << *all_nodes[shorter_path.back()]
+////                          << "/t:{" << t << "," << t+1 << "}"
+////                          << std::endl;
+////
+////                auto c1 = std::make_shared<Constraint>(longer_agent->id_, longer_path[t], longer_path[t + 1], t, t + 2);
+////                auto c2 = std::make_shared<Constraint>(shorter_agent->id_, shorter_path.back(), MAX_NODES, 0, t + 2);
+////                auto cf = std::make_shared<Conflict>(longer_agent->id_, shorter_agent->id_, Constraints{c1},
+////                                                     Constraints{c2});
+////                cfs.push_back(cf);
+////            }
+//            if(longer_path[t] == shorter_path.back()) {
+//                auto c1 = std::make_shared<Constraint>(longer_agent->id_, longer_path[t], MAX_NODES, t, t + 2);
 //                auto c2 = std::make_shared<Constraint>(shorter_agent->id_, shorter_path.back(), MAX_NODES, 0, t + 2);
 //                auto cf = std::make_shared<Conflict>(longer_agent->id_, shorter_agent->id_, Constraints{c1},
 //                                                     Constraints{c2});
 //                cfs.push_back(cf);
+////                std::cout << "a1: " << *a1 << ", a2: " << *a2 << std::endl;
+////                std::cout << "cs vertex 2 : " << *all_nodes[longer_path[t]] << ", "
+////                          << *all_nodes[shorter_path.back()]
+////                          << "/t:{" << t << "," << t+1 << "}" << std::endl;
+//
 //            }
-            if(longer_path[t] == shorter_path.back()) {
-                auto c1 = std::make_shared<Constraint>(longer_agent->id_, longer_path[t], MAX_NODES, t, t + 2);
-                auto c2 = std::make_shared<Constraint>(shorter_agent->id_, shorter_path.back(), MAX_NODES, 0, t + 2);
-                auto cf = std::make_shared<Conflict>(longer_agent->id_, shorter_agent->id_, Constraints{c1},
-                                                     Constraints{c2});
-                cfs.push_back(cf);
-//                std::cout << "a1: " << *a1 << ", a2: " << *a2 << std::endl;
-//                std::cout << "cs vertex 2 : " << *all_nodes[longer_path[t]] << ", "
-//                          << *all_nodes[shorter_path.back()]
-//                          << "/t:{" << t << "," << t+1 << "}" << std::endl;
-
-            }
-        }
-        return cfs;
-    }
+//        }
+//        return cfs;
+//    }
 
     template<Dimension N, typename State>
     ConflictPtr detectFirstConflictBetweenPaths(const LAMAPF_Path &p1, const LAMAPF_Path &p2,
@@ -1159,9 +1151,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             if (isCollide(a1, *all_nodes[p1[t]], *all_nodes[p1[t + 1]],
                           a2, *all_nodes[p2[t]], *all_nodes[p2[t + 1]])) {
 
-                std::cout << "cs type 1 : " << *all_nodes[p1[t]] << "->" << *all_nodes[p1[t + 1]] << ", "
-                          << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t + 1]]
-                          << "/t:{" << t << "," << t + 1 << "}" << std::endl;
+//                std::cout << "cs type 1 : " << *all_nodes[p1[t]] << "->" << *all_nodes[p1[t + 1]] << ", "
+//                          << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t + 1]]
+//                          << "/t:{" << t << "," << t + 1 << "}" << std::endl;
 
                 auto c1 = std::make_shared<Constraint>(a1->id_, p1[t], p1[t + 1], t, t + 2);
                 auto c2 = std::make_shared<Constraint>(a2->id_, p2[t], p2[t + 1], t, t + 2);
@@ -1173,11 +1165,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             if (isCollide(longer_agent, *all_nodes[longer_path[t]], *all_nodes[longer_path[t + 1]],
                           shorter_agent, *all_nodes[shorter_path.back()])) {
 
-                std::cout << "cs type 2 : " << *all_nodes[longer_path[t]] << "->" << *all_nodes[longer_path[t + 1]]
-                          << ", "
-                          << *all_nodes[shorter_path.back()]
-                          << "/t:{" << t << "," << t + 1 << "}"
-                          << std::endl;
+//                std::cout << "cs type 2 : " << *all_nodes[longer_path[t]] << "->" << *all_nodes[longer_path[t + 1]]
+//                          << ", "
+//                          << *all_nodes[shorter_path.back()]
+//                          << "/t:{" << t << "," << t + 1 << "}"
+//                          << std::endl;
 
                 auto c1 = std::make_shared<Constraint>(longer_agent->id_, longer_path[t], longer_path[t + 1], t, t + 2);
                 auto c2 = std::make_shared<Constraint>(shorter_agent->id_, shorter_path.back(), MAX_NODES, t, t + 2);
