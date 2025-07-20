@@ -154,8 +154,8 @@ target_link_libraries(test_massive_layered_mapf freeNav-base lamapf_alg)
 add_executable(test_create_random_map_fr_mapf test/test_create_random_map_fr_mapf.cpp)
 target_link_libraries(test_create_random_map_fr_mapf freeNav-base lamapf_alg)
 
-add_executable(test_qt_gui test/test_qt_gui.cpp test/visualization/qt_gui/resources/images.qrc)
-target_link_libraries(test_qt_gui freeNav-base lamapf_alg)
+#add_executable(test_qt_gui test/test_qt_gui.cpp test/visualization/qt_gui/resources/images.qrc)
+#target_link_libraries(test_qt_gui freeNav-base lamapf_alg)
 
 add_executable(test_lamapf_cbs test/large_agent_test/test_lamapf_cbs.cpp)
 target_link_libraries(test_lamapf_cbs freeNav-base lamapf_alg)
