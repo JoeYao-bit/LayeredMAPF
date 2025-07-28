@@ -9,6 +9,7 @@
 #include "instance_decomposition.h"
 //#include "../third_party/EECBS/inc/ConstraintTable.h"
 #include "constraint_table_CBS/ConstraintTable.h"
+#include "freeNav-base/basic_elements/misc.h"
 
 //#include "../third_party/EECBS/inc/Instance.h"
 //#include "EECBS/inc/driver.h"
