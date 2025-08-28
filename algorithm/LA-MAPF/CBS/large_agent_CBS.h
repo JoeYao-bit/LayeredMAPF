@@ -116,12 +116,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             this->cost_upperbound = cost_upperbound;
             // yz: generate a init node of CT
             generateRoot();
-//            std::cout << "-- generate root node " << std::endl;
+            //std::cout << "-- generate root node for " << this->agent_sub_graphs_.size() << " agents" << std::endl;
 //            return false;
             int count = 0;
             while (!cleanup_list.empty() && !solution_found) {
 //                if(count >= 2000) { break; }
-//                std::cout << "-- " << count << " iteration, open size " << cleanup_list.size() << std::endl;
+                //std::cout << "-- " << count << " iteration, open size " << cleanup_list.size() << std::endl;
                 auto remain_s = this->mst_.elapsed()/1e3;
                 if(remain_s >= this->remaining_time_) {
                     // run out of time
@@ -131,8 +131,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
                 count ++;
                 // yz: select node with minimum heuristic value
                 auto curr = selectNode();
-//                std::cout << " select node with conflicts size = " << curr->conflicts.size() << " + " <<  curr->unknownConf.size() << std::endl;
-//                std::cout << " curr->g_val = " << curr->g_val << std::endl;
+                //std::cout << " select node with conflicts size = " << curr->conflicts.size() << " + " <<  curr->unknownConf.size() << std::endl;
+                //std::cout << " curr->g_val = " << curr->g_val << std::endl;
                 // yz: check whether reach terminate condition
                 if (terminate(curr)) {
                     std::cout << "-- Layered CBS finish after " << count << " iteration" << std::endl;

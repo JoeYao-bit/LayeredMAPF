@@ -1030,7 +1030,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         int common_part = std::min(t1, t2);
         std::vector<std::shared_ptr<Conflict> > cfs;
-        for (int t = 0; t < common_part - 1; t++) {
+        for (int t = 0; t <= common_part - 1; t++) {
             if (isCollide(a1, *all_nodes[p1[t]], *all_nodes[p1[t + 1]],
                           a2, *all_nodes[p2[t]], *all_nodes[p2[t + 1]])) {
 
@@ -1044,7 +1044,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 cfs.push_back(cf);
             }
         }
-        for (int t = common_part - 1; t < std::max(t1, t2) - 1; t++) {
+        for (int t = common_part; t < std::max(t1, t2) - 1; t++) {
             if (isCollide(longer_agent, *all_nodes[longer_path[t]], *all_nodes[longer_path[t + 1]],
                           shorter_agent, *all_nodes[shorter_path.back()])) {
 
@@ -1157,7 +1157,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         const auto &shorter_path = longer_agent->id_ == a1->id_ ? p2 : p1;
 
         int common_part = std::min(t1, t2);
-        for (int t = 0; t < common_part - 1; t++) {
+        for (int t = 0; t <= common_part - 1; t++) {
             if (isCollide(a1, *all_nodes[p1[t]], *all_nodes[p1[t + 1]],
                           a2, *all_nodes[p2[t]], *all_nodes[p2[t + 1]])) {
 
@@ -1171,7 +1171,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 return cf;
             }
         }
-        for (int t = common_part - 1; t < std::max(t1, t2) - 1; t++) {
+        for (int t = common_part; t < std::max(t1, t2) - 1; t++) {
             if (isCollide(longer_agent, *all_nodes[longer_path[t]], *all_nodes[longer_path[t + 1]],
                           shorter_agent, *all_nodes[shorter_path.back()])) {
 
