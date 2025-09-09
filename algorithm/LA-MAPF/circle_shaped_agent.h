@@ -226,7 +226,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         void drawOnCanvas(const Pose<int, 2>& pose,
                           Canvas& canvas, const cv::Vec3b& color, bool fill=true) const {
-            canvas.drawCircleInt((float)pose.pt_[0], (float)pose.pt_[1], floor(radius_*canvas.zoom_ratio_),
+            canvas.drawCircleInt(pose.pt_[0], pose.pt_[1], radius_*canvas.zoom_ratio_,
                              true, fill ? -1 : 1, color, 1.0);
         }
 
@@ -234,7 +234,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                           Canvas& canvas, const cv::Vec3b& color, bool fill=true) const {
 
             canvas.drawCircle(pose[0]/(float)canvas.resolution_, pose[1]/(float)canvas.resolution_,
-                              radius_*canvas.zoom_ratio_/(float)canvas.resolution_,
+                              radius_*canvas.zoom_ratio_/(float)canvas.resolution_, true,
                                  fill ? -1 : 1, color);
         }
 

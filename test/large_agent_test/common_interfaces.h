@@ -40,7 +40,7 @@ struct timezone tz;
 struct timeval tv_pre, tv_cur;
 struct timeval tv_after;
 
-int zoom_ratio = 10;
+double zoom_ratio = 10;
 
 Pointi<2> pt1;
 int current_subgraph_id = 0;

@@ -125,7 +125,7 @@ TEST(BlockRotateCoverageGrid, test) {
         BlockAgent_2D agent(Pointf<2>{start_x, -5}, Pointf<2>{end_x, 5}, 0, nullptr);
         std::pair<Pointis<2>, Pointis<2> > coverage_pair = agent.rotate_pts_[0];
 
-        double min_radius = agent.min_pt_.Norm(), max_radius = agent.max_pt_.Norm();
+        float min_radius = agent.min_pt_.Norm(), max_radius = agent.max_pt_.Norm();
 
         if(draw_rect_grid) {
             for(const auto& pt : agent.grids_[2].second) {
@@ -204,7 +204,7 @@ TEST(BlockRotateCoverageGrid, test) {
 
 TEST(DrawOnCanvas, test) {
 //    visualizeAgentCoverage<BlockAgent_2D >(agent, coverage_pair);
-    Canvas canvas("Coverage visualize", 10, 10, 10., 100);
+    Canvas canvas("Coverage visualize", 20, 20, 10., 50);
     canvas.resolution_ = 10.;
     BlockAgent_2D  block_agent(Pointf<2>{-2.3, -2}, Pointf<2>{4.1, 2}, 0, nullptr);
     CircleAgent<2> circle_agent(1.5, 0, nullptr);
@@ -213,7 +213,7 @@ TEST(DrawOnCanvas, test) {
     while(true) {
         canvas.resetCanvas();
         canvas.drawEmptyGrid();
-        Pointf<3> ptf{0.3, 0.6, 0};
+        Pointf<3> ptf{1.4, 0.2, M_PI/3};
         //block_agent.drawOnCanvas(Pose<int, 2>(Pointi<2>{50, 50}, 0), canvas, cv::Vec3b(0,255,0));
         block_agent.drawOnCanvas(ptf, canvas, cv::Vec3b::all(0));
 
