@@ -155,4 +155,78 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
     }
 
+
+
+    // input a beam of laser scan, predict whether a robot will collide
+    // angle = beam's angle in radius, dist = dist to center of agent
+    bool PointInRectangle(const Pointf<2>& min_pt, const Pointf<2>& max_pt, float angle, float dist) {
+        float x = dist*cos(angle), y = dist*sin(angle);
+        if(x > max_pt[0] || x < min_pt[0]) {
+            return false;
+        }
+        if(y > max_pt[1] || y < min_pt[1]) {
+            return false;
+        }
+        return true;
+    }
+
+    // start angle is default to 0
+    // end angle should be minor than 90 degree (i.e., 0.5*M_PI)
+    bool PointInSector(float r, float end_angle, float angle, float dist) {
+        if(r < dist) { return false; }
+        if(end_angle < 0) {
+            if(angle > 1e-4 || angle < end_angle - 1e-4) { return false; }
+        } else {
+            if(angle < -1e-4 || angle > end_angle + 1e-4) { return false; }
+        }
+        return true;
+    }
+
+    bool CircleAgentMoveCollisionCheck(float r, const Pointf<2>& move_vec, float angle, float dist) {
+        assert(angle < 2*M_PI && angle >= 0);
+        float x = dist*cos(angle), y = dist*sin(angle);
+        // check whether collide with current circle
+        if(dist <= r) { return true; }
+        // check whether collide with future circle
+        Pointf<2> beam_pt{x, y};
+        Pointf<2> to_future = beam_pt - move_vec;
+        if(to_future.Norm() < r) { return true; }
+        // check whether collide with circle during move, via dist to line
+        Pointf<2> origin_pt{0, 0};
+        if(pointDistToLine(beam_pt, origin_pt, move_vec) <= r) { return true; }
+        return false;
+    }
+
+    // assume agent only move in x direction, i.e., front or back
+    bool BlockAgentMoveCollisionCheck(const Pointf<2>& min_pt, const Pointf<2>& max_pt,
+                                      float move_dist, float angle, float dist) {
+        //assert(min_pt[1] == -max_pt[1]);
+        float new_max_x, new_min_x;
+        if(move_dist < 0) {
+            new_max_x = max_pt[0];
+            new_min_x = min_pt[0] + move_dist;
+        } else {
+            new_max_x = max_pt[0] + move_dist;
+            new_min_x = min_pt[0];
+        }
+        Pointf<2> new_min_pt{new_min_x, min_pt[1]}, new_max_pt{new_max_x, max_pt[1]};
+        return PointInRectangle(new_min_pt, new_max_pt, angle, dist);
+    }
+
+    bool BlockAgentRotateCollisionCheck(const Pointf<2>& min_pt, const Pointf<2>& max_pt,
+                                        float rotate_angle, float angle, float dist) {
+        // check whether in current block
+        if(PointInRectangle(min_pt, max_pt, angle, dist)) { return true; }
+        // check whether in future block, rotate the beam to do collide check
+        if(PointInRectangle(min_pt, max_pt, angle - rotate_angle, dist)) { return true; }
+        // check whether intersect with the sector formed by block during rotate
+        // front ector
+        float r_front = max_pt.Norm();
+        if(PointInSector(r_front, rotate_angle, angle, dist)) { return true; }
+        // back sector
+        float r_back = min_pt.Norm();
+        if(PointInSector(r_back, rotate_angle, M_PI-angle, dist)) { return true; }
+        return false;
+    }
+
 }

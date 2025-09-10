@@ -1504,6 +1504,23 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return id;
     }
 
+    // input a beam of laser scan, predict whether a robot will collide
+    // angle = beam's angle in radius, dist = dist to center of agent
+    bool PointInRectangle(const Pointf<2>& min_pt, const Pointf<2>& max_pt, float angle, float dist);
+
+    bool PointInSector(float r, float end_angle, float angle, float dist);
+
+    bool CircleAgentRotateCollisionCheck(float r, float dist);
+
+    bool CircleAgentMoveCollisionCheck(float r, const Pointf<2>& move_vec, float angle, float dist);
+
+    // assume agent only move in x direction, i.e., front or back
+    bool BlockAgentMoveCollisionCheck(const Pointf<2>& min_pt, const Pointf<2>& max_pt,
+                                      float move_dist, float angle, float dist);
+
+    bool BlockAgentRotateCollisionCheck(const Pointf<2>& min_pt, const Pointf<2>& max_pt,
+                                       float rotate_angle, float angle, float dist);
+
 }
 
 #endif //LAYEREDMAPF_COMMON_H
