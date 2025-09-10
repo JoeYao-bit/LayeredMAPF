@@ -40,12 +40,8 @@ int main() {
         canvas.drawEmptyGrid();
         canvas.drawAxis(canvas_size_x/2/resolution, canvas_size_y/2/resolution, .2);
 
-        // draw block, ok
-//        canvas.drawLine(min_pt[0], max_pt[1], max_pt[0], max_pt[1]);
-//        canvas.drawLine(max_pt[0], max_pt[1], max_pt[0], min_pt[1]);
-//
-//        canvas.drawLine(max_pt[0], min_pt[1], min_pt[0], min_pt[1]);
-//        canvas.drawLine(min_pt[0], min_pt[1], min_pt[0], max_pt[1]);
+        // draw block and check, ok
+        canvas.drawRectangle(min_pt[0], min_pt[1], max_pt[0], max_pt[1]);
 //
 //        for(int i=0; i<pts.size(); i++) {
 //
@@ -59,11 +55,7 @@ int main() {
 //            }
 //        }
 
-        // draw circle
-//        canvas.drawCircle(0., 0., r, true, 1);
-
-        // draw eclipse
-//        canvas.drawEclipseInt(15, 15, 5, 0, 0.6*M_PI, true, 1);
+        // draw eclipse and check, ok
         canvas.drawEclipse(0., 0., r, 0., end_angle, true, 1);
         // check whether point in circle
         for(int i=0; i<pts.size(); i++) {
