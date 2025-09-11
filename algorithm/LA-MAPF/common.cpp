@@ -170,27 +170,33 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return true;
     }
 
-    // start angle is default to 0
-    // end angle should be minor than 90 degree (i.e., 0.5*M_PI)
-    bool PointInSector(float r, float end_angle, float angle, float dist) {
+    // angle, start angle and end angle should between [0, 2*M_PI]
+    bool PointInSector(float r, float start_angle, float end_angle, float angle, float dist) {
         if(r < dist) { return false; }
-        if(end_angle < 0) {
-            if(angle > 1e-4 || angle < end_angle - 1e-4) { return false; }
+        if(start_angle < end_angle) {
+
+            if(angle        > start_angle - 1e-4 && angle        < end_angle + 1e-4) { return true; }
+            if(angle-2*M_PI > start_angle - 1e-4 && angle-2*M_PI < end_angle + 1e-4) { return true; }
+            if(angle+2*M_PI > start_angle - 1e-4 && angle+2*M_PI < end_angle + 1e-4) { return true; }
+
         } else {
-            if(angle < -1e-4 || angle > end_angle + 1e-4) { return false; }
+            if(angle        > end_angle - 1e-4 && angle        < start_angle + 1e-4) { return true; }
+            if(angle-2*M_PI > end_angle - 1e-4 && angle-2*M_PI < start_angle + 1e-4) { return true; }
+            if(angle+2*M_PI > end_angle - 1e-4 && angle+2*M_PI < start_angle + 1e-4) { return true; }
         }
-        return true;
+
+        return false;
     }
 
     bool CircleAgentMoveCollisionCheck(float r, const Pointf<2>& move_vec, float angle, float dist) {
-        assert(angle < 2*M_PI && angle >= 0);
+//        assert(angle < 2*M_PI && angle >= 0);
         float x = dist*cos(angle), y = dist*sin(angle);
         // check whether collide with current circle
-        if(dist <= r) { return true; }
+//        if(dist <= r) { return true; }
         // check whether collide with future circle
         Pointf<2> beam_pt{x, y};
-        Pointf<2> to_future = beam_pt - move_vec;
-        if(to_future.Norm() < r) { return true; }
+//        Pointf<2> to_future = beam_pt - move_vec;
+//        if(to_future.Norm() < r) { return true; }
         // check whether collide with circle during move, via dist to line
         Pointf<2> origin_pt{0, 0};
         if(pointDistToLine(beam_pt, origin_pt, move_vec) <= r) { return true; }
@@ -214,19 +220,84 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     }
 
     bool BlockAgentRotateCollisionCheck(const Pointf<2>& min_pt, const Pointf<2>& max_pt,
-                                        float rotate_angle, float angle, float dist) {
+                                        float rotate_angle, float angle, float dist, bool print_log) {
+
         // check whether in current block
         if(PointInRectangle(min_pt, max_pt, angle, dist)) { return true; }
         // check whether in future block, rotate the beam to do collide check
         if(PointInRectangle(min_pt, max_pt, angle - rotate_angle, dist)) { return true; }
-        // check whether intersect with the sector formed by block during rotate
-        // front ector
+
+
+        // front sector
         float r_front = max_pt.Norm();
-        if(PointInSector(r_front, rotate_angle, angle, dist)) { return true; }
+
         // back sector
         float r_back = min_pt.Norm();
-        if(PointInSector(r_back, rotate_angle, M_PI-angle, dist)) { return true; }
+
+        if(dist > r_front && dist > r_back) { return false; }
+
+        if(print_log) {
+            std::cout << "min_pt = " << min_pt << ", max_pt = " << max_pt << ", rotate_angle = " << rotate_angle
+                      << std::endl;
+            std::cout << "angle = " << angle << ", dist = " << dist << std::endl;
+        }
+
+        float angle_front = std::atan(max_pt[1] / max_pt[0]);
+        if(print_log) {
+            std::cout << "r_front = " << r_front << ", angle_front = " << angle_front << std::endl;
+        }
+        if(PointInSector(r_front,
+                         -angle_front,-angle_front + rotate_angle,
+                         angle, dist)) { return true; }
+
+        if(print_log) {
+            std::cout << "sector 1: " << -angle_front << " , " << -angle_front + rotate_angle << ", " << angle << std::endl;
+        }
+        if(PointInSector(r_front,
+                         angle_front, angle_front + rotate_angle,
+                         angle, dist)) { return true; }
+        if(print_log) {
+            std::cout << "sector 2: " << angle_front << " , " << angle_front + rotate_angle << ", " << angle << std::endl;
+        }
+
+        float angle_back = std::atan(min_pt[1] / min_pt[0]);
+        if(print_log) {
+            std::cout << "r_back = " << r_back << ", angle_back = " << angle_back << std::endl;
+        }
+        if(PointInSector(r_back,
+                         M_PI-angle_back, M_PI-angle_back + rotate_angle,
+                         angle, dist)) { return true; }
+        if(print_log) {
+            std::cout << "sector 3: " << M_PI-angle_back << " , " << M_PI-angle_back + rotate_angle << ", " << angle << std::endl;
+        }
+        if(PointInSector(r_back,
+                         M_PI+angle_back, M_PI+angle_back + rotate_angle,
+                         angle, dist)) { return true; }
+        if(print_log) {
+            std::cout << "sector 4: " << M_PI+angle_back << " , " << M_PI+angle_back + rotate_angle << ", " << angle << std::endl;
+        }
         return false;
     }
+
+    Pointf<2> rotatePtf(const Pointf<2>& ptf, float angle) {
+        float x = ptf[0] * cos(angle) - ptf[1] * sin(angle);
+        float y = ptf[0] * sin(angle) + ptf[1] * cos(angle);
+        return Pointf<2>{x, y};
+    }
+//
+//    float normalizeAngle(float theta) {
+//        while (theta > M_PI)  theta -= 2 * M_PI;
+//        while (theta <= -M_PI) theta += 2 * M_PI;
+//        return theta;
+//    }
+//
+//    float getPositiveAngle(float theta) {
+//        float retv = theta;
+//        retv = std::fmod(retv, 2*M_PI);
+//        if(retv < 0) {
+//            retv += M_PI;
+//        }
+//        return retv;
+//    }
 
 }

@@ -1508,9 +1508,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     // angle = beam's angle in radius, dist = dist to center of agent
     bool PointInRectangle(const Pointf<2>& min_pt, const Pointf<2>& max_pt, float angle, float dist);
 
-    bool PointInSector(float r, float end_angle, float angle, float dist);
-
-    bool CircleAgentRotateCollisionCheck(float r, float dist);
+    bool PointInSector(float r, float start, float end_angle, float angle, float dist);
 
     bool CircleAgentMoveCollisionCheck(float r, const Pointf<2>& move_vec, float angle, float dist);
 
@@ -1519,7 +1517,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                       float move_dist, float angle, float dist);
 
     bool BlockAgentRotateCollisionCheck(const Pointf<2>& min_pt, const Pointf<2>& max_pt,
-                                       float rotate_angle, float angle, float dist);
+                                       float rotate_angle, float angle, float dist, bool print_log = false);
+
+    Pointf<2> rotatePtf(const Pointf<2>& ptf, float angle);
+
+//    float normalizeAngle(float theta);
+//
+//    float getPositiveAngle(float theta);
 
 }
 
