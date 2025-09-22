@@ -225,16 +225,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         }
 
         void drawOnCanvas(const Pose<int, 2>& pose,
-                          Canvas& canvas, const cv::Vec3b& color, bool fill=true) const {
-            canvas.drawCircleInt(pose.pt_[0], pose.pt_[1], radius_*canvas.zoom_ratio_,
+                          Canvas& canvas, const cv::Vec3b& color, bool fill=false) const {
+
+            canvas.drawCircleInt(pose.pt_[0], pose.pt_[1], radius_,
                              true, fill ? -1 : 1, color, 1.0);
+
         }
 
         void drawOnCanvas(const Pointf<3>& pose,
-                          Canvas& canvas, const cv::Vec3b& color, bool fill=true) const {
-
-            canvas.drawCircle(pose[0]/(float)canvas.resolution_, pose[1]/(float)canvas.resolution_,
-                              radius_*canvas.zoom_ratio_/(float)canvas.resolution_, true,
+                          Canvas& canvas, const cv::Vec3b& color, bool fill=false) const {
+            std::cout << "radius_ = " << radius_ << std::endl;
+            canvas.drawCircle(pose[0], pose[1],
+                              radius_/canvas.resolution_, true,
                                  fill ? -1 : 1, color);
         }
 

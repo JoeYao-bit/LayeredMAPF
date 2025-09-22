@@ -417,6 +417,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return rotated_pt;
     }
 
+    double orientToRadius(const int& orient);
+
+    // assume center of map is (0, 0) in the world coordinate system
+    // double reso = 0.1; // how long a grid occupied in real world ?
+    Pointf<3> GridToPtf(const Pointi<2>& pt, DimensionLength* dim, float reso);
+
+
+    Pointf<3> PoseIntToPtf(const Pose<int, 2>& pose, DimensionLength* dim, float reso);
+
     float get_random_float(std::mt19937 *MT, float from = 0, float to = 0);
 
     // a N-dimensional grid have 2^N corner

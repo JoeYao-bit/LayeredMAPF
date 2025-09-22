@@ -300,4 +300,45 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //        return retv;
 //    }
 
+
+    double orientToRadius(const int& orient) {
+        double retv = 0;
+        switch (orient)
+        {
+            case 0:
+                retv = 0; // 0 degree
+                break;
+            case 1:
+                retv = M_PI; // 180 degree
+                break;
+            case 2:
+                retv = 1.5*M_PI; // 270 degree
+                break;
+            case 3:
+                retv = 0.5*M_PI; // 90 degree
+                break;
+            default:
+                std::cout << "ERROR: invalid orient = " << orient << std::endl;
+                exit(1);
+                break;
+        }
+        return retv;
+    }
+
+    // assume center of map is (0, 0) in the world coordinate system
+    // double reso = 0.1; // how long a grid occupied in real world ?
+    Pointf<3> GridToPtf(const Pointi<2>& pt, DimensionLength* dim, float reso) {
+        Pointf<3> retv = {0, 0, 0};
+        retv[0] = pt[0]/reso - .5*dim[0]/reso;
+        retv[1] = .5*dim[1]/reso - pt[1]/reso;
+        return retv;
+    }
+
+    Pointf<3> PoseIntToPtf(const Pose<int, 2>& pose, DimensionLength* dim, float reso) {
+        //std::cout << "dim = " << dim << std::endl;
+        Pointf<3> ptf = GridToPtf(pose.pt_, dim, reso);
+        ptf[2] = orientToRadius(pose.orient_);
+        return ptf;
+    }
+
 }
