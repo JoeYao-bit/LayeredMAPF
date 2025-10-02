@@ -129,7 +129,7 @@ def drawMethodMap(single_map_data, value_type, xlable):
     if value_type == "decomposition_rate":
         plt.ylim(0, 1)
 
-    plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5)
+    plt.legend(loc='best', fontsize = 18, ncol=1, handletextpad=.5, framealpha=0.5)
     plt.xlabel(xlable, fontsize=14) # 横坐标标题
     #plt.grid()
     plt.tight_layout()
