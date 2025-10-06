@@ -86,7 +86,7 @@ sudo apt-get install libsuitesparse-dev
 ### G2O
 ```
 sudo apt-get install qt5-qmake qt5-default libqglviewer-dev-qt5 libsuitesparse-dev libcxsparse3 libcholmod3
-https://github.com/ceres-solver/ceres-solver
+git clone http://github.com/stevenlovegrove/Pangolin
 mkdir build
 cd build
 cmake ..
