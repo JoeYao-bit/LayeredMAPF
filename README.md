@@ -153,8 +153,19 @@ sudo apt-get install libxml2-dev
 
 ### argparse
 ```
-https://github.com/jarro2783/cxxopts
-```
+# 安装编译依赖
+sudo apt install -y git cmake build-essential
+
+# 克隆并编译 argparse
+git clone https://github.com/p-ranav/argparse.git
+cd argparse
+mkdir build && cd build
+cmake ..
+make -j$(nproc)
+sudo make install
+
+# 更新头文件缓存（如果需要）
+sudo ldconfig```
 
 # Usage
 
