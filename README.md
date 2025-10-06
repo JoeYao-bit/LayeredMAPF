@@ -71,6 +71,7 @@ sudo apt-get install build-essential
 sudo apt-get install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
 sudo apt-get install qtcreator
 sudo apt-get install qt5*
+sudo apt install -y libqt5charts5-dev
 ```
 
 ## Calculation tools
