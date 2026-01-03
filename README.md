@@ -71,6 +71,7 @@ sudo apt-get install build-essential
 sudo apt-get install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
 sudo apt-get install qtcreator
 sudo apt-get install qt5*
+sudo apt install -y libqt5charts5-dev
 ```
 
 ## Calculation tools
@@ -86,6 +87,7 @@ sudo apt-get install libsuitesparse-dev
 ### G2O
 ```
 sudo apt-get install qt5-qmake qt5-default libqglviewer-dev-qt5 libsuitesparse-dev libcxsparse3 libcholmod3
+git clone http://github.com/stevenlovegrove/Pangolin
 mkdir build
 cd build
 cmake ..
@@ -151,8 +153,19 @@ sudo apt-get install libxml2-dev
 
 ### argparse
 ```
-https://github.com/jarro2783/cxxopts
-```
+# 安装编译依赖
+sudo apt install -y git cmake build-essential
+
+# 克隆并编译 argparse
+git clone https://github.com/p-ranav/argparse.git
+cd argparse
+mkdir build && cd build
+cmake ..
+make -j$(nproc)
+sudo make install
+
+# 更新头文件缓存（如果需要）
+sudo ldconfig```
 
 # Usage
 
