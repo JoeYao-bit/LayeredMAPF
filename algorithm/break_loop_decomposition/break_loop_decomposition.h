@@ -40,7 +40,8 @@ namespace freeNav::LayeredMAPF {
                                            double time_limit = 10,
                                            int max_break_count = 1e3,
                                            int max_continue_failure = 50,
-                                           int expected_min_level_size = 1):
+                                           int expected_min_level_size = 1,
+                                           bool only_init = false):
                                      dim_(dim),
                                      agent_sub_graphs_(agent_sub_graphs),
                                      connect_graphs_(connectivity_graphs),
@@ -77,10 +78,11 @@ namespace freeNav::LayeredMAPF {
 //                    assert(agent_id < agent_sub_graphs_.size());
 //                }
 //            }
-            MSTimer mst;
-            breakMaxLoopIteratively();
-            std::cout << "ns finish break loop in " << mst.elapsed()/1e3 << "s" << std::endl;
-
+            if(!only_init) {
+                MSTimer mst;
+                breakMaxLoopIteratively();
+                std::cout << "ns finish break loop in " << mst.elapsed() / 1e3 << "s" << std::endl;
+            }
         }
 
 

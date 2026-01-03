@@ -70,6 +70,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         CARDINAL, PSEUDO_CARDINAL, SEMI, NON, UNKNOWN, PRIORITY_COUNT
     };
 
+    enum constraint_type {
+        LEQLENGTH, GLENGTH, RANGE, BARRIER, VERTEX, EDGE,
+        POSITIVE_VERTEX, POSITIVE_EDGE, POSITIVE_BARRIER, POSITIVE_RANGE
+    };
+
     struct Conflict {
         Conflict(int a1, int a2, const Constraints &cs1, const Constraints &cs2)
                 : a1(a1), a2(a2), cs1(cs1), cs2(cs2) {

@@ -161,7 +161,7 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
             print("Folder: " + save_path + " created")
             
         save_path = save_path + "/" + map_key
-        plt.savefig(save_path, dpi = 400, bbox_inches='tight')   
+        plt.savefig(save_path, dpi = 100, bbox_inches='tight')   
         plt.close()
         print("save path to " + save_path)
 
@@ -279,7 +279,7 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
         print("Folder: " + save_path + " created")
         
     save_path = save_path + "/" + 'summary'
-    plt.savefig(save_path, dpi = 400, bbox_inches='tight')   
+    plt.savefig(save_path, dpi = 100, bbox_inches='tight')   
     plt.close()
     print("save path to " + save_path)     
     
@@ -405,7 +405,7 @@ def drawSummaryOfMethod(all_data_map, xlable, ylable, title, is_percentage=False
         print("Folder: " + save_path + " created")
         
     save_path = save_path + "/" + 'la_method_summary'+'.png'
-    plt.savefig(save_path, dpi = 200, bbox_inches='tight')   
+    plt.savefig(save_path, dpi = 100, bbox_inches='tight')   
     plt.close()
     print("save path to " + save_path)  
     

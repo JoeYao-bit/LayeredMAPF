@@ -138,7 +138,7 @@ def drawMethodMap(single_map_data, value_type, xlable):
         print("Folder: " + save_path + " created")
 
     save_path = save_path +map_name+"-"+value_type+'.png'
-    plt.savefig(save_path, dpi = 200, bbox_inches='tight')   
+    plt.savefig(save_path, dpi = 100, bbox_inches='tight')   
     plt.close()
     print("save picture to "+save_path)
 

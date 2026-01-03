@@ -309,7 +309,78 @@ std::string BREAKLOOP_LAMAPF(const std::vector<std::pair<Pose<int, N>, Pose<int,
             pre_dec->agent_sub_graphs_,
             pre_dec->heuristic_tables_sat_,
             pre_dec->heuristic_tables_,
-            time_limit);
+            time_limit,
+            1e3,
+            50,
+            1,
+            false);
+
+    LAMAPF_Paths layered_paths;
+    bool detect_loss_solvability;
+    std::vector<std::vector<int> > grid_visit_count_table;
+    layered_paths = layeredLargeAgentMAPF<N, Pose<int, N>>(bi_decompose->all_levels_,
+                                                           mapf_func, //
+                                                           grid_visit_count_table,
+                                                           detect_loss_solvability,
+                                                           pre_dec,
+                                                           time_limit - mst.elapsed()/1e3,
+                                                           false);
+
+    double total_time_cost = mst.elapsed()/1e3;
+
+    std::cout << "instance has " << agents.size() << " agents, breakloop " << func_identifer << " find solution ? " << !layered_paths.empty()
+              << " in " << total_time_cost << "s " << std::endl;
+
+    std::cout << "breakloop: max subproblem / total = " << getMaxLevelSize(bi_decompose->all_levels_) << " / " << instances.size() << std::endl;
+    std::cout << "breakloop: num of subproblem = " << bi_decompose->all_levels_.size() << std::endl;
+
+    double max_usage = memory_recorder.getCurrentMemoryUsage();
+
+    // agents size / time cost / success / SOC / makespan / success / memory usage / init time cost / decom time cost / max subproblem / num of subproblems
+    std::stringstream ss_layered;
+    ss_layered << "BL_" << func_identifer << " " << agents.size() << " "
+               << total_time_cost << " "
+               << getSOC(layered_paths) << " " << getMakeSpan(layered_paths) << " "
+               << !layered_paths.empty() << " " << max_usage - basic_usage << " "
+               << 0 << " "
+               << 0 << " "
+               << getMaxLevelSize(bi_decompose->all_levels_) << " "
+               << bi_decompose->all_levels_.size() << " "
+               << detect_loss_solvability;
+
+    return ss_layered.str();
+}
+
+
+template<Dimension N>
+std::string BREAKLOOP_INIT_LAMAPF(const std::vector<std::pair<Pose<int, N>, Pose<int, N>>>& instances,
+                             const AgentPtrs<N>& agents,
+                             DimensionLength* dim,
+                             const IS_OCCUPIED_FUNC<N>& isoc,
+                             const LA_MAPF_FUNC<N, Pose<int, N>>& mapf_func,
+                             const std::string& func_identifer,
+                             double time_limit) {
+    memory_recorder.clear();
+    sleep(1);
+    double basic_usage = memory_recorder.getCurrentMemoryUsage();
+    MSTimer mst;
+    auto pre_dec =
+            std::make_shared<PrecomputationOfLAMAPFDecomposition<N, HyperGraphNodeDataRaw<N>>>(
+                    instances,
+                    agents,
+                    dim, isoc);
+
+    auto bi_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<N, HyperGraphNodeDataRaw<N>, Pose<int, N>>>(
+            dim,
+            pre_dec->connect_graphs_,
+            pre_dec->agent_sub_graphs_,
+            pre_dec->heuristic_tables_sat_,
+            pre_dec->heuristic_tables_,
+            time_limit,
+            1e3,
+            50,
+            1,
+            true);
 
     LAMAPF_Paths layered_paths;
     bool detect_loss_solvability;
