@@ -56,23 +56,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
 
     typedef vector<PathEntry> Path;
 
-    std::ostream &operator<<(std::ostream &os, const Path &path) {
-        for (const auto &state : path) {
-            // os << state.location << "(" << state.is_single() << "),";
-            os << state.location << "->";
-        }
-        return os;
-    }
+    std::ostream &operator<<(std::ostream &os, const Path &path);
 
-    bool isSamePath(const Path &p1, const Path &p2) {
-        if (p1.size() != p2.size())
-            return false;
-        for (unsigned i = 0; i < p1.size(); i++) {
-            if (p1[i].location != p2[i].location)
-                return false;
-        }
-        return true;
-    }
+    bool isSamePath(const Path &p1, const Path &p2);
 
 // Only for three-tuples of std::hash-able types for simplicity.
 // You can of course template this struct to allow other hash functions

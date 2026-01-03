@@ -8,10 +8,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
         NODE_RANDOM, NODE_H, NODE_DEPTH, NODE_CONFLICTS, NODE_CONFLICTPAIRS, NODE_MVC
     };
 
-    class CBSNode;
-
-    std::ostream &operator<<(std::ostream &os, const CBSNode &node);
-
     class CBSNode {
     public:
         // the following is used to compare nodes in the OPEN list
@@ -68,58 +64,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
         uint64_t time_generated;
 
 
-        void clear() {
-            conflicts.clear();
-            unknownConf.clear();
-            conflictGraph.clear();
-        }
+        void clear();
 
-        void printConflictGraph(int num_of_agents) const {
-            if (conflictGraph.empty())
-                return;
-            cout << "	Build conflict graph in " << *this << ": ";
-            for (auto e : conflictGraph) {
-                if (e.second == 0)
-                    continue;
-                int i = e.first / num_of_agents;
-                int j = e.first % num_of_agents;
-                std::cout << "(" << i << "," << j << ")=" << e.second << ",";
-            }
-            cout << endl;
-        }
+        void printConflictGraph(int num_of_agents) const;
 
-        void printConstraints(int agent) const { // print constraints on the given agent
-            auto curr = this;
-            while (curr->parent != nullptr) {
-                int a, x, y, t;
-                constraint_type type;
-                for (auto constraint : curr->constraints) {
-                    tie(a, x, y, t, type) = curr->constraints.front();
-                    switch (type) {
-                        case constraint_type::LEQLENGTH:
-                        case constraint_type::POSITIVE_VERTEX:
-                        case constraint_type::POSITIVE_EDGE:
-                            cout << constraint << ",";
-                            break;
-                        case constraint_type::GLENGTH:
-                        case constraint_type::VERTEX:
-                        case constraint_type::EDGE:
-                        case constraint_type::BARRIER:
-                        case constraint_type::POSITIVE_BARRIER:
-                        case constraint_type::RANGE:
-                        case constraint_type::POSITIVE_RANGE:
-                            if (a == agent)
-                                cout << constraint << ",";
-                            break;
-                    }
-                }
-                curr = curr->parent;
-            }
-        }
+        void printConstraints(int agent) const; // print constraints on the given agent
     };
 
 
-
+    std::ostream &operator<<(std::ostream &os, const CBSNode &node);
 
 
     struct ConstraintsHasher // Hash a CT node by constraints on one agent
@@ -277,12 +230,4 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
             }
         };
     };
-
-    std::ostream &operator<<(std::ostream &os, const CBSNode &node) {
-        os << "Node " << node.time_generated << " (" << node.g_val + node.h_val << " = " << node.g_val << " + " <<
-           node.h_val << " ) with " << node.conflicts.size() + node.unknownConf.size() << " conflicts and " <<
-           node.paths.size() << " new paths ";
-        return os;
-    }
-
 }

@@ -8,7 +8,7 @@
 
 #include <boost/program_options.hpp>
 #include <boost/tokenizer.hpp>
-#include "CBS.h"
+#include "../inc/CBS.h"
 #include "../../../constraint_table_CBS/ConstraintTable.h"
 
 namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
@@ -73,51 +73,51 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
         /////////////////////////////////////////////////////////////////////////
         /// check the correctness and consistence of params
         //////////////////////////////////////////////////////////////////////
-        CBSH2_RTC::heuristics_type h;
+        heuristics_type h;
         if (vm["heuristics"].as<std::string>() == "Zero")
-            h = CBSH2_RTC::heuristics_type::ZERO;
+            h = heuristics_type::ZERO;
         else if (vm["heuristics"].as<std::string>() == "CG")
-            h = CBSH2_RTC::heuristics_type::CG;
+            h = heuristics_type::CG;
         else if (vm["heuristics"].as<std::string>() == "DG")
-            h = CBSH2_RTC::heuristics_type::DG;
+            h = heuristics_type::DG;
         else if (vm["heuristics"].as<std::string>() == "WDG")
-            h = CBSH2_RTC::heuristics_type::WDG;
+            h = heuristics_type::WDG;
         else
         {
             std::cout << "WRONG heuristics strategy!" << std::endl;
             return {};
         }
 
-        CBSH2_RTC::rectangle_strategy r;
+        rectangle_strategy r;
         if (vm["rectangleReasoning"].as<std::string>() == "None")
-            r = CBSH2_RTC::rectangle_strategy::NR;  // no rectangle reasoning
+            r = rectangle_strategy::NR;  // no rectangle reasoning
         else if (vm["rectangleReasoning"].as<std::string>() == "R")
-            r = CBSH2_RTC::rectangle_strategy::R;  // rectangle reasoning for entire paths
+            r = rectangle_strategy::R;  // rectangle reasoning for entire paths
         else if (vm["rectangleReasoning"].as<std::string>() == "RM")
-            r = CBSH2_RTC::rectangle_strategy::RM;  // rectangle reasoning for path segments
+            r = rectangle_strategy::RM;  // rectangle reasoning for path segments
         else if (vm["rectangleReasoning"].as<std::string>() == "GR")
-            r = CBSH2_RTC::rectangle_strategy::GR;  // generalized rectangle reasoning
+            r = rectangle_strategy::GR;  // generalized rectangle reasoning
         else if (vm["rectangleReasoning"].as<std::string>() == "Disjoint")
-            r = CBSH2_RTC::rectangle_strategy::DR; // disjoint rectangle reasoning
+            r = rectangle_strategy::DR; // disjoint rectangle reasoning
         else
         {
             std::cout << "WRONG rectangle reasoning strategy!" << std::endl;
             return {};
         }
 
-        CBSH2_RTC::corridor_strategy c;
+        corridor_strategy c;
         if (vm["corridorReasoning"].as<std::string>() == "None")
-            c = CBSH2_RTC::corridor_strategy::NC;  // no corridor reasoning
+            c = corridor_strategy::NC;  // no corridor reasoning
         else if (vm["corridorReasoning"].as<std::string>() == "C")
-            c = CBSH2_RTC::corridor_strategy::C;  // corridor reasoning
+            c = corridor_strategy::C;  // corridor reasoning
         else if (vm["corridorReasoning"].as<std::string>() == "PC")
-            c = CBSH2_RTC::corridor_strategy::PC;  // corridor + pseudo-corridor reasoning
+            c = corridor_strategy::PC;  // corridor + pseudo-corridor reasoning
         else if (vm["corridorReasoning"].as<std::string>() == "STC")
-            c = CBSH2_RTC::corridor_strategy::STC;  // corridor with start-target reasoning
+            c = corridor_strategy::STC;  // corridor with start-target reasoning
         else if (vm["corridorReasoning"].as<std::string>() == "GC")
-            c = CBSH2_RTC::corridor_strategy::GC;  // generalized corridor reasoning = corridor with start-target + pseudo-corridor
+            c = corridor_strategy::GC;  // generalized corridor reasoning = corridor with start-target + pseudo-corridor
         else if (vm["corridorReasoning"].as<std::string>() == "Disjoint")
-            c = CBSH2_RTC::corridor_strategy::DC; // disjoint corridor reasoning
+            c = corridor_strategy::DC; // disjoint corridor reasoning
         else
         {
             std::cout << "WRONG corridor reasoning strategy!" << std::endl;
@@ -131,7 +131,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
 //        CBSH2_RTC::Instance instance(vm["map"].as<std::string>(), vm["agents"].as<std::string>(),
 //                                     vm["agentNum"].as<int>(), vm["agentIdx"].as<std::string>(),
 //                                     vm["rows"].as<int>(), vm["cols"].as<int>(), vm["obs"].as<int>(), vm["warehouseWidth"].as<int>());
-        CBSH2_RTC::Instance instance(dim, isoc, instance_sat);
+        Instance instance(dim, isoc, instance_sat);
 
         srand(vm["seed"].as<int>());
 
@@ -141,7 +141,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
         //////////////////////////////////////////////////////////////////////
         /// initialize the solver
         //////////////////////////////////////////////////////////////////////
-        CBSH2_RTC::CBS cbs(instance, ct, vm["sipp"].as<bool>(), vm["screen"].as<int>());
+        CBS cbs(instance, ct, vm["sipp"].as<bool>(), vm["screen"].as<int>());
         cbs.setPrioritizeConflicts(vm["prioritizingConflicts"].as<bool>());
         cbs.setDisjointSplitting(vm["disjointSplitting"].as<bool>());
         cbs.setBypass(vm["bypass"].as<bool>());
