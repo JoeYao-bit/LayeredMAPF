@@ -6,6 +6,7 @@
 
 #include "../../algorithm/LA-MAPF/LaCAM/layered_large_agent_LaCAM.h"
 #include "../../algorithm/LA-MAPF/CBS/layered_large_agent_CBS.h"
+#include "../../algorithm/LA-MAPF/CBSH2-RTC/inc/driver.h"
 
 #include "common_interfaces.h"
 
