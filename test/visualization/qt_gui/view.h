@@ -10,7 +10,6 @@
 #include "grid_element.h"
 #include "../algorithm/instance_decomposition.h"
 #include "../freeNav-base/dependencies/color_table.h"
-
 QT_BEGIN_NAMESPACE
 class QLabel;
 class QSlider;
