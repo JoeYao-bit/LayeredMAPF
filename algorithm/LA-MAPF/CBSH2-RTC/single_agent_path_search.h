@@ -2,8 +2,8 @@
 // Created by yaozhuo on 2024/5/8.
 //
 
-#ifndef LAYEREDMAPF_SINGLE_AGENT_PATH_SEARCH_H
-#define LAYEREDMAPF_SINGLE_AGENT_PATH_SEARCH_H
+#ifndef LAYEREDMAPF_SINGLE_AGENT_PATH_SEARCH_CBSH2_RTC_H
+#define LAYEREDMAPF_SINGLE_AGENT_PATH_SEARCH_CBSH2_RTC_H
 
 #include "freeNav-base/basic_elements/point.h"
 #include "constraint.h"
@@ -12,7 +12,7 @@
 #include <boost/unordered_set.hpp>
 #include <boost/unordered_map.hpp>
 
-namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
+namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
 
     // yz: low level is for isolated single agent path planning
 
@@ -118,7 +118,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
 
         virtual LAMAPF_Path solve() = 0;
 
-        virtual std::string getName() const = 0;
+        virtual std::string getName() = 0;
 
         virtual ~SingleAgentSolver() = default;
 
