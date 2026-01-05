@@ -201,6 +201,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
         std::vector<std::vector<int> > grid_visit_count_tables_;
         ConnectivityGraph* connect_graph_ = nullptr;
 
+        MDDTable<N, State> mdd_helper;
+        MutexReasoning mutex_helper;
+
+
     private:
 
         bool PC = true; // prioritize conflicts

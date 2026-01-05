@@ -114,7 +114,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
         bool buildMDD(const ConstraintTable<N, State> &ct,
                       int num_of_levels, std::shared_ptr<SingleAgentSolver<N, State> > solver) {
             this->solver = solver;
-            auto root = new MDDNode(solver->start_location, nullptr); // Root
+            auto root = new MDDNode(solver->start_node_id_, nullptr); // Root
             root->cost = num_of_levels - 1;
             std::queue<MDDNode *> open;
             std::list<MDDNode *> closed;
@@ -132,10 +132,11 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
                 }
                 // We want (g + 1)+h <= f = numOfLevels - 1, so h <= numOfLevels - g - 2. -1 because it's the bound of the children.
                 int heuristicBound = num_of_levels - curr->level - 2;
-                std::list<int> next_locations = solver->getNextLocations(curr->location);
+                //std::list<int> next_locations = solver->getNextLocations(curr->location);
+                std::list<int> next_locations = solver->sub_graph_.data_ptr_->all_edges_[curr->location];
                 for (int next_location : next_locations) // Try every possible move. We only add backward edges in this step.
                 {
-                    if (solver->my_heuristic[next_location] <= heuristicBound &&
+                    if (solver->heuristic_[next_location] <= heuristicBound &&
                         !ct.constrained(next_location, curr->level + 1) &&
                         !ct.constrained(curr->location, next_location, curr->level + 1)) // valid move
                     {
@@ -258,12 +259,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
                 for (auto &it: levels[l]) {
                     MDDNode *node_ptr = it;
 
-                    auto next_locations = solver->getNextLocations(it->location);
+                    //auto next_locations = solver->getNextLocations(it->location);
+                    std::list<int> next_locations = solver->sub_graph_.data_ptr_->all_edges_[it->location];
                     for (int newLoc: next_locations)
                         // for (int i = 0; i < 5; i++) // Try every possible move. We only add backward edges in this step.
                     {
                         // int newLoc = node_ptr->location + solver.moves_offset[i];
-                        if (solver->my_heuristic[newLoc] <= heuristicBound &&
+                        if (solver->heuristic_[newLoc] <= heuristicBound &&
                             !ct.constrained(newLoc, it->level + 1) &&
                             !ct.constrained(it->location, newLoc, it->level + 1)) // valid move
                         {
@@ -283,7 +285,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
             for (int l = oldHeight; l < numOfLevels; l++) {
                 MDDNode *goal_node = nullptr;
                 for (auto it:levels[l]) {
-                    if (it->location == solver->goal_location) {
+                    if (it->location == solver->target_node_id_) {
                         goal_node = it;
                         break;
                     }
@@ -325,7 +327,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
             if (level >= levels.size()) { return nullptr; }
 
             for (MDDNode *ptr: levels[level]) {
-                if (ptr->location == solver->goal_location && ptr->cost == level) {
+                if (ptr->location == solver->target_node_id_ && ptr->cost == level) {
                     return ptr;
                 }
             }
@@ -417,7 +419,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
             return mdd;
         }
 
-        void findSingletons(CBSNode &node, int agent, LAMAPF_Path &path) {
+        void findSingletons(CBSNode &node, int agent, Path &path) {
             auto mdd = getMDD(node, agent, path.size());
             for (size_t i = 0; i < mdd->levels.size(); i++)
                 path[i].mdd_width = mdd->levels[i].size();
