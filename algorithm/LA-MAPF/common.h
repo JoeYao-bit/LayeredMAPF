@@ -55,8 +55,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     template<Dimension N>
     using PosePaths = std::vector<PosePath<N> >;
 
+    enum constraint_type {
+        LEQLENGTH, GLENGTH, RANGE, BARRIER, VERTEX, EDGE,
+        POSITIVE_VERTEX, POSITIVE_EDGE, POSITIVE_BARRIER, POSITIVE_RANGE
+    };
+
     // <agent id, node from, node to, time range start, time range end>
-    typedef std::tuple<int, size_t, size_t, int, int> Constraint;
+    typedef std::tuple<int, size_t, size_t, int, int, constraint_type> Constraint;
+
+
 
     typedef std::list<std::shared_ptr<Constraint> > Constraints;
 
@@ -64,7 +71,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     //typedef std::pair<Constraint, Constraint> Conflict;
 
     enum conflict_type {
-        STANDARD, TYPE_COUNT
+        MUTEX, TARGET, CORRIDOR, RECTANGLE, STANDARD, TYPE_COUNT
     };
 
     enum conflict_priority {
@@ -77,14 +84,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             int agent;
             size_t from, to;
             int start_t, end_t;
+            constraint_type cst;
             // get start time index of conflict 1
             for (const auto &cs : cs1) {
-                std::tie(agent, from, to, start_t, end_t) = *cs;
+                std::tie(agent, from, to, start_t, end_t, cst) = *cs;
                 t1 = start_t < t1 ? start_t : t1;
                 t2 = end_t > t2 ? end_t : t2;
             }
             for (const auto &cs : cs2) {
-                std::tie(agent, from, to, start_t, end_t) = *cs;
+                std::tie(agent, from, to, start_t, end_t, cst) = *cs;
                 t1 = start_t < t1 ? start_t : t1;
                 t2 = end_t > t2 ? end_t : t2;
             }
@@ -106,8 +114,21 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     bool operator<(const Conflict &conflict1, const Conflict &conflict2);
 
+    struct PathEntry {
+        size_t location = -1;
+        // bool single = false;
+        int mdd_width = 0;  // TODO:: Myabe this can be deleted as we always build/look for MDDs when we classify conflicts
 
-    typedef std::vector<size_t> LAMAPF_Path; // node id sequence
+        bool is_single() const {
+            return mdd_width == 1;
+        }
+
+        PathEntry(int loc = -1) { location = loc; }
+    };
+
+    typedef std::vector<PathEntry> Path; // node id sequence
+
+    typedef std::vector<size_t> LAMAPF_Path;
 
     typedef std::vector<LAMAPF_Path> LAMAPF_Paths;
 
@@ -1047,8 +1068,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                                            << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t+1]]
 //                                            << "/t:{" << t << "," << t+1 << "}" << std::endl;
 
-                auto c1 = std::make_shared<Constraint>(a1->id_, p1[t], p1[t + 1], t, t + 2);
-                auto c2 = std::make_shared<Constraint>(a2->id_, p2[t], p2[t + 1], t, t + 2);
+                auto c1 = std::make_shared<Constraint>(a1->id_, p1[t], p1[t + 1], t, t + 2, constraint_type::EDGE);
+                auto c2 = std::make_shared<Constraint>(a2->id_, p2[t], p2[t + 1], t, t + 2, constraint_type::EDGE);
                 auto cf = std::make_shared<Conflict>(a1->id_, a2->id_, Constraints{c1}, Constraints{c2});
                 cfs.push_back(cf);
             }
@@ -1062,8 +1083,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                                            << "/t:{" << t << "," << t+1 << "}"
 //                                            << std::endl;
 
-                auto c1 = std::make_shared<Constraint>(longer_agent->id_, longer_path[t], longer_path[t + 1], t, t + 2);
-                auto c2 = std::make_shared<Constraint>(shorter_agent->id_, shorter_path.back(), MAX_NODES, 0, t + 2);
+                auto c1 = std::make_shared<Constraint>(longer_agent->id_, longer_path[t], longer_path[t + 1], t, t + 2,
+                                                       constraint_type::GLENGTH);
+                auto c2 = std::make_shared<Constraint>(shorter_agent->id_, shorter_path.back(), MAX_NODES, 0, t + 2,
+                                                       constraint_type::LEQLENGTH);
                 auto cf = std::make_shared<Conflict>(longer_agent->id_, shorter_agent->id_, Constraints{c1},
                                                      Constraints{c2});
                 cfs.push_back(cf);
@@ -1174,8 +1197,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                          << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t + 1]]
 //                          << "/t:{" << t << "," << t + 1 << "}" << std::endl;
 
-                auto c1 = std::make_shared<Constraint>(a1->id_, p1[t], p1[t + 1], t, t + 2);
-                auto c2 = std::make_shared<Constraint>(a2->id_, p2[t], p2[t + 1], t, t + 2);
+                auto c1 = std::make_shared<Constraint>(a1->id_, p1[t], p1[t + 1], t, t + 2, constraint_type::EDGE);
+                auto c2 = std::make_shared<Constraint>(a2->id_, p2[t], p2[t + 1], t, t + 2, constraint_type::EDGE);
                 auto cf = std::make_shared<Conflict>(a1->id_, a2->id_, Constraints{c1}, Constraints{c2});
                 return cf;
             }
@@ -1190,8 +1213,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                          << "/t:{" << t << "," << t + 1 << "}"
 //                          << std::endl;
 
-                auto c1 = std::make_shared<Constraint>(longer_agent->id_, longer_path[t], longer_path[t + 1], t, t + 2);
-                auto c2 = std::make_shared<Constraint>(shorter_agent->id_, shorter_path.back(), MAX_NODES, t, t + 2);
+                auto c1 = std::make_shared<Constraint>(longer_agent->id_, longer_path[t], longer_path[t + 1], t, t + 2,
+                                                       constraint_type::GLENGTH);
+                auto c2 = std::make_shared<Constraint>(shorter_agent->id_, shorter_path.back(), MAX_NODES, t, t + 2,
+                                                       constraint_type::LEQLENGTH);
                 auto cf = std::make_shared<Conflict>(longer_agent->id_, shorter_agent->id_, Constraints{c1},
                                                      Constraints{c2});
                 return cf;

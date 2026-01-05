@@ -471,13 +471,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         std::set<int> getInvalidAgents(const Constraints &constraints)  // return agents that violate the constraints
         {
             std::set<int> agents;
-            int agent; size_t from, to; int start_t, end_t;
+            int agent; size_t from, to; int start_t, end_t; constraint_type cst;
             // <agent id, node from, node to, time range start, time range end>
             assert(!constraints.empty());
             // yz: there should be only one constraint in constraints, one of the two constraint of the hyper node conflict
             //if(constraints.size() != 1) { std::cout << "constraints.size() != 1" << std::endl; } // AC
             // yz: only check the front constraint ?
-            std::tie(agent, from, to, start_t, end_t) = *(constraints.front());
+            std::tie(agent, from, to, start_t, end_t, cst) = *(constraints.front());
             agents.insert(agent);
             return agents;
         }
@@ -574,8 +574,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         void printConflict(const Conflict& cf) {
             int a1, a2; size_t from1, from2, to1, to2;
             int start_t1, start_t2, end_t1, end_t2;
-            std::tie(a1, from1, to1, start_t1, end_t1) = *(cf.cs1.front());
-            std::tie(a2, from2, to2, start_t2, end_t2) = *(cf.cs2.front());
+            constraint_type cst;
+            std::tie(a1, from1, to1, start_t1, end_t1, cst) = *(cf.cs1.front());
+            std::tie(a2, from2, to2, start_t2, end_t2, cst) = *(cf.cs2.front());
 
             std::cout << "cf agent: " << a1 << ", " << a2 << " | "
                       << *this->all_poses_[from1] << "->" << (to1 == MAX_NODES ? State() : *this->all_poses_[to1])
@@ -588,7 +589,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
         void printConstraint(const Constraint & cs) {
             int agent; size_t from, to;
             int start_t, end_t;
-            std::tie(agent, from, to, start_t, end_t) = cs;
+            constraint_type cst;
+            std::tie(agent, from, to, start_t, end_t, cst) = cs;
 
             std::cout << "cs agent: " << agent << " | {" << from << "}" << *this->all_poses_[from] << "->{" << to <<  "}" << *this->all_poses_[to] << ", "
                       << "/t:{" << start_t << "," << end_t << "}" << std::endl;

@@ -11,6 +11,7 @@
 #include "constraint.h"
 #include "../circle_shaped_agent.h"
 #include "../block_shaped_agent.h"
+#include "MDD.h"
 
 namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
 
@@ -201,6 +202,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
         ConnectivityGraph* connect_graph_ = nullptr;
 
     private:
+
+        bool PC = true; // prioritize conflicts
+        bool mutex_reasoning = true; // using mutex reasoning
 
         // implement
         int cost_lowerbound = 0;
@@ -471,13 +475,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
         std::set<int> getInvalidAgents(const Constraints &constraints)  // return agents that violate the constraints
         {
             std::set<int> agents;
-            int agent; size_t from, to; int start_t, end_t;
+            int agent; size_t from, to; int start_t, end_t; constraint_type cst;
             // <agent id, node from, node to, time range start, time range end>
             assert(!constraints.empty());
             // yz: there should be only one constraint in constraints, one of the two constraint of the hyper node conflict
             //if(constraints.size() != 1) { std::cout << "constraints.size() != 1" << std::endl; } // AC
             // yz: only check the front constraint ?
-            std::tie(agent, from, to, start_t, end_t) = *(constraints.front());
+            std::tie(agent, from, to, start_t, end_t, cst) = *(constraints.front());
             agents.insert(agent);
             return agents;
         }
@@ -574,8 +578,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
         void printConflict(const Conflict& cf) {
             int a1, a2; size_t from1, from2, to1, to2;
             int start_t1, start_t2, end_t1, end_t2;
-            std::tie(a1, from1, to1, start_t1, end_t1) = *(cf.cs1.front());
-            std::tie(a2, from2, to2, start_t2, end_t2) = *(cf.cs2.front());
+            constraint_type cst;
+            std::tie(a1, from1, to1, start_t1, end_t1, cst) = *(cf.cs1.front());
+            std::tie(a2, from2, to2, start_t2, end_t2, cst) = *(cf.cs2.front());
 
             std::cout << "cf agent: " << a1 << ", " << a2 << " | "
                       << *this->all_poses_[from1] << "->" << (to1 == MAX_NODES ? State() : *this->all_poses_[to1])
@@ -588,7 +593,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
         void printConstraint(const Constraint & cs) {
             int agent; size_t from, to;
             int start_t, end_t;
-            std::tie(agent, from, to, start_t, end_t) = cs;
+            constraint_type cst;
+            std::tie(agent, from, to, start_t, end_t, cst) = cs;
 
             std::cout << "cs agent: " << agent << " | {" << from << "}" << *this->all_poses_[from] << "->{" << to <<  "}" << *this->all_poses_[to] << ", "
                       << "/t:{" << start_t << "," << end_t << "}" << std::endl;
@@ -601,6 +607,124 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
             for (auto &node : allNodes_table)
                 delete node;
             allNodes_table.clear();
+        }
+
+
+        void classifyConflicts(CBSNode &node) {
+            // Classify all conflicts in unknownConf
+            while (!node.unknownConf.empty()) {
+                std::shared_ptr<Conflict> con = node.unknownConf.front();
+                int a1 = con->a1, a2 = con->a2;
+                int a, t1, t2;
+                size_t loc1, loc2;
+                constraint_type type;
+                std::tie(a, loc1, loc2, t1, t2, type) = *(con->cs1.back());
+                node.unknownConf.pop_front();
+
+                const auto& paths = this->solutions_;
+
+                bool cardinal1 = false, cardinal2 = false;
+                if (t1 >= (int) paths[a1]->size())
+                    cardinal1 = true;
+                else //if (!paths[a1]->at(0).is_single())
+                {
+                    mdd_helper.findSingletons(node, a1, *paths[a1]);
+                }
+                if (t1 >= (int) paths[a2]->size())
+                    cardinal2 = true;
+                else //if (!paths[a2]->at(0).is_single())
+                {
+                    mdd_helper.findSingletons(node, a2, *paths[a2]);
+                }
+
+                if (type == constraint_type::EDGE) // Edge conflict
+                {
+                    cardinal1 = paths[a1]->at(t1).is_single() && paths[a1]->at(t1 - 1).is_single();
+                    cardinal2 = paths[a2]->at(t1).is_single() && paths[a2]->at(t1 - 1).is_single();
+                } else // vertex conflict or target conflict
+                {
+                    if (!cardinal1)
+                        cardinal1 = paths[a1]->at(t1).is_single();
+                    if (!cardinal2)
+                        cardinal2 = paths[a2]->at(t1).is_single();
+                }
+
+
+                if (cardinal1 && cardinal2) {
+                    con->priority = conflict_priority::CARDINAL;
+                } else if (cardinal1 || cardinal2) {
+                    con->priority = conflict_priority::SEMI;
+                } else {
+                    con->priority = conflict_priority::NON;
+                }
+
+
+                // Mutex reasoning
+                if (mutex_reasoning) {
+                    // TODO mutex reasoning is per agent pair, don't do duplicated work...
+                    auto mdd1 = mdd_helper.getMDD(node, a1, paths[a1]->size());
+                    auto mdd2 = mdd_helper.getMDD(node, a2, paths[a2]->size());
+
+                    auto mutex_conflict = mutex_helper.run(paths, a1, a2, node, mdd1, mdd2);
+
+                    if (mutex_conflict != nullptr &&
+                        (*mutex_conflict != *con)) // ignore the cases when mutex finds the same vertex constraints
+                    {
+                        computePriorityForConflict(*mutex_conflict, node);
+                        node.conflicts.push_back(mutex_conflict);
+                        continue;
+                    }
+                }
+
+                computePriorityForConflict(*con, node);
+                node.conflicts.push_back(con);
+            }
+
+
+            // remove conflicts that cannot be chosen, to save some memory
+            removeLowPriorityConflicts(node.conflicts);
+        }
+
+        void computePriorityForConflict(Conflict &conflict, const CBSNode &node) {
+            conflict.secondary_priority = 0; // random
+            /*switch (conflict.type) // Earliest
+            {
+                case conflict_type::STANDARD:
+                case conflict_type::RECTANGLE:
+                case conflict_type::TARGET:
+                case conflict_type::MUTEX:
+                    conflict.secondary_priority = get<3>(conflict.constraint1.front());
+                    break;
+                case conflict_type::CORRIDOR:
+                    conflict.secondary_priority = min(get<2>(conflict.constraint1.front()),
+                                                      get<3>(conflict.constraint1.front()));
+                    break;
+            }*/
+        }
+
+
+        void removeLowPriorityConflicts(std::list<std::shared_ptr<Conflict>> &conflicts) const {
+            if (conflicts.empty())
+                return;
+            std::unordered_map<int, std::shared_ptr<Conflict> > keep;
+            std::list<std::shared_ptr<Conflict> > to_delete;
+            for (const auto &conflict : conflicts) {
+                int a1 = std::min(conflict->a1, conflict->a2), a2 = std::max(conflict->a1, conflict->a2);
+                int key = a1 * this->instance_node_ids_.size() + a2;
+                auto p = keep.find(key);
+                if (p == keep.end()) {
+                    keep[key] = conflict;
+                } else if (*(p->second) < *conflict) {
+                    to_delete.push_back(p->second);
+                    keep[key] = conflict;
+                } else {
+                    to_delete.push_back(conflict);
+                }
+            }
+
+            for (const auto &conflict : to_delete) {
+                conflicts.remove(conflict);
+            }
         }
 
     };
