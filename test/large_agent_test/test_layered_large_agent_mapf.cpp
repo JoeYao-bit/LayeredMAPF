@@ -140,8 +140,54 @@ void layeredLargeAgentMAPFTest(const SingleMapTestConfig<2>& file_path,
 
 //TEST(test, layered_large_agent_CBS) {
 int main() {
-    //layeredLargeAgentMAPFTest(7, CBS::LargeAgentCBS_func<2, Pose<int, 2> >, 20);
-    //(MAPFTestConfig_empty_48_48, 7, LargeAgentLaCAMPose_func<2, Pose<int, 2> >, 20);
+//    layeredLargeAgentMAPFTest(MAPFTestConfig_empty_48_48, 7, LargeAgentLaCAMPose_func<2, Pose<int, 2> >, 20);
+    auto map_file = MAPFTestConfig_empty_48_48;
+    TextMapLoader loader = TextMapLoader(map_file.at("map_path"), is_char_occupied1);
+
+    auto dim = loader.getDimensionInfo();
+    auto is_occupied = [&loader](const freeNav::Pointi<2> &pt) -> bool { return loader.isOccupied(pt); };
+    IS_OCCUPIED_FUNC<2> is_occupied_func = is_occupied;
+
+
+    InstanceDeserializer<2> deserializer;
+    if(deserializer.loadInstanceFromFile(map_file.at("la_ins_path"), dim)) {
+        std::cout << "load from path " << map_file.at("la_ins_path") << " success" << std::endl;
+    } else {
+        std::cout << "load from path " << map_file.at("la_ins_path") << " failed" << std::endl;
+        return 1;
+    }
+    assert(!deserializer.getAgents().empty());
+    std::vector<int> required_counts;
+
+    auto agent_and_instances = deserializer.getTestInstance({7}, 1);
+
+    std::cout << " agent_and_instances size " << agent_and_instances.size() << std::endl;
+
+    const auto& instances_local = agent_and_instances[0].second;
+    const auto& agents_local = agent_and_instances[0].first;
+
+//    auto str = BREAKLOOP_LAMAPF<2>(
+//            instances_local,
+//            agents_local,
+//            dim,
+//            is_occupied,
+//            //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
+//            CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
+//            "CBS",
+//            60);
+
+    auto str = RAW_LAMAPF<2>(
+            instances_local,
+            agents_local,
+            dim,
+            is_occupied,
+            //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
+//            CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
+            CBSH2_RTC::LargeAgentCBS_func<2, Pose<int, 2> >,
+
+            "RAW_CBSH2_RTC",
+            60);
+
     return 0;
 }
 

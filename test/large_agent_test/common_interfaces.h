@@ -13,6 +13,8 @@
 
 #include "../../algorithm/LA-MAPF/CBS/large_agent_CBS.h"
 #include "../../algorithm/LA-MAPF/LaCAM/large_agent_lacam.h"
+#include "../../algorithm/LA-MAPF/LaCAM/layered_large_agent_LaCAM.h"
+#include "../../algorithm/LA-MAPF/CBSH2-RTC/layered_large_agent_CBS.h"
 
 #include "../../algorithm/LA-MAPF/large_agent_instance_generator.h"
 #include "../../algorithm/LA-MAPF/instance_serialize_and_deserialize.h"
@@ -22,6 +24,7 @@
 #include "../../freeNav-base/dependencies/2d_grid/text_map_loader.h"
 #include "../test_data.h"
 #include "../../algorithm/LA-MAPF/CBS/layered_large_agent_CBS.h"
+#include "../../algorithm/LA-MAPF/CBSH2-RTC/layered_large_agent_CBS.h"
 
 #include "../../algorithm/LA-MAPF/laryered_large_agent_mapf.h"
 #include "../../freeNav-base/dependencies/memory_analysis.h"

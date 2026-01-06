@@ -25,6 +25,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
                                                 const std::vector<std::vector<int> >& agents_heuristic_tables_ignore_rotate,
                                                 ConnectivityGraph* connect_graph = nullptr) {
 
+
         LargeAgentCBS<N, State> solver(instances, agents, dim, isoc, path_constraint,
                                                                   instance_node_ids,
                                                                   all_poses,

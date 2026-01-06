@@ -12,6 +12,7 @@
 #include "../circle_shaped_agent.h"
 #include "../block_shaped_agent.h"
 #include "MDD.h"
+#include "mutex_reasoning.h"
 
 namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
 
@@ -201,8 +202,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
         std::vector<std::vector<int> > grid_visit_count_tables_;
         ConnectivityGraph* connect_graph_ = nullptr;
 
-        MDDTable<N, State> mdd_helper;
-        MutexReasoning mutex_helper;
+        //MDDTable<N, State> mdd_helper;
+        //MutexReasoning mutex_helper;
 
 
     private:
@@ -628,18 +629,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
                 const auto& paths = this->solutions_;
 
                 bool cardinal1 = false, cardinal2 = false;
-                if (t1 >= (int) paths[a1]->size())
-                    cardinal1 = true;
-                else //if (!paths[a1]->at(0).is_single())
-                {
-                    mdd_helper.findSingletons(node, a1, *paths[a1]);
-                }
-                if (t1 >= (int) paths[a2]->size())
-                    cardinal2 = true;
-                else //if (!paths[a2]->at(0).is_single())
-                {
-                    mdd_helper.findSingletons(node, a2, *paths[a2]);
-                }
+//                if (t1 >= (int) paths[a1]->size())
+//                    cardinal1 = true;
+//                else //if (!paths[a1]->at(0).is_single())
+//                {
+//                    mdd_helper.findSingletons(node, a1, *paths[a1]);
+//                }
+//                if (t1 >= (int) paths[a2]->size())
+//                    cardinal2 = true;
+//                else //if (!paths[a2]->at(0).is_single())
+//                {
+//                    mdd_helper.findSingletons(node, a2, *paths[a2]);
+//                }
 
                 if (type == constraint_type::EDGE) // Edge conflict
                 {
@@ -664,21 +665,21 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
 
 
                 // Mutex reasoning
-                if (mutex_reasoning) {
-                    // TODO mutex reasoning is per agent pair, don't do duplicated work...
-                    auto mdd1 = mdd_helper.getMDD(node, a1, paths[a1]->size());
-                    auto mdd2 = mdd_helper.getMDD(node, a2, paths[a2]->size());
-
-                    auto mutex_conflict = mutex_helper.run(paths, a1, a2, node, mdd1, mdd2);
-
-                    if (mutex_conflict != nullptr &&
-                        (*mutex_conflict != *con)) // ignore the cases when mutex finds the same vertex constraints
-                    {
-                        computePriorityForConflict(*mutex_conflict, node);
-                        node.conflicts.push_back(mutex_conflict);
-                        continue;
-                    }
-                }
+//                if (mutex_reasoning) {
+//                    // TODO mutex reasoning is per agent pair, don't do duplicated work...
+//                    auto mdd1 = mdd_helper.getMDD(node, a1, paths[a1]->size());
+//                    auto mdd2 = mdd_helper.getMDD(node, a2, paths[a2]->size());
+//
+//                    auto mutex_conflict = mutex_helper.run(paths, a1, a2, node, mdd1, mdd2);
+//
+//                    if (mutex_conflict != nullptr &&
+//                        (*mutex_conflict != *con)) // ignore the cases when mutex finds the same vertex constraints
+//                    {
+//                        computePriorityForConflict(*mutex_conflict, node);
+//                        node.conflicts.push_back(mutex_conflict);
+//                        continue;
+//                    }
+//                }
 
                 computePriorityForConflict(*con, node);
                 node.conflicts.push_back(con);
