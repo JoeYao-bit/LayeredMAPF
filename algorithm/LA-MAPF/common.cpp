@@ -31,10 +31,51 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return false;
     }
 
+    bool operator==(const Conflict &conflict1, const Conflict &conflict2) {
+        return (conflict1.a1 == conflict2.a1 &&
+                conflict1.a2 == conflict2.a2 &&
+                conflict1.cs1 == conflict2.cs1 &&
+                conflict1.cs2 == conflict2.cs2) ||
+               (conflict1.a1 == conflict2.a2 &&
+                conflict1.a2 == conflict2.a1 &&
+                conflict1.cs1 == conflict2.cs2 &&
+                conflict1.cs2 == conflict2.cs1);
+    }
+
+    bool operator!=(const Conflict &conflict1, const Conflict &conflict2) {
+        return !(conflict1 == conflict2);
+    }
+
+    Path LAMAPF_Path2Path(const LAMAPF_Path& lpath) {
+        Path retv;
+        for(int i=0; i<lpath.size(); i++) {
+            retv.push_back(PathEntry(lpath[i]));
+        }
+        return retv;
+    }
+
+    LAMAPF_Path Path2LAMAPF_path(const Path& path) {
+        LAMAPF_Path retv;
+        for(int i=0; i<path.size(); i++) {
+            retv.push_back(path[i].location);
+        }
+        return retv;
+    }
+
     bool isSamePath(const std::vector<size_t>& path1, const std::vector<size_t>& path2) {
         if(path1.size() != path2.size()) { return false; }
         for(int t = 0; t < path1.size(); t++) {
             if(path1[t] != path2[t]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool isSamePath(const Path& path1, const Path& path2) {
+        if(path1.size() != path2.size()) { return false; }
+        for(int t = 0; t < path1.size(); t++) {
+            if(path1[t].location != path2[t].location) {
                 return false;
             }
         }

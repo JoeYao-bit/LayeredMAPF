@@ -7,13 +7,7 @@
 
 #include <gtest/gtest.h>
 #include "common_interfaces.h"
-#include "../../algorithm/LA-MAPF/laryered_large_agent_mapf.h"
-#include "../../algorithm/LA-MAPF/CBS/layered_large_agent_CBS.h"
-#include "../../algorithm/LA-MAPF/CBS/large_agent_CBS.h"
 
-//#include "../../algorithm/LA-MAPF/LaCAM/large_agent_lacam.h"
-#include "../../algorithm/LA-MAPF/IndependenceDetection/independence_detection.h"
-#include "../algorithm/LA-MAPF/LaCAM/layered_large_agent_LaCAM.h"
 
 using namespace freeNav::LayeredMAPF::LA_MAPF;
 

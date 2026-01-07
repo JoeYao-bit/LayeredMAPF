@@ -133,7 +133,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
                 // We want (g + 1)+h <= f = numOfLevels - 1, so h <= numOfLevels - g - 2. -1 because it's the bound of the children.
                 int heuristicBound = num_of_levels - curr->level - 2;
                 //std::list<int> next_locations = solver->getNextLocations(curr->location);
-                std::list<int> next_locations = solver->sub_graph_.data_ptr_->all_edges_[curr->location];
+                std::vector<size_t> next_locations = solver->sub_graph_.data_ptr_->all_edges_[curr->location];
                 for (int next_location : next_locations) // Try every possible move. We only add backward edges in this step.
                 {
                     if (solver->heuristic_[next_location] <= heuristicBound &&
@@ -260,7 +260,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
                     MDDNode *node_ptr = it;
 
                     //auto next_locations = solver->getNextLocations(it->location);
-                    std::list<int> next_locations = solver->sub_graph_.data_ptr_->all_edges_[it->location];
+                    std::vector<size_t> next_locations = solver->sub_graph_.data_ptr_->all_edges_[it->location];
                     for (int newLoc: next_locations)
                         // for (int i = 0; i < 5; i++) // Try every possible move. We only add backward edges in this step.
                     {
@@ -387,11 +387,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
         double accumulated_runtime = 0;  // runtime of building MDDs
         uint64_t num_released_mdds = 0; // number of released MDDs ( to save memory)
 
-        MDDTable(const std::vector<ConstraintTable<N, State> > &initial_constraints,
-                 const std::vector<std::shared_ptr<SingleAgentSolver<N, State> > > &search_engines) :
-                initial_constraints(initial_constraints), search_engines(search_engines) {}
+        MDDTable() {}
 
-        void init(int number_of_agents) {
+        void init(int number_of_agents,
+                  const std::vector<std::shared_ptr<ConstraintTable<N, State> > > &initial_constraints,
+                  const std::vector<std::shared_ptr<SingleAgentSolver<N, State> > > &search_engines) {
+            initial_constraints_ = initial_constraints;
+            search_engines_ = search_engines;
             lookupTable.resize(number_of_agents);
         }
 
@@ -409,9 +411,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
 
             clock_t t = clock();
             MDD<N, State> *mdd = new MDD<N, State>();
-            ConstraintTable ct(initial_constraints[id]);
+            ConstraintTable ct(*initial_constraints_[id]);
             ct.build(node, id);
-            mdd->buildMDD(ct, mdd_levels, search_engines[id]);
+            mdd->buildMDD(ct, mdd_levels, search_engines_[id]);
             if (!lookupTable.empty()) {
                 lookupTable[c.a][c] = mdd;
             }
@@ -450,9 +452,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
         std::vector<std::unordered_map<ConstraintsHasher, MDD<N, State> *,
                 ConstraintsHasher::Hasher, ConstraintsHasher::EqNode>> lookupTable;
 
-        const std::vector<ConstraintTable<N, State> > &initial_constraints;
+        std::vector<std::shared_ptr<ConstraintTable<N, State> > > initial_constraints_;
 
-        std::vector<std::shared_ptr<SingleAgentSolver<N, State> > > search_engines;
+        std::vector<std::shared_ptr<SingleAgentSolver<N, State> > > search_engines_;
 
         void releaseMDDMemory(int id) {
             if (id < 0 || lookupTable.empty() || (int) lookupTable[id].size() < max_num_of_mdds)

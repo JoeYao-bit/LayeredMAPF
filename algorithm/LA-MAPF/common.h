@@ -75,10 +75,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     };
 
     enum conflict_priority {
-        CARDINAL, PSEUDO_CARDINAL, SEMI, NON, UNKNOWN, PRIORITY_COUNT
+        CARDINAL, SEMI, NON, UNKNOWN, PRIORITY_COUNT
     };
 
     struct Conflict {
+
+        Conflict() {}
+
         Conflict(int a1, int a2, const Constraints &cs1, const Constraints &cs2)
                 : a1(a1), a2(a2), cs1(cs1), cs2(cs2) {
             int agent;
@@ -106,6 +109,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         conflict_type type;
         conflict_priority priority = conflict_priority::UNKNOWN;
         double secondary_priority = 0; // used as the tie-breaking creteria for conflict selection
+
+        // move from CBSH2-RTC
+        void mutexConflict(int _a1, int _a2) {
+            cs1.clear();
+            cs2.clear();
+            this->a1 = _a1;
+            this->a2 = _a2;
+            type = conflict_type::MUTEX;
+            priority = conflict_priority::CARDINAL;
+            // TODO add constraints from mutex reasoning
+        }
+
     };
 
     typedef std::shared_ptr<Conflict> ConflictPtr;
@@ -113,6 +128,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     typedef std::vector<std::shared_ptr<Conflict> > Conflicts;
 
     bool operator<(const Conflict &conflict1, const Conflict &conflict2);
+
+    bool operator==(const Conflict &conflict1, const Conflict &conflict2);
+
+    bool operator!=(const Conflict &conflict1, const Conflict &conflict2);
 
     struct PathEntry {
         size_t location = -1;
@@ -131,6 +150,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     typedef std::vector<size_t> LAMAPF_Path;
 
     typedef std::vector<LAMAPF_Path> LAMAPF_Paths;
+
+    Path LAMAPF_Path2Path(const LAMAPF_Path& lpath);
+
+    LAMAPF_Path Path2LAMAPF_path(const Path& path);
 
     template<typename T>
     int getSOC(const std::vector<std::vector<T> > &paths) {
@@ -151,6 +174,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     }
 
     bool isSamePath(const std::vector<size_t> &path1, const std::vector<size_t> &path2);
+
+    bool isSamePath(const Path& path1, const Path& path2);
 
     template<Dimension N>
     struct Agent {

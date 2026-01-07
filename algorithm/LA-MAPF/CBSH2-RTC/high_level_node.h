@@ -18,7 +18,7 @@ class HighLvNode // a virtual base class for high-level node
         HighLvNode *parent;
         std::list<HighLvNode *> children;
 
-        std::list<std::pair<int, LAMAPF_Path> > paths; // new paths // yz: replanned new path
+        std::list<std::pair<int, Path> > paths; // new paths // yz: replanned new path
 
         Constraint cst; // new constraints // yz: constraint add in current node ?
         // conflicts in the current paths

@@ -45,6 +45,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
                         path_constraint_(path_constraint),
                         connect_graph_(connect_graph) {
             // 1, initial paths
+            std::vector<std::shared_ptr<SingleAgentSolver<N, State> > > planners;
             for(int agent=0; agent<this->instance_node_ids_.size(); agent++) {
                 ConstraintTable<N, State> constraint_table(agent, this->agents_, this->all_poses_, this->dim_, this->isoc_);
 
@@ -56,7 +57,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
                 const size_t& start_node_id = this->instance_node_ids_[agent].first,
                               target_node_id = this->instance_node_ids_[agent].second;
 
-                SpaceTimeAstar<N, State> astar(start_node_id, target_node_id,
+                auto astar = std::make_shared<SpaceTimeAstar<N, State> >(start_node_id, target_node_id,
                                                this->agents_heuristic_tables_[agent],
                                                this->agents_heuristic_tables_ignore_rotate_[agent],
                                                this->agent_sub_graphs_[agent],
@@ -64,6 +65,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
                                                constraint_avoidance_table_,
                                                path_constraint_,
                                                connect_graph_);
+
+                planners.push_back(astar);
+
                 auto sum_s =  this->mst_.elapsed()/1e3;
                 auto remain_s = time_limit - sum_s;
                 if(remain_s < 0) {
@@ -71,36 +75,31 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
                     this->solvable = false;
                     continue;
                 }
-                astar.time_limit_ = remain_s*1e3;
+                astar->time_limit_ = remain_s*1e3;
 
-                LAMAPF_Path solution = astar.solve();
-                grid_visit_count_tables_.push_back(astar.grid_visit_count_table_);
-                if(solution.empty()) {
+                Path path = astar->findPath();
+                grid_visit_count_tables_.push_back(astar->grid_visit_count_table_);
+
+                if(path.empty()) {
                     std::cout << " agent " << agent << " search path failed " << std::endl;
                     this->solvable = false;
                 } else {
-//                    this->printPath(agent, solution);
-                    this->initial_solutions_.push_back(solution);
-//                    init_agent_occ_grids.push_back(ConstraintAvoidanceTable<N, AgentType>::getAgentPathOccGrids(this->agents_[agent],
-//                                                                                                                this->initial_solutions_[agent],
-//                                                                                                                this->all_poses_,
-//                                                                                                                this->dim_));
-                    this->solutions_.push_back(solution);
-//                    std::cout << " init path " << agent << " length = " << solution.size() << std::endl;
+                    paths_.push_back(path);
+                    paths_found_initially_.push_back(path);
                 }
             }
             if(this->solvable) {
-                assert(this->solutions_.size() == instances.size());
-                assert(this->solutions_.size() == this->initial_solutions_.size());
+                assert(paths_.size() == instances.size());
+                assert(paths_.size() == paths_found_initially_.size());
             }
-            // 2, detect conflict
-//            for(int i=0; i<this->instances_.size()-1; i++) {
-//                for(int j=i+1; j<this->instances_.size(); j++) {
-//                    const auto& conflicts = detectFirstConflictBetweenPaths<N>(solutions_[i], solutions_[j], this->agents_[i], this->agents_[j], this->all_poses_);
-//                    //break;
-//                }
-//            }
-            //const auto& conflicts = detectAllConflictBetweenPaths<N>(solutions_[0], solutions_[1], this->agents_[0], this->agents_[1], this->all_poses_);
+
+            // MDD init
+
+            mdd_helper.init(this->instance_node_ids_.size(), {}, planners);
+
+            // mutex reasoning init
+            mutex_helper.init({});
+
         }
 
         ~LargeAgentCBS() {
@@ -142,6 +141,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
                 }
                 if (!curr->h_computed)  // heuristics has not been computed yet
                 {
+                    if (PC) // prioritize conflicts
+                        classifyConflicts(*curr);
                     curr->h_val = 0;
                     if (reinsertNode(curr)) {
                         continue;
@@ -162,12 +163,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
 //                    has_target_conflict = true;
 //                }
                 bool solved[2] = {false, false};
-                std::vector<LAMAPF_Path> copy(this->solutions_);
+                std::vector<Path> copy(paths_);
                 std::vector<CBSNode*> children;
                 // yz: split to two branches
                 for (int i = 0; i < 2; i++) {
                     if (i > 0) {
-                        this->solutions_ = copy;
+                        paths_ = copy;
                     }
 //                    if(has_target_conflict && std::get<3>(*child[i]->constraints.front()) != 0) {
 //                        delete (child[i]);
@@ -202,8 +203,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
         std::vector<std::vector<int> > grid_visit_count_tables_;
         ConnectivityGraph* connect_graph_ = nullptr;
 
-        //MDDTable<N, State> mdd_helper;
-        //MutexReasoning mutex_helper;
+        MDDTable<N, State> mdd_helper;
+        MutexReasoning<N, State> mutex_helper;
 
 
     private:
@@ -236,7 +237,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
 
         const LargeAgentStaticConstraintTablePtr<N, State>& path_constraint_; // take external path as obstacles
 
-        // store each agent's occupied grid at each time , update with this->solutions_
+        std::vector<Path> paths_; // CBSH2-RTC style path
+        std::vector<Path> paths_found_initially_;  // contain initial paths found; CBSH2-RTC style path
+
+        // store each agent's occupied grid at each time , update with paths_
 //        std::vector< typename ConstraintAvoidanceTable<N, AgentType>::OccGridLevels > agent_occ_grids;
 
         std::vector< typename ConstraintAvoidanceTable<N, State>::OccGridLevels > init_agent_occ_grids;
@@ -255,14 +259,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
 //            std::cout << __FUNCTION__ << " called " << std::endl;
             auto root = new CBSNode();
             root->g_val = 0;
-            this->solutions_.resize(this->instances_.size(), {});
+            paths_.resize(this->instances_.size(), {});
 //            agent_occ_grids.clear();
 //            agent_occ_grids.resize(this->instances_.size(), {});
             for (int agent = 0; agent < this->instances_.size(); agent++) {
-                this->solutions_[agent] = this->initial_solutions_[agent];
+                paths_[agent] = paths_found_initially_[agent];
 //                agent_occ_grids[agent]  = init_agent_occ_grids[agent];
-                root->makespan = std::max(root->makespan, this->solutions_[agent].size() - 1); // yz: makespan
-                root->g_val += (int) this->solutions_[agent].size() - 1; // yz: sum of all current path cost
+                root->makespan = std::max(root->makespan, paths_[agent].size() - 1); // yz: makespan
+                root->g_val += (int) paths_[agent].size() - 1; // yz: sum of all current path cost
             }
             root->h_val = 0;
             root->depth = 0;
@@ -288,11 +292,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
                 std::cout << "-- The solution cost is wrong!" << std::endl;
                 std::cout <<"-- soc = " << soc << " / solution_cost = " << solution_cost << std::endl;
                 return false;
-            }
-            size_t makespan = this->getMakeSpan();
-//            std::cout << "-- find solution with SOC/makespan = " << soc << " / " << makespan << std::endl;
-            for(int agent=0; agent<this->instances_.size(); agent++) {
-//                this->printPath(agent, this->solutions_[agent]);
             }
             return true;
         }
@@ -353,13 +352,13 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
         // yz: update paths in CBS to paths under current hyper node constraint
         inline void updatePaths(HighLvNode *curr) {
             for (int agent = 0; agent < this->instances_.size(); agent++) {
-                this->solutions_[agent] = this->initial_solutions_[agent]; // yz: considering what if an agent that never have conflict with other agent
+                paths_[agent] = paths_found_initially_[agent]; // yz: considering what if an agent that never have conflict with other agent
             }
             std::vector<bool> updated(this->instances_.size(), false);  // initialized for false
             while (curr != nullptr) {
                 for (auto &path : curr->paths) {
                     if (!updated[path.first]) {
-                        this->solutions_[path.first] = path.second;
+                        paths_[path.first] = path.second;
                         updated[path.first] = true;
                     }
                 }
@@ -399,7 +398,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
         // yz: add conflicts between a1's path and a2's path to curr
         Conflicts findConflicts(HighLvNode &curr, int a1, int a2) {
             const auto& conflicts = detectAllConflictBetweenPaths(
-                    this->solutions_[a1], this->solutions_[a2], this->agents_[a1], this->agents_[a2], this->all_poses_);
+                    Path2LAMAPF_path(paths_[a1]), Path2LAMAPF_path(paths_[a2]), this->agents_[a1], this->agents_[a2], this->all_poses_);
             for(const auto & conflict : conflicts) {
                 curr.unknownConf.push_front(conflict); // It's at least a semi conflict
             }
@@ -434,7 +433,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
                             }
                         }
                         if (!skip) {
-//                            std::cout << " a1/a2 path size " << this->solutions_[a1].size() << "/" << this->solutions_[a2].size() << std::endl;
                             auto retv1 = findConflicts(curr, a1, a2);
                             retv.insert(retv.end(), retv1.begin(), retv1.end());
                         }
@@ -512,12 +510,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
             const size_t& start_node_id = this->instance_node_ids_[agent].first,
                     target_node_id = this->instance_node_ids_[agent].second;
 
-//            constraint_avoidance_table_.clearAllExistingOccGrids();
-//            for(int a=0; a<this->agents_.size(); a++) {
-//                if(a == agent) { continue; }
-//                constraint_avoidance_table_.insertAgentPathOccGrids(this->agents_[a], this->solutions_[a]);
-//            }
-//            constraint_avoidance_table_.updateAgent(this->agents_[agent]);
             auto sum_s = this->mst_.elapsed()/1e3;
             auto remain_s = this->time_limit_ - sum_s;
             if(remain_s < 0 ) { return false; }
@@ -531,21 +523,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
                                            connect_graph_);
             astar.lower_bound_ = lowerbound;
             astar.time_limit_ = remain_s*1e3;
-            LAMAPF_Path new_path = astar.solve();
+            Path new_path = astar.findPath();
             if (!new_path.empty()) {
-//                std::cout << " old path size = " << this->solutions_[agent].size() << std::endl;
-//                std::cout << " new path: size = " << new_path.size() << std::endl;
-//                printPath(agent, new_path);
-//                if(this->solutions_[agent].size() > new_path.size()) {
-//                    std::cout << " new path short than old path" << std::endl;
-//                }
-                assert(!isSamePath(this->solutions_[agent], new_path));
+                assert(!isSamePath(paths_[agent], new_path));
                 node->paths.emplace_back(agent, new_path); // yz: add to replanned paths
                 // yz: update current node's total cost (time step) of paths
 //                std::cout << "old node->g_val = " << node->g_val << std::endl;
 //                std::cout << "old soc = " << getSOC() << std::endl;
-                node->g_val = node->g_val - (int) this->solutions_[agent].size() + (int) new_path.size();
-                this->solutions_[agent] = node->paths.back().second;
+                node->g_val = node->g_val - (int) paths_[agent].size() + (int) new_path.size();
+                paths_[agent] = node->paths.back().second;
                 node->makespan = std::max(node->makespan, new_path.size() - 1);
 //                std::cout << "new node->g_val = " << node->g_val << std::endl;
 //                std::cout << "new soc = " << getSOC() << std::endl;
@@ -568,7 +554,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
             auto agents = getInvalidAgents(node->constraints);
             assert(!agents.empty());
             for (auto agent : agents) {
-                int lowerbound = (int) this->solutions_[agent].size() - 1;
+                int lowerbound = (int) paths_[agent].size() - 1;
                 // yz: if find no path meet current constraint, the child node is illegal
                 if (!findPathForSingleAgent(node, agent, lowerbound)) {
                     return false;
@@ -626,32 +612,30 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
                 std::tie(a, loc1, loc2, t1, t2, type) = *(con->cs1.back());
                 node.unknownConf.pop_front();
 
-                const auto& paths = this->solutions_;
-
                 bool cardinal1 = false, cardinal2 = false;
-//                if (t1 >= (int) paths[a1]->size())
-//                    cardinal1 = true;
-//                else //if (!paths[a1]->at(0).is_single())
-//                {
-//                    mdd_helper.findSingletons(node, a1, *paths[a1]);
-//                }
-//                if (t1 >= (int) paths[a2]->size())
-//                    cardinal2 = true;
-//                else //if (!paths[a2]->at(0).is_single())
-//                {
-//                    mdd_helper.findSingletons(node, a2, *paths[a2]);
-//                }
+                if (t1 >= (int) paths_[a1].size())
+                    cardinal1 = true;
+                else //if (!paths[a1]->at(0).is_single())
+                {
+                    mdd_helper.findSingletons(node, a1, paths_[a1]);
+                }
+                if (t1 >= (int) paths_[a2].size())
+                    cardinal2 = true;
+                else //if (!paths[a2]->at(0).is_single())
+                {
+                    mdd_helper.findSingletons(node, a2, paths_[a2]);
+                }
 
                 if (type == constraint_type::EDGE) // Edge conflict
                 {
-                    cardinal1 = paths[a1]->at(t1).is_single() && paths[a1]->at(t1 - 1).is_single();
-                    cardinal2 = paths[a2]->at(t1).is_single() && paths[a2]->at(t1 - 1).is_single();
+                    cardinal1 = paths_[a1].at(t1).is_single() && paths_[a1].at(t1 - 1).is_single();
+                    cardinal2 = paths_[a2].at(t1).is_single() && paths_[a2].at(t1 - 1).is_single();
                 } else // vertex conflict or target conflict
                 {
                     if (!cardinal1)
-                        cardinal1 = paths[a1]->at(t1).is_single();
+                        cardinal1 = paths_[a1].at(t1).is_single();
                     if (!cardinal2)
-                        cardinal2 = paths[a2]->at(t1).is_single();
+                        cardinal2 = paths_[a2].at(t1).is_single();
                 }
 
 
@@ -665,21 +649,21 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
 
 
                 // Mutex reasoning
-//                if (mutex_reasoning) {
-//                    // TODO mutex reasoning is per agent pair, don't do duplicated work...
-//                    auto mdd1 = mdd_helper.getMDD(node, a1, paths[a1]->size());
-//                    auto mdd2 = mdd_helper.getMDD(node, a2, paths[a2]->size());
-//
-//                    auto mutex_conflict = mutex_helper.run(paths, a1, a2, node, mdd1, mdd2);
-//
-//                    if (mutex_conflict != nullptr &&
-//                        (*mutex_conflict != *con)) // ignore the cases when mutex finds the same vertex constraints
-//                    {
-//                        computePriorityForConflict(*mutex_conflict, node);
-//                        node.conflicts.push_back(mutex_conflict);
-//                        continue;
-//                    }
-//                }
+                if (mutex_reasoning) {
+                    // TODO mutex reasoning is per agent pair, don't do duplicated work...
+                    auto mdd1 = mdd_helper.getMDD(node, a1, paths_[a1].size());
+                    auto mdd2 = mdd_helper.getMDD(node, a2, paths_[a2].size());
+
+                    auto mutex_conflict = mutex_helper.run(paths_, a1, a2, node, mdd1, mdd2);
+
+                    if (mutex_conflict != nullptr &&
+                        (*mutex_conflict != *con)) // ignore the cases when mutex finds the same vertex constraints
+                    {
+                        computePriorityForConflict(*mutex_conflict, node);
+                        node.conflicts.push_back(mutex_conflict);
+                        continue;
+                    }
+                }
 
                 computePriorityForConflict(*con, node);
                 node.conflicts.push_back(con);

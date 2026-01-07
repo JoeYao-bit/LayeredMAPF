@@ -350,6 +350,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
             return path;
         }
 
+        Path findPath() override {
+            LAMAPF_Path solution = solve();
+            if(solution.empty()) { return {}; }
+            return LAMAPF_Path2Path(solution);
+        }
+
         // for debug only, record how many times each grid are visited during low lever search
         std::vector<int> grid_visit_count_table_;
         ConnectivityGraph* connect_graph_ = nullptr;
