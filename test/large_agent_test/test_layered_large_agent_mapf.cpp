@@ -176,9 +176,8 @@ int main() {
             dim,
             is_occupied,
             //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
-//            CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
-            CBSH2_RTC::LargeAgentCBS_func<2, Pose<int, 2> >,
-
+//            CBS::LargeAgentCBS_func<2, Pose<int, 2> >, // node depth = 19, 504 iter, 0.18s
+            CBSH2_RTC::LargeAgentCBS_func<2, Pose<int, 2> >, //  node depth = 33, 1238 iter, 0.313s
             "RAW_CBSH2_RTC",
             60);
 

@@ -141,8 +141,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
                 }
                 if (!curr->h_computed)  // heuristics has not been computed yet
                 {
-                    if (PC) // prioritize conflicts
-                        classifyConflicts(*curr);
+                    // prioritize conflicts
+                    if (PC) {
+                        //classifyConflicts(*curr);
+                    }
                     curr->h_val = 0;
                     if (reinsertNode(curr)) {
                         continue;
@@ -197,6 +199,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
                 //break;
             }  // end of while loop
             return solution_found;
+        }
+
+        std::vector<LAMAPF_Path> getSolution() const override {
+            if(paths_.empty()) { return {}; }
+            std::vector<LAMAPF_Path> retv;
+            for(int i=0; i<paths_.size(); i++) {
+                retv.push_back(Path2LAMAPF_path(paths_[i]));
+            }
+            return retv;
         }
 
         // for debug only, record how many times each grid are visited during low lever search
@@ -318,6 +329,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
                 if(!conflicts.empty()) {
                     std::cout << "Solution have conflict !!!" << std::endl;
                     exit(-1);
+                }
+                this->solutions_.clear();
+                for(int i=0; i<paths_.size(); i++) {
+                    this->solutions_.push_back(Path2LAMAPF_path(paths_[i]));
                 }
                 if (!validateSolution()) {
                     std::cout << "Solution have wrong cost !!!" << std::endl;
@@ -715,6 +730,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
                 conflicts.remove(conflict);
             }
         }
+
+
 
     };
 
