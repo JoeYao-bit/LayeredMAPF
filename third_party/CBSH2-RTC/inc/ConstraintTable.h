@@ -2,7 +2,7 @@
 
 #include "common.h"
 #include "CBSNode.h"
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
     class ConstraintTable {
     public:

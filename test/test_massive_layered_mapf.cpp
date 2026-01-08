@@ -12,6 +12,8 @@
 #include "../third_party/EECBS/inc/driver.h"
 #include "../third_party/lacam/include/lacam.hpp"
 
+#include "../third_party/CBSH2-RTC/inc/driver.h"
+
 #include "common_interfaces_raw.h"
 
 using namespace freeNav;
@@ -128,67 +130,76 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
 //        strs.push_back(str); // ok
 
 
-        str = BIPARTITION_MAPF_RAW<2>(
-                instances_local,
-                dim,
-                is_occupied,
-                CBS_Li::cbs_MAPF,
-                "CBS",
-                time_limit); // ok
-        strs.push_back(str);
-
-        str = BIPARTITION_MAPF_RAW<2>(
-                instances_local,
-                dim,
-                is_occupied,
-                LaCAM::lacam_MAPF,
-                "LaCAM",
-                time_limit); // ok
-        strs.push_back(str);
-
-        str = BREAKLOOP_MAPF_RAW<2>(
-                instances_local,
-                dim,
-                is_occupied,
-                CBS_Li::cbs_MAPF,
-                "CBS",
-                time_limit); // ok
-        strs.push_back(str);
-
-        str = BREAKLOOP_MAPF_RAW<2>(
-                instances_local,
-                dim,
-                is_occupied,
-                LaCAM::lacam_MAPF,
-                "LaCAM",
-                time_limit); // ok
-        strs.push_back(str);
-
+//        str = BIPARTITION_MAPF_RAW<2>(
+//                instances_local,
+//                dim,
+//                is_occupied,
+//                CBS_Li::cbs_MAPF,
+//                "CBS",
+//                time_limit); // ok
+//        strs.push_back(str);
+//
+//        str = BIPARTITION_MAPF_RAW<2>(
+//                instances_local,
+//                dim,
+//                is_occupied,
+//                LaCAM::lacam_MAPF,
+//                "LaCAM",
+//                time_limit); // ok
+//        strs.push_back(str);
+//
+//        str = BREAKLOOP_MAPF_RAW<2>(
+//                instances_local,
+//                dim,
+//                is_occupied,
+//                CBS_Li::cbs_MAPF,
+//                "CBS",
+//                time_limit); // ok
+//        strs.push_back(str);
+//
+//        str = BREAKLOOP_MAPF_RAW<2>(
+//                instances_local,
+//                dim,
+//                is_occupied,
+//                LaCAM::lacam_MAPF,
+//                "LaCAM",
+//                time_limit); // ok
+//        strs.push_back(str);
+//
+//
+//        str = RAW_MAPF_RAW<2>(
+//                instances_local,
+//                dim,
+//                is_occupied,
+//                CBS_Li::cbs_MAPF,
+//                "CBS",
+//                time_limit); // ok
+//        strs.push_back(str);
+//
+//        str = RAW_MAPF_RAW<2>(
+//                instances_local,
+//                dim,
+//                is_occupied,
+//                LaCAM::lacam_MAPF,
+//                "LaCAM",
+//                time_limit); // ok
+//        strs.push_back(str);
+//
+//        str = ID_MAPF_RAW<2>(
+//                instances_local,
+//                dim,
+//                is_occupied,
+//                CBS_Li::cbs_MAPF,
+//                "CBS",
+//                time_limit); // ok
+//        strs.push_back(str);
 
         str = RAW_MAPF_RAW<2>(
                 instances_local,
                 dim,
                 is_occupied,
-                CBS_Li::cbs_MAPF,
-                "CBS",
-                time_limit); // ok
-        strs.push_back(str);
-
-        str = RAW_MAPF_RAW<2>(
-                instances_local,
-                dim,
-                is_occupied,
-                LaCAM::lacam_MAPF,
-                "LaCAM",
-                time_limit); // ok
-        strs.push_back(str);
-
-        str = ID_MAPF_RAW<2>(
-                instances_local,
-                dim,
-                is_occupied,
-                CBS_Li::cbs_MAPF,
-                "CBS",
+                MAPF::CBSH2_RTC::CBSH2_RTC_MAPF,
+                "CBSH2-RTC",
                 time_limit); // ok
         strs.push_back(str);
 

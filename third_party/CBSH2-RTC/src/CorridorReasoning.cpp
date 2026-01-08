@@ -4,7 +4,7 @@
 #include "CBSH2-RTC/inc/SpaceTimeAStar.h"
 #include "CBSH2-RTC/inc/SIPP.h"
 
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
     shared_ptr<Conflict> CorridorReasoning::run(const shared_ptr<Conflict> &conflict,
                                                 const vector<Path *> &paths, const CBSNode &node) {

@@ -3,7 +3,7 @@
 #include "IncrementalPairwiseMutexPropagation.hpp"
 #include "ConstraintPropagation.h"
 #include "MDD.h"
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
     class MutexReasoning {
     public:

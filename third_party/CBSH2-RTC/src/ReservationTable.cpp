@@ -1,6 +1,6 @@
 #include "CBSH2-RTC/inc/ReservationTable.h"
 
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
 /*int ReservationTable::get_holding_time(int location)
 { 

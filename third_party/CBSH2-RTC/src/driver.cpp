@@ -11,7 +11,7 @@
 #include <boost/tokenizer.hpp>
 #include "CBSH2-RTC/inc/CBS.h"
 
-using namespace CBSH2_RTC;
+using namespace MAPF::CBSH2_RTC;
 /* Main function */
 int main(int argc, char** argv)
 {

@@ -2,7 +2,7 @@
 
 #include "SingleAgentSolver.h"
 #include "ReservationTable.h"
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
     class SIPPNode : public LLNode {
     public:

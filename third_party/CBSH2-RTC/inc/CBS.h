@@ -6,7 +6,7 @@
 #include "MutexReasoning.h"
 #include "../algorithm/layered_mapf.h"
 
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
 class CBS {
 public:

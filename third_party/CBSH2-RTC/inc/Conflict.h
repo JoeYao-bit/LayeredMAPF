@@ -2,7 +2,7 @@
 
 #include "common.h"
 
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
     enum conflict_type {
         MUTEX, TARGET, CORRIDOR, RECTANGLE, STANDARD, TYPE_COUNT

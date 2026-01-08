@@ -5,7 +5,7 @@
 #include "CBSH2-RTC/inc/SIPP.h"
 #include "CBSH2-RTC/inc/SpaceTimeAStar.h"
 
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
 
 // takes the paths_found_initially and UPDATE all (constrained) paths found for agents from curr to start

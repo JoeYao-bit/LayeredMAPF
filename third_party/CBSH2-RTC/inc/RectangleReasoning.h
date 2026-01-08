@@ -1,7 +1,7 @@
 #pragma once
 
 #include "MDD.h"
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
 // no rectangle, rectangle, rectangle with MDDs, generalized rectangle, disjoint rectangle
     enum rectangle_strategy {

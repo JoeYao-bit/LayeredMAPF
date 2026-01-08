@@ -5,7 +5,7 @@
 #include "CorridorReasoning.h"
 #include "../algorithm/layered_mapf.h"
 
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
     enum heuristics_type {
         ZERO, CG, DG, WDG, STRATEGY_COUNT

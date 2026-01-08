@@ -1,6 +1,6 @@
 #include "CBSH2-RTC/inc/SpaceTimeAStar.h"
 
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
     void SpaceTimeAStar::updatePath(const LLNode *goal, vector <PathEntry> &path) {
         path.resize(goal->g_val + 1);

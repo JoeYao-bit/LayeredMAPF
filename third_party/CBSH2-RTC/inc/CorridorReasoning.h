@@ -3,7 +3,7 @@
 #include "ReservationTable.h"
 #include "Instance.h"
 #include "SingleAgentSolver.h"
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
     enum corridor_strategy {
         NC, C, PC, STC, GC, DC

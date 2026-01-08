@@ -2,7 +2,7 @@
 #pragma once
 
 #include "ConstraintTable.h"
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
     typedef tuple<size_t, size_t, size_t> Interval; // [t_min, t_max), num_of_collisions
 

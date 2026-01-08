@@ -160,7 +160,20 @@ int main() {
     const auto& instances_local = agent_and_instances[0].second;
     const auto& agents_local = agent_and_instances[0].first;
 
-//    auto str = BREAKLOOP_LAMAPF<2>(
+
+
+    auto str2 = RAW_LAMAPF<2>(
+            instances_local,
+            agents_local,
+            dim,
+            is_occupied,
+            //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
+//            CBS::LargeAgentCBS_func<2, Pose<int, 2> >, // node depth = 19, 504 iter, 0.18s
+            CBSH2_RTC::LargeAgentCBS_func<2, Pose<int, 2> >, //  node depth = 33, 1238 iter, 0.313s
+            "CBSH2_RTC",
+            60);
+
+//    auto str1 = RAW_LAMAPF<2>(
 //            instances_local,
 //            agents_local,
 //            dim,
@@ -169,17 +182,6 @@ int main() {
 //            CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
 //            "CBS",
 //            60);
-
-    auto str = RAW_LAMAPF<2>(
-            instances_local,
-            agents_local,
-            dim,
-            is_occupied,
-            //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
-//            CBS::LargeAgentCBS_func<2, Pose<int, 2> >, // node depth = 19, 504 iter, 0.18s
-            CBSH2_RTC::LargeAgentCBS_func<2, Pose<int, 2> >, //  node depth = 33, 1238 iter, 0.313s
-            "RAW_CBSH2_RTC",
-            60);
 
     return 0;
 }

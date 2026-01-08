@@ -2,7 +2,7 @@
 #include <memory>
 #include <queue>
 #include <stack>
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
     shared_ptr<Conflict> RectangleReasoning::run(const vector<Path *> &paths, int timestep,
                                                  int a1, int a2, const MDD *mdd1, const MDD *mdd2) {

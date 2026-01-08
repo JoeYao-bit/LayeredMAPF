@@ -2,7 +2,7 @@
 #include <iostream>
 #include "CBSH2-RTC/inc/common.h"
 
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
     void MDD::printNodes() const {
         for (const auto &level : levels) {

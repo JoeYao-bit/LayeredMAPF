@@ -11,7 +11,7 @@
 #include <boost/heap/pairing_heap.hpp>
 #include <boost/unordered_set.hpp>
 #include <boost/unordered_map.hpp>
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
     using boost::heap::pairing_heap;
     using boost::heap::compare;

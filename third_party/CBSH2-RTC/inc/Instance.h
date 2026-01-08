@@ -3,7 +3,7 @@
 #include"common.h"
 #include "../../../freeNav-base/basic_elements/point.h"
 
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
 // Currently only works for undirected unweighted 4-neighbor grids
     class Instance {

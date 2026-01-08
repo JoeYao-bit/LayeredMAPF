@@ -4,7 +4,7 @@
 #include "ConstraintTable.h"
 #include "../algorithm/layered_mapf.h"
 
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
     class LLNode // low-level node
     {

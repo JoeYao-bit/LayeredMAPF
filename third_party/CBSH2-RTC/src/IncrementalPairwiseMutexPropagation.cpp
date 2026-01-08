@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include "CBSH2-RTC/inc/ConstraintPropagation.h"
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
     using namespace std;
 

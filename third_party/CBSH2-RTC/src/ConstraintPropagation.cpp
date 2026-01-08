@@ -5,7 +5,7 @@
 
 #include <utility>
 #include <iostream>
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
 // is a mutex edge mutex.
     bool is_edge_mutex(edge_pair ep) {

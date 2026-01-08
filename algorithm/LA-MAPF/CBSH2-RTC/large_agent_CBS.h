@@ -136,14 +136,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
                 //std::cout << " curr->g_val = " << curr->g_val << std::endl;
                 // yz: check whether reach terminate condition
                 if (terminate(curr)) {
-                    std::cout << "-- Layered CBS finish after " << count << " iteration" << std::endl;
+                    std::cout << "-- Layered CBSH2-RTC finish after " << count << " iteration" << std::endl;
                     return solution_found;
                 }
                 if (!curr->h_computed)  // heuristics has not been computed yet
                 {
                     // prioritize conflicts
                     if (PC) {
-                        //classifyConflicts(*curr);
+                        classifyConflicts(*curr);
                     }
                     curr->h_val = 0;
                     if (reinsertNode(curr)) {
