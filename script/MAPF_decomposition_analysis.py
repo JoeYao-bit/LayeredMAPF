@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import ticker
 import os
-
+import statistics
 #import seaborn as sns
 
 def loadDataFromfile(file_path):
@@ -30,7 +30,10 @@ def loadDataFromfile(file_path):
                 new_data.level_1           = float(splited_line[7])
                 new_data.level_2           = float(splited_line[8])
                 new_data.level_3           = float(splited_line[9])
-                new_data.level_4           = float(splited_line[10])
+                #new_data.level_4           = float(splited_line[10])
+
+                if new_data.level == 3:
+                    continue
 
                 data_list.append(new_data)
     except Exception as e:            
@@ -57,7 +60,7 @@ class SingleTestData:
     map_name = ''
     
     
-def drawMethodMap(single_map_data, value_type):
+def drawMethodMap(single_map_data, value_type, xlable):
     fig = plt.figure(figsize=(5,3.5)) #添加绘图框
     map_name = single_map_data.map_name
     
@@ -94,14 +97,20 @@ def drawMethodMap(single_map_data, value_type):
         y = list()    
         std_val = list()
 
-        for data_key, data_val in all_raw_data[level_key].items():
-            x.append(data_key)        
-            y.append(np.mean(data_val))
-            std_val.append(np.std(data_val))
+        sorted_keys = sorted(all_raw_data[level_key].keys())
 
+        # for data_key, data_val in all_raw_data[level_key].items():
+        #     x.append(data_key)        
+        #     y.append(np.mean(data_val))
+        #     std_val.append(np.std(data_val))
+
+        for sorted_key in sorted_keys:
+            x.append(sorted_key)        
+            y.append(np.mean(all_raw_data[level_key][sorted_key]))
+            std_val.append(np.std(all_raw_data[level_key][sorted_key]))
 
         # yerr=std_val
-        plt.errorbar(x, y, label=level_flag_map[level_key], markersize=14, fmt=step_fmt[level_key], linewidth= 4, elinewidth=4, capsize=4)
+        plt.errorbar(x, y, label=level_flag_map[level_key], markersize=14, markerfacecolor='none', fmt=step_fmt[level_key], linewidth= 4, elinewidth=4, capsize=4)
         #break    
 
     plt.legend(loc='best')    
@@ -120,7 +129,8 @@ def drawMethodMap(single_map_data, value_type):
     if value_type == "decomposition_rate":
         plt.ylim(0, 1)
 
-    plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5)
+    plt.legend(loc='best', fontsize = 18, ncol=1, handletextpad=.5, framealpha=0.5)
+    plt.xlabel(xlable, fontsize=14) # 横坐标标题
     #plt.grid()
     plt.tight_layout()
     save_path = '../test/pic/decomposition/'+value_type+'/'
@@ -130,41 +140,77 @@ def drawMethodMap(single_map_data, value_type):
         print("Folder: " + save_path + " created")
 
     save_path = save_path +map_name+"-"+value_type+'.png'
-    plt.savefig(save_path, dpi = 200, bbox_inches='tight')   
+    plt.savefig(save_path, dpi = 100, bbox_inches='tight')   
     plt.close()
     print("save picture to "+save_path)
 
+
+
+def drawSummary(all_map_data, value_type):
+    fig = plt.figure(figsize=(5,3.5)) #添加绘图框
     
+    all_raw_data = dict()
+
+    for single_map_data in all_single_data:
+
+        for data in single_map_data.data_list:
+            total_size        = data.total_size
+            time_cost         = data.time_cost
+            success           = data.success
+            max_cluster       = data.max_cluster
+            memory_usage      = data.memory_usage
+            num_of_subproblem = data.num_of_subproblem
+            level             = data.level
+            
+            if all_raw_data.get(level) == None:
+                all_raw_data[level] = list()
+
+            if value_type == "decomposition_rate":
+                all_raw_data[level].append(max_cluster / total_size)    
+            elif value_type == "time_cost":
+                all_raw_data[level].append(time_cost)    
+            elif value_type == "memory_usage":
+                all_raw_data[level].append(memory_usage)        
+            elif value_type == "num_of_subproblem":
+                all_raw_data[level].append(num_of_subproblem)  
+
+    for  data_key, data_val in all_raw_data.items():
+        print(level_flag_map[data_key] +"'s "+value_type, " = ", statistics.mean(data_val))
+
+    
+
+
+
 step_fmt = {3:"x-", 4:"o-.", 5:"^--"}    
 
-level_flag_map = {3:"Raw-Bi", 4:"Bi-level", 5:"Break loop"}
+level_flag_map = {3:"Bipartition", 4:"Bipartition", 5:"Break loops"}
     
 data_path_dir = '../test/test_data/decomposition/'
 all_map_name = [
-                "empty-16-16",
-                "empty-32-32",
+                # "empty-16-16",
+                # "empty-32-32",
                 
-                "maze-32-32-2",
-                "maze-32-32-4",
-                "maze-128-128-10",
-                "maze-128-128-2",
+                # "maze-32-32-2",
+                # "maze-32-32-4",
+                # "maze-128-128-10",
+                # "maze-128-128-2",
                 
-                "den312d",
-                "den520d",
+                # "den312d",
+                #"den520d",
                 
                 "Berlin_1_256",
-                "Paris_1_256",
+                #"Paris_1_256",
                 
                 "ht_chantry",
                 "lak303d",
                 
-                "random-64-64-10",
-                "random-64-64-20",
-                "random-32-32-20",
+                # "random-64-64-10",
+                # "random-64-64-20",
+                # "random-32-32-20",
                 
-                "room-64-64-16",
-                "room-64-64-8",
-                "room-32-32-4",
+                # "room-64-64-16",
+                # "room-64-64-8",
+                # "room-32-32-4",
                 
                 "warehouse-10-20-10-2-1",
                 "warehouse-10-20-10-2-2",
@@ -184,20 +230,24 @@ for map_name in all_map_name:
     single = SingleTestData()
     single.map_name = map_name
     single.data_list = loadDataFromfile(data_file_path)
+    #break
     if len(single.data_list) == 0:
         continue
     all_single_data.append(single)
+    #break
     
 for single_map_data in all_single_data:
-    drawMethodMap(single_map_data, "time_cost")
+    drawMethodMap(single_map_data, "time_cost", "Number of agents")
     
 for single_map_data in all_single_data:
-    drawMethodMap(single_map_data, "decomposition_rate")
+    drawMethodMap(single_map_data, "decomposition_rate", "Number of agents")
     
 for single_map_data in all_single_data:
-    drawMethodMap(single_map_data, "memory_usage")    
+    drawMethodMap(single_map_data, "memory_usage", "Number of agents")    
     
 for single_map_data in all_single_data:
-    drawMethodMap(single_map_data, "num_of_subproblem")        
+    drawMethodMap(single_map_data, "num_of_subproblem", "Number of agents")        
     
+
+drawSummary(all_single_data, "time_cost")    
 #plt.show()    

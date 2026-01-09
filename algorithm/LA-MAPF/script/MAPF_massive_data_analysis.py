@@ -144,8 +144,8 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
         ax.yaxis.offsetText.set_fontsize(18)
         ax.yaxis.set_major_formatter(formater) 
         
-        plt.xlabel(xlable, fontsize=14) # 横坐标标题
-        plt.legend(loc='best', fontsize=12) # 图例位置设置
+        plt.xlabel(xlable, fontsize=18) # 横坐标标题
+        plt.legend(loc='best', fontsize=18) # 图例位置设置
 
         y_range = plt.ylim()      
         plt.ylim(0, y_range[1]*1.1)
@@ -161,7 +161,7 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
             print("Folder: " + save_path + " created")
             
         save_path = save_path + "/" + map_key
-        plt.savefig(save_path, dpi = 400, bbox_inches='tight')   
+        plt.savefig(save_path, dpi = 100, bbox_inches='tight')   
         plt.close()
         print("save path to " + save_path)
 
@@ -268,7 +268,7 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
     if is_percentage:
         plt.ylim(0, 1)
         
-    plt.xlabel(xlable, fontsize=14) # 横坐标标题
+    plt.xlabel(xlable, fontsize=16) # 横坐标标题
     #plt.legend(loc='best', fontsize = 16, ncol=1, handletextpad=.5, framealpha=0.5)
     ax.legend(loc='best', fontsize=12) # 图例位置设置
     plt.tight_layout()        
@@ -279,7 +279,7 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
         print("Folder: " + save_path + " created")
         
     save_path = save_path + "/" + 'summary'
-    plt.savefig(save_path, dpi = 400, bbox_inches='tight')   
+    plt.savefig(save_path, dpi = 100, bbox_inches='tight')   
     plt.close()
     print("save path to " + save_path)     
     
@@ -405,7 +405,7 @@ def drawSummaryOfMethod(all_data_map, xlable, ylable, title, is_percentage=False
         print("Folder: " + save_path + " created")
         
     save_path = save_path + "/" + 'la_method_summary'+'.png'
-    plt.savefig(save_path, dpi = 200, bbox_inches='tight')   
+    plt.savefig(save_path, dpi = 100, bbox_inches='tight')   
     plt.close()
     print("save path to " + save_path)  
     
