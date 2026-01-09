@@ -313,8 +313,7 @@ std::string BREAKLOOP_LAMAPF(const std::vector<std::pair<Pose<int, N>, Pose<int,
             time_limit,
             1e3,
             50,
-            1,
-            false);
+            1);
 
     LAMAPF_Paths layered_paths;
     bool detect_loss_solvability;

@@ -7,7 +7,7 @@
 #include "../../algorithm/LA-MAPF/LaCAM/layered_large_agent_LaCAM.h"
 #include "../../algorithm/LA-MAPF/CBS/layered_large_agent_CBS.h"
 
-#include "../../algorithm/LA-MAPF/CBSH2-RTC/inc/driver.h"
+#include "../../algorithm/LA-MAPF/CBSH2-RTC/layered_large_agent_CBS.h"
 
 #include "common_interfaces.h"
 
@@ -60,35 +60,35 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
 
         std::string str;
 
-        // str = BIPARTITION_LAMAPF<2>(
-        //         instances_local,
-        //         agents_local,
-        //         dim,
-        //         is_occupied,
-        //         LargeAgentLaCAMPose_func<2>,
-        //         "LaCAM",
-        //         time_limit);
-        // strs.push_back(str);
+         str = BIPARTITION_LAMAPF<2>(
+                 instances_local,
+                 agents_local,
+                 dim,
+                 is_occupied,
+                 LargeAgentLaCAMPose_func<2>,
+                 "LaCAM",
+                 time_limit);
+         strs.push_back(str);
 
         str = BIPARTITION_LAMAPF<2>(
                 instances_local,
                 agents_local,
                 dim,
                 is_occupied,
-                CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
+                CBSH2_RTC::LargeAgentCBS_func<2, Pose<int, 2> >,
                 "CBS",
                 time_limit);
         strs.push_back(str);
 
-        // str = BREAKLOOP_LAMAPF<2>(
-        //         instances_local,
-        //         agents_local,
-        //         dim,
-        //         is_occupied,
-        //         LargeAgentLaCAMPose_func<2>,
-        //         "LaCAM",
-        //         time_limit);
-        // strs.push_back(str);
+        str = BREAKLOOP_LAMAPF<2>(
+                 instances_local,
+                 agents_local,
+                 dim,
+                 is_occupied,
+                 LargeAgentLaCAMPose_func<2>,
+                 "LaCAM",
+                 time_limit);
+        strs.push_back(str);
 
         str = BREAKLOOP_LAMAPF<2>(
                 instances_local,
@@ -96,21 +96,21 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                 dim,
                 is_occupied,
                 //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
-                CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
+                CBSH2_RTC::LargeAgentCBS_func<2, Pose<int, 2> >,
                 "CBS",
                 time_limit);
         strs.push_back(str);
 
-        // str = RAW_LAMAPF<2>(
-        //         instances_local,
-        //         agents_local,
-        //         dim,
-        //         is_occupied,
-        //         //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
-        //         LargeAgentLaCAMPose_func<2>,
-        //         "LaCAM",
-        //         time_limit);
-        // strs.push_back(str);
+         str = RAW_LAMAPF<2>(
+                 instances_local,
+                 agents_local,
+                 dim,
+                 is_occupied,
+                 //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
+                 LargeAgentLaCAMPose_func<2>,
+                 "LaCAM",
+                 time_limit);
+         strs.push_back(str);
 
 
         str = RAW_LAMAPF<2>(
@@ -119,7 +119,7 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                 dim,
                 is_occupied,
                 //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
-                CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
+                CBSH2_RTC::LargeAgentCBS_func<2, Pose<int, 2> >,
                 "CBS",
                 time_limit);
         strs.push_back(str);
@@ -130,7 +130,7 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                 dim,
                 is_occupied,
                 //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
-                CBS::LargeAgentCBS_func<2, Pose<int, 2> >,
+                CBSH2_RTC::LargeAgentCBS_func<2, Pose<int, 2> >,
                 "CBS",
                 time_limit);
         strs.push_back(str);
@@ -154,20 +154,21 @@ int main() {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
             map_configs = {
-        //{MAPFTestConfig_empty_48_48,     1, 60, 10, 10}, // 60, 10, 10
-        //{MAPFTestConfig_Berlin_1_256,    1, 80, 10, 10}, // 80, 10, 10
-     //{MAPFTestConfig_ost003d,         1, 100, 10, 10},// 100, 10, 10
-     //{MAPFTestConfig_AR0044SR, 1, 140, 10, 10}, // 50, 5, 5
-    //{MAPFTestConfig_AR0203SR, 1, 40, 5, 5}, // 40, 5, 5
-    // //
-        {MAPFTestConfig_den520d,         5, 15, 5, 5},// 60, 5, 5
-      //{MAPFTestConfig_AR0072SR, 1, 30, 5, 5}, // 30, 5, 5
+            {MAPFTestConfig_empty_48_48,     1, 20, 2, 2}, // 60, 10, 10 // in pub
+            {MAPFTestConfig_Berlin_1_256,    1, 20, 2, 2}, // 80, 10, 10 // in pub
+            {MAPFTestConfig_ost003d,         1, 20, 2, 2},// 100, 10, 10 // in pub
+            {MAPFTestConfig_AR0044SR, 1, 20, 2, 2}, // 150, 5, 5 // in pub
+            {MAPFTestConfig_AR0203SR, 1, 20, 2, 2}, // 40, 5, 5 // in pub
 
-   //{MAPFTestConfig_Paris_1_256,     10, 80, 10, 10}, // 80, 10, 10 / 20, 2, 2s
-     //{MAPFTestConfig_maze_128_128_10, 10, 60, 10, 10}, // 60, 10, 10
-      //{MAPFTestConfig_Boston_2_256, 10, 70, 10, 10}, //  70, 10, 10
-     //{MAPFTestConfig_Sydney_2_256, 10, 70, 10, 10}, // 70, 10, 10
-     //{MAPFTestConfig_Denver_2_256, 10, 80, 10, 10}, // 80, 10, 10
+            // //
+            {MAPFTestConfig_den520d,         5, 20, 2, 2},// 45, 5, 5 // in pub
+
+            //{MAPFTestConfig_AR0072SR, 1, 30, 5, 5}, // 30, 5, 5
+
+            {MAPFTestConfig_Paris_1_256,     10, 20, 2, 2}, // 80, 10, 10 / 20, 2, 2 // in pub
+            {MAPFTestConfig_maze_128_128_10, 10, 20, 2, 2}, // 60, 10, 10 // in pub
+            {MAPFTestConfig_Boston_2_256, 10, 20, 2, 2}, //  70, 10, 10 // in pub
+            {MAPFTestConfig_Sydney_2_256, 10, 20, 2, 2}, // 70, 10, 10 // in pub
 
             // not in test
             //        {MAPFTestConfig_Boston_2_256, 1, 20, 2, 2}, // ok
