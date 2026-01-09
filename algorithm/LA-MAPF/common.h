@@ -27,7 +27,6 @@
 #include "freeNav-base/basic_elements/point.h"
 #include "freeNav-base/dependencies/memory_analysis.h"
 #include <memory>
-#include "freeNav-base/visualization/canvas/canvas.h"
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
@@ -209,14 +208,6 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                const IS_OCCUPIED_FUNC<N> &isoc,
                                const DistanceMapUpdater<N> &distance_table) const = 0;
 
-        virtual void drawOnCanvas(const Pose<int, 2>& pose,
-                                  Canvas& canvas,
-                                  const cv::Vec3b& color,
-                                  bool fill=true) const = 0;
-
-        virtual void drawOnCanvas(const Pointf<3>& pose,
-                                  Canvas& canvas, const cv::Vec3b& color,
-                                  bool fill=true) const = 0;
 
         virtual Pointis<N> getTransferOccupiedGrid(const Pose<int, N> &edge_from,
                                                    const Pose<int, N> &edge_to) const = 0;
