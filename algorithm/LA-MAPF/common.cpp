@@ -31,10 +31,51 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         return false;
     }
 
+    bool operator==(const Conflict &conflict1, const Conflict &conflict2) {
+        return (conflict1.a1 == conflict2.a1 &&
+                conflict1.a2 == conflict2.a2 &&
+                conflict1.cs1 == conflict2.cs1 &&
+                conflict1.cs2 == conflict2.cs2) ||
+               (conflict1.a1 == conflict2.a2 &&
+                conflict1.a2 == conflict2.a1 &&
+                conflict1.cs1 == conflict2.cs2 &&
+                conflict1.cs2 == conflict2.cs1);
+    }
+
+    bool operator!=(const Conflict &conflict1, const Conflict &conflict2) {
+        return !(conflict1 == conflict2);
+    }
+
+    Path LAMAPF_Path2Path(const LAMAPF_Path& lpath) {
+        Path retv;
+        for(int i=0; i<lpath.size(); i++) {
+            retv.push_back(PathEntry(lpath[i]));
+        }
+        return retv;
+    }
+
+    LAMAPF_Path Path2LAMAPF_path(const Path& path) {
+        LAMAPF_Path retv;
+        for(int i=0; i<path.size(); i++) {
+            retv.push_back(path[i].location);
+        }
+        return retv;
+    }
+
     bool isSamePath(const std::vector<size_t>& path1, const std::vector<size_t>& path2) {
         if(path1.size() != path2.size()) { return false; }
         for(int t = 0; t < path1.size(); t++) {
             if(path1[t] != path2[t]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool isSamePath(const Path& path1, const Path& path2) {
+        if(path1.size() != path2.size()) { return false; }
+        for(int t = 0; t < path1.size(); t++) {
+            if(path1[t].location != path2[t].location) {
                 return false;
             }
         }
@@ -153,6 +194,192 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         } else {
             return {sorting_vec[i_th], {all_levels[sorting_vec[i_th]]}};
         }
+    }
+
+
+
+    // input a beam of laser scan, predict whether a robot will collide
+    // angle = beam's angle in radius, dist = dist to center of agent
+    bool PointInRectangle(const Pointf<2>& min_pt, const Pointf<2>& max_pt, float angle, float dist) {
+        float x = dist*cos(angle), y = dist*sin(angle);
+        if(x > max_pt[0] || x < min_pt[0]) {
+            return false;
+        }
+        if(y > max_pt[1] || y < min_pt[1]) {
+            return false;
+        }
+        return true;
+    }
+
+    // angle, start angle and end angle should between [0, 2*M_PI]
+    bool PointInSector(float r, float start_angle, float end_angle, float angle, float dist) {
+        if(r < dist) { return false; }
+        if(start_angle < end_angle) {
+
+            if(angle        > start_angle - 1e-4 && angle        < end_angle + 1e-4) { return true; }
+            if(angle-2*M_PI > start_angle - 1e-4 && angle-2*M_PI < end_angle + 1e-4) { return true; }
+            if(angle+2*M_PI > start_angle - 1e-4 && angle+2*M_PI < end_angle + 1e-4) { return true; }
+
+        } else {
+            if(angle        > end_angle - 1e-4 && angle        < start_angle + 1e-4) { return true; }
+            if(angle-2*M_PI > end_angle - 1e-4 && angle-2*M_PI < start_angle + 1e-4) { return true; }
+            if(angle+2*M_PI > end_angle - 1e-4 && angle+2*M_PI < start_angle + 1e-4) { return true; }
+        }
+
+        return false;
+    }
+
+    bool CircleAgentMoveCollisionCheck(float r, const Pointf<2>& move_vec, float angle, float dist) {
+//        assert(angle < 2*M_PI && angle >= 0);
+        float x = dist*cos(angle), y = dist*sin(angle);
+        // check whether collide with current circle
+//        if(dist <= r) { return true; }
+        // check whether collide with future circle
+        Pointf<2> beam_pt{x, y};
+//        Pointf<2> to_future = beam_pt - move_vec;
+//        if(to_future.Norm() < r) { return true; }
+        // check whether collide with circle during move, via dist to line
+        Pointf<2> origin_pt{0, 0};
+        if(pointDistToLine(beam_pt, origin_pt, move_vec) <= r) { return true; }
+        return false;
+    }
+
+    // assume agent only move in x direction, i.e., front or back
+    bool BlockAgentMoveCollisionCheck(const Pointf<2>& min_pt, const Pointf<2>& max_pt,
+                                      float move_dist, float angle, float dist) {
+        //assert(min_pt[1] == -max_pt[1]);
+        float new_max_x, new_min_x;
+        if(move_dist < 0) {
+            new_max_x = max_pt[0];
+            new_min_x = min_pt[0] + move_dist;
+        } else {
+            new_max_x = max_pt[0] + move_dist;
+            new_min_x = min_pt[0];
+        }
+        Pointf<2> new_min_pt{new_min_x, min_pt[1]}, new_max_pt{new_max_x, max_pt[1]};
+        return PointInRectangle(new_min_pt, new_max_pt, angle, dist);
+    }
+
+    bool BlockAgentRotateCollisionCheck(const Pointf<2>& min_pt, const Pointf<2>& max_pt,
+                                        float rotate_angle, float angle, float dist, bool print_log) {
+
+        // check whether in current block
+        if(PointInRectangle(min_pt, max_pt, angle, dist)) { return true; }
+        // check whether in future block, rotate the beam to do collide check
+        if(PointInRectangle(min_pt, max_pt, angle - rotate_angle, dist)) { return true; }
+
+
+        // front sector
+        float r_front = max_pt.Norm();
+
+        // back sector
+        float r_back = min_pt.Norm();
+
+        if(dist > r_front && dist > r_back) { return false; }
+
+        if(print_log) {
+            std::cout << "min_pt = " << min_pt << ", max_pt = " << max_pt << ", rotate_angle = " << rotate_angle
+                      << std::endl;
+            std::cout << "angle = " << angle << ", dist = " << dist << std::endl;
+        }
+
+        float angle_front = std::atan(max_pt[1] / max_pt[0]);
+        if(print_log) {
+            std::cout << "r_front = " << r_front << ", angle_front = " << angle_front << std::endl;
+        }
+        if(PointInSector(r_front,
+                         -angle_front,-angle_front + rotate_angle,
+                         angle, dist)) { return true; }
+
+        if(print_log) {
+            std::cout << "sector 1: " << -angle_front << " , " << -angle_front + rotate_angle << ", " << angle << std::endl;
+        }
+        if(PointInSector(r_front,
+                         angle_front, angle_front + rotate_angle,
+                         angle, dist)) { return true; }
+        if(print_log) {
+            std::cout << "sector 2: " << angle_front << " , " << angle_front + rotate_angle << ", " << angle << std::endl;
+        }
+
+        float angle_back = std::atan(min_pt[1] / min_pt[0]);
+        if(print_log) {
+            std::cout << "r_back = " << r_back << ", angle_back = " << angle_back << std::endl;
+        }
+        if(PointInSector(r_back,
+                         M_PI-angle_back, M_PI-angle_back + rotate_angle,
+                         angle, dist)) { return true; }
+        if(print_log) {
+            std::cout << "sector 3: " << M_PI-angle_back << " , " << M_PI-angle_back + rotate_angle << ", " << angle << std::endl;
+        }
+        if(PointInSector(r_back,
+                         M_PI+angle_back, M_PI+angle_back + rotate_angle,
+                         angle, dist)) { return true; }
+        if(print_log) {
+            std::cout << "sector 4: " << M_PI+angle_back << " , " << M_PI+angle_back + rotate_angle << ", " << angle << std::endl;
+        }
+        return false;
+    }
+
+    Pointf<2> rotatePtf(const Pointf<2>& ptf, float angle) {
+        float x = ptf[0] * cos(angle) - ptf[1] * sin(angle);
+        float y = ptf[0] * sin(angle) + ptf[1] * cos(angle);
+        return Pointf<2>{x, y};
+    }
+//
+//    float normalizeAngle(float theta) {
+//        while (theta > M_PI)  theta -= 2 * M_PI;
+//        while (theta <= -M_PI) theta += 2 * M_PI;
+//        return theta;
+//    }
+//
+//    float getPositiveAngle(float theta) {
+//        float retv = theta;
+//        retv = std::fmod(retv, 2*M_PI);
+//        if(retv < 0) {
+//            retv += M_PI;
+//        }
+//        return retv;
+//    }
+
+
+    double orientToRadius(const int& orient) {
+        double retv = 0;
+        switch (orient)
+        {
+            case 0:
+                retv = 0; // 0 degree
+                break;
+            case 1:
+                retv = M_PI; // 180 degree
+                break;
+            case 2:
+                retv = 1.5*M_PI; // 270 degree
+                break;
+            case 3:
+                retv = 0.5*M_PI; // 90 degree
+                break;
+            default:
+                std::cout << "ERROR: invalid orient = " << orient << std::endl;
+                exit(1);
+                break;
+        }
+        return retv;
+    }
+
+    // assume center of map is (0, 0) in the world coordinate system
+    // double reso = 0.1; // how long a grid occupied in real world ?
+    Pointf<3> GridToPtf(const Pointi<2>& pt, DimensionLength* dim, float reso) {
+        Pointf<3> retv = {0, 0, 0};
+        retv[0] = pt[0]/reso - .5*dim[0]/reso;
+        retv[1] = .5*dim[1]/reso - pt[1]/reso;
+        return retv;
+    }
+
+    Pointf<3> PoseIntToPtf(const Pose<int, 2>& pose, DimensionLength* dim, float reso) {
+        //std::cout << "dim = " << dim << std::endl;
+        Pointf<3> ptf = GridToPtf(pose.pt_, dim, reso);
+        ptf[2] = orientToRadius(pose.orient_);
+        return ptf;
     }
 
 }

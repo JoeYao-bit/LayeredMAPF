@@ -3,7 +3,7 @@
 #include "CBSH2-RTC/inc/CBSHeuristic.h"
 #include "CBSH2-RTC/inc/CBS.h"
 #include <queue>
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
 
     void CBSHeuristic::computeQuickHeuristics(CBSNode &node) const // for non-root node

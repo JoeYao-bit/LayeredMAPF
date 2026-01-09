@@ -1,6 +1,6 @@
 #include "CBSH2-RTC/inc/SIPP.h"
 
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
     void SIPP::updatePath(const LLNode *goal, vector<PathEntry> &path) {
         path.resize(goal->timestep + 1);

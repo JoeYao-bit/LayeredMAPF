@@ -11,7 +11,7 @@
 #include "CBSH2-RTC/inc/CBS.h"
 #include "../../../algorithm/constraint_table_CBS/ConstraintTable.h"
 
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
     freeNav::Paths<2> CBSH2_RTC_MAPF(freeNav::DimensionLength *dim,
                                  const freeNav::IS_OCCUPIED_FUNC<2> &isoc,

@@ -2,7 +2,7 @@
 
 #include "common.h"
 #include "Conflict.h"
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
     enum node_selection {
         NODE_RANDOM, NODE_H, NODE_DEPTH, NODE_CONFLICTS, NODE_CONFLICTPAIRS, NODE_MVC

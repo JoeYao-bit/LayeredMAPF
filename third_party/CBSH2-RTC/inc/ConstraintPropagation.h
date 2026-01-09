@@ -5,7 +5,7 @@
 
 #include <boost/unordered_set.hpp>
 #include "MDD.h"
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
     typedef std::pair<MDDNode *, MDDNode *> node_pair;
     typedef std::pair<node_pair, node_pair> edge_pair;

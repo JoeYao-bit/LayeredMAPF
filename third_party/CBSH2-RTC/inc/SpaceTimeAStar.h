@@ -2,7 +2,7 @@
 
 #include "SingleAgentSolver.h"
 
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
     class AStarNode : public LLNode {
     public:

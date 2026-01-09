@@ -1,5 +1,5 @@
 #include "CBSH2-RTC/inc/common.h"
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
     std::ostream &operator<<(std::ostream &os, const Path &path) {
         for (const auto &state : path) {

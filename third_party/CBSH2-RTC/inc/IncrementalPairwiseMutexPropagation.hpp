@@ -3,7 +3,7 @@
 
 #include "MDD.h"
 #include "SingleAgentSolver.h"
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
     typedef std::vector <Constraint> con_vec;
 

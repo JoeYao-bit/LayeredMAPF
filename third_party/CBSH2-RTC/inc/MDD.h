@@ -1,7 +1,7 @@
 #pragma once
 
 #include "SingleAgentSolver.h"
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
 
     class MDDNode {

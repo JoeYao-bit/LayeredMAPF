@@ -27,6 +27,7 @@
 #include "freeNav-base/basic_elements/point.h"
 #include "freeNav-base/dependencies/memory_analysis.h"
 #include <memory>
+#include "freeNav-base/visualization/canvas/canvas.h"
 
 namespace freeNav::LayeredMAPF::LA_MAPF {
 
@@ -54,8 +55,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     template<Dimension N>
     using PosePaths = std::vector<PosePath<N> >;
 
+    enum constraint_type {
+        LEQLENGTH, GLENGTH, RANGE, BARRIER, VERTEX, EDGE,
+        POSITIVE_VERTEX, POSITIVE_EDGE, POSITIVE_BARRIER, POSITIVE_RANGE
+    };
+
     // <agent id, node from, node to, time range start, time range end>
-    typedef std::tuple<int, size_t, size_t, int, int> Constraint;
+    typedef std::tuple<int, size_t, size_t, int, int, constraint_type> Constraint;
+
+
 
     typedef std::list<std::shared_ptr<Constraint> > Constraints;
 
@@ -63,32 +71,31 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     //typedef std::pair<Constraint, Constraint> Conflict;
 
     enum conflict_type {
-        STANDARD, TYPE_COUNT
+        MUTEX, TARGET, CORRIDOR, RECTANGLE, STANDARD, TYPE_COUNT
     };
 
     enum conflict_priority {
-        CARDINAL, PSEUDO_CARDINAL, SEMI, NON, UNKNOWN, PRIORITY_COUNT
-    };
-
-    enum constraint_type {
-        LEQLENGTH, GLENGTH, RANGE, BARRIER, VERTEX, EDGE,
-        POSITIVE_VERTEX, POSITIVE_EDGE, POSITIVE_BARRIER, POSITIVE_RANGE
+        CARDINAL, SEMI, NON, UNKNOWN, PRIORITY_COUNT
     };
 
     struct Conflict {
+
+        Conflict() {}
+
         Conflict(int a1, int a2, const Constraints &cs1, const Constraints &cs2)
                 : a1(a1), a2(a2), cs1(cs1), cs2(cs2) {
             int agent;
             size_t from, to;
             int start_t, end_t;
+            constraint_type cst;
             // get start time index of conflict 1
             for (const auto &cs : cs1) {
-                std::tie(agent, from, to, start_t, end_t) = *cs;
+                std::tie(agent, from, to, start_t, end_t, cst) = *cs;
                 t1 = start_t < t1 ? start_t : t1;
                 t2 = end_t > t2 ? end_t : t2;
             }
             for (const auto &cs : cs2) {
-                std::tie(agent, from, to, start_t, end_t) = *cs;
+                std::tie(agent, from, to, start_t, end_t, cst) = *cs;
                 t1 = start_t < t1 ? start_t : t1;
                 t2 = end_t > t2 ? end_t : t2;
             }
@@ -102,6 +109,18 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         conflict_type type;
         conflict_priority priority = conflict_priority::UNKNOWN;
         double secondary_priority = 0; // used as the tie-breaking creteria for conflict selection
+
+        // move from CBSH2-RTC
+        void mutexConflict(int _a1, int _a2) {
+            cs1.clear();
+            cs2.clear();
+            this->a1 = _a1;
+            this->a2 = _a2;
+            type = conflict_type::MUTEX;
+            priority = conflict_priority::CARDINAL;
+            // TODO add constraints from mutex reasoning
+        }
+
     };
 
     typedef std::shared_ptr<Conflict> ConflictPtr;
@@ -110,10 +129,31 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
     bool operator<(const Conflict &conflict1, const Conflict &conflict2);
 
+    bool operator==(const Conflict &conflict1, const Conflict &conflict2);
 
-    typedef std::vector<size_t> LAMAPF_Path; // node id sequence
+    bool operator!=(const Conflict &conflict1, const Conflict &conflict2);
+
+    struct PathEntry {
+        size_t location = -1;
+        // bool single = false;
+        int mdd_width = 0;  // TODO:: Myabe this can be deleted as we always build/look for MDDs when we classify conflicts
+
+        bool is_single() const {
+            return mdd_width == 1;
+        }
+
+        PathEntry(int loc = -1) { location = loc; }
+    };
+
+    typedef std::vector<PathEntry> Path; // node id sequence
+
+    typedef std::vector<size_t> LAMAPF_Path;
 
     typedef std::vector<LAMAPF_Path> LAMAPF_Paths;
+
+    Path LAMAPF_Path2Path(const LAMAPF_Path& lpath);
+
+    LAMAPF_Path Path2LAMAPF_path(const Path& path);
 
     template<typename T>
     int getSOC(const std::vector<std::vector<T> > &paths) {
@@ -134,6 +174,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     }
 
     bool isSamePath(const std::vector<size_t> &path1, const std::vector<size_t> &path2);
+
+    bool isSamePath(const Path& path1, const Path& path2);
 
     template<Dimension N>
     struct Agent {
@@ -166,6 +208,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                                DimensionLength *dim,
                                const IS_OCCUPIED_FUNC<N> &isoc,
                                const DistanceMapUpdater<N> &distance_table) const = 0;
+
+        virtual void drawOnCanvas(const Pose<int, 2>& pose,
+                                  Canvas& canvas,
+                                  const cv::Vec3b& color,
+                                  bool fill=true) const = 0;
+
+        virtual void drawOnCanvas(const Pointf<3>& pose,
+                                  Canvas& canvas, const cv::Vec3b& color,
+                                  bool fill=true) const = 0;
 
         virtual Pointis<N> getTransferOccupiedGrid(const Pose<int, N> &edge_from,
                                                    const Pose<int, N> &edge_to) const = 0;
@@ -411,6 +462,15 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
         rotated_pt[1] = rotated_pt[1] + pose.pt_[1];
         return rotated_pt;
     }
+
+    double orientToRadius(const int& orient);
+
+    // assume center of map is (0, 0) in the world coordinate system
+    // double reso = 0.1; // how long a grid occupied in real world ?
+    Pointf<3> GridToPtf(const Pointi<2>& pt, DimensionLength* dim, float reso);
+
+
+    Pointf<3> PoseIntToPtf(const Pose<int, 2>& pose, DimensionLength* dim, float reso);
 
     float get_random_float(std::mt19937 *MT, float from = 0, float to = 0);
 
@@ -1033,8 +1093,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                                            << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t+1]]
 //                                            << "/t:{" << t << "," << t+1 << "}" << std::endl;
 
-                auto c1 = std::make_shared<Constraint>(a1->id_, p1[t], p1[t + 1], t, t + 2);
-                auto c2 = std::make_shared<Constraint>(a2->id_, p2[t], p2[t + 1], t, t + 2);
+                auto c1 = std::make_shared<Constraint>(a1->id_, p1[t], p1[t + 1], t, t + 2, constraint_type::EDGE);
+                auto c2 = std::make_shared<Constraint>(a2->id_, p2[t], p2[t + 1], t, t + 2, constraint_type::EDGE);
                 auto cf = std::make_shared<Conflict>(a1->id_, a2->id_, Constraints{c1}, Constraints{c2});
                 cfs.push_back(cf);
             }
@@ -1048,8 +1108,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                                            << "/t:{" << t << "," << t+1 << "}"
 //                                            << std::endl;
 
-                auto c1 = std::make_shared<Constraint>(longer_agent->id_, longer_path[t], longer_path[t + 1], t, t + 2);
-                auto c2 = std::make_shared<Constraint>(shorter_agent->id_, shorter_path.back(), MAX_NODES, 0, t + 2);
+                auto c1 = std::make_shared<Constraint>(longer_agent->id_, longer_path[t], longer_path[t + 1], t, t + 2,
+                                                       constraint_type::GLENGTH);
+                auto c2 = std::make_shared<Constraint>(shorter_agent->id_, shorter_path.back(), MAX_NODES, 0, t + 2,
+                                                       constraint_type::LEQLENGTH);
                 auto cf = std::make_shared<Conflict>(longer_agent->id_, shorter_agent->id_, Constraints{c1},
                                                      Constraints{c2});
                 cfs.push_back(cf);
@@ -1160,8 +1222,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                          << *all_nodes[p2[t]] << "->" << *all_nodes[p2[t + 1]]
 //                          << "/t:{" << t << "," << t + 1 << "}" << std::endl;
 
-                auto c1 = std::make_shared<Constraint>(a1->id_, p1[t], p1[t + 1], t, t + 2);
-                auto c2 = std::make_shared<Constraint>(a2->id_, p2[t], p2[t + 1], t, t + 2);
+                auto c1 = std::make_shared<Constraint>(a1->id_, p1[t], p1[t + 1], t, t + 2, constraint_type::EDGE);
+                auto c2 = std::make_shared<Constraint>(a2->id_, p2[t], p2[t + 1], t, t + 2, constraint_type::EDGE);
                 auto cf = std::make_shared<Conflict>(a1->id_, a2->id_, Constraints{c1}, Constraints{c2});
                 return cf;
             }
@@ -1176,8 +1238,10 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //                          << "/t:{" << t << "," << t + 1 << "}"
 //                          << std::endl;
 
-                auto c1 = std::make_shared<Constraint>(longer_agent->id_, longer_path[t], longer_path[t + 1], t, t + 2);
-                auto c2 = std::make_shared<Constraint>(shorter_agent->id_, shorter_path.back(), MAX_NODES, t, t + 2);
+                auto c1 = std::make_shared<Constraint>(longer_agent->id_, longer_path[t], longer_path[t + 1], t, t + 2,
+                                                       constraint_type::GLENGTH);
+                auto c2 = std::make_shared<Constraint>(shorter_agent->id_, shorter_path.back(), MAX_NODES, t, t + 2,
+                                                       constraint_type::LEQLENGTH);
                 auto cf = std::make_shared<Conflict>(longer_agent->id_, shorter_agent->id_, Constraints{c1},
                                                      Constraints{c2});
                 return cf;
@@ -1498,6 +1562,27 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
     size_t toPointId(const std::shared_ptr<Pointi<N>>& state_ptr, size_t id) {
         return id;
     }
+
+    // input a beam of laser scan, predict whether a robot will collide
+    // angle = beam's angle in radius, dist = dist to center of agent
+    bool PointInRectangle(const Pointf<2>& min_pt, const Pointf<2>& max_pt, float angle, float dist);
+
+    bool PointInSector(float r, float start, float end_angle, float angle, float dist);
+
+    bool CircleAgentMoveCollisionCheck(float r, const Pointf<2>& move_vec, float angle, float dist);
+
+    // assume agent only move in x direction, i.e., front or back
+    bool BlockAgentMoveCollisionCheck(const Pointf<2>& min_pt, const Pointf<2>& max_pt,
+                                      float move_dist, float angle, float dist);
+
+    bool BlockAgentRotateCollisionCheck(const Pointf<2>& min_pt, const Pointf<2>& max_pt,
+                                       float rotate_angle, float angle, float dist, bool print_log = false);
+
+    Pointf<2> rotatePtf(const Pointf<2>& ptf, float angle);
+
+//    float normalizeAngle(float theta);
+//
+//    float getPositiveAngle(float theta);
 
 }
 

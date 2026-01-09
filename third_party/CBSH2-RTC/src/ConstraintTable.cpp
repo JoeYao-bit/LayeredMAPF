@@ -1,5 +1,5 @@
 #include "CBSH2-RTC/inc/ConstraintTable.h"
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
     void ConstraintTable::insert2CT(size_t from, size_t to, int t_min, int t_max) {
         insert2CT(getEdgeIndex(from, to), t_min, t_max);

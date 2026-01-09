@@ -2,12 +2,12 @@
 // Created by yaozhuo on 2024/5/10.
 //
 
-#ifndef LAYEREDMAPF_SPACE_TIME_ASTAR_H
-#define LAYEREDMAPF_SPACE_TIME_ASTAR_H
+#ifndef LAYEREDMAPF_SPACE_TIME_ASTAR_CBSH2_RTC_H
+#define LAYEREDMAPF_SPACE_TIME_ASTAR_CBSH2_RTC_H
 
 #include "single_agent_path_search.h"
 
-namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
+namespace freeNav::LayeredMAPF::LA_MAPF::CBSH2_RTC {
 
     class AStarNode : public LowLvNode {
     public:
@@ -348,6 +348,12 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             }  // end while loop
             releaseNodes();
             return path;
+        }
+
+        Path findPath() override {
+            LAMAPF_Path solution = solve();
+            if(solution.empty()) { return {}; }
+            return LAMAPF_Path2Path(solution);
         }
 
         // for debug only, record how many times each grid are visited during low lever search

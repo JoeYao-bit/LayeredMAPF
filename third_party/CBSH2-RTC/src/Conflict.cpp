@@ -2,7 +2,7 @@
 #include "CBSH2-RTC/inc/RectangleReasoning.h"
 #include "CBSH2-RTC/inc/MDD.h"
 
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
     std::ostream &operator<<(std::ostream &os, const Constraint &constraint) {
         os << "<" << std::get<0>(constraint) << "," << std::get<1>(constraint) << "," <<

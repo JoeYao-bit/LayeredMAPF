@@ -5,6 +5,7 @@
 #ifndef LAYEREDMAPF_BLOCK_SHAPED_AGENT_H
 #define LAYEREDMAPF_BLOCK_SHAPED_AGENT_H
 #include "common.h"
+#include "freeNav-base/visualization/canvas/canvas.h"
 #include <sstream>
 #include <boost/algorithm/string/split.hpp>
 
@@ -265,12 +266,50 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return false;
         }
 
+        void drawOnCanvas(const Pose<int, 2>& pose,
+                          Canvas& canvas, const cv::Vec3b& color, bool fill=false) const {
+//            const auto& rect = getPosedRectangle(pose, canvas.resolution_); // agents
+//            canvas.drawRectangleFloat(rect.first, rect.second, true, fill ? -1 : 1, color, 1.0);
+            auto ptf = PoseIntToPtf(pose, dim_, canvas.resolution_);
+            std::cout << "ptf = " << ptf << std::endl;
+            drawOnCanvas(ptf, canvas, color, fill);
+        }
+
         // orient in rad
         Pointf<2> rotatePointf(const Pointf<2>& ptf, double orient) const {
             Pointf<2> retv;
             retv[0] = ptf[0]*cos(orient) - ptf[1]*sin(orient);
             retv[1] = ptf[0]*sin(orient) + ptf[1]*cos(orient);
             return retv;
+        }
+
+        void drawOnCanvas(const Pointf<3>& pose,
+                          Canvas& canvas, const cv::Vec3b& color, bool fill=true) const {
+
+            //std::cout << "min/max_pt = " << min_pt_ << ", " << max_pt_ << std::endl; // ok
+
+            //std::cout << "reso = " << canvas.resolution_ << std::endl;
+
+            // rotate four corner and draw line connect them
+            Pointf<2> ptf1 = Pointf<2>({min_pt_[0], min_pt_[1]})/canvas.resolution_;
+            Pointf<2> ptf2 = Pointf<2>({min_pt_[0], max_pt_[1]})/canvas.resolution_;
+            Pointf<2> ptf3 = Pointf<2>({max_pt_[0], max_pt_[1]})/canvas.resolution_;
+            Pointf<2> ptf4 = Pointf<2>({max_pt_[0], min_pt_[1]})/canvas.resolution_;
+
+            //std::cout << "ptf = " << ptf1 << ", " << ptf2 << ", " << ptf3 << ", " << ptf4 << std::endl;
+
+            Pointf<2> rptf1 = Pointf<2>({pose[0], pose[1]}) + rotatePointf(ptf1, pose[2]);
+            Pointf<2> rptf2 = Pointf<2>({pose[0], pose[1]}) + rotatePointf(ptf2, pose[2]);
+            Pointf<2> rptf3 = Pointf<2>({pose[0], pose[1]}) + rotatePointf(ptf3, pose[2]);
+            Pointf<2> rptf4 = Pointf<2>({pose[0], pose[1]}) + rotatePointf(ptf4, pose[2]);
+
+            //std::cout << "rptf = " << rptf1 << ", " << rptf2 << ", " << rptf3 << ", " << rptf4 << std::endl;
+
+            canvas.drawLine(rptf1[0], rptf1[1], rptf2[0], rptf2[1], 1, true, color);
+            canvas.drawLine(rptf2[0], rptf2[1], rptf3[0], rptf3[1], 1, true, color);
+            canvas.drawLine(rptf3[0], rptf3[1], rptf4[0], rptf4[1], 1, true, color);
+            canvas.drawLine(rptf4[0], rptf4[1], rptf1[0], rptf1[1], 1, true, color);
+
         }
 
         // get half of the coverage (when x>= 0)
@@ -413,14 +452,16 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             rotate_pts_ = front_pair;
         }
 
-        std::pair<Pointf<2>, Pointf<2> > getPosedRectangle(const Pose<int, 2>& pose) const {
-            Pointf<2> new_min = pointTransfer_2D<float>(min_pt_, pose);
-            Pointf<2> new_max = pointTransfer_2D<float>(max_pt_, pose);
-            //std::cout << "old_min, old_max = " << min_pt_ << " " << max_pt_ << std::endl;
-            //std::cout << "new_min, new_max = " << new_min << " " << new_max << std::endl;
-            return {{std::min(new_min[0], new_max[0]), std::min(new_min[1], new_max[1])},
-                    {std::max(new_min[0], new_max[0]), std::max(new_min[1], new_max[1])}};
-        }
+//        std::pair<Pointf<2>, Pointf<2> > getPosedRectangle(const Pose<int, 2>& pose, float resolution) const {
+//
+//            Pointf<2> new_min = pointTransfer_2D<float>(min_pt_*resolution, pose);
+//            Pointf<2> new_max = pointTransfer_2D<float>(max_pt_*resolution, pose);
+//
+//            std::cout << "old_min, old_max = " << min_pt_ << " " << max_pt_ << std::endl;
+//            std::cout << "new_min, new_max = " << new_min << " " << new_max << std::endl;
+//            return {{std::min(new_min[0], new_max[0]), std::min(new_min[1], new_max[1])},
+//                    {std::max(new_min[0], new_max[0]), std::max(new_min[1], new_max[1])}};
+//        }
 
         Pointfs<2> getRotatedFans(const int& orient_start, const int& orient_end) const {
             Pointf<2> p1 = min_pt_, p2 = min_pt_, p3 = min_pt_, p4 = max_pt_;

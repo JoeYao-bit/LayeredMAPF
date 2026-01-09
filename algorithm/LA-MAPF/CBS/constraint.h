@@ -57,8 +57,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF::CBS {
             // <agent id, node from, node to, time range start, time range end>
             int agent_id, start_t, end_t;
             size_t node_from, node_to;
+            constraint_type cst;
             for(const auto& cs : csts) {
-                std::tie(agent_id, node_from, node_to, start_t, end_t) = *cs;
+                std::tie(agent_id, node_from, node_to, start_t, end_t, cst) = *cs;
                 if(agent_id != agent) { continue; }
                 length_min_ = std::max(length_min_, end_t + 1);
                 if(node_to != MAX_NODES) {

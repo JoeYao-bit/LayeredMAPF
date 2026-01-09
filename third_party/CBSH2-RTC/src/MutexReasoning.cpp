@@ -1,7 +1,7 @@
 #include "CBSH2-RTC/inc/MutexReasoning.h"
 #include "CBSH2-RTC/inc/ConstraintPropagation.h"
 
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
     shared_ptr<Conflict>
     MutexReasoning::run(const vector<Path *> &paths, int a1, int a2, CBSNode &node, MDD *mdd_1, MDD *mdd_2) {

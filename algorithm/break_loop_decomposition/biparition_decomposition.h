@@ -8,8 +8,8 @@
 #include "../LA-MAPF/common.h"
 #include "../LA-MAPF/large_agent_dependency_path_search.h"
 
-#include "../algorithm/LA-MAPF/CBS/space_time_astar.h"
-#include "../third_party/EECBS/inc/SpaceTimeAStar.h"
+#include "../LA-MAPF/CBS/space_time_astar.h"
+//#include "../third_party/EECBS/inc/SpaceTimeAStar.h"
 #include <algorithm>
 #include "../basic.h"
 
@@ -66,7 +66,7 @@ namespace freeNav::LayeredMAPF {
 
 //            debugCheck();
 //            assert(decompositionValidCheck(all_clusters_));
-            if(decompose_level_ >= 1) {
+            if(decompose_level_ <= 1) {
                 debugCheck();
                 assert(decompositionValidCheck(all_levels_));
                 return;
@@ -75,7 +75,7 @@ namespace freeNav::LayeredMAPF {
             clusterDecomposition();
             cluster_bipartition_time_cost_ = mst.elapsed();
             std::cout << "-- cluster_bipartition_time_cost_    (ms) = " << cluster_bipartition_time_cost_ << std::endl;
-            if(decompose_level_ >= 2) {
+            if(decompose_level_ <= 2) {
                 debugCheck();
                 assert(decompositionValidCheck(all_levels_));
                 return;
@@ -88,7 +88,7 @@ namespace freeNav::LayeredMAPF {
             levelSorting();
             level_sorting_time_cost_ = mst.elapsed();
             std::cout << "-- level_sorting_time_cost_          (ms) = " << level_sorting_time_cost_ << std::endl;
-            if(decompose_level_ >= 3) {
+            if(decompose_level_ <= 3) {
                 debugCheck();
                 assert(decompositionValidCheck(all_levels_));
                 return;
@@ -98,9 +98,7 @@ namespace freeNav::LayeredMAPF {
 //            assert(decompositionValidCheck(all_clusters_));
 
             mst.reset();
-            if(decompose_level_ >= 4) {
             levelDecomposition();
-            }
             level_bipartition_time_cost_ = mst.elapsed();
             std::cout << "-- level_bipartition_time_cost_      (ms) = " << level_bipartition_time_cost_ << std::endl;
 

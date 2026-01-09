@@ -13,6 +13,7 @@
 
 #include "../../algorithm/LA-MAPF/CBS/large_agent_CBS.h"
 #include "../../algorithm/LA-MAPF/LaCAM/large_agent_lacam.h"
+#include "../../algorithm/LA-MAPF/CBSH2-RTC/layered_large_agent_CBS.h"
 
 #include "../../algorithm/LA-MAPF/large_agent_instance_generator.h"
 #include "../../algorithm/LA-MAPF/instance_serialize_and_deserialize.h"

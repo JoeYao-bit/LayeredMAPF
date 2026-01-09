@@ -3,7 +3,7 @@
 #include <random>      // std::default_random_engine
 #include <chrono>       // std::chrono::system_clock
 #include "CBSH2-RTC/inc/Instance.h"
-namespace CBSH2_RTC {
+namespace MAPF::CBSH2_RTC {
 
     int RANDOM_WALK_STEPS = 100000;
 
