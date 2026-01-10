@@ -37,6 +37,7 @@ namespace freeNav::LayeredMAPF {
                                            std::vector<LA_MAPF::SubGraphOfAgent<N, State>> agent_sub_graphs,
                                            const std::vector<std::vector<int> >& heuristic_tables_sat, // distinguish_sat = true
                                            const std::vector<std::vector<int> >& heuristic_tables,
+                                           bool break_loop = true,
                                            double time_limit = 10,
                                            int max_break_count = 1e3,
                                            int max_continue_failure = 50,
@@ -48,7 +49,8 @@ namespace freeNav::LayeredMAPF {
                                      time_limit_(time_limit),
                                      max_break_count_(max_break_count),
                                      max_continue_failure_(max_continue_failure),
-                                     expected_min_level_size_(expected_min_level_size) {
+                                     expected_min_level_size_(expected_min_level_size),
+                                     break_loop_(break_loop) {
 
 
             std::set<int> all_agent_id_set;
@@ -77,10 +79,11 @@ namespace freeNav::LayeredMAPF {
 //                    assert(agent_id < agent_sub_graphs_.size());
 //                }
 //            }
-            MSTimer mst;
-            breakMaxLoopIteratively();
-            std::cout << "ns finish break loop in " << mst.elapsed()/1e3 << "s" << std::endl;
-
+            if(break_loop_) {
+                MSTimer mst;
+                breakMaxLoopIteratively();
+                std::cout << "ns finish break loop in " << mst.elapsed() / 1e3 << "s" << std::endl;
+            }
         }
 
 
@@ -807,6 +810,7 @@ namespace freeNav::LayeredMAPF {
 
         std::vector<std::set<int> > all_levels_;
 
+        bool break_loop_ = true;
     };
 
 }

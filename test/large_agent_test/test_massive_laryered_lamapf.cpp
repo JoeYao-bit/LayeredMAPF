@@ -90,7 +90,29 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                  time_limit);
         strs.push_back(str);
 
+        str = BREAKLOOP_INIT_LAMAPF<2>(
+                instances_local,
+                agents_local,
+                dim,
+                is_occupied,
+                //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
+                LargeAgentLaCAMPose_func<2>,
+                "LaCAM",
+                time_limit);
+        strs.push_back(str);
+
         str = BREAKLOOP_LAMAPF<2>(
+                instances_local,
+                agents_local,
+                dim,
+                is_occupied,
+                //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
+                CBSH2_RTC::LargeAgentCBS_func<2, Pose<int, 2> >,
+                "CBS",
+                time_limit);
+        strs.push_back(str);
+
+        str = BREAKLOOP_INIT_LAMAPF<2>(
                 instances_local,
                 agents_local,
                 dim,

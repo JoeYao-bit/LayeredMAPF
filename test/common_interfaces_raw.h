@@ -127,6 +127,63 @@ namespace freeNav::LayeredMAPF {
 
 
     template<Dimension N>
+    std::string BREAKLOOP_INIT_MAPF_RAW(const std::vector<std::pair<Pointi<N>, Pointi<N>>> &instances,
+                                   DimensionLength *dim,
+                                   const IS_OCCUPIED_FUNC<N> &isoc,
+                                   const MAPF_FUNC<N> & mapf_func,
+                                   const std::string &func_identifer,
+                                   double time_limit) {
+
+        MSTimer mst;
+
+        auto pre =
+                std::make_shared<PrecomputationOfMAPFDecomposition<2, LA_MAPF::HyperGraphNodeDataRaw<2>>>(instances, dim,
+                                                                                                          isoc);
+
+        auto ns_decompose = std::make_shared<MAPFInstanceDecompositionBreakLoop<2, LA_MAPF::HyperGraphNodeDataRaw<2>, Pointi<2> > >(
+                dim,
+                pre->connect_graphs_,
+                pre->agent_sub_graphs_,
+                pre->heuristic_tables_sat_,
+                pre->heuristic_tables_,
+                time_limit - mst.elapsed() / 1e3,
+                false,
+                1e4,
+                100,
+                1);
+
+        auto multiple_paths = layeredMAPF<2>(instances, dim, isoc, mapf_func, mapf_func,
+                                             ns_decompose->all_levels_, false, time_limit - mst.elapsed() / 1e3);
+
+        double total_time_cost = mst.elapsed() / 1e3;
+
+        std::cout << "instance has " << instances.size() << " agents, breakloop init " << func_identifer
+                  << " find solution ? " << !multiple_paths.empty()
+                  << " in " << total_time_cost << "s " << std::endl;
+
+        std::cout << "breakloop: max subproblem / total = " << getMaxLevelSize(ns_decompose->all_levels_) << " / "
+                  << instances.size() << std::endl;
+        std::cout << "breakloop: num of subproblem = " << ns_decompose->all_levels_.size() << std::endl;
+
+
+        // agents size / time cost / success / SOC / makespan / success / memory usage / init time cost / decom time cost / max subproblem / num of subproblems
+        std::stringstream ss_layered;
+        ss_layered << "BL_INIT_" << func_identifer << " " << instances.size() << " "
+                   << total_time_cost << " "
+                   << getSOC(multiple_paths) << " " << getMakeSpan(multiple_paths) << " "
+                   << !multiple_paths.empty() << " " << 0 << " "
+                   << 0 << " "
+                   << 0 << " "
+                   << getMaxLevelSize(ns_decompose->all_levels_) << " "
+                   << ns_decompose->all_levels_.size() << " "
+                   << 0;
+
+        return ss_layered.str();
+    }
+
+
+
+    template<Dimension N>
     std::string RAW_MAPF_RAW(const std::vector<std::pair<Pointi<N>, Pointi<N>>> &instances,
                          DimensionLength *dim,
                          const IS_OCCUPIED_FUNC<N> &isoc,

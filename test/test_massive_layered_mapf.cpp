@@ -157,6 +157,16 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                 time_limit); // ok
         strs.push_back(str);
 
+        str = BREAKLOOP_INIT_MAPF_RAW<2>(
+                instances_local,
+                dim,
+                is_occupied,
+                //CBS_Li::cbs_MAPF,
+                MAPF::CBSH2_RTC::CBSH2_RTC_MAPF,
+                "CBS",
+                time_limit); // ok
+        strs.push_back(str);
+
         str = BREAKLOOP_MAPF_RAW<2>(
                 instances_local,
                 dim,
@@ -166,6 +176,14 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                 time_limit); // ok
         strs.push_back(str);
 
+        str = BREAKLOOP_INIT_MAPF_RAW<2>(
+                instances_local,
+                dim,
+                is_occupied,
+                LaCAM::lacam_MAPF,
+                "LaCAM",
+                time_limit); // ok
+        strs.push_back(str);
 
         str = RAW_MAPF_RAW<2>(
                 instances_local,

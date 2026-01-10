@@ -377,10 +377,10 @@ std::string BREAKLOOP_INIT_LAMAPF(const std::vector<std::pair<Pose<int, N>, Pose
             pre_dec->heuristic_tables_sat_,
             pre_dec->heuristic_tables_,
             time_limit,
+            false,
             1e3,
             50,
-            1,
-            true);
+            1);
 
     LAMAPF_Paths layered_paths;
     bool detect_loss_solvability;
@@ -395,7 +395,7 @@ std::string BREAKLOOP_INIT_LAMAPF(const std::vector<std::pair<Pose<int, N>, Pose
 
     double total_time_cost = mst.elapsed()/1e3;
 
-    std::cout << "instance has " << agents.size() << " agents, breakloop " << func_identifer << " find solution ? " << !layered_paths.empty()
+    std::cout << "instance has " << agents.size() << " agents, breakloop init " << func_identifer << " find solution ? " << !layered_paths.empty()
               << " in " << total_time_cost << "s " << std::endl;
 
     std::cout << "breakloop: max subproblem / total = " << getMaxLevelSize(bi_decompose->all_levels_) << " / " << instances.size() << std::endl;
@@ -405,7 +405,7 @@ std::string BREAKLOOP_INIT_LAMAPF(const std::vector<std::pair<Pose<int, N>, Pose
 
     // agents size / time cost / success / SOC / makespan / success / memory usage / init time cost / decom time cost / max subproblem / num of subproblems
     std::stringstream ss_layered;
-    ss_layered << "BL_" << func_identifer << " " << agents.size() << " "
+    ss_layered << "BL_INIT_" << func_identifer << " " << agents.size() << " "
                << total_time_cost << " "
                << getSOC(layered_paths) << " " << getMakeSpan(layered_paths) << " "
                << !layered_paths.empty() << " " << max_usage - basic_usage << " "
