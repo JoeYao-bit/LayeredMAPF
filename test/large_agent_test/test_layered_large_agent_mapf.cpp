@@ -153,7 +153,7 @@ int main() {
     assert(!deserializer.getAgents().empty());
     std::vector<int> required_counts;
 
-    auto agent_and_instances = deserializer.getTestInstance({7}, 1);
+    auto agent_and_instances = deserializer.getTestInstance({40}, 1);
 
     std::cout << " agent_and_instances size " << agent_and_instances.size() << std::endl;
 
@@ -162,14 +162,14 @@ int main() {
 
 
 
-    auto str2 = RAW_LAMAPF<2>(
+    auto str2 = BREAKLOOP_LAMAPF<2>(
             instances_local,
             agents_local,
             dim,
             is_occupied,
             //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
-//            CBS::LargeAgentCBS_func<2, Pose<int, 2> >, // node depth = 19, 504 iter, 0.18s
-            CBSH2_RTC::LargeAgentCBS_func<2, Pose<int, 2> >, //  node depth = 33, 1238 iter, 0.313s
+            CBS::LargeAgentCBS_func<2, Pose<int, 2> >, // node depth = 19, 504 iter, 0.18s
+//            CBSH2_RTC::LargeAgentCBS_func<2, Pose<int, 2> >, //  node depth = 33, 1238 iter, 0.313s
             "CBSH2_RTC",
             60);
 

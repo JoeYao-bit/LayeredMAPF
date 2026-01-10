@@ -73,6 +73,7 @@ namespace freeNav::LayeredMAPF {
 
             std::cout << "ns finish initial decomposition in " << time_cost << "s" << std::endl;
 
+            std::cout << "max subproblem before break loop = " << LA_MAPF::getMaxLevelSize(all_levels_) << std::endl;
             // debug
 //            for(const auto& level : all_levels_) {
 //                for(const auto& agent_id : level) {
@@ -83,6 +84,7 @@ namespace freeNav::LayeredMAPF {
                 MSTimer mst;
                 breakMaxLoopIteratively();
                 std::cout << "ns finish break loop in " << mst.elapsed() / 1e3 << "s" << std::endl;
+                std::cout << "max subproblem after break loop = " << LA_MAPF::getMaxLevelSize(all_levels_) << std::endl;
             }
         }
 
