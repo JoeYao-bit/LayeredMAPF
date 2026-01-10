@@ -405,7 +405,7 @@ std::string BREAKLOOP_INIT_LAMAPF(const std::vector<std::pair<Pose<int, N>, Pose
 
     // agents size / time cost / success / SOC / makespan / success / memory usage / init time cost / decom time cost / max subproblem / num of subproblems
     std::stringstream ss_layered;
-    ss_layered << "BL_INIT_" << func_identifer << " " << agents.size() << " "
+    ss_layered << "BLINIT_" << func_identifer << " " << agents.size() << " "
                << total_time_cost << " "
                << getSOC(layered_paths) << " " << getMakeSpan(layered_paths) << " "
                << !layered_paths.empty() << " " << max_usage - basic_usage << " "

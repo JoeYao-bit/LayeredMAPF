@@ -168,7 +168,7 @@ namespace freeNav::LayeredMAPF {
 
         // agents size / time cost / success / SOC / makespan / success / memory usage / init time cost / decom time cost / max subproblem / num of subproblems
         std::stringstream ss_layered;
-        ss_layered << "BL_INIT_" << func_identifer << " " << instances.size() << " "
+        ss_layered << "BLINIT_" << func_identifer << " " << instances.size() << " "
                    << total_time_cost << " "
                    << getSOC(multiple_paths) << " " << getMakeSpan(multiple_paths) << " "
                    << !multiple_paths.empty() << " " << 0 << " "
