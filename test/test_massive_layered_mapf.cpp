@@ -58,114 +58,45 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
         std::vector<std::string> strs;
         std::string str;
 
-//        str = BIPARTITION_MAPF<2>(
-//                instances_local,
-//                dim,
-//                is_occupied,
-//                LaCAM::LargeAgentLaCAMPointi_func<2>,
-//                "LaCAM",
-//                time_limit);
-//        strs.push_back(str);
-//
-//        str = BIPARTITION_MAPF<2>(
-//                instances_local,
-//                dim,
-//                is_occupied,
-//                CBS::LargeAgentCBS_func<2, Pointi<2> >,
-//                "CBS",
-//                time_limit);
-//        strs.push_back(str); // ok
-//
-//        str = BREAKLOOP_MAPF<2>(
-//                instances_local,
-//                dim,
-//                is_occupied,
-//                LaCAM::LargeAgentLaCAMPointi_func<2>,
-//                "LaCAM",
-//                time_limit);
-//        strs.push_back(str);
-//
-//        str = BREAKLOOP_MAPF<2>(
-//                instances_local,
-//                dim,
-//                is_occupied,
-//                CBS::LargeAgentCBS_func<2, Pointi<2> >,
-//                "CBS",
-//                time_limit); // ok
-//        strs.push_back(str);
 
 
-//        MSTimer mst;
-//        auto retv_path = CBS_Li::cbs_MAPF(dim, is_occupied, instances_local, nullptr, time_limit);
-//        std::cout << "raw CBS with " << instances_local.size() <<  " agents success ? " << !retv_path.empty() << " in " << mst.elapsed()/1e3 << "s" << std::endl;
+        // str = BIPARTITION_MAPF_RAW<2>(
+        //         instances_local,
+        //         dim,
+        //         is_occupied,
+        //         //CBS_Li::cbs_MAPF,
+        //         MAPF::CBSH2_RTC::CBSH2_RTC_MAPF,
+        //         "CBS",
+        //         time_limit); // ok
+        // strs.push_back(str);
 
+        // str = BIPARTITION_MAPF_RAW<2>(
+        //         instances_local,
+        //         dim,
+        //         is_occupied,
+        //         LaCAM::lacam_MAPF,
+        //         "LaCAM",
+        //         time_limit); // ok
+        // strs.push_back(str);
 
-        /*
-         *     freeNav::Paths<2> cbs_MAPF(freeNav::DimensionLength *dim,
-                               const freeNav::IS_OCCUPIED_FUNC<2> &isoc,
-                               const freeNav::Instances<2> &instance_sat,
-                               CBS_Li::ConstraintTable *ct,
-                               int cutoff_time) {
-         * */
+        // str = BREAKLOOP_MAPF_RAW<2>(
+        //         instances_local,
+        //         dim,
+        //         is_occupied,
+        //         //CBS_Li::cbs_MAPF,
+        //         MAPF::CBSH2_RTC::CBSH2_RTC_MAPF,                "CBS",
+        //         time_limit); // ok
+        // strs.push_back(str);
 
-
-//        str = RAW_MAPF<2>(
-//                instances_local,
-//                dim,
-//                is_occupied,
-//                LaCAM::LargeAgentLaCAMPointi_func<2>,
-//                "LaCAM",
-//                time_limit);
-//        strs.push_back(str);
-//
-//        str = ID_MAPF<2>(
-//                instances_local,
-//                dim,
-//                is_occupied,
-//                //LaCAM::LargeAgentLaCAM_func<2, Pose<int, 2> >,
-//                CBS::LargeAgentCBS_func<2, Pointi<2> >,
-//                "CBS",
-//                time_limit);
-//        strs.push_back(str); // ok
-
-
-        str = BIPARTITION_MAPF_RAW<2>(
-                instances_local,
-                dim,
-                is_occupied,
-                //CBS_Li::cbs_MAPF,
-                MAPF::CBSH2_RTC::CBSH2_RTC_MAPF,
-                "CBS",
-                time_limit); // ok
-        strs.push_back(str);
-
-        str = BIPARTITION_MAPF_RAW<2>(
-                instances_local,
-                dim,
-                is_occupied,
-                LaCAM::lacam_MAPF,
-                "LaCAM",
-                time_limit); // ok
-        strs.push_back(str);
-
-        str = BREAKLOOP_MAPF_RAW<2>(
-                instances_local,
-                dim,
-                is_occupied,
-                //CBS_Li::cbs_MAPF,
-                MAPF::CBSH2_RTC::CBSH2_RTC_MAPF,                "CBS",
-                time_limit); // ok
-        strs.push_back(str);
-
-        str = BREAKLOOP_INIT_MAPF_RAW<2>(
-                instances_local,
-                dim,
-                is_occupied,
-                //CBS_Li::cbs_MAPF,
-                MAPF::CBSH2_RTC::CBSH2_RTC_MAPF,
-                "CBS",
-                time_limit); // ok
-        strs.push_back(str);
+        // str = BREAKLOOP_INIT_MAPF_RAW<2>(
+        //         instances_local,
+        //         dim,
+        //         is_occupied,
+        //         //CBS_Li::cbs_MAPF,
+        //         MAPF::CBSH2_RTC::CBSH2_RTC_MAPF,
+        //         "CBS",
+        //         time_limit); // ok
+        // strs.push_back(str);
 
         str = BREAKLOOP_MAPF_RAW<2>(
                 instances_local,
@@ -176,43 +107,43 @@ void multiLoadAgentAndCompare(const SingleMapTestConfig<2>& map_file,
                 time_limit); // ok
         strs.push_back(str);
 
-        str = BREAKLOOP_INIT_MAPF_RAW<2>(
-                instances_local,
-                dim,
-                is_occupied,
-                LaCAM::lacam_MAPF,
-                "LaCAM",
-                time_limit); // ok
-        strs.push_back(str);
+        // str = BREAKLOOP_INIT_MAPF_RAW<2>(
+        //         instances_local,
+        //         dim,
+        //         is_occupied,
+        //         LaCAM::lacam_MAPF,
+        //         "LaCAM",
+        //         time_limit); // ok
+        // strs.push_back(str);
 
-        str = RAW_MAPF_RAW<2>(
-                instances_local,
-                dim,
-                is_occupied,
-                //CBS_Li::cbs_MAPF,
-                MAPF::CBSH2_RTC::CBSH2_RTC_MAPF,
-                "CBS",
-                time_limit); // ok
-        strs.push_back(str);
+        // str = RAW_MAPF_RAW<2>(
+        //         instances_local,
+        //         dim,
+        //         is_occupied,
+        //         //CBS_Li::cbs_MAPF,
+        //         MAPF::CBSH2_RTC::CBSH2_RTC_MAPF,
+        //         "CBS",
+        //         time_limit); // ok
+        // strs.push_back(str);
 
-        str = RAW_MAPF_RAW<2>(
-                instances_local,
-                dim,
-                is_occupied,
-                LaCAM::lacam_MAPF,
-                "LaCAM",
-                time_limit); // ok
-        strs.push_back(str);
+        // str = RAW_MAPF_RAW<2>(
+        //         instances_local,
+        //         dim,
+        //         is_occupied,
+        //         LaCAM::lacam_MAPF,
+        //         "LaCAM",
+        //         time_limit); // ok
+        // strs.push_back(str);
 
-        str = ID_MAPF_RAW<2>(
-                instances_local,
-                dim,
-                is_occupied,
-                //CBS_Li::cbs_MAPF,
-                MAPF::CBSH2_RTC::CBSH2_RTC_MAPF,
-                "CBS",
-                time_limit); // ok
-        strs.push_back(str);
+        // str = ID_MAPF_RAW<2>(
+        //         instances_local,
+        //         dim,
+        //         is_occupied,
+        //         //CBS_Li::cbs_MAPF,
+        //         MAPF::CBSH2_RTC::CBSH2_RTC_MAPF,
+        //         "CBS",
+        //         time_limit); // ok
+        // strs.push_back(str);
 
         for(const auto& str : strs) {
             std::cout << str << std::endl;
@@ -253,13 +184,13 @@ int main() {
         //   {MAPFTestConfig_Berlin_1_256, {100, 200, 300, 400, 500, 600, 700, 800, 900}}, // in pub
         //   {MAPFTestConfig_ht_chantry, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},  // in pub
         //    {MAPFTestConfig_lak303d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},  // in pub
-        //    {MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800}},  // in pub
+            {MAPFTestConfig_warehouse_10_20_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800}},  // in pub
         //    {MAPFTestConfig_warehouse_10_20_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},  // in pub
         //    {MAPFTestConfig_warehouse_20_40_10_2_1, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},   // in pub
         //    {MAPFTestConfig_warehouse_20_40_10_2_2, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},  // in pub
         //    {MAPFTestConfig_Boston_0_256, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}}, // in pub
-            {MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},  // in pub
-            {MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}}  // in pub
+        //    {MAPFTestConfig_lt_gallowstemplar_n, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}},  // in pub
+        //    {MAPFTestConfig_ost003d, {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}}  // in pub
     };
     std::vector<bool> finished(map_configs.size(), false);
     std::mutex lock_1, lock_2;
