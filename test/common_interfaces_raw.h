@@ -92,7 +92,7 @@ namespace freeNav::LayeredMAPF {
                 pre->heuristic_tables_,
                 time_limit - mst.elapsed() / 1e3,
                 1e4,
-                100,
+                150,
                 1);
 
         auto multiple_paths = layeredMAPF<2>(instances, dim, isoc, mapf_func, mapf_func,
