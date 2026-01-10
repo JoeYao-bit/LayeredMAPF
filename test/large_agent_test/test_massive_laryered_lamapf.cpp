@@ -154,21 +154,18 @@ int main() {
     // file_path, count_of_test, max_agent_count, min_agent_count, interval, max_sample
     std::vector<std::tuple<SingleMapTestConfig<2>, int, int, int, int> >
             map_configs = {
-            {MAPFTestConfig_empty_48_48,     1, 20, 2, 2}, // 60, 10, 10 // in pub
-            {MAPFTestConfig_Berlin_1_256,    1, 20, 2, 2}, // 80, 10, 10 // in pub
-            {MAPFTestConfig_ost003d,         1, 20, 2, 2},// 100, 10, 10 // in pub
-            {MAPFTestConfig_AR0044SR, 1, 20, 2, 2}, // 150, 5, 5 // in pub
-            {MAPFTestConfig_AR0203SR, 1, 20, 2, 2}, // 40, 5, 5 // in pub
-
-            // //
-            {MAPFTestConfig_den520d,         5, 20, 2, 2},// 45, 5, 5 // in pub
-
-            //{MAPFTestConfig_AR0072SR, 1, 30, 5, 5}, // 30, 5, 5
-
+            {MAPFTestConfig_empty_48_48,     10, 20, 2, 2}, // 60, 10, 10 // in pub
+            {MAPFTestConfig_Berlin_1_256,    10, 20, 2, 2}, // 80, 10, 10 // in pub
+            {MAPFTestConfig_ost003d,         10, 20, 2, 2},// 100, 10, 10 // in pub
+            {MAPFTestConfig_AR0044SR,        10, 20, 2, 2}, // 150, 5, 5 // in pub
+            {MAPFTestConfig_AR0203SR,        10, 20, 2, 2}, // 40, 5, 5 // in pub
+            {MAPFTestConfig_den520d,         10, 20, 2, 2},// 45, 5, 5 // in pub
             {MAPFTestConfig_Paris_1_256,     10, 20, 2, 2}, // 80, 10, 10 / 20, 2, 2 // in pub
             {MAPFTestConfig_maze_128_128_10, 10, 20, 2, 2}, // 60, 10, 10 // in pub
-            {MAPFTestConfig_Boston_2_256, 10, 20, 2, 2}, //  70, 10, 10 // in pub
-            {MAPFTestConfig_Sydney_2_256, 10, 20, 2, 2}, // 70, 10, 10 // in pub
+            {MAPFTestConfig_Boston_2_256,    10, 20, 2, 2}, //  70, 10, 10 // in pub
+             {MAPFTestConfig_Sydney_2_256,    10, 20, 2, 2}, // 70, 10, 10 // in pub
+
+            //{MAPFTestConfig_AR0072SR, 1, 30, 5, 5}, // 30, 5, 5
 
             // not in test
             //        {MAPFTestConfig_Boston_2_256, 1, 20, 2, 2}, // ok
