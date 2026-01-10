@@ -72,8 +72,8 @@ namespace freeNav::LayeredMAPF {
             double time_cost = mst_.elapsed()/1e3;
 
             std::cout << "ns finish initial decomposition in " << time_cost << "s" << std::endl;
-
-            std::cout << "max subproblem before break loop = " << LA_MAPF::getMaxLevelSize(all_levels_) << std::endl;
+            int max_size_buffer = LA_MAPF::getMaxLevelSize(all_levels_);
+            std::cout << "max subproblem before break loop = " << max_size_buffer << std::endl;
             // debug
 //            for(const auto& level : all_levels_) {
 //                for(const auto& agent_id : level) {
@@ -84,7 +84,8 @@ namespace freeNav::LayeredMAPF {
                 MSTimer mst;
                 breakMaxLoopIteratively();
                 std::cout << "ns finish break loop in " << mst.elapsed() / 1e3 << "s" << std::endl;
-                std::cout << "max subproblem after break loop = " << LA_MAPF::getMaxLevelSize(all_levels_) << std::endl;
+                std::cout << "max subproblem before/after break loop = " << max_size_buffer << "/"
+                          << LA_MAPF::getMaxLevelSize(all_levels_) << std::endl;
             }
         }
 
@@ -143,13 +144,14 @@ namespace freeNav::LayeredMAPF {
                 }
 
                 if(count_of_continue_failure > max_continue_failure_) {
-                    if(simple_avail) {
-                        simple_avail = false;
-                    } else {
-                        i_th_largest_level ++;
-                        count_of_continue_failure = 0;
-                        simple_avail = true;
-                    }
+                    break;
+//                    if(simple_avail) {
+//                        simple_avail = false;
+//                    } else {
+//                        i_th_largest_level ++;
+//                        count_of_continue_failure = 0;
+//                        simple_avail = true;
+//                    }
                 }
 
 //                bool success = breakMaxLoopGreedy(count_of_break, i_th_largest_level, simple_avail);
@@ -374,8 +376,16 @@ namespace freeNav::LayeredMAPF {
 
             // adopt update only when generate smaller subproblems
             if(new_max_level.second.size() < old_max_level_size) {
+                // debug:
+                int pre_max_size = LA_MAPF::getMaxLevelSize(all_levels_);
+                int new_max_size = LA_MAPF::getMaxLevelSize(new_levels);
+                if(pre_max_size <= new_max_size) {
+                    std::cout << "pre_max_size " << pre_max_size << " <= new_max_size " << new_max_size << " !" << std::endl;
+                    assert(0);
+                }
                 all_dependency_paths_ = new_dependency_paths;
                 all_levels_ = new_levels;
+
                 return true;
             }
             return false;
