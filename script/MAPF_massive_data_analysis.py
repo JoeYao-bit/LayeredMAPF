@@ -48,7 +48,7 @@ def loadDataFromfile(file_path, map_name):
                 # if head_split[0] == 'ID':
                 #     continue
 
-                if head_split[0] == 'BL' or head_split[0] == "BP":
+                if head_split[0] == 'BL' or head_split[0] == "BP" or head_split[0] == "BLINIT":
                     new_data.get_subgraph_time_cost = float(splited_line[7])
                     new_data.decomposition_time_cost = float(splited_line[8])
                     if new_data.success:
@@ -119,7 +119,7 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
 
 
             if ylable == "loss_of_solvability":
-                if splited_method_name[0] != "BP" and splited_method_name[0] != "BL":
+                if splited_method_name[0] != "BP" and splited_method_name[0] != "BL" and splited_method_name[0] != "BLINIT":
                     continue
 
             if splited_method_name[0] == "ID" and splited_method_name[1] == "LaCAM":
@@ -136,7 +136,7 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
                 if len(x) != 0 and len(y) != 0:
                     while len(x) > len(y):
                         x.pop()
-                    plt.errorbar(x, y, fmt=method_marker_map2[splited_method_name[0]], markersize=14, markerfacecolor='none', label=splited_method_name[0], linewidth=2, elinewidth=4, capsize=4) 
+                    plt.errorbar(x, y, fmt=method_marker_map2[splited_method_name[0]], markersize=14, markerfacecolor='none', label=lable_map[splited_method_name[0]], linewidth=2, elinewidth=4, capsize=4) 
 
         plt.tick_params(axis='both', labelsize=18)
         formater = ticker.ScalarFormatter(useMathText=True) 
@@ -175,7 +175,8 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
     value_lists_raw = list()
     value_lists_bp = list()
     value_lists_bl = list()
-
+    value_lists_bl_init = list()
+    
     for map_key, map_value in all_data_map.items():
         map_lists.append(map_key)
         for method_key, method_value in all_data_map[map_key].items():
@@ -208,44 +209,57 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
 
             if head_split[0] == 'BL':
                 value_lists_bl.append(np.mean(value))
+
+            if head_split[0] == 'BLINIT':
+                value_lists_bl_init.append(np.mean(value))    
+
     if ylable == "loss_of_solvability":
         width = 0.4                   
         x1 = np.arange(len(value_lists_bp))
         x2 = np.arange(len(value_lists_bl))
+        x3 = np.arange(len(value_lists_bl_init))
 
-        ax.bar(x1+1-width/2, value_lists_bp, width, label="BP", hatch="//")    
-        ax.bar(x2+1+width/2, value_lists_bl, width, label="BL", hatch="-")    
+        ax.bar(x1+1-width, value_lists_bp,      width, label="BP", hatch="//")    
+        ax.bar(x2+1,       value_lists_bl,      width, label="BL", hatch="-")   
+        ax.bar(x3+1+width, value_lists_bl_init, width, label="BI", hatch="o")   
+
     elif ylable == "max_subproblem_size" or ylable == "num_of_subproblem":
         width = 0.2                   
         x1 = np.arange(len(value_lists_id))
         x2 = np.arange(len(value_lists_bp))
         x3 = np.arange(len(value_lists_bl))
+        x4 = np.arange(len(value_lists_bl_init))
 
-        ax.bar(x1+1-width, value_lists_id, width, label="ID", hatch="-")    
-        ax.bar(x2+1      , value_lists_bp, width, label="BP", hatch="//")    
-        ax.bar(x3+1+width, value_lists_bl, width, label="BL", hatch="-")    
-            
+        ax.bar(x1+1-3*width/2, value_lists_id,      width, label="ID", hatch="-")    
+        ax.bar(x2+1-width/2,   value_lists_bp,      width, label="BP", hatch="//")    
+        ax.bar(x3+1+width/2,   value_lists_bl,      width, label="BL", hatch="-")    
+        ax.bar(x4+1+3*width/2, value_lists_bl_init, width, label="BI", hatch="o")    
+
     elif len(head_split) == 2 and head_split[1] == "CBS":
         width = 0.2 
         x1 = np.arange(len(value_lists_raw))
         x2 = np.arange(len(value_lists_id))
         x3 = np.arange(len(value_lists_bp))
         x4 = np.arange(len(value_lists_bl))
+        x5 = np.arange(len(value_lists_bl_init))
 
-        ax.bar(x1+1-3*width/2, value_lists_raw,  width, label="RAW")    
-        ax.bar(x2+1-  width/2, value_lists_id,   width, label="ID",      hatch="-")    
-        ax.bar(x3+1+  width/2, value_lists_bp,   width, label="BP", hatch="//")  
-        ax.bar(x4+1+3*width/2, value_lists_bl,   width, label="BL", hatch="//")  
+        ax.bar(x1+1-2*width, value_lists_raw,  width, label="RAW")    
+        ax.bar(x2+1-width,   value_lists_id,   width, label="ID", hatch="-")    
+        ax.bar(x3+1,         value_lists_bp,   width, label="BP", hatch="//")  
+        ax.bar(x4+1+width,   value_lists_bl,   width, label="BL", hatch="//")  
+        ax.bar(x5+1+2*width, value_lists_bl,   width, label="BI", hatch="o")  
 
     else: 
         width = 0.2 
         x1 = np.arange(len(value_lists_raw))
         x2 = np.arange(len(value_lists_bp))
         x3 = np.arange(len(value_lists_bl))
+        x4 = np.arange(len(value_lists_bl_init))
 
-        ax.bar(x1+1-width, value_lists_raw,  width, label="RAW")    
-        ax.bar(x2+1        , value_lists_bp,   width, label="BP", hatch="//")  
-        ax.bar(x3+1+width, value_lists_bl,   width, label="BL", hatch="//")  
+        ax.bar(x1+1-3*width/2, value_lists_raw,  width, label="RAW")    
+        ax.bar(x2+1-width/2,   value_lists_bp,   width, label="BP", hatch="//")  
+        ax.bar(x3+1+width/2,   value_lists_bl,   width, label="BL", hatch="//")  
+        ax.bar(x4+1+3*width/2, value_lists_bl,   width, label="BI", hatch="o")  
                         
     plt.xticks(rotation=70)         
         
@@ -438,10 +452,18 @@ method_marker_map2 = {
     "BP":'*-',
     "ID":'v-',
     "BL":"x-",
+    "BLINIT":"s-",
     name_of_get_subgraph:"o-.",
     name_of_decomposition:"*-."
 }
 
+lable_map = {
+    "RAW":"RAW",
+    "BP":"BP",
+    "ID":"ID",
+    "BL":"BL",
+    "BLINIT":"BI",
+}
 
 map_format_map = {
                 #  "empty-16-16":'o', # 1
