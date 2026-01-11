@@ -243,11 +243,11 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
         x4 = np.arange(len(value_lists_bl))
         x5 = np.arange(len(value_lists_bl_init))
 
-        ax.bar(x1+1-2*width, value_lists_raw,  width, label="RAW")    
-        ax.bar(x2+1-width,   value_lists_id,   width, label="ID", hatch="-")    
-        ax.bar(x3+1,         value_lists_bp,   width, label="BP", hatch="//")  
-        ax.bar(x4+1+width,   value_lists_bl,   width, label="BL", hatch="//")  
-        ax.bar(x5+1+2*width, value_lists_bl,   width, label="BI", hatch="o")  
+        ax.bar(x1+1-2*width, value_lists_raw,       width, label="RAW")    
+        ax.bar(x2+1-width,   value_lists_id,        width, label="ID", hatch="-")    
+        ax.bar(x3+1,         value_lists_bp,        width, label="BP", hatch="//")  
+        ax.bar(x4+1+width,   value_lists_bl,        width, label="BL", hatch="//")  
+        ax.bar(x5+1+2*width, value_lists_bl_init,   width, label="BI", hatch="o")  
 
     else: 
         width = 0.2 
@@ -256,10 +256,10 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
         x3 = np.arange(len(value_lists_bl))
         x4 = np.arange(len(value_lists_bl_init))
 
-        ax.bar(x1+1-3*width/2, value_lists_raw,  width, label="RAW")    
-        ax.bar(x2+1-width/2,   value_lists_bp,   width, label="BP", hatch="//")  
-        ax.bar(x3+1+width/2,   value_lists_bl,   width, label="BL", hatch="//")  
-        ax.bar(x4+1+3*width/2, value_lists_bl,   width, label="BI", hatch="o")  
+        ax.bar(x1+1-3*width/2, value_lists_raw,       width, label="RAW")    
+        ax.bar(x2+1-width/2,   value_lists_bp,        width, label="BP", hatch="//")  
+        ax.bar(x3+1+width/2,   value_lists_bl,        width, label="BL", hatch="//")  
+        ax.bar(x4+1+3*width/2, value_lists_bl_init,   width, label="BI", hatch="o")  
                         
     plt.xticks(rotation=70)         
         
@@ -467,10 +467,10 @@ lable_map = {
 
 map_format_map = {
                 #  "empty-16-16":'o', # 1
-                #  "empty-32-32":'o', # 2
+                  "empty-32-32":'o', # 2
                  
-                #  "maze-32-32-2":'*', # 1
-                #  "maze-32-32-4":'p', # 1 
+                  "maze-32-32-2":'*', # 1
+                  "maze-32-32-4":'p', # 1 
                 #  "maze-128-128-2":'*', # 2
                 #  "maze-128-128-10":'o', # 3
                  
@@ -483,10 +483,10 @@ map_format_map = {
                   "ht_chantry":'H', # 3
                   "lak303d":'X', # 3
 
-                #  "random-32-32-20":'s', # 1
+                  "random-32-32-20":'s', # 1
                 #  "random-64-64-20":'o',  # 4
 
-                #  "room-32-32-4":'H', # 1
+                  "room-32-32-4":'H', # 1
                 #  "room-64-64-8":'s', # 2
                 #  "room-64-64-16":'*', # 4
 
