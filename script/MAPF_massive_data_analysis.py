@@ -1,8 +1,11 @@
+
 import matplotlib as mp
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import ticker
 import os
+
+from matplotlib.ticker import MaxNLocator
 
 def loadDataFromfile(file_path, map_name):
     data_list = list()
@@ -262,7 +265,7 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
         ax.bar(x4+1+3*width/2, value_lists_bl_init,   width, label="BI", hatch="o")  
                         
     plt.xticks(rotation=70)         
-        
+    plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))  # 整数刻度
     print(title + "/" + ylable + " / raw = " + str(np.mean(value_lists_raw)) + " bp = " + str(np.mean(value_lists_bp)) + " id = " + str(np.mean(value_lists_id)) + " bl = " + str(np.mean(value_lists_bl)) )
     
     plt.tick_params(axis='both', labelsize=14)
