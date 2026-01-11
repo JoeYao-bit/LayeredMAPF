@@ -50,7 +50,7 @@ def loadDataFromfile(file_path, map_name):
                 # if head_split[0] == 'ID':
                 #     continue
 
-                if head_split[0] == 'BL' or head_split[0] == "BP":
+                if head_split[0] == 'BL' or head_split[0] == "BP" or head_split[0] == "BLINIT":
                     new_data.get_subgraph_time_cost = float(splited_line[7])
                     new_data.decomposition_time_cost = float(splited_line[8])
                     if new_data.success:
@@ -117,7 +117,7 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
 
 
             if ylable == "loss_of_solvability":
-                if splited_method_name[0] != "BP" and splited_method_name[0] != "BL":
+                if splited_method_name[0] != "BP" and splited_method_name[0] != "BL" and splited_method_name[0] != "BLINIT":
                     continue
 
             if splited_method_name[0] == "ID" and splited_method_name[1] == "LaCAM":
@@ -134,7 +134,7 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
                 if len(x) != 0 and len(y) != 0:
                     while len(x) > len(y):
                         x.pop()
-                    plt.errorbar(x, y, fmt=method_marker_map2[splited_method_name[0]], markerfacecolor='none', markersize=14,label=splited_method_name[0], linewidth=2, elinewidth=4, capsize=4) 
+                    plt.errorbar(x, y, fmt=method_marker_map2[splited_method_name[0]], markerfacecolor='none', markersize=14,label=lable_map[splited_method_name[0]], linewidth=2, elinewidth=4, capsize=4) 
 
         plt.tick_params(axis='both', labelsize=18)
         formater = ticker.ScalarFormatter(useMathText=True) 
@@ -173,6 +173,7 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
     value_lists_raw = list()
     value_lists_bp = list()
     value_lists_bl = list()
+    value_lists_bl_init = list()
 
     for map_key, map_value in all_data_map.items():
         map_lists.append(map_key)
@@ -206,51 +207,79 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
 
             if head_split[0] == 'BL':
                 value_lists_bl.append(np.mean(value))
+
+            if head_split[0] == 'BLINIT':
+                value_lists_bl_init.append(np.mean(value))
+
     if ylable == "loss_of_solvability":
         width = 0.4                   
         x1 = np.arange(len(value_lists_bp))
         x2 = np.arange(len(value_lists_bl))
+        x3 = np.arange(len(value_lists_bl_init))
 
-        ax.bar(x1+1-width/2, value_lists_bp, width, label="BP", hatch="//")    
-        ax.bar(x2+1+width/2, value_lists_bl, width, label="BL", hatch="-")    
+        # ax.bar(x1+1-width/2, value_lists_bp, width, label="BP", hatch="//")    
+        # ax.bar(x2+1+width/2, value_lists_bl, width, label="BL", hatch="-")    
+
+        ax.bar(x1+1-width, value_lists_bp,      width, label="BP", hatch="//")    
+        ax.bar(x2+1,       value_lists_bl,      width, label="BL", hatch="-")   
+        ax.bar(x3+1+width, value_lists_bl_init, width, label="BI", hatch="o")   
+
     elif ylable == "max_subproblem_size" or ylable == "num_of_subproblem":
         width = 0.2                   
         x1 = np.arange(len(value_lists_id))
         x2 = np.arange(len(value_lists_bp))
         x3 = np.arange(len(value_lists_bl))
+        x4 = np.arange(len(value_lists_bl_init))
 
-        ax.bar(x1+1-width, value_lists_id, width, label="ID", hatch="-")    
-        ax.bar(x2+1      , value_lists_bp, width, label="BP", hatch="//")    
-        ax.bar(x3+1+width, value_lists_bl, width, label="BL", hatch="-")    
+        # ax.bar(x1+1-width, value_lists_id, width, label="ID", hatch="-")    
+        # ax.bar(x2+1      , value_lists_bp, width, label="BP", hatch="//")    
+        # ax.bar(x3+1+width, value_lists_bl, width, label="BL", hatch="-")    
             
+        ax.bar(x1+1-3*width/2, value_lists_id,      width, label="ID", hatch="-")    
+        ax.bar(x2+1-width/2,   value_lists_bp,      width, label="BP", hatch="//")    
+        ax.bar(x3+1+width/2,   value_lists_bl,      width, label="BL", hatch="-")    
+        ax.bar(x4+1+3*width/2, value_lists_bl_init, width, label="BI", hatch="o")    
+
     elif len(head_split) == 2 and head_split[1] == "CBS":
         width = 0.2 
         x1 = np.arange(len(value_lists_raw))
         x2 = np.arange(len(value_lists_id))
         x3 = np.arange(len(value_lists_bp))
         x4 = np.arange(len(value_lists_bl))
+        x5 = np.arange(len(value_lists_bl_init))
 
-        ax.bar(x1+1-3*width/2, value_lists_raw,  width, label="RAW")    
-        ax.bar(x2+1-  width/2, value_lists_id,   width, label="ID",      hatch="-")    
-        ax.bar(x3+1+  width/2, value_lists_bp,   width, label="BP", hatch="//")  
-        ax.bar(x4+1+3*width/2, value_lists_bl,   width, label="BL", hatch="//")  
+        # ax.bar(x1+1-3*width/2, value_lists_raw,  width, label="RAW")    
+        # ax.bar(x2+1-  width/2, value_lists_id,   width, label="ID",      hatch="-")    
+        # ax.bar(x3+1+  width/2, value_lists_bp,   width, label="BP", hatch="//")  
+        # ax.bar(x4+1+3*width/2, value_lists_bl,   width, label="BL", hatch="//")  
+
+        ax.bar(x1+1-2*width, value_lists_raw,       width, label="RAW")    
+        ax.bar(x2+1-width,   value_lists_id,        width, label="ID", hatch="-")    
+        ax.bar(x3+1,         value_lists_bp,        width, label="BP", hatch="//")  
+        ax.bar(x4+1+width,   value_lists_bl,        width, label="BL", hatch="//")  
+        ax.bar(x5+1+2*width, value_lists_bl_init,   width, label="BI", hatch="o")  
 
     else: 
         width = 0.2 
         x1 = np.arange(len(value_lists_raw))
         x2 = np.arange(len(value_lists_bp))
         x3 = np.arange(len(value_lists_bl))
+        x4 = np.arange(len(value_lists_bl_init))
 
-        ax.bar(x1+1-width, value_lists_raw,  width, label="RAW")    
-        ax.bar(x2+1        , value_lists_bp,   width, label="BP", hatch="//")  
-        ax.bar(x3+1+width, value_lists_bl,   width, label="BL", hatch="//")  
-                        
+        # ax.bar(x1+1-width, value_lists_raw,  width, label="RAW")    
+        # ax.bar(x2+1        , value_lists_bp,   width, label="BP", hatch="//")  
+        # ax.bar(x3+1+width, value_lists_bl,   width, label="BL", hatch="//")  
+        ax.bar(x1+1-3*width/2, value_lists_raw,       width, label="RAW")    
+        ax.bar(x2+1-width/2,   value_lists_bp,        width, label="BP", hatch="//")  
+        ax.bar(x3+1+width/2,   value_lists_bl,        width, label="BL", hatch="//")  
+        ax.bar(x4+1+3*width/2, value_lists_bl_init,   width, label="BI", hatch="o")                          
+
     plt.xticks(rotation=70)         
         
     print(title + "/" + ylable + " / raw = " + str(np.mean(value_lists_raw)) + " bp = " + str(np.mean(value_lists_bp)) + " id = " + str(np.mean(value_lists_id)) + " bl = " + str(np.mean(value_lists_bl)) )
     
     plt.tick_params(axis='both', labelsize=14)
-    plt.xticks(np.arange(1, len(map_format_list)+1, 1))
+    plt.xticks(np.arange(1, len(map_format_map)+1, 1))
     formater = ticker.ScalarFormatter(useMathText=True) 
     formater.set_scientific(True)
     formater.set_powerlimits((0,0))
@@ -436,54 +465,18 @@ method_marker_map2 = {
     "BP":'*-',
     "ID":'v-',
     "BL":"x-",
+    "BLINIT":"s-",
     name_of_get_subgraph:"o-.",
     name_of_decomposition:"*-."
 }
-map_format_list = [
-                 # "empty-16-16",
-                 # "empty-32-32",
-                 #"empty-48-48",
 
-                 # 2
-                 # "maze-32-32-2",
-                 # "maze-32-32-4",
-                 # "maze-128-128-2",
-                 #"maze-128-128-10",
-                 # 6
-                 # "den312d",
-                 "den520d",
-                 # 8
-                 #"Berlin_1_256",
-                 #"Paris_1_256",
-                 # 10
-                 # "ht_chantry",
-                 # "lak303d",
-                 # 12
-                 # "random-32-32-20",
-                 # "random-64-64-10",  # maximum 8s
-                 #"random-64-64-20",
-                 # 14
-                 # "room-32-32-4",
-                 # "room-64-64-8",
-                 # "room-64-64-16",
-                 # 17
-                 # "warehouse-10-20-10-2-1",
-                 # "warehouse-10-20-10-2-2",
-                 # "warehouse-20-40-10-2-1",
-                 # "warehouse-20-40-10-2-2",
-                 # 21
-                 # "Boston_0_256",
-                 # "lt_gallowstemplar_n",
-                 #"ost003d",
-                 
-                #"Boston_2_256",
-                #"Sydney_2_256", 
-                #"AR0044SR", 
-                #"AR0203SR", 
-                #"AR0072SR",
-                #"Denver_2_256"
-
-]
+lable_map = {
+    "RAW":"RAW",
+    "BP":"BP",
+    "ID":"ID",
+    "BL":"BL",
+    "BLINIT":"BI",
+}
 
 map_format_map = {
                 #  "empty-16-16":'o',
