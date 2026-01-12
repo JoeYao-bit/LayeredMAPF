@@ -180,8 +180,8 @@ int main() {
             //  {MAPFTestConfig_empty_48_48,     20, 60, 10, 10}, // 60, 10, 10 // 20, 2, 2 // in pub
             //  {MAPFTestConfig_Berlin_1_256,    20, 80, 10, 10}, // 80, 10, 10 // 20, 2, 2 // in pub
 
-            //{MAPFTestConfig_ost003d,         20, 100, 10, 10},// 100, 10, 10 // 20, 2, 2// in pub
-            //{MAPFTestConfig_AR0044SR,        20, 150, 10, 10}, // 150, 10, 10  // 20, 2, 2 // in pub
+            // {MAPFTestConfig_ost003d,         20, 100, 10, 10},// 100, 10, 10 // 20, 2, 2// in pub
+            // {MAPFTestConfig_AR0044SR,        20, 150, 10, 10}, // 150, 10, 10  // 20, 2, 2 // in pub
 
             // {MAPFTestConfig_AR0203SR,        20, 40, 5, 5}, // 40, 5, 5   // 20, 2, 2 // in pub
             // {MAPFTestConfig_den520d,         20, 45, 5, 5}, // 45, 5, 5   // 20, 2, 2 // in pub
