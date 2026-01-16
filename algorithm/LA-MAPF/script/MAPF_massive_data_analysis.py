@@ -276,7 +276,7 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
 
     plt.xticks(rotation=70)         
         
-    print(title + "/" + ylable + " / raw = " + str(np.mean(value_lists_raw)) + " bp = " + str(np.mean(value_lists_bp)) + " id = " + str(np.mean(value_lists_id)) + " bl = " + str(np.mean(value_lists_bl)) )
+    print(title + "/" + ylable + " / raw = " + str(np.mean(value_lists_raw)) + " bp = " + str(np.mean(value_lists_bp)) + " id = " + str(np.mean(value_lists_id)) + " bl = " + str(np.mean(value_lists_bl)) + " bl_init = " + str(np.mean(value_lists_bl_init)) )
     
     plt.tick_params(axis='both', labelsize=14)
     plt.xticks(np.arange(1, len(map_format_map)+1, 1))

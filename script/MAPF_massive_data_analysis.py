@@ -266,7 +266,7 @@ def drawSummaryOfMap(all_data_map, xlable, ylable, title, is_percentage=False):
                         
     plt.xticks(rotation=70)         
     plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))  # 整数刻度
-    print(title + "/" + ylable + " / raw = " + str(np.mean(value_lists_raw)) + " bp = " + str(np.mean(value_lists_bp)) + " id = " + str(np.mean(value_lists_id)) + " bl = " + str(np.mean(value_lists_bl)) )
+    print(title + "/" + ylable + " / raw = " + str(np.mean(value_lists_raw)) + " bp = " + str(np.mean(value_lists_bp)) + " id = " + str(np.mean(value_lists_id)) + " bl = " + str(np.mean(value_lists_bl)) + " bl_init = " + str(np.mean(value_lists_bl_init)) )
     
     plt.tick_params(axis='both', labelsize=14)
     #plt.xticks(np.arange(1, len(map_format_list)+1, 1))
@@ -472,8 +472,8 @@ map_format_map = {
                 #  "empty-16-16":'o', # 1
                   "empty-32-32":'o', # 2
                  
-                  "maze-32-32-2":'*', # 1
-                  "maze-32-32-4":'p', # 1 
+                #  "maze-32-32-2":'*', # 1
+                #  "maze-32-32-4":'p', # 1 
                 #  "maze-128-128-2":'*', # 2
                 #  "maze-128-128-10":'o', # 3
                  
@@ -489,18 +489,18 @@ map_format_map = {
                   "random-32-32-20":'s', # 1
                 #  "random-64-64-20":'o',  # 4
 
-                  "room-32-32-4":'H', # 1
+                #  "room-32-32-4":'H', # 1
                 #  "room-64-64-8":'s', # 2
                 #  "room-64-64-16":'*', # 4
 
                   "warehouse-10-20-10-2-1":'H', # 2
                 #  ####
                   "warehouse-10-20-10-2-2":'p', # 4
-                  "warehouse-20-40-10-2-1":'s', # 4
+                #  "warehouse-20-40-10-2-1":'s', # 4
                   "warehouse-20-40-10-2-2":'H', # 4
                  
                  "Boston_0_256":'X', # 4 
-                  "lt_gallowstemplar_n":'P', # 4
+                #  "lt_gallowstemplar_n":'P', # 4
                   "ost003d":'<' # 4
 
 }

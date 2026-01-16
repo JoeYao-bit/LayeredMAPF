@@ -181,14 +181,14 @@ def drawSummary(all_map_data, value_type):
 
 
 
-step_fmt = {3:"x-", 4:"o-.", 5:"^--"}    
+step_fmt = {3:"x-", 4:"o-", 5:"^--"}    
 
 level_flag_map = {3:"Bipartition", 4:"Bipartition", 5:"Break loops"}
     
 data_path_dir = '../test/test_data/decomposition/'
 all_map_name = [
                 # "empty-16-16",
-                # "empty-32-32",
+                 "empty-32-32",
                 
                 # "maze-32-32-2",
                 # "maze-32-32-4",
@@ -206,7 +206,7 @@ all_map_name = [
                 
                 # "random-64-64-10",
                 # "random-64-64-20",
-                # "random-32-32-20",
+                 "random-32-32-20",
                 
                 # "room-64-64-16",
                 # "room-64-64-8",
