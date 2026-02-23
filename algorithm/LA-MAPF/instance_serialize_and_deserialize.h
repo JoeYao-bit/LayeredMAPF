@@ -26,6 +26,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             instances_.clear();
             strs_.clear();
             std::string line;
+            int id=0;
             while(getline(is, line)) {
                 std::string copy_of_line = line;
 
@@ -34,9 +35,9 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
                 std::pair<AgentPtr<N>, InstanceOrient<N> > temp_pair = {nullptr, {Pose<int, N>(), Pose<int, N>()}};
                 if(strs[0] == "Circle") {
-                    temp_pair = CircleAgent<N>::deserialize(line, dim);
+                    temp_pair = CircleAgent<N>::deserialize(line, id, dim);
                 } else if(strs[0] == "Block_2D") {
-                    temp_pair = BlockAgent_2D::deserialize(line, dim);
+                    temp_pair = BlockAgent_2D::deserialize(line, id, dim);
                 } else {
                     std::cout << "undefined agent type" << std::endl;
                     assert(0);
@@ -46,6 +47,8 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
                 agents_.push_back(temp_pair.first);
                 instances_.push_back(temp_pair.second);
                 strs_.push_back(line);
+
+                id++;
             }
             return true;
         }

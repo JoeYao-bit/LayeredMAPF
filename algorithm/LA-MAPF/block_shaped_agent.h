@@ -515,7 +515,25 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return {agent, {start_pose, target_pose}};
         }
 
+        static std::pair<AgentPtr<2>, InstanceOrient<2> > deserialize(const std::string& string, int id, DimensionLength* dim) {
+            std::vector<std::string> strs;
+            boost::split(strs, string, boost::is_any_of(" "), boost::token_compress_on);
+            assert(strs.size() == 11);
+            assert(strs[0] == "Block_2D");
+            Pointf<2> min_pt, max_pt;
+            min_pt[0] = atof(strs[1].c_str());
+            min_pt[1] = atof(strs[2].c_str());
 
+            max_pt[1] = atof(strs[4].c_str());
+            max_pt[0] = atof(strs[3].c_str());
+
+            auto agent = std::make_shared<BlockAgent_2D>(min_pt, max_pt, id, dim);
+
+            Pose<int, 2> start_pose ({atoi(strs[5].c_str()), atoi(strs[6].c_str())}, atoi(strs[7].c_str()));
+            Pose<int, 2> target_pose({atoi(strs[8].c_str()), atoi(strs[9].c_str())}, atoi(strs[10].c_str()));
+
+            return {agent, {start_pose, target_pose}};
+        }
 
 //        Pointfs<2> getPoseRotatedFans(const Pointi<2>& origin, const int& orient_start, const int& orient_end) const {
 //            Pointfs<2> pts = getRotatedFans(orient_start, orient_end), retv;
