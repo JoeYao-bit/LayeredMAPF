@@ -520,6 +520,8 @@ map_format_map = {
                 #   "AR0072SR":'<',
                 #  "Denver_2_256":'<'
 
+                "empty-32-32":"<"
+
 }
 
 

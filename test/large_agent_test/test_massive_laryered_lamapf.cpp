@@ -190,7 +190,9 @@ int main() {
             // {MAPFTestConfig_maze_128_128_10, 20, 60, 10, 10}, // 60, 10, 10 // 20, 2, 2 // in pub
 
             // {MAPFTestConfig_Boston_2_256,    20, 70, 10, 10}, // 70, 10, 10 // 20, 2, 2 // in pub
-             {MAPFTestConfig_Sydney_2_256,    20, 70, 10, 10},// 70, 10, 10 // 20, 2, 2 // in pub
+//             {MAPFTestConfig_Sydney_2_256,    20, 70, 10, 10},// 70, 10, 10 // 20, 2, 2 // in pub
+
+              {MAPFTestConfig_empty_32_32,     20, 30, 5, 5}, // 60, 10, 10 // 20, 2, 2 // in pub
 
             //{MAPFTestConfig_AR0072SR, 1, 30, 5, 5}, // 30, 5, 5
 

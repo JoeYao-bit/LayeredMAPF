@@ -183,7 +183,8 @@ level_flag_map = {3:"Bipartition", 4:"Bi-level", 5:"Break loops"}
 data_path_dir = '../../../test/test_data/large_agent_instance/'
 all_map_name = [
                 "empty-48-48",
-                
+                "empty-32-32",
+
                 # "maze-32-32-2",
                 # "maze-32-32-4",
                 "maze-128-128-10",
