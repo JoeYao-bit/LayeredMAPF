@@ -271,7 +271,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 //            const auto& rect = getPosedRectangle(pose, canvas.resolution_); // agents
 //            canvas.drawRectangleFloat(rect.first, rect.second, true, fill ? -1 : 1, color, 1.0);
             auto ptf = PoseIntToPtf(pose, dim_, canvas.resolution_);
-            std::cout << "ptf = " << ptf << std::endl;
+//            std::cout << "ptf = " << ptf << std::endl;
             drawOnCanvas(ptf, canvas, color, fill);
         }
 
@@ -478,7 +478,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         std::string serialize() const {
             std::stringstream ss;
-            ss << type_ << " " << id_ << " "
+            ss << type_ << " "
                << min_pt_[0] << " " << min_pt_[1] << " "
                << max_pt_[0] << " " << max_pt_[1] << " ";
             return ss.str();
@@ -486,7 +486,7 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         std::string serialize(const Pose<int, 2>& start_pose, const Pose<int, 2>& target_pose) const {
             std::stringstream ss;
-            ss << type_ << " " << id_ << " "
+            ss << type_ << " "
                << min_pt_[0] << " " << min_pt_[1] << " "
                << max_pt_[0] << " " << max_pt_[1] << " "
                << start_pose.pt_[0]  << " " << start_pose.pt_[1]  << " " << start_pose.orient_ << " "
@@ -494,26 +494,26 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return ss.str();
         }
 
-        static std::pair<AgentPtr<2>, InstanceOrient<2> > deserialize(const std::string& string, DimensionLength* dim) {
-            std::vector<std::string> strs;
-            boost::split(strs, string, boost::is_any_of(" "), boost::token_compress_on);
-            assert(strs.size() == 12);
-            assert(strs[0] == "Block_2D");
-            int id = atoi(strs[1].c_str());
-            Pointf<2> min_pt, max_pt;
-            min_pt[0] = atof(strs[2].c_str());
-            min_pt[1] = atof(strs[3].c_str());
-
-            max_pt[1] = atof(strs[5].c_str());
-            max_pt[0] = atof(strs[4].c_str());
-
-            auto agent = std::make_shared<BlockAgent_2D>(min_pt, max_pt, id, dim);
-
-            Pose<int, 2> start_pose ({atoi(strs[6].c_str()), atoi(strs[7].c_str())}, atoi(strs[8].c_str()));
-            Pose<int, 2> target_pose({atoi(strs[9].c_str()), atoi(strs[10].c_str())}, atoi(strs[11].c_str()));
-
-            return {agent, {start_pose, target_pose}};
-        }
+//        static std::pair<AgentPtr<2>, InstanceOrient<2> > deserialize(const std::string& string, DimensionLength* dim) {
+//            std::vector<std::string> strs;
+//            boost::split(strs, string, boost::is_any_of(" "), boost::token_compress_on);
+//            assert(strs.size() == 12);
+//            assert(strs[0] == "Block_2D");
+//            int id = atoi(strs[1].c_str());
+//            Pointf<2> min_pt, max_pt;
+//            min_pt[0] = atof(strs[2].c_str());
+//            min_pt[1] = atof(strs[3].c_str());
+//
+//            max_pt[1] = atof(strs[5].c_str());
+//            max_pt[0] = atof(strs[4].c_str());
+//
+//            auto agent = std::make_shared<BlockAgent_2D>(min_pt, max_pt, id, dim);
+//
+//            Pose<int, 2> start_pose ({atoi(strs[6].c_str()), atoi(strs[7].c_str())}, atoi(strs[8].c_str()));
+//            Pose<int, 2> target_pose({atoi(strs[9].c_str()), atoi(strs[10].c_str())}, atoi(strs[11].c_str()));
+//
+//            return {agent, {start_pose, target_pose}};
+//        }
 
         static std::pair<AgentPtr<2>, InstanceOrient<2> > deserialize(const std::string& string, int id, DimensionLength* dim) {
             std::vector<std::string> strs;

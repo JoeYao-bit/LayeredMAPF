@@ -185,15 +185,14 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
 
         std::string serialize() const {
             std::stringstream ss;
-            ss << this->type_ << " " << this->id_ << " "
-               << radius_ << " ";
+            ss << this->type_ << " " << radius_ << " ";
             return ss.str();
         }
 
         // serialize as a mapf problem
         std::string serialize(const Pose<int, N>& start_pose, const Pose<int, N>& target_pose) const {
             std::stringstream ss;
-            ss << this->type_ << " " << this->id_ << " "
+            ss << this->type_ << " "
                << radius_ << " ";
             for(int i=0; i<N; i++) {
                 ss << start_pose.pt_[i] << " ";
@@ -206,23 +205,23 @@ namespace freeNav::LayeredMAPF::LA_MAPF {
             return ss.str();
         }
 
-        static std::pair<AgentPtr<N>, InstanceOrient<N> > deserialize(const std::string& string, DimensionLength* dim) {
-            std::vector<std::string> strs;
-            boost::split(strs, string, boost::is_any_of(" "), boost::token_compress_on);
-            assert(strs.size() == 5 + 2*N);
-            int id = atoi(strs[1].c_str());
-            Pointi<N> start_pt, target_pt;
-            for(int i=0; i<N; i++) {
-                start_pt[i]  = atoi(strs[i+3].c_str());
-                target_pt[i] = atoi(strs[i+3 + N+1].c_str());
-            }
-
-            Pose<int, N> start_pose (start_pt,  atoi(strs[3 + N].c_str()));
-            Pose<int, N> target_pose(target_pt, atoi(strs[4 + 2*N].c_str()));
-
-            auto agent = std::make_shared<CircleAgent<N> >(atof(strs[2].c_str()), id, dim);
-            return {agent, {start_pose, target_pose}};
-        }
+//        static std::pair<AgentPtr<N>, InstanceOrient<N> > deserialize(const std::string& string, DimensionLength* dim) {
+//            std::vector<std::string> strs;
+//            boost::split(strs, string, boost::is_any_of(" "), boost::token_compress_on);
+//            assert(strs.size() == 5 + 2*N);
+//            int id = atoi(strs[1].c_str());
+//            Pointi<N> start_pt, target_pt;
+//            for(int i=0; i<N; i++) {
+//                start_pt[i]  = atoi(strs[i+3].c_str());
+//                target_pt[i] = atoi(strs[i+3 + N+1].c_str());
+//            }
+//
+//            Pose<int, N> start_pose (start_pt,  atoi(strs[3 + N].c_str()));
+//            Pose<int, N> target_pose(target_pt, atoi(strs[4 + 2*N].c_str()));
+//
+//            auto agent = std::make_shared<CircleAgent<N> >(atof(strs[2].c_str()), id, dim);
+//            return {agent, {start_pose, target_pose}};
+//        }
 
         static std::pair<AgentPtr<N>, InstanceOrient<N> > deserialize(const std::string& string, int id, DimensionLength* dim) {
             std::vector<std::string> strs;
