@@ -204,3 +204,7 @@ target_link_libraries(test_massive_laryered_lamapf freeNav-base lamapf_alg)
 add_executable(test_collision_predict
         test/large_agent_test/test_collision_predict.cpp)
 target_link_libraries(test_collision_predict freeNav-base lamapf_alg)
+
+add_executable(test_network_dismantling
+        test/test_network_dismantling.cpp)
+target_link_libraries(test_network_dismantling ${Boost_LIBRARIES})
