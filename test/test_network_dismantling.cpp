@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <queue>
+#include <unordered_set>
 #include <unordered_map>
 #include <algorithm>
 #include <climits>
@@ -13,21 +14,18 @@
 #include <boost/graph/breadth_first_search.hpp>
 #include <boost/graph/copy.hpp>
 
-
 using namespace std;
-//using namespace boost;
+using namespace boost;
 
-// 有向图定义，标准兼容写法
-typedef boost::adjacency_list<
-        boost::vecS,        // 出边容器
-        boost::vecS,        // 顶点容器
-        boost::directedS    // 有向图
+typedef adjacency_list<
+        vecS,
+        vecS,
+        directedS
 > Graph;
 
-// 基础类型萃取，杜绝 category 相关报错
-typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
-typedef boost::graph_traits<Graph>::edge_descriptor Edge;
-typedef boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
+typedef graph_traits<Graph>::vertex_descriptor Vertex;
+typedef graph_traits<Graph>::edge_descriptor Edge;
+typedef graph_traits<Graph>::out_edge_iterator OutEdgeIter;
 
 struct EdgeScore
 {
@@ -46,11 +44,10 @@ struct EdgeScore
     }
 };
 
-// BFS 仅在最大SCC内部沿有向边搜索最短路径
-int BfsShortestInGiant(const Graph& g, Vertex src, Vertex dst, const unordered_set<Vertex>& giant)
+int BfsShortestInGiant(const Graph& g, Vertex src, Vertex dst, const boost::unordered_set<Vertex>& giant)
 {
-    unordered_map<Vertex, int> dist;
-    queue<Vertex> q;
+    boost::unordered_map<Vertex, int> dist;
+    boost::queue<Vertex> q;
     dist[src] = 0;
     q.push(src);
 
@@ -75,7 +72,6 @@ int BfsShortestInGiant(const Graph& g, Vertex src, Vertex dst, const unordered_s
     return INT_MAX;
 }
 
-// 判断双向边：同时存在 u->v 与 v->u
 bool IsBiEdge(const Graph& g, Vertex u, Vertex v)
 {
     Edge e;
@@ -84,17 +80,24 @@ bool IsBiEdge(const Graph& g, Vertex u, Vertex v)
     return exist;
 }
 
-// 提取全局最大强连通分量
-unordered_set<Vertex> GetGiantSCC(const Graph& g)
+// 获取所有SCC，返回 顶点->分量ID、分量ID->顶点列表
+void GetAllSCC(const Graph& g, vector<int>& comp, boost::unordered_map<int, vector<Vertex>>& comp_map)
 {
-    vector<int> comp(num_vertices(g));
+    comp.assign(num_vertices(g), 0);
     strong_components(g, comp.data());
-
-    unordered_map<int, vector<Vertex>> comp_map;
+    comp_map.clear();
     for (Vertex v = 0; v < num_vertices(g); ++v)
     {
         comp_map[comp[v]].push_back(v);
     }
+}
+
+// 获取全局最大SCC集合
+boost::unordered_set<Vertex> GetGiantSCC(const Graph& g)
+{
+    vector<int> comp;
+    boost::unordered_map<int, vector<Vertex>> comp_map;
+    GetAllSCC(g, comp, comp_map);
 
     int max_cid = 0;
     size_t max_size = 0;
@@ -107,19 +110,27 @@ unordered_set<Vertex> GetGiantSCC(const Graph& g)
         }
     }
 
-    unordered_set<Vertex> giant;
+    boost::unordered_set<Vertex> giant;
     for (Vertex v : comp_map[max_cid])
         giant.insert(v);
     return giant;
 }
 
-// 仅对最大SCC内部边打分排序
-vector<EdgeScore> ScoreOnlyGiantEdges(const Graph& g, const unordered_set<Vertex>& giant)
+// 获取顶点u当前所属分量的大小
+size_t GetComponentSize(const Graph& g, Vertex u)
+{
+    vector<int> comp;
+    boost::unordered_map<int, vector<Vertex>> comp_map;
+    GetAllSCC(g, comp, comp_map);
+    int cid = comp[u];
+    return comp_map[cid].size();
+}
+
+vector<EdgeScore> ScoreOnlyGiantEdges(const Graph& g, const boost::unordered_set<Vertex>& giant)
 {
     vector<EdgeScore> edge_list;
-    unordered_map<Vertex, int> inner_out_cnt;
+    boost::unordered_map<Vertex, int> inner_out_cnt;
 
-    // 统计SCC内部出边数量
     for (Vertex u : giant)
     {
         int cnt = 0;
@@ -132,7 +143,6 @@ vector<EdgeScore> ScoreOnlyGiantEdges(const Graph& g, const unordered_set<Vertex
         inner_out_cnt[u] = cnt;
     }
 
-    // 遍历最大SCC内所有出边
     for (Vertex u : giant)
     {
         OutEdgeIter ei, ei_end;
@@ -159,49 +169,63 @@ vector<EdgeScore> ScoreOnlyGiantEdges(const Graph& g, const unordered_set<Vertex
     return edge_list;
 }
 
-// 标准ND贪心主循环
 void RunNetworkDismantling(Graph& g)
 {
     int iter = 0;
     while (true)
     {
         iter++;
-        unordered_set<Vertex> giant = GetGiantSCC(g);
+        boost::unordered_set<Vertex> giant = GetGiantSCC(g);
         size_t gscc_size = giant.size();
         if (gscc_size <= 1)
         {
             cout << "\n[Finish] All SCC size <= 1, total iter: " << iter << "\n";
             break;
         }
-        cout << "\nIter " << iter << " | Max SCC size = " << gscc_size << "\n";
+        cout << "\nIter " << iter << " | Current max SCC size = " << gscc_size << "\n";
 
         vector<EdgeScore> sorted_edges = ScoreOnlyGiantEdges(g, giant);
         bool cut_ok = false;
 
         for (const EdgeScore& e : sorted_edges)
         {
+            // 记录这条边所在分量原始大小
+            size_t origin_comp_size = GetComponentSize(g, e.u);
+
             Graph tempG;
             copy_graph(g, tempG);
             remove_edge(e.u, e.v, tempG);
 
-            unordered_set<Vertex> new_giant = GetGiantSCC(tempG);
-            if (new_giant.size() < gscc_size)
+            // 修复核心判断：不再对比全局最大，对比本条边所属分量的尺寸
+            size_t new_comp_size = GetComponentSize(tempG, e.u);
+            if (new_comp_size < origin_comp_size)
             {
                 g.swap(tempG);
                 cut_ok = true;
-                cout << "  Remove edge: " << e.u << " -> " << e.v << "\n";
+                cout << "  Remove edge: " << e.u << " -> " << e.v
+                     << " | Component shrank: " << origin_comp_size << " -> " << new_comp_size << "\n";
                 break;
             }
         }
         if (!cut_ok)
         {
-            cout << "[Stop] No edge can shrink max SCC\n";
+            cout << "[Stop] No edge can shrink any giant component\n";
             break;
         }
     }
 }
 
-// 测试用例1：单一有向大环
+// 测试用例：两个完全相同的最大SCC（复现你遇到的bug）
+void BuildTestGraph_TwoEqualMax(Graph& g)
+{
+    // 第一个4节点环 0,1,2,3
+    add_edge(0,1,g); add_edge(1,0,g);
+    add_edge(1,2,g); add_edge(2,3,g); add_edge(3,1,g);
+    // 第二个完全一样的4节点环 4,5,6,7，并列全局最大
+    add_edge(4,5,g); add_edge(5,4,g);
+    add_edge(5,6,g); add_edge(6,7,g); add_edge(7,5,g);
+}
+
 void BuildTestGraph1(Graph& g)
 {
     add_edge(0, 1, g);
@@ -211,19 +235,24 @@ void BuildTestGraph1(Graph& g)
     add_edge(3, 1, g);
 }
 
-// 测试用例2：多独立SCC，仅最大分量参与打分
 void BuildTestGraph2(Graph& g)
 {
-    // 最大SCC {0,1,2,3}
     add_edge(0, 1, g); add_edge(1, 0, g);
     add_edge(1, 2, g); add_edge(2, 3, g); add_edge(3, 1, g);
-    // 小二元环
     add_edge(4, 5, g); add_edge(5, 4, g);
     add_edge(6, 7, g); add_edge(7, 6, g);
 }
 
 int main()
 {
+    cout << "===== Test Case: Two equal largest SCC (bug reproduce & fix) ====\n";
+    {
+        Graph g;
+        BuildTestGraph_TwoEqualMax(g);
+        RunNetworkDismantling(g);
+    }
+
+    cout << "\n=========================================\n";
     cout << "===== Test Case 1: Single Giant SCC ====\n";
     {
         Graph g1;
@@ -232,7 +261,7 @@ int main()
     }
 
     cout << "\n=========================================\n";
-    cout << "===== Test Case 2: Multiple Separate SCC ====\n";
+    cout << "===== Test Case 2: Multiple small SCC ====\n";
     {
         Graph g2;
         BuildTestGraph2(g2);
