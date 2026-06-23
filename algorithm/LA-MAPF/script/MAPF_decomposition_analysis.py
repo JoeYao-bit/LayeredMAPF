@@ -7,6 +7,11 @@ import statistics
 
 #import seaborn as sns
 
+from matplotlib.font_manager import FontProperties
+
+font_path = '/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc'
+font_cn = FontProperties(fname=font_path, size=40)
+
 def loadDataFromfile(file_path):
     data_list = list()
     try:
@@ -128,7 +133,7 @@ def drawMethodMap(single_map_data, value_type, xlable):
         plt.ylim(0, 1)
 
     plt.legend(loc='best', fontsize = 18, ncol=1, handletextpad=.5, framealpha=0.5)
-    plt.xlabel(xlable, fontsize=16) # 横坐标标题
+    plt.xlabel(xlable,font_properties=font_cn,fontsize = 18) # 横坐标标题
     #plt.grid()
     plt.tight_layout()
     save_path = data_path_dir+'decomposition/'+value_type+'/'
@@ -245,16 +250,16 @@ for map_name in all_map_name:
     #break
     
 for single_map_data in all_single_data:
-    drawMethodMap(single_map_data, "time_cost", "Number of agents")
+    drawMethodMap(single_map_data, "time_cost", "机器人数量")
     
 for single_map_data in all_single_data:
-    drawMethodMap(single_map_data, "decomposition_rate", "Number of agents")
+    drawMethodMap(single_map_data, "decomposition_rate", "机器人数量")
     
 for single_map_data in all_single_data:
-    drawMethodMap(single_map_data, "memory_usage", "Number of agents")    
+    drawMethodMap(single_map_data, "memory_usage", "机器人数量")    
     
 for single_map_data in all_single_data:
-    drawMethodMap(single_map_data, "num_of_subproblem", "Number of agents")        
+    drawMethodMap(single_map_data, "num_of_subproblem", "机器人数量")        
     
 
 drawSummary(all_single_data, "time_cost")    

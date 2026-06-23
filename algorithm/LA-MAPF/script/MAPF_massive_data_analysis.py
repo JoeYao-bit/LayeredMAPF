@@ -4,6 +4,11 @@ import matplotlib.pyplot as plt
 from matplotlib import ticker
 import os
 
+from matplotlib.font_manager import FontProperties
+
+font_path = '/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc'
+font_cn = FontProperties(fname=font_path)
+
 def loadDataFromfile(file_path, map_name):
     data_list = list()
     #print("file=",file_path)
@@ -144,7 +149,7 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
         ax.yaxis.offsetText.set_fontsize(18)
         ax.yaxis.set_major_formatter(formater) 
         
-        plt.xlabel(xlable, fontsize=18) # 横坐标标题
+        plt.xlabel(xlable,font_properties=font_cn,fontsize=18) # 横坐标标题
         plt.legend(loc='best', fontsize=18) # 图例位置设置
 
         y_range = plt.ylim()      
@@ -700,25 +705,25 @@ for single_data in all_single_data:
 
 for method_key, method_value in all_method_time_cost_map.items(): 
     # # draw at each agent size
-    drawMethodMaps(all_method_time_cost_map[method_key], "Number of agents", "Time cost(s)", "time_cost/"+method_key)           
-    drawMethodMaps(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
-    drawMethodMaps(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
-    drawMethodMaps(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
-    drawMethodMaps(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)        
+    drawMethodMaps(all_method_time_cost_map[method_key], "机器人数量", "Time cost(s)", "time_cost/"+method_key)           
+    drawMethodMaps(all_method_memory_usage_map[method_key], "机器人数量", "Memory usage(MB)", "memory_usage/"+method_key)           
+    drawMethodMaps(all_method_total_cost_map[method_key], "机器人数量", "Sum of cost", "sum_of_cost/"+method_key)           
+    drawMethodMaps(all_method_makespan_map[method_key], "机器人数量", "Makespan", "makespan/"+method_key)           
+    drawMethodMaps(all_method_success_rate_map[method_key], "机器人数量", "Success rate", "success_rate/"+method_key)        
     
-    drawMethodMaps(all_method_max_subproblem_map[method_key], "Number of agents", "max_subproblem_size", "max_subproblem_size/"+method_key)        
-    drawMethodMaps(all_method_num_of_subproblem_map[method_key], "Number of agents", "num_of_subproblem", "num_of_subproblem/"+method_key)        
+    drawMethodMaps(all_method_max_subproblem_map[method_key], "机器人数量", "max_subproblem_size", "max_subproblem_size/"+method_key)        
+    drawMethodMaps(all_method_num_of_subproblem_map[method_key], "机器人数量", "num_of_subproblem", "num_of_subproblem/"+method_key)        
     drawMethodMaps(all_method_loss_of_solvability_map[method_key], "Loss of solvability(%)", "loss_of_solvability", "loss_of_solvability/"+method_key)        
 
     # # draw summary of maps
-    drawSummaryOfMap(all_method_time_cost_map[method_key], "Map index", "Time cost(s)", "time_cost/"+method_key)    
-    drawSummaryOfMap(all_method_memory_usage_map[method_key], "Map index", "Memory usage(MB)", "memory_usage/"+method_key)           
+    drawSummaryOfMap(all_method_time_cost_map[method_key], "地图索引", "Time cost(s)", "time_cost/"+method_key)    
+    drawSummaryOfMap(all_method_memory_usage_map[method_key], "地图索引", "Memory usage(MB)", "memory_usage/"+method_key)           
     # drawSummaryOfMap(all_method_total_cost_map[method_key], "Map index", "Sum of cost", "sum_of_cost/"+method_key)           
     # drawSummaryOfMap(all_method_makespan_map[method_key], "Map index", "Makespan", "makespan/"+method_key)           
-    drawSummaryOfMap(all_method_success_rate_map[method_key], "Map index", "Success rate", "success_rate/"+method_key)      
+    drawSummaryOfMap(all_method_success_rate_map[method_key], "地图索引", "Success rate", "success_rate/"+method_key)      
     
-    drawSummaryOfMap(all_method_max_subproblem_map[method_key], "Map index", "Max subproblem", "max_subproblem_size/"+method_key)           
-    drawSummaryOfMap(all_method_num_of_subproblem_map[method_key], "Map index", "Number of subproblems", "num_of_subproblem/"+method_key)
+    drawSummaryOfMap(all_method_max_subproblem_map[method_key], "地图索引", "Max subproblem", "max_subproblem_size/"+method_key)           
+    drawSummaryOfMap(all_method_num_of_subproblem_map[method_key], "地图索引", "Number of subproblems", "num_of_subproblem/"+method_key)
     
     # compute makespan and soc comparison when both success      
     # compareOnlySuccess(all_method_makespan_map[method_key], "Makespan", "RAW", "BL")

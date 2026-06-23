@@ -1,3 +1,15 @@
+# -*- coding: utf-8 -*-
+from matplotlib.font_manager import FontProperties
+import matplotlib.pyplot as plt
+
+font_path = '/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc'
+font_cn = FontProperties(fname=font_path)
+
+# 设置中文字体
+# plt.rcParams['font.sans-serif'] = ['WenQuanYi Zen Hei'] 
+
+# 解决负号显示为方块的问题
+#plt.rcParams['axes.unicode_minus'] = False
 
 import matplotlib as mp
 import numpy as np
@@ -149,7 +161,7 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
         ax.yaxis.offsetText.set_fontsize(18)
         ax.yaxis.set_major_formatter(formater) 
         
-        plt.xlabel(xlable, fontsize=18) # 横坐标标题
+        plt.xlabel(xlable, font_properties=font_cn, size=18) # 横坐标标题
         plt.legend(loc='best', fontsize=18) # 图例位置设置
 
         y_range = plt.ylim()      
@@ -166,7 +178,7 @@ def drawMethodMaps(all_data_map, xlable, ylable, title, is_percentage=False):
             print("Folder: " + save_path + " created")
             
         save_path = save_path + "/" + map_key
-        plt.savefig(save_path, dpi = 100, bbox_inches='tight')   
+        plt.savefig(save_path, dpi = 200, bbox_inches='tight')   
         plt.close()
         print("save path to " + save_path)
 
@@ -640,14 +652,14 @@ for single_data in all_single_data:
 
 for method_key, method_value in all_method_time_cost_map.items(): 
     # draw at each agent size
-    drawMethodMaps(all_method_time_cost_map[method_key], "Number of agents", "Time cost(s)", "time_cost/"+method_key)           
-    drawMethodMaps(all_method_memory_usage_map[method_key], "Number of agents", "Memory usage(MB)", "memory_usage/"+method_key)           
-    drawMethodMaps(all_method_total_cost_map[method_key], "Number of agents", "Sum of cost", "sum_of_cost/"+method_key)           
-    drawMethodMaps(all_method_makespan_map[method_key], "Number of agents", "Makespan", "makespan/"+method_key)           
-    drawMethodMaps(all_method_success_rate_map[method_key], "Number of agents", "Success rate", "success_rate/"+method_key)        
+    drawMethodMaps(all_method_time_cost_map[method_key], "机器人数量", "Time cost(s)", "time_cost/"+method_key)           
+    drawMethodMaps(all_method_memory_usage_map[method_key], "机器人数量", "Memory usage(MB)", "memory_usage/"+method_key)           
+    drawMethodMaps(all_method_total_cost_map[method_key], "机器人数量", "Sum of cost", "sum_of_cost/"+method_key)           
+    drawMethodMaps(all_method_makespan_map[method_key], "机器人数量", "Makespan", "makespan/"+method_key)           
+    drawMethodMaps(all_method_success_rate_map[method_key], "机器人数量", "Success rate", "success_rate/"+method_key)        
     
-    drawMethodMaps(all_method_max_subproblem_map[method_key], "Number of agents", "max_subproblem_size", "max_subproblem_size/"+method_key)        
-    drawMethodMaps(all_method_num_of_subproblem_map[method_key], "Number of agents", "num_of_subproblem", "num_of_subproblem/"+method_key)        
+    drawMethodMaps(all_method_max_subproblem_map[method_key], "机器人数量", "max_subproblem_size", "max_subproblem_size/"+method_key)        
+    drawMethodMaps(all_method_num_of_subproblem_map[method_key], "机器人数量", "num_of_subproblem", "num_of_subproblem/"+method_key)        
     drawMethodMaps(all_method_loss_of_solvability_map[method_key], "Loss of solvability(%)", "loss_of_solvability", "loss_of_solvability/"+method_key)        
 
     # # draw summary of maps
