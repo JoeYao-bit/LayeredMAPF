@@ -92,6 +92,7 @@ void compareLNSAndBiDecompose_LA_MAPF(const SingleMapTestConfig<2>& map_file, in
                                                                                  pre.agent_sub_graphs_,
                                                                                  pre.heuristic_tables_sat_,
                                                                                  pre.heuristic_tables_,
+                                                                                 true,
                                                                                  time_limit_s,
                                                                                  1e4,
                                                                                  300,
@@ -277,8 +278,8 @@ int main() {
 //    // ns / bi max subproblem size(decomposition rate) = 1(0.02) / 3(0.06)
 //    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_AR0044SR,         1000);
 //
-//    // ns / bi max subproblem size(decomposition rate) = 7(0.175) / 23(0.575)
-//    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_AR0203SR,         1000);
+    // ns / bi max subproblem size(decomposition rate) = 7(0.175) / 23(0.575)
+    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_AR0203SR,         1000);
 //
 //    // ns / bi max subproblem size(decomposition rate) = 1(0.0333333) / 1(0.0333333)
 //    compareLNSAndBiDecompose_LA_MAPF(MAPFTestConfig_AR0072SR,         1000);
@@ -288,7 +289,7 @@ int main() {
 
     // MAPFTestConfig_LargeOfficeEnvSecond
     // MAPFTestConfig_LargeOfficeEnv
-    singleDecompose_LA_MAPF(MAPFTestConfig_LargeOfficeEnv, 20);
+//    singleDecompose_LA_MAPF(MAPFTestConfig_LargeOfficeEnv, 20);
 
 }
 

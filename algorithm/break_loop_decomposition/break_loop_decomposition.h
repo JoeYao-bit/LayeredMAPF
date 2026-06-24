@@ -391,6 +391,27 @@ namespace freeNav::LayeredMAPF {
             return false;
         }
 
+        // score all edge in the largest loop,
+        // then pick the best edge of from the max level and break it
+        // if failed, pick the second best edge to break
+        // util all edge have been break
+        // as long as the agent in's loop is smaller,
+        // the break is success
+        bool breakMaxLoopByNetworkDismantling(const int& iter_count, int th_largest_level = 0, bool simple_avail = true) {
+            // 1, construct the solving order graph from all dependency paths
+            all_dependency_paths_;
+
+            // 2, score the largest loop in the graph
+
+            // 3, sort all edge with score
+
+            // 4, try break edge in the maximal loop in the order
+            // if success, return with true
+            // otherwise, try break the second best edge...
+
+            return false;
+
+        }
 
         // random pick an agent from the max level, avoid repeat and try to break it
         bool breakMaxLoopGreedy(const int& iter_count, int th_largest_level = 0, bool simple_avail = true) {

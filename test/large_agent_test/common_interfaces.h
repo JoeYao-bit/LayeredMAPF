@@ -312,6 +312,7 @@ std::string BREAKLOOP_LAMAPF(const std::vector<std::pair<Pose<int, N>, Pose<int,
             pre_dec->agent_sub_graphs_,
             pre_dec->heuristic_tables_sat_,
             pre_dec->heuristic_tables_,
+            true,
             time_limit);
 
     LAMAPF_Paths layered_paths;
